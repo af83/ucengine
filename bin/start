@@ -1,0 +1,5 @@
+#!/bin/sh
+
+export ENCRE_CONFIG_PATH="etc/encre.cfg"
+export ERL_LIBS="$HOME/lib/erlang/lib/"
+make run

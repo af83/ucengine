@@ -1,0 +1,1376 @@
+[
+        {
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1000",
+		"type": "twitter.hashtag.add",
+		"metadata": {
+		    "hashtag": "#sinek"
+		}
+	},
+        {
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "2000",
+		"type": "twitter.hashtag.add",
+		"metadata": {
+		    "hashtag": "#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "3000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Benjamin-Ludovic",
+			"text": "ML King and the law of diffusion @simonsinek #TED",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+        {
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "50000",
+		"type": "twitter.hashtag.add",
+		"metadata": {
+			"hashtag": "#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "59000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Luc-Antoine",
+			"text": "SIMON SINEK - Fitting In: Simon Sinek - Silobreaker http://bit.ly/8ZN25C TED",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "66000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Jean-Antoine",
+			"text": "RT @gentlemann: \"It's easy to take responsibility when things go right. Much harder when things go wrong.\" Simon Sinek @TED",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "87000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Anatole",
+			"text": "When we're nice to people, it's amazing how much they will go out of their way to help us. Such a simple idea so often forgotten. TED Simon Sinek",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "90000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Arnaud-Baptiste",
+			"text": "The law of diffusion of innovation -Simon Sinek http://on.ted.com/8dy9",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "99000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Romain-Romain",
+			"text": "!!! Simon Sinek's post is right on: How To Have A Revolution http://bit.ly/cf05R5 #annanapova",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "101000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Marc-Benjamin",
+			"text": "\"All great leaders are optimists. To inspire necessarily requires a positive outlook.\" Simon Sinek",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "120000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Louis-Antoine",
+			"text": "this post on social entrepreneurialism reminds me of simon sinek's golden circle (http://bit.ly/9mf1jy ): http://wapo.st/ciz5ou",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "121000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thomas-Louis",
+			"text": "simon sinek: how great leaders inspire action / start with \"why\" / golden circle / http://on.ted.com/8ed4 어제 킥오프땜 봤던 영상...볼수록 끄덕 끄덕 ~",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "129000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Antoine-Baptiste",
+			"text": "simon sinek's golden circle or how communicate on ideas",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "132000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Dominique-Pierre",
+			"text": "the golden circle - illuminating theory thanx @simonsinek",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "134000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Victor-Jean",
+			"text": "rt @cinmoid: @simonsinek loved your ted talk on the golden circle: http://bit.ly/aolcix",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "137000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thomas-Pierre",
+			"text": "extremely interesting video from @simonsinek on the \"why\" (golden circle) http://ow.ly/2uglm",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "138000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Emile-Pascal",
+			"text": "How great leaders inspire action: Simon Sinek - TED.com - little touchy feely but great examples thks @emiliii http://bit.ly/9DzfOY",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "141000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "David-Arnaud",
+			"text": "Just saw this. Wow! I'm inspired! Simon Sinek: How great leaders inspire action http://bit.ly/a9sZdH",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "147000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Arnaud-Thierry",
+			"text": "RT @albandiroux: \"A leader, first & foremost, is human. Only when we have the strength to show our vulnerability can we truly lead.\" - Simon Sinek",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "148000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Alexandre-Ludovic",
+			"text": "정말 멋진 강연이네요^^^RT @takata: [TED] 사이먼 시 넥. 위대한 리더들이 행동을 이끌어내는 법. (한글자막) Simon Sinek: How great leaders inspire acti... http://dw.am/LB2LB",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "151000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thierry-René",
+			"text": "Are You Willing To Strike Out? by @simonsinek http://bit.ly/da9qX2 #risk #success",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "163000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Jean-Arnaud",
+			"text": "On page 40 of 256 of Start with Why, by Simon Sinek http://bit.ly/9BWG4j",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "165000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Marc",
+			"text": "RT @potreool: how great leaders inspire action - Very thought-provoking TED talk from Simon Sinek on ‘How Great Leaders... http://tumblr.com/xmclme1hc",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "189000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Xavier-Jean",
+			"text": "Steve Jobs and Martin Luther King, such simple techniques, great to know, thanx Simon sinek",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "210000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Arnaud-David",
+			"text": "RT @potreool: how great leaders inspire action - Very thought-provoking TED talk from Simon Sinek on ‘How Great Leaders... http://tumblr.com/xmclme1hc",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "214000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thomas-Baptiste",
+			"text": "Simon Sinek: How great leaders inspire action | Video on TED.com http://bit.ly/cYZfZj",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "220000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Pascal-Luc",
+			"text": "the golden circle by great simon sinek: hello marketers! read more http://tinyurl.com/29uusca",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "229000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Benjamin-David",
+			"text": "the golden circle by my mentor simon sinek | betternetworker.com http://bit.ly/cltpao",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "252000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Marc-Pascal",
+			"text": "Martin L King is a great example of sharing ordeals, says sinek @ TED great watch",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "258000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thomas-Emile",
+			"text": "Why Do You Do What You Do? Here's Your Chance to Think About It ...: Evidently, the leadership guru Simon Sinek ha... http://bit.ly/96BK6s",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "273000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Pierre",
+			"text": "Job's Apple and Dell are alwas good examples, sinek makes his point clear as water. Great watch at TED.com",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "280000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Paul-René",
+			"text": "Twitter / Simon Sinek: @omfericit When I first he ... http://bit.ly/9fi5w9 ",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "299000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thierry-René",
+			"text": "RT @RamonGovea: \"A leader, first & foremost, is human. Only when we have the strength to show our vulnerability can we truly lead.\" - Simon Sinek",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "304000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Baptiste-Pascal",
+			"text": "Never figured out why Apple - steve jobs were selling so many products, sinek figured it out. Watch at TED",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "309000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thomas-Alexandre",
+			"text": "Sinek nailed why Steve Jobs at Apple sells so many devices: he sells dreams, not mp3 players",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "323000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "René-Rémi",
+			"text": "\"People don't buy what you do, people buy why you do it.\" Simon Sinek TED",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "325000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Paul-Marc",
+			"text": "TED talk Simon Sinek: Not What, But Why http://on.ted.com/8eWc Is verklaring voor #productfocus ipv #klantfocus: ratio versus gevoel!",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "335000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Arnaud-Alexandre",
+			"text": "RT @GOconsulting: [スピーチ][感動]Apple創業者である スティーブ・ジョブズの伝説のスピーチ#Apple #jobs（日本語字幕入り） http://bit.ly/8rtC81",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "344000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Louis-Marc",
+			"text": "RT @GOconsulting: [スピーチ][感動]Apple創業者であるス ティーブ・ジョブズの伝説のスピーチ#Apple #jobs（日本語字幕入り） http://bit.ly/8rtC81",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "349000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Victor-David",
+			"text": "Sinek proves his golden circle theory with Dr King and Apple's Steve Jobs, watch it on TED.com",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "360000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Marc-Anatole",
+			"text": "Comparison between Apple, Dell, Tivo communication policies, brilliant idea. Steves Jobs had it coming since the start #TED #sinek",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "369000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Romain-Nathanael",
+			"text": "Apple, Dell, Tivo, Jobs, M.L.King : he knows how to get to the point #TED #simonsinek",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "376000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "René-Emile",
+			"text": "New post: The \"Why\" I am in Travel (inspired by Simon Sinek's \"Start with Why\"): http://wp.me/pMzaV-lM #travel #memories #wow",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "331000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Marc-Nathanael",
+			"text": "Sinek at #TED : people don't buy what you do - people buy why you do it",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "333000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "David-David",
+			"text": "Live talk at TED, people won't buy what you do they'll buy why you do it",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "370000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Emile-Dominique",
+			"text": "He has got it right, people buy ideas, not mere products #simonsinek",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "404000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Baptiste-Pascal",
+			"text": "Start with the \"Why\" - Great video with Simon Sinek on how leaders inspire action http://bit.ly/dcDsbx",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "429000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Jean-Thierry",
+			"text": "Simon Sinek: How great leaders inspire action",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "433000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Paul-Thierry",
+			"text": "Simon Sinek mention Usain in his post maaad! @simonsinek http://sinekpartners.typepad.com/refocus/2010/08/better-is-better-than-best.html",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "448000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Luc-Luc",
+			"text": "RT @smalltown: Ever heard of Simon Sinek? He has written and commented for local and national press, including The New York... http://fb.me/MhxwpdLj",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "449000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Marc-Louis",
+			"text": "RT @dogatailt: I'm now looking for my \"Why\" thanks to @makata http://bit.ly/cTVoBL and Simon Sinek.| Great conf. Authentic = inside out.",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "450000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Luc-Romain",
+			"text": "Ägna dagens kafferast åt att Lyssna till Simon Sinek. 18 väl spenderade minuter. http://bit.ly/c2eG5F ",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "451000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Dominique-Baptiste",
+			"text": "sumakit ulo ko for 30 minutes. muntik ko na makalimutan yung Simon Sinek lecture... hay.... thank God tapos na.",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "452000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Louis-Christophe",
+			"text": "There are 2 ways to influence human behavior: manipulate it or inspire it. Simon Sinek (paraphrased)",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "469000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Nathanael-Benjamin",
+			"text": "The truth is always revealed eventually...always. So why not start with the truth in the first place? - Simon Sinek's \"Notes to Inspire\"",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "498000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Jean-Jean",
+			"text": "RT @cinmoid: @simonsinek LOVED your TED talk on the Golden Circle: http://bit.ly/aoLciX ",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "507000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Rémi-Benjamin",
+			"text": "People don't buy what you do, they buy why you do it- Simon Sinek- Brilliant, and true, I'm following this because it's true.",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "508000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thierry-Baptiste",
+			"text": "There is only one thing that separates those who challenge the status quo and those who embrace it: courage. - Simon Sinek",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "546000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Paul",
+			"text": "Simon Sinek - Leadership expert and author | Profile on TED.com http://t.co/NYwHtps @simonsinek",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "563000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Baptiste-Jean",
+			"text": "SIMON SINEK - Remember Why You Started: Simon Sinek | MySpace.com http://bit.ly/byG8xd ",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "579000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Anatole-Jean",
+			"text": "Simon Sinek's golden circle or how communicate on Ideas",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "584000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Arnaud-Nathanael",
+			"text": "Where did King and Jobs learn the golden circle ? So unfair #sinek #TED",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "621000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Alexandre-Marc",
+			"text": "Simon Sinek gives great insight into leadership and and inspiration. Highly recommended watching this one. ",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "622000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Louis-Victor",
+			"text": "RT @marinatr: Why-How-What #TED Simon Sinek spreekt over #leiderschap #marketing #inspiratie http://youtu.be/u4ZoJKF_VuA",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "627000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Victor",
+			"text": "Lots of people for Sinek @ TED",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "633000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Luc-Nathanael",
+			"text": "Didn't know the story of the Wright brothers vs Langley, so much more than planes @TED",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "649000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Pierre-Thomas",
+			"text": "Langley and the Wright brothers, good example of the golden circle by S.Sinek",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "652000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thierry-Christophe",
+			"text": "Remember Why You Started: Simon Sinek | Today's Player http://bit.ly/azVXOW",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "661000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Xavier-Anatole",
+			"text": "Start With Why: How Great Leaders Inspire Everyone To Take Action. Simon Sinek (9781591842804) | Whitcoulls http://t.co/HRbl6Sb",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "669000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Paul-Xavier",
+			"text": "Simon Sinek is a G. cc: @mannerly",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "673000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Pascal-Arnaud",
+			"text": "The Golden Circle by my Mentor Simon Sinek | BetterNetworker.com http://bit.ly/cLtPaO ",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "678000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Baptiste-Romain",
+			"text": "RT @camilai: Why-How-What #TED Simon Sinek spreekt over #leiderschap #marketing #inspiratie http://youtu.be/u4ZoJKF_VuA",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "709000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Luc",
+			"text": "The Why: Simon Sinek http://dld.bz/2gkA",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "716000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Antoine-Benjamin",
+			"text": "Simon Sinek gives great insight into leadership and and inspiration. Highly recommended watching this one. ",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "761000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Dominique-Pascal",
+			"text": "A great lesson of life by Simon Sinek. Everybody should listen to this. Live at TED.com",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "804000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thierry-Victor",
+			"text": "Simon Sinek - Leadership expert and author | Profile on TED.com http://t.co/NYwHtps @simonsinek",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "812000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thierry-Baptiste",
+			"text": "how great leaders inspire action - Very thought-provoking TED talk from Simon Sinek on ‘How Great Leaders... http://tumblr.com/xmclme1hc",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "830000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Dominique-Thomas",
+			"text": "Steve Jobs sells PC because he wants to change the world #TED @sinek",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "834000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Pierre-Emile",
+			"text": "Simon Sinek: How great leaders inspire action / Start with \"Why\" / Golden circle / http://on.ted.com/8eD4 어제 킥오프때 봤던 영상...볼수록 끄덕 끄덕 ~",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "856000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "David-Nathanael",
+			"text": "@Monica_Lacombe Offer your strengths to others & you'll be amazed how many people offer their strengths to you Simon Sinekhttp://ow.ly/2Vls2",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "870000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Rémi-Thomas",
+			"text": " @matiu lo que te hablé ayer: Simon Sinek \"Como los grandes líderes inspiran a la acción\" http://bit.ly/b6Ayg1 Cariños! nos leemos",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "874000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thomas-Louis",
+			"text": "Another beautiful day - have you seen this video by Simon Sinek yet? He will be at the TED Event Watch this video:",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "897000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Dominique-David",
+			"text": "\"There are leaders and there are those who lead\" - Simon Sinek http://j.mp/bmvBPP",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "900000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Paul-Antoine",
+			"text": "Simon Sinek: How great leaders inspire action http://on.ted.com/8eUF",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "905000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Dominique-Christophe",
+			"text": "The law of diffusion of innovation - Simon Sinek",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "921000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Jean",
+			"text": "how great leaders inspire action - Very thought-provoking TED talk from Simon Sinek on ‘How Great Leaders... http://tumblr.com/xmclme1hc",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "922000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Emile-Jean",
+			"text": "I'll eventually know how Steve Jobs and Matin Luther King did it !",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "923000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Pascal-David",
+			"text": "Sinek's Golden Circle, explained by Martin Luther King and Steve Jobs examples, go to TED.com now",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "945000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Paul-Alexandre",
+			"text": "The people in the world who make a real impact, the great leaders, are always completely honest -- always. -Simon Sinek http://bit.ly/dDq2j0",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "971000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Jean-Baptiste",
+			"text": "http://on.ted.com/8ePz OK folks. If you sell anything (thoughts or products) you should watch this. Simon Sinek nailed it!",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "975000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Pierre-David",
+			"text": "\"Hire people who believe what you believe.\" http://bit.ly/9x25bG Simon Sinek",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "978000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Emile-Jean",
+			"text": "ML King and the law of diffusion @simonsinek #TED",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "980000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Victor-Xavier",
+			"text": "Martin Luther King had dreams, not a plan #TED live",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "982000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Arnaud-Baptiste",
+			"text": "RT @dogatailt: I'm now looking for my \"Why\" thanks to @makata http://bit.ly/cTVoBL and Simon Sinek.| Great conf. Authentic = inside out.",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "983000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thierry-Jean",
+			"text": "King, Jobs, Dell, Tivo, communication explaine at TED talk",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "985000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Emile-Luc",
+			"text": "Martin L King is a great example of sharing ordeals, says sinek @ TED great watch",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "986000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Baptiste-Xavier",
+			"text": "Steve Jobs and Martin Luther King, such simple techniques, great to know, thanx Simon sinek",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "990000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Anatole-Alexandre",
+			"text": "Sineck proves his golden circle theory with Dr King and Apple's Steve Jobs, watch it on TED.com",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "993000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Dominique-Victor",
+			"text": "Where did King and Jobs learn the golden circle ? So unfair #TED",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "996000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Dominique-Marc",
+			"text": "Leading Edge Creative Ideas: Simon Sinek: How great leaders ... http://bit.ly/9YmEqn ",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "997000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Paul-Victor",
+			"text": "The truth is always revealed eventually...always. So why not start with the truth in the first place? Cf Simon Sinek",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1003000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Rémi-Romain",
+			"text": "Interesting TED talk from Simon Sinek. \"How Great Leaders Inspire Action\" http://bit.ly/asUk3l ",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1020000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Baptiste-Luc",
+			"text": "Learn #TED about Jobs, Dell, King and so many others, so true. #sinek",
+			"hashtags": "#sinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1038000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Jean-Benjamin",
+			"text": "M L communicated on ideas and dreams, not plans or products @simonsinek TED",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1043000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Thierry-Baptiste",
+			"text": "Simon Sinek on Martin Luther King: He gave the \"I have a dream-speech\" not the \"I have a plan-speech\". Watch Sinek on ted.com.",
+			"hashtags": "#simonsinek,#TED"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1044000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Pascal-Nathanael",
+			"text": "If you want to achieve anything in the world, you have to be comfortable with the fact that not everyone will like you. Simon Sinek",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1046000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Pierre",
+			"text": "This post on Social Entrepreneurialism looks familiar to Simon Sinek's Golden Circle (http://bit.ly/9Mf1Jy ): http://wapo.st/cIZ5OU",
+			"hashtags": "#simonsinek,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1072000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Victor-Marc",
+			"text": "Simon Sinek on Martin Luther King: He gave the \"I have a dream-speech\" not the \"I have a plan-speech\". Watch Sinek on ted.com.",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1081000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Baptiste-Rémi",
+			"text": "Great TED conference by Simon Sinek. GREAT LEADERS INSPIRE. What's the \"Why\" of your business? http://bit.ly/cRJUG5 via @tcdjules #supa10",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1082000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Emile-Rémi",
+			"text": "The golden circle - illuminating theory thanx @simonsinek",
+			"hashtags": "#TED,#sinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1084000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Ludovic-Emile",
+			"text": "For the record, I will steal that \"buy the idea\" line from Simon Sinek. http://bit.ly/a9sZdH Great @TED talk. @jeanb @simtrudy",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1085000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Anatole-Jean",
+			"text": "The Golden Circle by my Mentor Simon Sinek: Hello marketers! read more http://tinyurl.com/29uusca",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1099000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Antoine-Victor",
+			"text": "M L communicated on ideas and dreams, not plans or products @simonsinek TED",
+			"hashtags": "#TED,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1108000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Baptiste-Alexandre",
+			"text": "Extremely interesting conference from @simonsinek on the \"why\" http://ow.ly/2Uglm",
+			"hashtags": "#sinek,#simonsinek"
+		}
+	},
+	{
+		"from": "twitter",
+		"org": "af83",
+		"meeting": "agoroom",
+		"offset": "1109000",
+		"type": "twitter.tweet.new",
+		"metadata": {
+			"from": "Louis-Emile",
+			"text": "#TED conf with Simon Sinek just finished. Just great.",
+			"hashtags": "#simonsinek,#TED"
+		}
+	}
+]

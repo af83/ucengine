@@ -1,0 +1,56 @@
+[
+    {
+        "from": "root",
+        "offset": "0",
+        "type": "video.chapter.add",
+        "metadata": {
+            "text": "Leaders and communication",
+			"thumb": "/af83/images/agoroom/chapter_1.jpg"
+        }
+    },
+    {
+        "from": "root",
+        "offset": "117000",
+        "type": "video.chapter.add",
+        "metadata": {
+            "text": "The golden circle",
+			"thumb": "/af83/images/agoroom/chapter_2.jpg"
+        }
+    },
+    {
+        "from": "root",
+        "offset": "197000",
+        "type": "video.chapter.add",
+        "metadata": {
+            "text": "Great leaders",
+			"thumb": "/af83/images/agoroom/chapter_3.jpg"
+        }
+    },
+    {
+        "from": "root",
+        "offset": "337000",
+        "type": "video.chapter.add",
+        "metadata": {
+            "text": "people buy why you do it",
+			"thumb": "/af83/images/agoroom/chapter_4.jpg"
+        }
+    },
+    {
+        "from": "root",
+        "offset": "666000",
+        "type": "video.chapter.add",
+        "metadata": {
+            "text": "Convictions and marketshare",
+			"thumb": "/af83/images/agoroom/chapter_5.jpg"
+        }
+    },
+    {
+        "from": "root",
+        "offset": "915000",
+        "type": "video.chapter.add",
+        "metadata": {
+            "text": "M.L. King : dreams vs plans",
+			"thumb": "/af83/images/agoroom/chapter_6.jpg"
+        }
+    },
+]

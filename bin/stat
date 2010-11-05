@@ -1,0 +1,27 @@
+#/bin/sh
+
+set core=`cat src/core/*.erl | wc -l`
+set controllers=`cat src/controllers/*.erl | wc -l`
+set helpers=`cat src/helpers/*.erl | wc -l`
+set models=`cat src/models/*.erl | wc -l`
+set tests=`cat src/tests/*.erl | wc -l`
+
+echo -n "Core: "
+echo $core
+
+echo -n "Controllers: "
+echo $controllers
+
+echo -n "Helpers: "
+echo $helpers
+
+echo -n "Models: "
+echo $models
+
+echo -n "Tests: "
+echo $tests
+
+echo
+
+echo -n "Total: "
+echo "$core+$controllers+$helpers+$models+$tests" | bc

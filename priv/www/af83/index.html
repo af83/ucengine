@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+        <title>UCengine</title>
+        <link rel="icon" type="image/png" href="/images/favicon.png" />
+        <link rel="Shortcut Icon" href="/images/favicon.ico" type="image/x-icon" />
+        <link href="stylesheets/base.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="stylesheets/ui-lightness/jquery-ui-1.8.4.custom.css" media="screen" rel="stylesheet" type="text/css" />
+
+        <!-- Activity chart -->
+        <script type="text/javascript" src="../lib/raphael.js"></script>
+        <script type="text/javascript" src="../lib/g.raphael.js"></script>
+        <script type="text/javascript" src="../lib/g.bar.js"></script>
+
+        <script type="text/javascript" src="../lib/jquery-1.4.3.min.js"></script>
+        <script type="text/javascript" src="../lib/jquery-ui-1.8.4.custom.min.js"></script>
+        <script type="text/javascript" src="../lib/jquery.json-2.2.min.js"></script>
+        <script type="text/javascript" src="../lib/jquery.jsonp-2.1.2.min.js"></script>
+        <script type="text/javascript" src="../lib/jquery-twitter-plugin.js"></script>
+        <script type="text/javascript" src="../lib/ajaxupload.js"></script>
+
+        <!-- Whiteboard stuff: -->
+        <link type="text/css" rel="stylesheet" href="/whiteboard/painter.css"/>
+        <script type="text/javascript" src="/whiteboard/painter/cp_depends.js"></script>
+        <script type="text/javascript" src="/whiteboard/painter/excanvas.js"></script>
+        <script type="text/javascript" src="/whiteboard/painter/CanvasWidget.js"></script>
+        <script type="text/javascript" src="/whiteboard/painter/CanvasPainter.js"></script>
+        <script type="text/javascript" src="/whiteboard/painter/CPWidgets.js"></script>
+        <script type="text/javascript" src="/whiteboard/painter/CPAnimator.js"></script>
+        <script type="text/javascript" src="/whiteboard/painter/CPDrawing.js"></script>
+
+        <script type="text/javascript" src="javascripts/sammy/sammy-0.6.2.min.js"></script>
+        <script type="text/javascript" src="javascripts/sammy/plugins/sammy.nested_params-0.6.2.min.js"></script>
+        <script type="text/javascript" src="javascripts/sammy/plugins/sammy.form-0.6.2.min.js"></script>
+        <script type="text/javascript" src="javascripts/sammy/plugins/sammy.title-0.6.2.min.js"></script>
+        <script type="text/javascript" src="javascripts/sammy/plugins/sammy.mustache-0.6.2.min.js"></script>
+        <script type="text/javascript" src="../lib/jquery.tmpl.min.js"></script>
+
+        <script type="text/javascript" src="../lib/uce.js"></script>
+        <script type="text/javascript" src="javascripts/app.js"></script>
+        <script type="text/javascript" src="../lib/video.ui.js"></script>
+        <script type="text/javascript" src="../lib/whiteboard.ui.js"></script>
+        <script type="text/javascript" src="../lib/file.ui.js"></script>
+        <script type="text/javascript" src="../lib/replay.ui.js"></script>
+        <script type="text/javascript" src="../lib/search.ui.js"></script>
+        <script type="text/javascript" src="../lib/player.ui.js"></script>
+        <script type="text/javascript" src="../lib/activity.ui.js"></script>
+        <script type="text/javascript" src="../lib/results.ui.js"></script>
+        <script type="text/javascript" src="../lib/chat.ui.js"></script>
+
+        <script type="text/javascript">
+            $(document).ready(function() {
+               var app = $.sammy("#content", sammyapp);
+               app.run('#/');
+            });
+        </script>
+    </head>
+    <body>
+
+        <header>
+            <div class="page">
+                <ul>
+                    <li><a href="#/"><img src="images/logo.gif" style="vertical-align: middle;"/></a></li>
+                    <li id="logoPartner"></li>
+                </ul>
+            </div>
+        </header>
+
+        <nav>
+            <div class="page">
+                <ul>
+                    <li class="on"><a href="#/">Home</a></li>
+                    <li><a href="#/about">About</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div id="content"></div>
+
+        <footer>
+            <div class="page">
+                <p>(c) 2010 af83</p>
+            </div>
+        </footer>
+    </body>
+</html>

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+export ERL_LIBS="$ERL_LIB:$ENCRE_PATH:."
+
+BENCH=$1
+: ${BENCH:="simple"}
+
+echo "Scenario chosen: benchmarks/scenarii/$BENCH.xml"
+
+ulimit -n 300000
+mkdir -p benchmarks/results
+mkdir -p "benchmarks/results/$BENCH"
+tsung -f "benchmarks/scenarii/$BENCH.xml" -l "benchmarks/results/$BENCH/" start
