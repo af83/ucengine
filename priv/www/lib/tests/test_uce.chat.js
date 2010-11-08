@@ -56,6 +56,22 @@ test("destroy delete all elements", function() {
     equals($('#chat > *').size(), 0);
 });
 
+jackTest("add hashtag", function() {
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'push']);
+    jack.expect("ucemeeting.push")
+        .exactly("1 time")
+        .mock(function(eventname, metadata) {
+            equals(eventname, "twitter.hashtag.add");
+            equals(metadata.hashtag, "#pouet");
+            equals($('#chat').find('.col1 input[name="new-hashtag"]').val(), "");
+        });
+    $('#chat').chat({
+        ucemeeting: ucemeeting
+    });
+    $('#chat').find('.col1 input[name="new-hashtag"]').val("pouet");
+    $('#chat').find('.col1 form').submit();
+});
+
 module("uce.chat", {
     setup: function() {
         var that = this;

@@ -15,10 +15,9 @@ $.widget("uce.chat", {
                                  '<dl>' +
                                    '<dt>All (0)</dt>' +
                                  '</dl>' +
-                                 '<form action="" method="post">' +
+                                 '<form action="#/" method="post">' +
                                    '<p>' +
-                                     '<label for="hashtag">#</label>' +
-                                     '<input name="new-hashtag" size="14" />' +
+                                     '<label>#<input name="new-hashtag" size="14" /></label>' +
                                      '<input type="submit" value="OK" />' +
                                    '</p>' +
                                  '</form>' +
@@ -68,6 +67,14 @@ $.widget("uce.chat", {
             });
             this.options.ucemeeting.bind("twitter.tweet.new", function(event) {
                 that._handleTweet(event);
+            });
+            this.element.find('.col1 form').bind('submit', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var input = that.element.find('.col1 form input[name="new-hashtag"]');
+                var val = '#'+input.val();
+                input.val("");
+                that.options.ucemeeting.push("twitter.hashtag.add", {hashtag: val}, function() {});
             });
         }
     },
