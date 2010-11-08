@@ -14,15 +14,14 @@
       {{/has_error}}
 
       <form method="post" action="#/register">
-      
 	<p>
           <label for="email">Email <span>*</span></label>
-          <input type="text" id="email" name="email" />
+          <input type="email" id="email" name="email" required="required" />
 	</p>
       
 	<p>
           <label for="pseudo">Pseudo <span>*</span></label>
-          <input type="text" id="pseudo" name="nickname" />
+          <input type="text" id="pseudo" name="nickname" required="required" />
 	</p>
       
 	<p>
@@ -32,20 +31,19 @@
 	
 	<p>
           <label for="pwd1">Password <span>*</span></label>
-          <input type="password" id="pwd1" name="pwd1" />
+          <input type="password" id="pwd1" name="pwd1" required="required" />
 	</p>
 	<p>
           <label for="pwd2">Confirm password <span>*</span></label>
-          <input type="password" id="pwd2" name="pwd2" />
+          <input type="password" id="pwd2" name="pwd2" required="required"/>
 	</p>
 	
 	<p class='checkbox'>
-          <input type="checkbox" id="terms" name="terms" />
+          <input type="checkbox" id="terms" name="terms" required="required" />
           <label for="terms">I accept the <a href="#">terms and conditions</a> of UCengine</label>
 	</p>
       
 	<ul>
-          <li><input type="reset" value="Reset" /></li>
           <li><input type="submit" value="Register" /></li>
 	</ul>
       </form>

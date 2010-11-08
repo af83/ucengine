@@ -344,6 +344,14 @@
                         }
                     }
                 };
+            },
+            user: {
+                register: function(uid, auth, credential, metadata, callback) {
+                    put("/user/"+ uid, $.extend({}, {auth: auth, credential:credential, metadata:metadata}), function(err, result, xhr) {
+                        callback(err, result, xhr);
+                    });
+                    return this;
+                }
             }
         };
     }

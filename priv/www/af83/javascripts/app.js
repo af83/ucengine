@@ -100,7 +100,7 @@ function sammyapp() {
         });
     });
     this.post('#/user/login', function() {
-        var uid     = this.params['email'];
+        var uid      = this.params['email'];
         var nickname = uid;
         var password = this.params['password'];
         if (uid) {
@@ -161,7 +161,8 @@ function sammyapp() {
         this.title('Register');
         context.loadPage('templates/register.tpl');
     });
-    this.post('#/register', function() {
+
+    this.post('#/register', function(context) {
         errors = [];
         if (this.params['email'] == '') {
             errors.push("Email address required");
@@ -179,24 +180,24 @@ function sammyapp() {
             errors.push("Please accept the terms and conditions of UCengine");
         }
         if (errors.length > 0) {
-            loadPage(this, 'templates/register.tpl', {'errors': errors,
-                                                      'has_error': true});
+            context.loadPage('templates/register.tpl', {'errors': errors,
+                                                        'has_error': true});
         }
         else {
-            var user = new EncreUser(this.params['email'],
-                                     "password",
-                                     this.params['pwd1'],
-                                     {'nickname': this.params['nickname'],
-                                      'company': this.params['company']});
             var that = this;
-            user.create(
-                function() {
-                    that.redirect("#/");
-                },
-                function() {
-                    loadPage(this, 'templates/register.tpl', {'errors': ['Email conflict'],
-                                                              'has_error': true});
-                });
+            uce.user.register(this.params['email'],
+                              "password",
+                              this.params['pwd1'],
+                              {'nickname': this.params['nickname'],
+                               'company': this.params['company']},
+                              function(err, result) {
+                                  if (err) {
+                                      context.loadPage('templates/register.tpl', {'errors': ['Email conflict'],
+                                                                                  'has_error': true});
+                                      return;
+                                  }
+                                  that.redirect("#/");
+                              });
         }
     });
     this.before('#/admin', function() {
@@ -497,7 +498,7 @@ $.sammy("#meeting", function() {
             $('#whiteboard_content').whiteboard('option', {widget_color: false,
                                                            widget_linewidth: false}).whiteboard("hideControls");
         }
-        
+
         if (data == 'chat') {
             $('#chat_content').chat("toggleMode", "big");
         } else {
