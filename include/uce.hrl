@@ -9,6 +9,8 @@
 	  from,
 	  %% Type event : atom
 	  type,
+	  %% parent id
+	  parent = "",
 	  %% MetaData : list
 	  metadata = []}).
 

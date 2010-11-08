@@ -20,11 +20,12 @@ sort(Events, desc) ->
 	       Events).
 
 to_xml(#uce_event{id=Id,
-		    location=Location,
-		    from=From,
-		    type=Type,
-		    metadata=Metadata,
-		    datetime=Datetime}) ->
+		  location=Location,
+		  from=From,
+		  type=Type,
+		  metadata=Metadata,
+		  parent=Parent,
+		  datetime=Datetime}) ->
     XMLLocation = case Location of
 		      [Org, Meeting] ->
 			  [{org, Org}, {meeting, Meeting}];
@@ -33,25 +34,34 @@ to_xml(#uce_event{id=Id,
 		      [] ->
 			  []
 		  end,
+    XMLParent = case Parent of
+		    "" ->
+			[];
+		    _ ->
+			[{parent, Parent}]
+		end,
     xmerl:export_simple_element({event,
 				 [{'xsi:schemaLocation',
 				   ?BASE_URL ++ "/ucengine/" ++ ?UCE_SCHEMA_LOCATION},
 				  {xmlns, ?UCE_XMLNS},
 				  {type, Type},
-				  {datetime, integer_to_list(Datetime)}] ++ XMLLocation ++
-				  [{from, From},
-				   {id, Id}],
+				  {datetime, integer_to_list(Datetime)}] ++
+				     XMLLocation ++
+				     [{from, From},
+				      {id, Id}] ++
+				     XMLParent,
 				 [{metadata, lists:map(fun({Key, Value}) ->
 							       {list_to_atom(Key), [Value]}
 						       end,
 						       Metadata)}]}, xmerl_xml).
 
 to_json(#uce_event{id=Id,
-		     datetime=Datetime,
-		     location=Location,
-		     from=From,
-		     type=Type,
-		     metadata=Metadata}) ->
+		   datetime=Datetime,
+		   location=Location,
+		   from=From,
+		   type=Type,
+		   parent=Parent,
+		   metadata=Metadata}) ->
     JSONLocation = case Location of
 		       [Org, Meeting] ->
 			   [{"org", Org}, {"meeting", Meeting}];
@@ -60,11 +70,20 @@ to_json(#uce_event{id=Id,
 		       [] ->
 			   []
 		   end,
-    {struct, [{type, Type},
-	      {datetime, Datetime},
-	      {id, Id}] ++ JSONLocation ++
-	      [{from, From},
-	       {metadata, {struct, Metadata}}]};
+    JSONParent = case Parent of
+		     "" ->
+			 [];
+		     _ ->
+			 [{parent, Parent}]
+		 end,
+    {struct,
+     [{type, Type},
+      {datetime, Datetime},
+      {id, Id}] ++
+	 JSONLocation ++
+	 [{from, From}] ++
+	 JSONParent ++
+	 [{metadata, {struct, Metadata}}]};
 
 to_json(Events)
   when is_list(Events) ->
@@ -95,16 +114,17 @@ search(Events, Words) ->
 		 Events).
 
 from_json({struct, Event}) ->
-    case utils:get(Event, ["id", "datetime", "from", "org", "meeting", "type", "metadata"]) of 
+    case utils:get(Event, ["id", "datetime", "from", "org", "meeting", "type", "parent", "metadata"]) of 
 	{error, Reason} ->
 	    {error, Reason};
-	[Id, Datetime, From, Org, Meeting, Type, {struct, Metadata}] ->
+	[Id, Datetime, From, Org, Meeting, Type, Parent, {struct, Metadata}] ->
 	    #uce_event{id=Id,
-			 datetime=Datetime,
-			 from=From,
-			 location=[Org, Meeting],
-			 type=Type,
-			 metadata=Metadata}
+		       datetime=Datetime,
+		       from=From,
+		       location=[Org, Meeting],
+		       type=Type,
+		       parent=Parent,
+		       metadata=Metadata}
     end.
 
 feed(Path) ->

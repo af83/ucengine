@@ -19,6 +19,7 @@ class UCEngine
   def get(path, params, http = @http)
     params[:uid] = @uid if @uid
     params[:sid] = @sid if @sid
+    puts "/api/0.1/#{path}?#{UCEngine.encode(params)}"
     JSON.parse(http.get("/api/0.1/#{path}?#{UCEngine.encode(params)}").body)
   end
 
@@ -56,16 +57,16 @@ class UCEngine
         params[:_async] = "lp"
         params[:start] = 0 if !params[:start]
         while true
-
           begin
             events = get("/event/#{location.join("/")}", params, http)['result']
           rescue Timeout::Error
             retry
           rescue EOFError
+            puts "EOF"
             sleep 10
             retry
           end
-
+          puts events
           events.each do |event|
             yield event
           end
@@ -82,6 +83,10 @@ class UCEngine
       params["metadata[#{key}]"] = metadata[key]
     end
     put("/event/#{location.join("/")}", params)
+  end
+
+  def time
+    get("/time", Hash.new)['result'].to_i
   end
 
 end

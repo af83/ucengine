@@ -22,8 +22,9 @@ init() ->
 				       "count",
 				       "page",
 				       "order",
+				       "parent",
 				       "_async"],
-				      [required, '_', '_', '_', 0, infinity, infinity, 1, asc, "no"],
+				      [required, '_', '_', '_', 0, infinity, infinity, 1, asc, '_', "no"],
 				      [string,
 				       [string, atom],
 				       [string, atom],
@@ -33,6 +34,7 @@ init() ->
 				       [integer, atom],
 				       integer,
 				       atom,
+				       [string, atom],
 				       string]}]},
 	     
 	     #uce_route{method='PUT',
@@ -42,9 +44,9 @@ init() ->
 				      [required, required],
 				      [string, string]},
 				     {?MODULE, add,
-				      ["uid", "type", "metadata"],
-				      [required, required, []],
-				      [string, string, dictionary]}]}
+				      ["uid", "type", "parent", "metadata"],
+				      [required, required, "", []],
+				      [string, string, string, dictionary]}]}
 	    ]}.
 
 listen(Location, EUid, Search, Type, From, Socket) ->
@@ -59,8 +61,7 @@ listen(Location, EUid, Search, Type, From, Socket) ->
 			  JSONEvent = mochijson:encode({struct,
 							[{result,
 							  event_helpers:to_json(Event)}]}),
-			  yaws_api:stream_process_deliver_final_chunk(Socket, list_to_binary(JSONEvent)),
-			  
+			  yaws_api:stream_process_deliver_final_chunk(Socket, list_to_binary(JSONEvent)),			  
 			  ok
 		  end;
 	      {error, Reason} ->
@@ -94,7 +95,7 @@ list([], Match, Arg) ->
     ?MODULE:list(['_', '_'], Match, Arg);
 list([Org], Match, Arg) ->
     ?MODULE:list([Org, '_'], Match, Arg);
-list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Async], Arg) ->
+list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
     case uce_acl:check(EUid, "event", "add", [{"location", Location},
 						{"from", From}]) of
 	true ->
@@ -110,7 +111,7 @@ list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Async]
 			   _ ->
 			       string:tokens(Search, " ")
 		       end,
-	    case uce_event:list(Location, Keywords, From, Types, Start, End) of
+	    case uce_event:list(Location, Keywords, From, Types, Start, End, Parent) of
 		{error, Reason} ->
 		    {error, Reason};
 		[] ->
@@ -134,13 +135,14 @@ list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Async]
 	    {error, unauthorized}
     end.
 
-add(Location, [EUid, Type, Metadata], _) ->
+add(Location, [EUid, Type, Parent, Metadata], _) ->
     case uce_acl:check(EUid, "event", "add", [{"location", Location}, {"type", Type}]) of
 	true ->
 	    case uce_event:add(#uce_event{location=Location,
-					      from=EUid,
-					      type=Type,
-					      metadata=Metadata}) of
+					  from=EUid,
+					  type=Type,
+					  parent=Parent,
+					  metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
 		Id ->

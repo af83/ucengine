@@ -2,7 +2,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, list/6, last/3, last/2]).
+-export([add/1, get/1, list/7, last/3, last/2]).
 
 -include("uce.hrl").
 -include("models.hrl").
@@ -36,11 +36,11 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
 get(Id) ->
     ?DBMOD:get(Id).
 
-list(_, _, _, [], _, _) ->
+list(_, _, _, [], _, _, _) ->
     [];
-list(Location, Search, From, '_', Start, End) ->
-    ?MODULE:list(Location, Search, From, ['_'], Start, End);
-list(Location, Search, From, [Type|Tail] = Types, Start, End) ->
+list(Location, Search, From, '_', Start, End, Parent) ->
+    ?MODULE:list(Location, Search, From, ['_'], Start, End, Parent);
+list(Location, Search, From, [Type|Tail] = Types, Start, End, Parent) ->
     SearchEngine = ?SEARCH_ENGINE,
     if
 	SearchEngine /= undefined, Search /= '_' ->
@@ -72,8 +72,8 @@ list(Location, Search, From, [Type|Tail] = Types, Start, End) ->
 				  end
 				, Search);
 	true ->
-	    ?DBMOD:list(Location, Search, From, Type, Start, End) ++
-		?MODULE:list(Location, Search, From, Tail, Start, End)
+	    ?DBMOD:list(Location, Search, From, Type, Start, End, Parent) ++
+		?MODULE:list(Location, Search, From, Tail, Start, End, Parent)
     end.
 
 last(Location, Type) ->

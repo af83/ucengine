@@ -5,7 +5,7 @@
 -export([init/0,
 	 add/1,
 	 get/1,
-	 list/6]).
+	 list/7]).
 
 -include("uce.hrl").
 
@@ -35,15 +35,16 @@ get(Id) ->
 	    Event
     end.
 
-list(Location, Search, From, Type, Start, End) ->
+list(Location, Search, From, Type, Start, End, Parent) ->
     MatchObject = if
 		      Start == 0, End == infinity ->
 			  #uce_event{id='_',
-				       datetime='_',
-				       location=Location,
-				       from=From,
-				       type=Type,
-				       metadata='_'};
+				     datetime='_',
+				     location=Location,
+				     from=From,
+				     type=Type,
+				     parent=Parent,
+				     metadata='_'};
 		      
 		      true ->
 			  SelectLocation = case Location of
@@ -66,6 +67,12 @@ list(Location, Search, From, Type, Start, End) ->
 					   true ->
 					       Type
 				       end,			  
+			  SelectParent = if
+					   Parent == '_' ->
+					       '$7';
+					   true ->
+					       Parent
+				       end,
 			  Guard = if 
 				      Start /= 0, End /= infinity ->
 					  [{'>=', '$2', Start}, {'=<', '$2', End}];
@@ -80,13 +87,14 @@ list(Location, Search, From, Type, Start, End) ->
 					  []
 				  end,
 			  Match = #uce_event{id='$1',
-					       datetime='$2',
-					       location=SelectLocation,
-					       from=SelectFrom,
-					       type=SelectType,
-					       metadata='$7'},
+					     datetime='$2',
+					     location=SelectLocation,
+					     from=SelectFrom,
+					     type=SelectType,
+					     parent=SelectParent,
+					     metadata='$8'},
 			  Result = {{'uce_event', '$1','$2', SelectLocation,
-				     SelectFrom, SelectType, '$7'}},
+				     SelectFrom, SelectType, SelectParent, '$8'}},
 			  {Match, Guard, [Result]}
 		  end,
     Events = case MatchObject of
