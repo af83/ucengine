@@ -344,6 +344,17 @@
                         }
                     }
                 };
+            },
+            user: {
+                register: function(uid, auth, credential, metadata, callback) {
+                    put("/user/"+ uid, $.extend({}, {auth: auth, credential:credential, metadata:metadata}), function(err, result, xhr) {
+                        callback(err, result, xhr);
+                    });
+                    return this;
+                },
+                registerWithPassword: function(uid, credential, metadata, callback) {
+                    return this.register(uid, "password", credential, metadata, callback);
+                }
             }
         };
     }

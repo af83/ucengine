@@ -423,6 +423,26 @@ test("uce waiter", function() {
     waiter();waiter();waiter();waiter();
 });
 
+jackTest("register new user", function() {
+    stop();
+    addUceApiCall("post", "/api/0.1/user/test@example.net",  {auth: 'password', credential: 'mypwd', _method: 'put', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
+    uce.user.register('test@example.net', 'password', 'mypwd', {nickname: 'test'}, function(err, result) {
+        start();
+        equals(null, err);
+        same(result, {"result":"created"});
+    });
+});
+
+jackTest("register with password", function() {
+    stop();
+    addUceApiCall("post", "/api/0.1/user/test@example.net",  {auth: 'password', credential: 'mypwd', _method: 'put', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
+    uce.user.registerWithPassword('test@example.net', 'mypwd', {nickname: 'test'}, function(err, result) {
+        start();
+        equals(null, err);
+        same(result, {"result":"created"});
+    });
+});
+
 module("ucejs.replay",
        {
            setup:function() {
