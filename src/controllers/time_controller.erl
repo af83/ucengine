@@ -5,10 +5,9 @@
 -include("uce.hrl").
 
 init() ->
-    {time, [#uce_route{method='GET',
-			 regexp="/time",
-			 callbacks=[{?MODULE, get, [], [], []}]}
-	   ]}.
+    [#uce_route{method='GET',
+		regexp="/time",
+		callbacks=[{?MODULE, get, [], [], []}]}].
 
 get(_, _, _) ->
     json_helpers:json(utils:now()).

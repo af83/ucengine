@@ -89,7 +89,7 @@ call_handlers([{Module, Function, ParamsList, ParamsDefault, Types}|Tl], Query, 
 	    json_helpers:error(Reason);
 	{ok, Params} ->
 	    ?DEBUG("Call ~p:~p matching ~p with ~p~n", [Module, Function, Match, Params]),
-	    case Module:Function(Match, Params, Arg) of
+	    case catch Module:Function(Match, Params, Arg) of
 		{ok, continue} ->
 		    ?MODULE:call_handlers(Tl, Query, Match, Arg);
 		{error, Reason} ->

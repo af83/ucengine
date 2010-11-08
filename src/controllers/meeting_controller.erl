@@ -5,69 +5,75 @@
 -include("uce.hrl").
 
 init() ->
-	{meeting, [#uce_route{method='GET',
-				regexp="/meeting/([^/]+)/([^/]+)",
-				callbacks=[{?MODULE, list, [], [], []}]},
+    [#uce_route{module="Meetings",
+		method='GET',
+		regexp="/meeting/([^/]+)/([^/]+)",
+		callbacks=[{?MODULE, list, [], [], []}]},
+     
+     #uce_route{module="Meetings",
+		method='GET',
+		regexp="/meeting/([^/]+)/all/([^/]+)",
+		callbacks=[{?MODULE, get, [], [], []}]},
 		   
-		   #uce_route{method='GET',
-				regexp="/meeting/([^/]+)/all/([^/]+)",
-				callbacks=[{?MODULE, get, [], [], []}]},
-		   
-		   #uce_route{method='PUT',
-				regexp="/meeting/([^/]+)/all/([^/]+)",
-				callbacks=[{presence_controller, check,
-					    ["uid", "sid"],
-					    [required, required],
-					    [string, string]},
-					   {?MODULE, add,
-					    ["uid", "start", "end", "metadata"],
-					    [required, 0, ?NEVER_ENDING_MEETING, []],
-					    [string, integer, integer, dictionary]}]},
-
-		   #uce_route{method='POST',
-				regexp="/meeting/([^/]+)/all/([^/]+)",
-				callbacks=[{presence_controller, check,
-					    ["uid", "sid"],
-					    [required, required],
-					    [string, string]},
-					   {?MODULE, update,
-					    ["uid", "start", "end", "metadata"],
-					    [required, 0, ?NEVER_ENDING_MEETING, []],
-					    [string, integer, integer, dictionary]}]},
-
-		   #uce_route{method='PUT',
-				regexp="/meeting/([^/]+)/all/([^/]+)/roster/([^/]+)",
-				callbacks=[{presence_controller, check,
-					    ["uid", "sid"],
-					    [required, required],
-					    [string, string]},
-					   {?MODULE, join,
-					    ["uid"],
-					    [required],
-					    [string]}]},
-
-		  #uce_route{method='DELETE',
-			       regexp="/meeting/([^/]+)/all/([^/]+)/roster/([^/]+)",
-			       callbacks=[{presence_controller, check,
-					   ["uid", "sid"],
-					   [required, required],
-					   [string, string]},
-					  {?MODULE, leave,
-					   ["uid"],
-					   [required],
-					   [string]}]},
-		   
-		   #uce_route{method='GET',
-				regexp="/meeting/([^/]+)/all/([^/]+)/roster",
-				callbacks=[{presence_controller, check,
-					    ["uid", "sid"],
-					    [required, required],
-					    [string, string]},
-					   {?MODULE, roster,
-					    ["uid"],
-					    [required],
-					    [string]}]}
-                ]}.
+     #uce_route{module="Meetings",
+		method='PUT',
+		regexp="/meeting/([^/]+)/all/([^/]+)",
+		callbacks=[{presence_controller, check,
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string]},
+			   {?MODULE, add,
+			    ["uid", "start", "end", "metadata"],
+			    [required, 0, ?NEVER_ENDING_MEETING, []],
+			    [string, integer, integer, dictionary]}]},
+     
+     #uce_route{module="Meetings",
+		method='POST',
+		regexp="/meeting/([^/]+)/all/([^/]+)",
+		callbacks=[{presence_controller, check,
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string]},
+			   {?MODULE, update,
+			    ["uid", "start", "end", "metadata"],
+			    [required, 0, ?NEVER_ENDING_MEETING, []],
+			    [string, integer, integer, dictionary]}]},
+     
+     #uce_route{module="Roster",
+		method='PUT',
+		regexp="/meeting/([^/]+)/all/([^/]+)/roster/([^/]+)",
+		callbacks=[{presence_controller, check,
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string]},
+			   {?MODULE, join,
+			    ["uid"],
+			    [required],
+			    [string]}]},
+     
+     #uce_route{module="Roster",
+		method='DELETE',
+		regexp="/meeting/([^/]+)/all/([^/]+)/roster/([^/]+)",
+		callbacks=[{presence_controller, check,
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string]},
+			   {?MODULE, leave,
+			    ["uid"],
+			    [required],
+			    [string]}]},
+     
+     #uce_route{module="Roster",
+		method='GET',
+		regexp="/meeting/([^/]+)/all/([^/]+)/roster",
+		callbacks=[{presence_controller, check,
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string]},
+			   {?MODULE, roster,
+			    ["uid"],
+			    [required],
+			    [string]}]}].
 
 add(Location, [EUid, Start, End, Metadata], _) ->
     case uce_acl:check(EUid, "meeting", "add", [{"location", Location}]) of
@@ -126,8 +132,8 @@ join([Org, Meeting, To], [EUid], _)
 		    {error, Reason};
 		ok ->
 		    uce_event:add(#uce_event{type="internal.meeting.join",
-						 location=[Org, Meeting],
-						 from=To}),
+					     location=[Org, Meeting],
+					     from=To}),
 		    json_helpers:ok()
 	    end;
 	false ->
@@ -143,8 +149,8 @@ leave([Org, Meeting, To], [EUid], _)
 		    {error, Reason};
 		ok ->
 		    uce_event:add(#uce_event{type="internal.meeting.leave",
-						 location=[Org, Meeting],
-						 from=To}),
+					     location=[Org, Meeting],
+					     from=To}),
 		    json_helpers:ok()
 	    end;
 	false ->

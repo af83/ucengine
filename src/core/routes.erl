@@ -7,7 +7,7 @@
 -include("uce.hrl").
 
 -export([start_link/0,
-	 set/2,
+	 set/1,
 	 get/2,
 	 init/1,
 	 list/0,
@@ -22,8 +22,8 @@ start_link() ->
 
 get(Method, Path) ->
     gen_server:call(?MODULE, {get, Method, Path}).
-set(Module, #uce_route{} = Route) ->
-    gen_server:cast(?MODULE, {set, Module, Route}).
+set(#uce_route{} = Route) ->
+    gen_server:cast(?MODULE, {set, Route}).
 
 list() ->
     gen_server:call(?MODULE, list).
@@ -33,7 +33,7 @@ init([]) ->
 
 route(_, _, []) ->
     {error, not_found};
-route(Method, Path, [{PathRoute, _, #uce_route{method=RouteMethod, callbacks=Handlers}}|Routes]) ->
+route(Method, Path, [{PathRoute, #uce_route{method=RouteMethod, callbacks=Handlers}}|Routes]) ->
     if
 	Method == RouteMethod ->
 	    case re:run(Path, PathRoute, [{capture, all, list}]) of
@@ -50,16 +50,16 @@ route(Method, Path, [{PathRoute, _, #uce_route{method=RouteMethod, callbacks=Han
 handle_call({get, Method, Path}, _From, DB) ->
     {reply, route(Method, Path, ets:tab2list(DB)), DB};
 handle_call(list, _From, DB) ->
-    Routes = lists:map(fun({_, Module, #uce_route{} = Route}) ->
-			       {Module, Route}
+    Routes = lists:map(fun({_, #uce_route{} = Route}) ->
+			       Route
 		       end,
 		       ets:tab2list(DB)),
     {reply, lists:keysort(1, Routes), DB}.
 
-handle_cast({set, Module, #uce_route{regexp=Regexp} = Route}, DB) ->
+handle_cast({set, #uce_route{regexp=Regexp} = Route}, DB) ->
     case re:compile("^" ++ Regexp ++ "/?$ ?") of
 	{ok, CompiledRegexp} ->
-	    ets:insert(DB, {CompiledRegexp, Module, Route});
+	    ets:insert(DB, {CompiledRegexp, Route});
 	{error, Reason} ->
 	    ?DEBUG("Error during route compilation '~p': ~p~n", [Route, Reason])
     end,

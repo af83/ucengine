@@ -6,24 +6,25 @@
 
 
 init() ->
-    {presence, [#uce_route{method='PUT',
-			     regexp="/presence/([^/]+)/([^/]+)",
-			     callbacks=[{?MODULE, add,
-					 ["auth", "credential", "metadata"],
-					 [required, "", []],
-					 [string, string, dictionary]}]},
-		
-		#uce_route{method='DELETE',
-			     regexp="/presence/([^/]+)/([^/]+)/([^/]+)",
-			     callbacks=[{presence_controller, check,
-					 ["uid", "sid"],
-					 [required, required],
-					 [string, string]},
-					{?MODULE, delete,
-					 ["uid", "sid"],
-					 [required, required],
-					 [string, string]}]}
-	       ]}.
+    [#uce_route{module="Presence",
+		method='PUT',
+		regexp="/presence/([^/]+)/([^/]+)",
+		callbacks=[{?MODULE, add,
+			    ["auth", "credential", "metadata"],
+			    [required, "", []],
+			    [string, string, dictionary]}]},
+     
+     #uce_route{module="Presence",
+		method='DELETE',
+		regexp="/presence/([^/]+)/([^/]+)/([^/]+)",
+		callbacks=[{presence_controller, check,
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string]},
+			   {?MODULE, delete,
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string]}]}].
 
 add([Org, EUid], [Auth, Credential, Metadata], _)
   when is_list(Auth) ->

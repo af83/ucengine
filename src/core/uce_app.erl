@@ -108,8 +108,7 @@ setup_root() ->
 
 setup_controllers() ->
     lists:foreach(fun(Controller) ->
-			  {Name, Routes} = Controller:init(),
-			  [routes:set(Name, Route) || Route <- Routes]
+			  [routes:set(Route) || Route <- Controller:init()]
 		  end,
 		  [user_controller,
 		   presence_controller,
