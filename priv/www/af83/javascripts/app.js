@@ -141,21 +141,14 @@ function sammyapp() {
         var meeting = presence.presence.org("af83").meeting(this.params['name']);
 	var offset = this.params['offset'];
         meeting.join(function(err, result, xhr) {})
-               .get(function(err, result, xhr) {
-	     var c = {meeting_name  : result.name,
-		      meeting_desc  : result.metadata.description,
-		      meeting_users : ""};
-		    context.loadPage('templates/meeting.tpl', c, function() {
-			$.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, offset]);
-		    });
+            .get(function(err, result, xhr) {
+	        var c = {meeting_name  : result.name,
+		         meeting_desc  : result.metadata.description,
+		         meeting_users : ""};
+		context.loadPage('templates/meeting.tpl', c, function() {
+		    $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, offset]);
 		});
-     });
-    this.get('#/account', function(context) {
-        this.title('My account');
-        presence.presence.getUser(presence.user.uid,
-                                function(result) {
-                                    context.loadPage('templates/account.tpl', result);
-                                });
+	    });
     });
     this.get('#/register', function(context) {
         this.title('Register');
@@ -367,7 +360,7 @@ function sammyapp() {
             // add admin menu
             //$('<li><a href="#/admin">Admin</a></li>').insertBefore($("nav .page ul:first  li:last"));
         //}, function(user) {});
-        $('header .page').append('<p><span>'+ presence.user +'</span> <a href="#/user/logout">Sign out</a> <a href="#/account">My account</a></p>');
+        $('header .page').append('<p><span>'+ presence.user +'</span> <a href="#/user/logout">Sign out</a></p>');
         this.app.runRoute('get', '#/');
     });
     this.bind('disconnect', function(event, data) {
@@ -375,6 +368,9 @@ function sammyapp() {
         presence.user    = null;
         $('header .page p').remove();
     });
+    this.notFound = function() {
+        this.setLocation('#/');
+    };
 };
 
 $.sammy("#meeting", function() {
