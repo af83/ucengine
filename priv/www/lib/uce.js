@@ -351,6 +351,9 @@
                         callback(err, result, xhr);
                     });
                     return this;
+                },
+                registerWithPassword: function(uid, credential, metadata, callback) {
+                    return this.register(uid, "password", credential, metadata, callback);
                 }
             }
         };

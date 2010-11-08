@@ -185,19 +185,18 @@ function sammyapp() {
         }
         else {
             var that = this;
-            uce.user.register(this.params['email'],
-                              "password",
-                              this.params['pwd1'],
-                              {'nickname': this.params['nickname'],
-                               'company': this.params['company']},
-                              function(err, result) {
-                                  if (err) {
-                                      context.loadPage('templates/register.tpl', {'errors': ['Email conflict'],
-                                                                                  'has_error': true});
-                                      return;
-                                  }
-                                  that.redirect("#/");
-                              });
+            uce.user.registerWithPassword(this.params['email'],
+                                          this.params['pwd1'],
+                                          {'nickname': this.params['nickname'],
+                                           'company': this.params['company']},
+                                          function(err, result) {
+                                              if (err) {
+                                                  context.loadPage('templates/register.tpl', {'errors': ['Email conflict'],
+                                                                                              'has_error': true});
+                                                  return;
+                                              }
+                                              that.redirect("#/");
+                                          });
         }
     });
     this.before('#/admin', function() {
