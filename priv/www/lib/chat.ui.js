@@ -167,10 +167,9 @@ $.widget("uce.chat", {
         this.element.find('.block.tweets dl dt:eq(0)').text('All ('+ this._nbTweets +')');
         $.each(hashtags, function(i, hashtag) {
             that._tweets[hashtag].push(event);
-            //that._tweets[hashtag][0].text(hashtag +" ("+ (that._tweets[hashtag].length - 1) +")");
             var index = that._hashTagOrder[hashtag] + 1;
             var text = hashtag +" ("+ (that._tweets[hashtag].length - 1) +")";
-            that.element.find('ul.ui-chat-screen1 > li:eq('+ (index) +')').text(text);
+            that.element.find('ul.ui-chat-screen1 > li:eq('+ (index) +') a').text(text);
             that.element.find('.block.tweets dl dt:eq('+ (index) +')').text(text);
         });
         this._tweets.all.push(event);
