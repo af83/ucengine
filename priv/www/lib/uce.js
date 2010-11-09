@@ -94,7 +94,7 @@
                  * Close user presence
                  */
                 close: function(org, callback) {
-                    del("/presence/" + org + "/" + presence.uid +"/"+ presence.sid, {}, callback);
+                    del("/presence/" + org + "/" + presence.uid +"/"+ presence.sid, presence, callback);
                     return this;
                 }
             },
