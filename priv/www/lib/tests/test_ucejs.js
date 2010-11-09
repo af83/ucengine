@@ -546,3 +546,23 @@ test("can jump to a specific datetime in the past", function() {
         equals(called, 4);
     }, 4500);
 });
+
+module("ucejs.acl",
+       {
+           setup:function() {
+
+           },
+           teardown: function() {
+
+           }
+       });
+
+jackTest("user.can", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/user/otheruid/acl/all/all", {"uid": "myuid", "sid": "mysid"}, 200, '{"result":"true"}');
+    uce.attachPresence(Factories.createPresence()).user.can("otheruid", "all", "all", function(err, result) {
+        start();
+        equals(err, null);
+        same(result, true);
+    });
+});

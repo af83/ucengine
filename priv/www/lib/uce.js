@@ -358,6 +358,14 @@
                 },
                 registerWithPassword: function(uid, credential, metadata, callback) {
                     return this.register(uid, "password", credential, metadata, callback);
+                },
+                can: function(uid, object, action, callback) {
+                    get("/user/"+ uid +"/acl/"+ action +"/"+ action, presence, function(err, result) {
+                        if (err)
+                            callback(err, result);
+                        else
+                            callback(err, result.result === "true");
+                    });
                 }
             }
         };
