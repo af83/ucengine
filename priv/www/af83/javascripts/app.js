@@ -389,12 +389,12 @@ $.sammy("#meeting", function() {
         var start = parseInt(result_meeting.start_date, 10) + parseInt(offset, 10);
         $('#files').file({ucemeeting: meeting});
 
-        var chat = $('#chat_content').chat({ucemeeting: meeting});
-        widgets.push({name: 'chat', widget: chat});
-
         $('#video #video_player').player({src: result_meeting.metadata.video,
                                           start: result_meeting.start_date});
         widgets.push({name: 'video', widget: $('#video #video_player')});
+
+        var chat = $('#chat_content').chat({ucemeeting: meeting});
+        widgets.push({name: 'chat', widget: chat});
         $('#whiteboard #whiteboard_content').whiteboard({ucemeeting       : meeting,
                                                          widget_transport : false,
                                                          width            : 318,
