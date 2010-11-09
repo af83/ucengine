@@ -185,12 +185,16 @@
                                     _start : function(p, callback) {
                                         var that = this;
                                         this.xhr = startLongPolling(p, function(err, result, xhr) {
-                                            var events = result.result;
-                                            $.each(events, function(index, event) {
-                                                callback(err, event, xhr);
-                                            });
-                                            if (events.length > 0) {
-                                                p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                            try {
+                                                var events = result.result;
+                                                $.each(events, function(index, event) {
+                                                    callback(err, event, xhr);
+                                                });
+                                                if (events.length > 0) {
+                                                    p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                                }
+                                            } catch (e) {
+                                                // do nothing
                                             }
                                             if (that.aborted === false && one_shot !== true) {
                                                 that._start(p, callback);
