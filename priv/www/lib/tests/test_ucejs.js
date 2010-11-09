@@ -94,6 +94,16 @@ jackTest("can close a presence", function() {
     });
 });
 
+jackTest("can list users", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/user/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myuser"}, {}]}');
+    uce.attachPresence(Factories.createPresence()).users.get(function(err, r, xhr) {
+        start();
+        equals(err, null);
+        equals(r.length, 2);
+    });
+});
+
 jackTest("can get org", function() {
     stop();
     addUceApiCall("get", "/api/0.1/org/myorg", {}, 200, '{"result" : {"name": "myorg"}}');

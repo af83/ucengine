@@ -376,6 +376,12 @@
                             callback(err, result.result === "true");
                     });
                 }
+            },
+            users: {
+                get: function(callback) {
+                    getCollection("/user/", presence, callback);
+                    return this;
+                }
             }
         };
     }
