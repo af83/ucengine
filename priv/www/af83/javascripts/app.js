@@ -132,21 +132,20 @@ function sammyapp() {
             context.redirect('#/');
         });
     });
-    this.get('#/meeting/:name/:offset', function(context) {
+    this.get('#/meeting/:name', function(context) {
         if (!presence.presence)
         {
             return this.redirect('#/');
         }
         this.title('Meeting');
         var meeting = presence.presence.org("af83").meeting(this.params['name']);
-	var offset = this.params['offset'];
         meeting.join(function(err, result, xhr) {})
             .get(function(err, result, xhr) {
 	        var c = {meeting_name  : result.name,
 		         meeting_desc  : result.metadata.description,
 		         meeting_users : ""};
 		context.loadPage('templates/meeting.tpl', c, function() {
-		    $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, offset]);
+		    $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result]);
 		});
 	    });
     });
@@ -385,8 +384,7 @@ $.sammy("#meeting", function() {
     this.bind('connect-meeting', function(e, data) {
         meeting = data[0];
         result_meeting = data[1];
-	offset = data[2];
-        var start = parseInt(result_meeting.start_date, 10) + parseInt(offset, 10);
+        var start = parseInt(result_meeting.start_date, 10);
         $('#files').file({ucemeeting: meeting});
 
         $('#video #video_player').player({src: result_meeting.metadata.video,
@@ -501,7 +499,7 @@ $.sammy("#meeting", function() {
         }
     });
 
-    this.get('#/meeting/:name/:offset', function(context) {});
+    this.get('#/meeting/:name', function(context) {});
 
     this.notFound = function() {
         // destroy all
