@@ -484,8 +484,8 @@ $.sammy("#meeting", function() {
         }
 
         if (data == 'whiteboard') {
-            $('whiteboard_content').whiteboard('option', {widget_color: true,
-                                                          widget_linewidth: true}).whiteboard("showControls");
+            $('#whiteboard_content').whiteboard('option', {widget_color: true,
+                                                           widget_linewidth: true}).whiteboard("showControls");
 
         } else {
             $('#whiteboard_content').whiteboard('option', {widget_color: false,
