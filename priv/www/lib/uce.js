@@ -6,8 +6,8 @@
 (function(g) {
     var VERSION = "0.1";
 
-    function getCollection(url, callback) {
-        get(url, {}, function(err, result, xhr) {
+    function getCollection(url, params, callback) {
+        get(url, params, function(err, result, xhr) {
             if (!err) {
                 callback(err, result.result, xhr);
             } else {
@@ -342,12 +342,21 @@
                         upcoming: function(callback) {
                             return this._getCollection("upcoming", callback);
                         },
+                        all: function(callback) {
+                            return this._getCollection("all", callback);
+                        },
                         _getCollection: function(type, callback) {
-                            getCollection("/meeting/"+ orgname +"/"+ type, callback);
+                            getCollection("/meeting/"+ orgname +"/"+ type, {}, callback);
                             return this;
                         }
                     }
                 };
+            },
+            orgs : {
+                get: function(callback) {
+                    getCollection("/org/", presence, callback);
+                    return this;
+                }
             },
             user: {
                 register: function(uid, auth, credential, metadata, callback) {

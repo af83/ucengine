@@ -104,6 +104,16 @@ jackTest("can get org", function() {
     });
 });
 
+jackTest("can list orgs", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/org/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myorg"}]}');
+    uce.attachPresence(Factories.createPresence()).orgs.get(function(err, r, xhr) {
+        start();
+        equals(err, null);
+        equals(r.length, 1);
+    });
+});
+
 jackTest("can get opened meetings", function() {
     stop();
     addUceApiCall("get", "/api/0.1/meeting/myorg/opened", {}, 200, '{"result" : [{"name": "mymeeting"}, {}]}');
@@ -128,6 +138,16 @@ jackTest("can get upcoming meetings", function() {
     stop();
     addUceApiCall("get", "/api/0.1/meeting/myorg/upcoming", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
     uce.org("myorg").meetings.upcoming(function(err, r, xhr) {
+        start();
+        equals(err, null);
+        equals(r.length, 1);
+    });
+});
+
+jackTest("can get all meetings", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/meeting/myorg/all", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    uce.org("myorg").meetings.all(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.length, 1);
