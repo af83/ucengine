@@ -2,3 +2,4 @@ ebin/*
 tmp/*
 ucengine.access
 *.log
+datas/*
