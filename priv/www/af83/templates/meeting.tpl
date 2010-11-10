@@ -17,9 +17,6 @@
 
     <section class="main">
         <article id="chat">
-            <div class="block-header">
-                <h2>Twitter</h2>
-            </div>
             <div class="block-content" id="chat_content"></div>
         </article>
 

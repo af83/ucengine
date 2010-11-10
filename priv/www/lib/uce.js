@@ -141,6 +141,18 @@
                                 del("/meeting/" + orgname + "/all/" + meetingname + "/roster/" + presence.uid, presence, callback);
                                 return this;
                             },
+			    getRoster: function(callback) {
+				
+				get("/meeting/" + orgname + "/all/" + meetingname + "/roster",
+				    presence,
+				    function (err, result, xhr) {
+					if (!callback) {
+					    return;
+					}
+					var roster = result.result;
+					callback(err, roster, xhr);
+				    });
+			    },
                             /**
                              * Push event
                              */

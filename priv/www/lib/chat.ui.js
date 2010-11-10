@@ -1,12 +1,32 @@
 $.widget("uce.chat", {
     options: {
-        ucemeeting: null
+        ucemeeting: null,
+	title: "Conversations",
+	lang: "fr"
     },
     _create: function() {
         this.element.addClass('ui-chat');
+	var title = $('<div>').attr('class', 'block-header');
+	$('<h2>').text(this.options.title).appendTo(title);
+	var languages = '<ul>' +
+                          '<li><a href="#" class="on"><img src="images/flag/fr.png" alt="FR" /></a></li>' +
+                          '<li><a href="#"><img src="images/flag/en.png" alt="EN" /></a></li>' +
+                          '<li><a href="#"><img src="images/flag/it.png" alt="IT" /></a></li>' +
+                        '</ul>';
+	$.tmpl(languages, {}).appendTo(title);
+	title.appendTo(this.element);
+
         var template = '<div class="ui-chat-big">' +
                          '<div class="block-content">' +
                            '<div class="col1">' +
+                             '<div class="block chat">' +
+                               '<div class="block-header">' +
+                                 '<h3>Chatroom</h3>' +
+                               '</div>' +
+                                '<div class="block-content">' +
+                                 '<dl></dl>' +
+                                '</div>' +
+	                     '</div>' +
                              '<div class="block tweets">' +
                                '<div class="block-header">' +
                                  '<h3>Tweets</h3>' +
@@ -32,7 +52,10 @@ $.widget("uce.chat", {
                          '</div>' +
                        '</div>' +
                         '<div class="ui-chat-minus"><div class="block-content screen_1">' +
-                          '<ul class="ui-chat-screen1">' +
+                          '<div class="block-header">' +
+                             '<h3>Chatroom</h3>' +
+                          '</div>' +
+                          '<ul class="ui-chat-screen1 tweets">' +
                             '<li><a href="#"></a></li>' +
                           '</ul>' +
                           '<div class="ui-chat-screen2">' +
@@ -45,10 +68,17 @@ $.widget("uce.chat", {
         $.tmpl(template, {}).appendTo(this.element);
         var that = this;
         this._hashTagOrder = {};
+	this._conversations = {};
+	this._conversations[this.options.lang] = [];
+	this._current_language=this.options.lang;
+
         var all = this.element.find('.ui-chat-minus .ui-chat-screen1 li a');
         // back button
         this.element.find('.ui-chat-minus .ui-chat-screen2 .ui-chat-back').click(function() {
             that._showScreen(1);
+        });
+        this.element.find('.ui-chat-big .block.chat .block-header').click(function() {
+            that._showChat(that._current_language);
         });
         all.hide().click(function(e) {
             e.preventDefault();
@@ -62,12 +92,27 @@ $.widget("uce.chat", {
         if (this.options.ucemeeting) {
             this._nbTweets = 0;
             this._tweets = {all: [all]};
+	    this._roster = [];
             this.options.ucemeeting.bind("twitter.hashtag.add", function(event) {
                 that._handleHashTag(event);
             });
             this.options.ucemeeting.bind("twitter.tweet.new", function(event) {
                 that._handleTweet(event);
             });
+
+	    this.options.ucemeeting.bind("internal.roster.add", function(event) {
+		that._handleJoin(event);
+	    });
+	    this.options.ucemeeting.bind("internal.roster.delete", function(event) {
+		that._handleLeave(event);
+	    });
+	    this.options.ucemeeting.bind("chat.translation.new", function(event) {
+		that._handleMessage(event);
+	    });
+	    this.options.ucemeeting.bind("chat.message.new", function(event) {
+		that._handleMessage(event);
+	    });
+
             this.element.find('.col1 form').bind('submit', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -76,6 +121,8 @@ $.widget("uce.chat", {
                 input.val("");
                 that.options.ucemeeting.push("twitter.hashtag.add", {hashtag: val}, function() {});
             });
+
+	    this._showChat(this.options.lang);
         }
     },
 
@@ -138,7 +185,7 @@ $.widget("uce.chat", {
                 e.preventDefault();
                 that._showTweets(hashtag);
             });
-            li.insertAfter(this.element.find('ul.ui-chat-screen1 > li:eq('+ (index) +')'));
+            li.insertAfter(this.element.find('ul.ui-chat-screen1.tweets > li:eq('+ (index) +')'));
             dt.insertAfter(this.element.find('.block.tweets dl dt:eq('+ (index) +')'));
             this._tweets[hashtag] = [li.find('a')];
 	}
@@ -164,13 +211,13 @@ $.widget("uce.chat", {
         var hashtags = event.metadata.hashtags.toLowerCase().split(',');
         var that = this;
         this._tweets.all[0].show().text('Tweets ('+ ++this._nbTweets +')');
-        this.element.find('.block.tweets dl dt:eq(0)').text('All ('+ this._nbTweets +')');
+        this.element.find('.block.tweets dl dt:eq(0)').text('Tweets ('+ this._nbTweets +')');
         $.each(hashtags, function(i, hashtag) {
             that._tweets[hashtag].push(event);
             //that._tweets[hashtag][0].text(hashtag +" ("+ (that._tweets[hashtag].length - 1) +")");
             var index = that._hashTagOrder[hashtag] + 1;
             var text = hashtag +" ("+ (that._tweets[hashtag].length - 1) +")";
-            that.element.find('ul.ui-chat-screen1 > li:eq('+ (index) +')').text(text);
+            that.element.find('ul.ui-chat-screen1.tweets > li:eq('+ (index) +')').text(text);
             that.element.find('.block.tweets dl dt:eq('+ (index) +')').text(text);
         });
         this._tweets.all.push(event);
@@ -202,6 +249,77 @@ $.widget("uce.chat", {
             });
             this._showScreen(2);
         }
+    },
+
+    _showChat: function(chatLang) {
+	var that = this;
+        if (this.element.data('mode') == 'big') {
+            this.element.find('.ui-chat-big .block.msg').empty();
+            $.each(this._conversations[chatLang], function(i, item) {
+                if (i == 0)
+                    return;
+                that.element.find('.ui-chat-big .block.msg ul').append($('<li>').text(item.from + " - " + item.metadata.text));
+            });
+	    var form = $('<form>').attr({'action': '#/', 'method': 'post'});
+	    $('<input>').attr({'name': 'new-message', 'size': '14'}).appendTo('<label>').appendTo(form);
+	    $('<input>').attr({'type': 'submit', 'value': 'Send'}).appendTo(form);
+	    form.appendTo(this.element.find('.ui-chat-big .block.msg'));
+	    var that = this;
+	    form.bind('submit', function(e) {
+		e.preventDefault();
+                e.stopPropagation();
+		var input = that.element.find('.block.msg form input[name="new-message"]');
+                var val = input.val();
+                input.val("");
+                that.options.ucemeeting.push("chat.message.new", {text: val, lang: chatLang}, function() {});
+	    });
+        } else {
+            this.element.find('.ui-chat-screen2 .ui-chat-content').empty();
+            $.each(this._conversations[chatLang], function(i, item) {
+                if (i == 0)
+                    return;
+                that.element.find('.ui-chat-screen2 .ui-chat-content').append($('<li>').text(item.from + " - " + item.metadata.text));
+            });
+            this._showScreen(2);
+        }
+	
+    },
+
+    _handleJoin: function(event) {
+	for (var index = 0; index < this._roster.length; index++) {
+	    if (this._roster[index] == event.from) {
+		return;
+	    }
+	}
+	this._roster.push(event.from);
+	this._updateRoster();
+    },
+
+    _handleLeave: function(event) {
+	for (var index = 0; index < this._roster.length; index++) {
+	    if (this._roster[index] == event.from) {
+		this._roster.splice(index, 1);
+	    }
+	}
+	this._updateRoster();
+    },
+
+    _updateRoster: function() {
+	this.element.find('.block.chat dl').empty();
+	for (var i = 0; i < this._roster.length; i++) {
+	    var dt = $('<dt>').text(this._roster[i]);
+	    dt.appendTo(this.element.find('.block.chat dl'));
+	}
+    },
+
+    _handleMessage: function(event) {
+	if (event.metadata.lang) {
+	    console.log(event);
+	    this._conversations[event.metadata.lang].push(event);
+	    if (this._current_language == event.metadata.lang) {
+		this._showChat(event.metadata.lang);
+	    }
+	}
     },
 
     setOption: function(key, value) {

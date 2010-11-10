@@ -81,8 +81,9 @@
 	  conditions=[]}).
 
 -record(uce_route, {
-	  name = [],
-	  description = [],
+	  module = [],
+	  title = [],
+	  desc = [],
 	  path = [],
 	  method,
 	  regexp,

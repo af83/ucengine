@@ -135,13 +135,6 @@ setup_server() ->
     {ok, GConf, SConfs} = yaws_api:getconf(),
     yaws_api:setconf(GConf#gconf{cache_refresh_secs=config:get(cache_refresh)}, SConfs).
 
-cron(Timeout, Module, Function, Params) ->
-    timer:apply_interval(?SESSION_TIMEOUT, presence, clean, []),
-    receive
-	_ ->
-	    nothing
-    end.
-
 save_pid() ->
     Pid = os:getpid(),
     PidFile = config:get(pidfile),

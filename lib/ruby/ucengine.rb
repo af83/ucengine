@@ -9,29 +9,33 @@ class UCEngine
     params.collect { |k,v| "#{k}=#{CGI::escape(v.to_s)}" }.join('&')
   end
 
-  def initialize(host, port)
+  def initialize(host, port, debug = false)
     @host = host
     @port = port
     @http = Net::HTTP.new(host, port)
     @threads = []
+    @debug = debug
+  end
+
+  def deamon(host, port)
+    
   end
 
   def get(path, params, http = @http)
     params[:uid] = @uid if @uid
     params[:sid] = @sid if @sid
-    puts "/api/0.1/#{path}?#{UCEngine.encode(params)}"
+    puts "GET /api/0.1/#{path}?#{UCEngine.encode(params)}" if @debug
     JSON.parse(http.get("/api/0.1/#{path}?#{UCEngine.encode(params)}").body)
   end
 
   def post(path, params, http = @http)
     params[:uid] = @uid if @uid
     params[:sid] = @sid if @sid
+    puts "POST /api/0.1/#{path}?#{UCEngine.encode(params)}" if @debug
     JSON.parse(http.post("/api/0.1/#{path}", UCEngine.encode(params)).body)
   end
 
   def put(path, params)
-    puts "#{path} - #{UCEngine.encode(params)}"
-    
     params['_method'] = "PUT"
     post(path, params)
   end
@@ -62,11 +66,9 @@ class UCEngine
           rescue Timeout::Error
             retry
           rescue EOFError
-            puts "EOF"
             sleep 10
             retry
           end
-          puts events
           events.each do |event|
             yield event
           end
@@ -76,9 +78,10 @@ class UCEngine
     end
   end
 
-  def publish(location, type, metadata)
+  def publish(location, type, parent, metadata)
     params = Hash.new
     params[:type] = type
+    params[:parent] = parent if parent
     metadata.each_key do |key|
       params["metadata[#{key}]"] = metadata[key]
     end
