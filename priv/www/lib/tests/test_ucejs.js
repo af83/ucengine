@@ -114,6 +114,15 @@ jackTest("can get org", function() {
     });
 });
 
+jackTest("can create org", function() {
+    stop();
+    addUceApiCall("post", "/api/0.1/org/myorg", {"_method": "put", "uid": "myuid", "sid": "mysid"}, 201, '{"result" : "ok"}');
+    uce.attachPresence(Factories.createPresence()).org('myorg').create(function(err, r, xhr) {
+        start();
+        equals(err, null);
+    });
+});
+
 jackTest("can list orgs", function() {
     stop();
     addUceApiCall("get", "/api/0.1/org/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myorg"}]}');

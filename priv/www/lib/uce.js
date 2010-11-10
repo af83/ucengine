@@ -117,6 +117,10 @@
                         });
                         return this;
                     },
+                    create: function(callback) {
+                        put("/org/"+ orgname, presence, callback);
+                        return this;
+                    },
                     meeting : function(meetingname) {
                         var handlers = [];
                         return {
