@@ -1,0 +1,33 @@
+{
+    "name": "UCEngine",
+    "authority": "af83",
+    "meta": {},
+
+    "base_url": "http://localhost:5280/api/0.1/",
+    "version": "0.1",
+
+    "methods": {
+	/* ACL */
+	"checkRight": {
+	    "path": "/user/:user/acl/:object/:action",
+	    "method": "GET",
+	    "required_params": ["uid", "sid", "conditions"]
+	},
+	"addRight": {
+	    "path": "/user/:user/acl/:object/:action",
+	    "method": "PUT",
+	    "required_params": ["uid", "sid", "conditions"]
+	},
+	"deleteRight": {
+	    "path": "/user/:user/acl/:object/:action",
+	    "method": "DELETE",
+	    "required_params": ["uid", "sid", "conditions"]
+	},
+
+	"time": {
+	    "path": "/time",
+	    "method": "GET",
+	    "required_params": []
+	}
+    }
+}
