@@ -191,40 +191,47 @@ function sammyapp() {
                                           });
         }
     });
+
     this.before('#/admin', function() {
         if (!presence.user)
             this.redirect('#/');
     });
-    this.get('#/admin', function() {
+    this.get('#/admin', function(context) {
         this.title('Admin');
-        var that = this;
-        presence.presence.listOrgs(function(orgs) {
-            presence.presence.listUsers(function(users) {
-                var c = {users: users.result, orgs: orgs.result};
-                loadPage(that, 'templates/admin.tpl', c);
-            });
+        var c = {users: [], orgs: []};
+        var waiter = uce.getWaiter(2, function() {
+            context.loadPage('templates/admin.tpl', c);
+        });
+        presence.presence.users.get(function(err, users) {
+            waiter();
+            if (err) throw err;
+            c.users = users;
+        });
+        presence.presence.orgs.get(function(err, orgs) {
+            waiter();
+            if (err) throw err;
+            c.orgs = orgs;
         });
     });
-    this.post('#/admin/org', function(e) {
-        var org = new EncreOrg(this.params['name'], []);
-        var that = this;
-        org.create(presence.presence, function() { that.app.runRoute('get', that.app.getLocation()); }, function() {});
-    });
-    this.get('#/admin/org/:org', function(e) {
-        var that = this;
-        var org = new EncreOrg(this.params['org'], []);
-        org.getAllMeetings(function(result) {
-            c = {org: that.params['org'],
-                 meetings: result.result};
-            loadPage(that, 'templates/org.tpl', c);
-        }, function(result) {
-            that.log(result);
-            if (result == '404')
-            {
-                loadPage(that, 'templates/org.tpl', {org:that.params['org']});
-            }
+
+    this.post('#/admin/org', function(context) {
+        var org = presence.presence.org(this.params['name']);
+        org.create(function(err, result) {
+            context.app.runRoute('get', context.app.getLocation());
         });
     });
+
+    this.get('#/admin/org/:org', function(context) {
+        var orgname = this.params['org'];
+        var org = presence.presence.org(orgname);
+        org.meetings.all(function(err, result) {
+            if (err) return;
+            var c = {org: orgname,
+                     meetings: result};
+            context.loadPage('templates/org.tpl', c);
+        });
+    });
+
     this.post('#/admin/org/:org/meeting', function() {
         var meeting = new EncreMeeting(this.params['name'],
                                        this.params['start'],
@@ -235,13 +242,12 @@ function sammyapp() {
                        function() { that.app.runRoute('get', that.app.getLocation()); },
                        function() {});
     });
-    this.get('#/admin/org/:org/meeting/:meeting', function() {
-        var org = new EncreOrg(this.params['org'], []);
-        var that = this;
-        org.getMeeting(presence.presence, this.params['meeting'],
-                       function(meeting) {
-                           loadPage(that, "templates/meeting.tpl", meeting);
-                       });
+
+    this.get('#/admin/org/:org/meeting/:meeting', function(context) {
+        var meeting = presence.presence.org(this.params['org']).meeting(this.params['meeting']);
+        meeting.get(function(err, meeting) {
+            context.loadPage("templates/meeting.tpl", meeting);
+        });
     });
 
     this.del('#/admin/org/:org/meeting/:meeting', function() {
