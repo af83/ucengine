@@ -5,7 +5,7 @@ module("uce.whiteboard", {teardown: function() {
 test("create some elements", function() {
     $('#whiteboard').whiteboard();
     equals($('#whiteboard > canvas').size(), 2);
-    equals($('#whiteboard #controls > *').size(), 11);
+    equals($('#whiteboard #controls > *').size(), 6);
     equals($('#whiteboard #chooserWidgets > canvas').size(), 3);
 });
 
@@ -16,7 +16,7 @@ test("create some element with custom ids", function() {
                                  choosers_id        : "myChooserWidgets"});
     equals($('#whiteboard > canvas:eq(0)').attr("id"), "canvas_chuck");
     equals($('#whiteboard > canvas:eq(1)').attr("id"), "canvas_norris");
-    equals($('#whiteboard #mycontrols > *').size(), 11);
+    equals($('#whiteboard #mycontrols > *').size(), 6);
     equals($('#whiteboard #myChooserWidgets > canvas').size(), 3);
 });
 

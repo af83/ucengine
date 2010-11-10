@@ -48,8 +48,7 @@ $.widget("uce.whiteboard", {
             id: this.options.controls_id
         }).appendTo(this.element);
         // TODO: customize actions
-        $.each(["brush", "brush2", "line", "rectangle", "circle", "clear",
-                "new", "undo", "redo", "repaint", "save"], function(index, value) {
+        $.each(["brush", "brush2", "line", "rectangle", "circle", "clear"], function(index, value) {
                     $("<div>").addClass("ctr_btn draw_fct").attr("id", "btn_"+ index).text(value).appendTo(controls);
                 });
         var chooser = $('<div>').attr({
@@ -106,12 +105,6 @@ $.widget("uce.whiteboard", {
         return;
         // ugly inside CanvasPainter.js
         var self = this;
-        $('html').live("whiteboard_draw_event", function(_, event) {
-            self.handleActionEvent(JSON.parse(event.metadata.wevent));
-        });
-	$('html').live("whiteboard_clear_event", function(_, event) {
-            self.handleActionEvent(JSON.parse(event.metadata.wevent));
-        });
         // just for remember old code
         $('#btn_9').click(function() {canvasAnimator.newAnimation()});
         $('#btn_10').click(function() {saveDrawing.removeLastNode()});

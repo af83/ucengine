@@ -6,8 +6,8 @@
 (function(g) {
     var VERSION = "0.1";
 
-    function getCollection(url, callback) {
-        get(url, {}, function(err, result, xhr) {
+    function getCollection(url, params, callback) {
+        get(url, params, function(err, result, xhr) {
             if (!err) {
                 callback(err, result.result, xhr);
             } else {
@@ -94,7 +94,7 @@
                  * Close user presence
                  */
                 close: function(org, callback) {
-                    del("/presence/" + org + "/" + presence.uid +"/"+ presence.sid, {}, callback);
+                    del("/presence/" + org + "/" + presence.uid +"/"+ presence.sid, presence, callback);
                     return this;
                 }
             },
@@ -115,6 +115,10 @@
                                 callback(err, result, xhr);
                             }
                         });
+                        return this;
+                    },
+                    create: function(callback) {
+                        put("/org/"+ orgname, presence, callback);
                         return this;
                     },
                     meeting : function(meetingname) {
@@ -197,12 +201,16 @@
                                     _start : function(p, callback) {
                                         var that = this;
                                         this.xhr = startLongPolling(p, function(err, result, xhr) {
-                                            var events = result.result;
-                                            $.each(events, function(index, event) {
-                                                callback(err, event, xhr);
-                                            });
-                                            if (events.length > 0) {
-                                                p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                            try {
+                                                var events = result.result;
+                                                $.each(events, function(index, event) {
+                                                    callback(err, event, xhr);
+                                                });
+                                                if (events.length > 0) {
+                                                    p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                                }
+                                            } catch (e) {
+                                                // do nothing
                                             }
                                             if (that.aborted === false && one_shot !== true) {
                                                 that._start(p, callback);
@@ -350,12 +358,21 @@
                         upcoming: function(callback) {
                             return this._getCollection("upcoming", callback);
                         },
+                        all: function(callback) {
+                            return this._getCollection("all", callback);
+                        },
                         _getCollection: function(type, callback) {
-                            getCollection("/meeting/"+ orgname +"/"+ type, callback);
+                            getCollection("/meeting/"+ orgname +"/"+ type, {}, callback);
                             return this;
                         }
                     }
                 };
+            },
+            orgs : {
+                get: function(callback) {
+                    getCollection("/org/", presence, callback);
+                    return this;
+                }
             },
             user: {
                 register: function(uid, auth, credential, metadata, callback) {
@@ -366,6 +383,20 @@
                 },
                 registerWithPassword: function(uid, credential, metadata, callback) {
                     return this.register(uid, "password", credential, metadata, callback);
+                },
+                can: function(uid, object, action, callback) {
+                    get("/user/"+ uid +"/acl/"+ action +"/"+ action, presence, function(err, result) {
+                        if (err)
+                            callback(err, result);
+                        else
+                            callback(err, result.result === "true");
+                    });
+                }
+            },
+            users: {
+                get: function(callback) {
+                    getCollection("/user/", presence, callback);
+                    return this;
                 }
             }
         };

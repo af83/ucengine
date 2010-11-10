@@ -87,10 +87,20 @@ jackTest("can open a new presence", function() {
 
 jackTest("can close a presence", function() {
     stop();
-    addUceApiCall("post", "/api/0.1/presence/af83/myuid/mysid", { "_method": "delete" }, 200, '');
+    addUceApiCall("post", "/api/0.1/presence/af83/myuid/mysid", { "_method": "delete", "uid": "myuid", "sid": "mysid"}, 200, '');
     uce.attachPresence(Factories.createPresence()).presence.close("af83", function(err, r, xhr) {
         start();
         equals(err, null);
+    });
+});
+
+jackTest("can list users", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/user/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myuser"}, {}]}');
+    uce.attachPresence(Factories.createPresence()).users.get(function(err, r, xhr) {
+        start();
+        equals(err, null);
+        equals(r.length, 2);
     });
 });
 
@@ -101,6 +111,25 @@ jackTest("can get org", function() {
         start();
         equals(err, null);
         equals(r.name, "myorg");
+    });
+});
+
+jackTest("can create org", function() {
+    stop();
+    addUceApiCall("post", "/api/0.1/org/myorg", {"_method": "put", "uid": "myuid", "sid": "mysid"}, 201, '{"result" : "ok"}');
+    uce.attachPresence(Factories.createPresence()).org('myorg').create(function(err, r, xhr) {
+        start();
+        equals(err, null);
+    });
+});
+
+jackTest("can list orgs", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/org/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myorg"}]}');
+    uce.attachPresence(Factories.createPresence()).orgs.get(function(err, r, xhr) {
+        start();
+        equals(err, null);
+        equals(r.length, 1);
     });
 });
 
@@ -128,6 +157,16 @@ jackTest("can get upcoming meetings", function() {
     stop();
     addUceApiCall("get", "/api/0.1/meeting/myorg/upcoming", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
     uce.org("myorg").meetings.upcoming(function(err, r, xhr) {
+        start();
+        equals(err, null);
+        equals(r.length, 1);
+    });
+});
+
+jackTest("can get all meetings", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/meeting/myorg/all", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    uce.org("myorg").meetings.all(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.length, 1);
@@ -545,4 +584,24 @@ test("can jump to a specific datetime in the past", function() {
         start();
         equals(called, 4);
     }, 4500);
+});
+
+module("ucejs.acl",
+       {
+           setup:function() {
+
+           },
+           teardown: function() {
+
+           }
+       });
+
+jackTest("user.can", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/user/otheruid/acl/all/all", {"uid": "myuid", "sid": "mysid"}, 200, '{"result":"true"}');
+    uce.attachPresence(Factories.createPresence()).user.can("otheruid", "all", "all", function(err, result) {
+        start();
+        equals(err, null);
+        same(result, true);
+    });
 });
