@@ -97,8 +97,7 @@ list([], Match, Arg) ->
 list([Org], Match, Arg) ->
     ?MODULE:list([Org, '_'], Match, Arg);
 list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
-    case uce_acl:check(EUid, "event", "add", [{"location", Location},
-						{"from", From}]) of
+    case uce_acl:check(EUid, "event", "add", Location, [{"from", From}]) of
 	true ->
 	    Types = case Type of
 			'_' ->
@@ -137,7 +136,7 @@ list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Parent
     end.
 
 add(Location, [EUid, Type, Parent, Metadata], _) ->
-    case uce_acl:check(EUid, "event", "add", [{"location", Location}, {"type", Type}]) of
+    case uce_acl:check(EUid, "event", "add", Location, [{"type", Type}]) of
 	true ->
 	    case uce_event:add(#uce_event{location=Location,
 					  from=EUid,

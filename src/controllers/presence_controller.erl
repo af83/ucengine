@@ -26,13 +26,12 @@ init() ->
 			    [required, required],
 			    [string, string]}]}].
 
-add([Org, EUid], [Auth, Credential, Metadata], _)
-  when is_list(Auth) ->
+add([Org, EUid], [Auth, Credential, Metadata], _) ->
     case uce_org:get(Org) of
 	{error, Reason} ->
 	    {error, Reason};
 	_ ->
-	    case uce_acl:check(EUid, "presence", "add", [{"location", [Org]}]) of
+	    case uce_acl:check(EUid, "presence", "add", [Org], []) of
 		true ->
 		    case uce_presence:add(EUid, Org, Auth, Credential, Metadata) of
 			ESid when is_list(ESid) ->
@@ -49,21 +48,20 @@ add([Org, EUid], [Auth, Credential, Metadata], _)
 	    end
     end.
 
-delete([Org, ToEUid, ToESid], [EUid, ESid], _)
-  when is_list(EUid) and is_list(ESid) ->
+delete([Org, ToEUid, ToESid], [EUid, ESid], _) ->
     case uce_org:get(Org) of
 	{error, Reason} ->
 	    {error, Reason};
 	_ ->
 	    case uce_presence:check(ToESid, ToEUid) of
 		true ->
-		    case uce_acl:check(EUid, "presence", "delete", [{"user", ToEUid}]) of
+		    case uce_acl:check(EUid, "presence", "delete", [Org], [{"user", ToEUid}]) of
 			true ->
 			    case uce_presence:delete(ESid) of
 				ok ->
 				    uce_event:add(#uce_event{location=[Org],
-								 from=EUid,
-								 type="internal.presence.delete"}),
+							     from=EUid,
+							     type="internal.presence.delete"}),
 				    json_helpers:json(ok);
 				Error ->
 				    Error

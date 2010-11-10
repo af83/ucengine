@@ -8,9 +8,9 @@ init() ->
     [#uce_route{module="ACL",
 		title="Check right",
 		desc="Check right",
-		path="/user/to/acl/object/action",
+		path="/user/to/acl/:object/:action/:org/:meeting",
 		method='GET',
-		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)",
+		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?([^/]+)?/?",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -23,9 +23,9 @@ init() ->
      #uce_route{module="ACL",
 		title="Add right",
 		desc="Add right",
-		path="/user/to/acl/object/action",
+		path="/user/to/acl/:object/:action/:org/:meeting",
 		method='PUT',
-		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)",
+		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?([^/]+)?/?",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -38,9 +38,9 @@ init() ->
      #uce_route{module="ACL",
 		title="Delete right",
 		desc="Delete right",
-		path="/user/to/acl/object/action",
+		path="/user/to/acl/:object/:action/:org/:meeting",
 		method='DELETE',
-		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)",
+		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?([^/]+)?/?",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -50,10 +50,17 @@ init() ->
 			    [required, []],
 			    [string, dictionary]}]}].
 
-check([To, Object, Action], [EUid, Conditions], _) ->
-    case uce_acl:check(EUid, "acl", "check", [{"user", To},
-					      {"action", Action},
-					      {"object", Object}] ++ Conditions) of
+
+check([To, Object, Action], Params, _) ->
+    ?MODULE:check([To, Object, Action, '_', '_'], Params, '_');
+check([To, Object, Action, Org], Params, _) ->
+    ?MODULE:check([To, Object, Action, Org, '_'], Params, '_');
+check([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
+    case uce_acl:check(EUid, "acl", "check", [Org, Meeting], [{"user", To},
+							      {"action", Action},
+							      {"object", Object},
+							      {"org", Org},
+							      {"meeting", Meeting}] ++ Conditions) of
 	true ->
 	    case uce_acl:check(To, Object, Action, Conditions) of
 		{error, Reason} ->
@@ -67,15 +74,22 @@ check([To, Object, Action], [EUid, Conditions], _) ->
 	    {error, unauthorized}
     end.
 
-add([To, Object, Action], [EUid, Conditions], _) ->
-    case uce_acl:check(EUid, "acl", "add", [{"user", To},
-					      {"action", Action},
-					      {"object", Object}] ++ Conditions) of
+add([To, Object, Action], Params, _) ->
+    ?MODULE:add([To, Object, Action, '_', '_'], Params, '_');
+add([To, Object, Action, Org], Params, _) ->
+    ?MODULE:add([To, Object, Action, Org, '_'], Params, '_');
+add([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
+    case uce_acl:check(EUid, "acl", "add", [Org, Meeting], [{"user", To},
+							    {"action", Action},
+							    {"object", Object},
+							    {"org", Org},
+							    {"meeting", Meeting}] ++ Conditions) of
 	true ->
 	    case uce_acl:add(#uce_acl{uid=To,
-					  action=Action,
-					  object=Object,
-					  conditions=Conditions}) of
+				      action=Action,
+				      object=Object,
+				      location=[Org, Meeting],
+				      conditions=Conditions}) of
 		{error, Reason} ->
 		    {error, Reason};
 		ok ->
@@ -85,12 +99,16 @@ add([To, Object, Action], [EUid, Conditions], _) ->
 	    {error, unauthorized}
     end.
 
-delete([To, Object, Action], [EUid, Conditions], _) ->
-    case uce_acl:check(EUid, "acl", "delete", [{"user", To},
-						 {"action", Action},
-						 {"object", Object}] ++ Conditions) of
+delete([To, Object, Action], Params, _) ->
+    ?MODULE:delete([To, Object, Action, '_', '_'], Params, '_');
+delete([To, Object, Action, Org], Params, _) ->
+    ?MODULE:delete([To, Object, Action, Org, '_'], Params, '_');
+delete([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
+    case uce_acl:check(EUid, "acl", "delete", [Org, Meeting], [{"user", To},
+							       {"action", Action},
+							       {"object", Object}] ++ Conditions) of
 	true ->
-	    case uce_acl:delete(To, Object, Action, Conditions) of
+	    case uce_acl:delete(To, Object, Action, [Org, Meeting], Conditions) of
 		{error, Reason} ->
 		    {error, Reason};
 		ok ->

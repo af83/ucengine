@@ -4,8 +4,8 @@
 
 -export([
 	 add/1,
-	 delete/4,
-	 check/4,
+	 delete/5,
+	 check/5,
 	 trigger/2
 	]).
 
@@ -20,15 +20,15 @@ add(#uce_acl{uid=EUid} = ACL) ->
 	    ?DBMOD:add(ACL)
     end.
 
-delete(EUid, Object, Action, Conditions) ->
+delete(EUid, Object, Action, Location, Conditions) ->
     case uce_user:get(EUid) of
 	{error, Reason} ->
 	    {error, Reason};
 	_ ->
-	    ?DBMOD:delete(EUid, Object, Action, Conditions)
+	    ?DBMOD:delete(EUid, Object, Action, Location, Conditions)
     end.
 
-check(EUid, Object, Action, Conditions) ->
+check(EUid, Object, Action, Location, Conditions) ->
     case ?DBMOD:list(EUid, Object, Action) of
 	{error, Reason} ->
 	    {error, Reason};
@@ -68,9 +68,9 @@ check_conditions([#uce_acl{conditions=Conditions}|Tail], Required) ->
 replace_conditions([], _) ->
     [];
 replace_conditions([{Key, Value}|Tail], Variables) ->
-    Condition = case is_atom(Key) of
+    Condition = case is_atom(Value) of
 		    true ->
-			case lists:keyfind(atom_to_list(Key), 1, Variables) of
+			case lists:keyfind(atom_to_list(Value), 1, Variables) of
 			    false ->
 				?DEBUG("Cannot set ACL: unknown key: ~p~n", [Key]),
 				[];
@@ -83,8 +83,8 @@ replace_conditions([{Key, Value}|Tail], Variables) ->
     Condition ++ replace_conditions(Tail, Variables).
 
 trigger(#uce_event{location=Location,
-		     from=From,
-		     metadata=UnsecureMetadata},
+		   from=From,
+		   metadata=UnsecureMetadata},
 	#uce_acl{conditions=Conditions} = ACL) ->
     Metadata = lists:filter(fun({Key, _}) ->
 				    case Key of

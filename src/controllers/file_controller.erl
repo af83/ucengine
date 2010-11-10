@@ -54,7 +54,7 @@ init() ->
 			    [string]}]}].
 
 add(Location, [EUid, Name, Uri, Metadata], _) ->
-    case uce_acl:check(EUid, "file", "add", [{"location", Location}]) of
+    case uce_acl:check(EUid, "file", "add", Location, []) of
 	true ->
 	    case uce_file:add(#uce_file{location=Location,
 					    name=Name,
@@ -74,7 +74,7 @@ add(Location, [EUid, Name, Uri, Metadata], _) ->
     end.
 
 list(Location, [EUid], _) ->
-    case uce_acl:check(EUid, "file", "list", [{"location", Location}]) of
+    case uce_acl:check(EUid, "file", "list", Location, []) of
 	true ->		    
 	    case uce_file:list(Location) of
 		{error, Reason} ->
@@ -100,7 +100,7 @@ sanitize_file_name([]) ->
     [].
 
 get([Org, Meeting, Id], [EUid], _) ->
-    case uce_acl:check(EUid, "file", "get", [{"location", [Org, Meeting]}]) of
+    case uce_acl:check(EUid, "file", "get", [Org, Meeting], [{"id", Id}]) of
 	true ->
 	    case uce_file:get(Id) of
 		{error, Reason} ->
@@ -124,7 +124,7 @@ get([Org, Meeting, Id], [EUid], _) ->
     end.
 
 delete([Org, Meeting, Id], [EUid], _) ->
-    case uce_acl:check(EUid, "file", "delete", [{"location", [Org, Meeting]}, {"id", Id}]) of
+    case uce_acl:check(EUid, "file", "delete", [Org, Meeting], [{"id", Id}]) of
 	true ->
 	    case uce_file:delete(Id) of
 		{error, Reason} ->

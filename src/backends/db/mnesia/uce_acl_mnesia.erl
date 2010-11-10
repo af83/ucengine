@@ -4,7 +4,7 @@
 
 -export([init/0,
 	 add/1,
-	 delete/4,
+	 delete/5,
 	 list/3]).
 
 -include("uce.hrl").
@@ -25,12 +25,13 @@ add(#uce_acl{}=ACL) ->
 	    {error, Reason}
     end.
 
-delete(EUid, Object, Action, Conditions) ->
+delete(EUid, Object, Action, Location, Conditions) ->
     case mnesia:transaction(fun() ->
 				    mnesia:delete_object(#uce_acl{uid=EUid,
-								    object=Object,
-								    action=Action,
-								    conditions=Conditions})
+								  object=Object,
+								  action=Action,
+								  location=Location,
+								  conditions=Conditions})
 			    end) of
 	{atomic, _} ->
 	    ok;
@@ -41,9 +42,9 @@ delete(EUid, Object, Action, Conditions) ->
 list(EUid, Object, Action) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_acl{uid=EUid,
-								   object=Object,
-								   action=Action,
-								   conditions='_'})
+								 object=Object,
+								 action=Action,
+								 conditions='_'})
 			    end) of
 	{aborted, _Reason} ->
 	    [];

@@ -46,11 +46,11 @@ stop(State) ->
 
 setup_acl() ->
     [[triggers:add(#uce_trigger{location='_',
-				  type=Type,
-				  action={{acl, trigger},
-					  #uce_acl{object=Object,
-						   action=Action,
-						   conditions=Conditions}}})
+				type=Type,
+				action={{uce_acl, trigger},
+					#uce_acl{object=Object,
+						 action=Action,
+						 conditions=Conditions}}})
       || {Object, Action, Conditions} <- Rules] || {Type, Rules} <- config:get(acl)].
 
 setup_modules() ->
@@ -67,8 +67,8 @@ setup_db() ->
 setup_triggers() ->
     lists:map(fun({Type, URL}) ->
 		      triggers:add(#uce_trigger{location='_',
-						  type=Type,
-						  action={{url, URL}, []}})
+						type=Type,
+						action={{url, URL}, []}})
 	      end,
 	      config:get(triggers)).
 

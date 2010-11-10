@@ -40,6 +40,7 @@ list(Location, Type) ->
 				      end
 			      end,
 			      ets:tab2list(uce_trigger))).
+
 run([], _) ->
     [];
 run([Trigger|Tl], Event) ->

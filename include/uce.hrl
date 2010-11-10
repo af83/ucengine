@@ -78,6 +78,7 @@
 	  uid,
 	  action,
 	  object,
+	  location=[],
 	  conditions=[]}).
 
 -record(uce_route, {

@@ -76,12 +76,12 @@ init() ->
 			    [string]}]}].
 
 add(Location, [EUid, Start, End, Metadata], _) ->
-    case uce_acl:check(EUid, "meeting", "add", [{"location", Location}]) of
+    case uce_acl:check(EUid, "meeting", "add", Location, []) of
 	true ->
 	    case uce_meeting:add(#uce_meeting{id=Location,
-						  start_date=Start,
-						  end_date=End,
-						  metadata=Metadata}) of
+					      start_date=Start,
+					      end_date=End,
+					      metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
 		ok ->
@@ -92,12 +92,12 @@ add(Location, [EUid, Start, End, Metadata], _) ->
     end.
 
 update(Location, [EUid, Start, End, Metadata], _) ->
-    case uce_acl:check(EUid, "meeting", "update", [{"location", Location}]) of
+    case uce_acl:check(EUid, "meeting", "update", Location, []) of
 	true ->
 	    case uce_meeting:update(#uce_meeting{id=Location,
-						     start_date=Start,
-						     end_date=End,
-						     metadata=Metadata}) of
+						 start_date=Start,
+						 end_date=End,
+						 metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
 		ok ->
@@ -123,15 +123,14 @@ get(Location, [], _) ->
 	    json_helpers:json(meeting_helpers:to_json(Meeting))
     end.
 
-join([Org, Meeting, To], [EUid], _)
-  when is_list(EUid) ->
-    case uce_acl:check(EUid, "roster", "add", [{"location", [Org, Meeting]}]) of
+join([Org, Meeting, To], [EUid], _) ->
+    case uce_acl:check(EUid, "roster", "add", [Org, Meeting], []) of
 	true ->
 	    case uce_meeting:join([Org, Meeting], To) of
 		{error, Reason} ->
 		    {error, Reason};
 		ok ->
-		    uce_event:add(#uce_event{type="internal.meeting.join",
+		    uce_event:add(#uce_event{type="internal.roster.add",
 					     location=[Org, Meeting],
 					     from=To}),
 		    json_helpers:ok()
@@ -140,15 +139,14 @@ join([Org, Meeting, To], [EUid], _)
 	    {error, unauthorized}
     end.
 
-leave([Org, Meeting, To], [EUid], _)
-  when is_list(EUid) ->
-    case uce_acl:check(EUid, "roster", "delete", [{"location", [Org, Meeting]}]) of
+leave([Org, Meeting, To], [EUid], _) ->
+    case uce_acl:check(EUid, "roster", "delete", [Org, Meeting], []) of
 	true ->
 	    case uce_meeting:leave([Org, Meeting], To) of
 		{error, Reason} ->
 		    {error, Reason};
 		ok ->
-		    uce_event:add(#uce_event{type="internal.meeting.leave",
+		    uce_event:add(#uce_event{type="internal.roster.delete",
 					     location=[Org, Meeting],
 					     from=To}),
 		    json_helpers:ok()
@@ -158,7 +156,7 @@ leave([Org, Meeting, To], [EUid], _)
     end.
 
 roster(Location, [EUid], _) ->
-    case uce_acl:check(EUid, "roster", "list", [{"location", Location}]) of
+    case uce_acl:check(EUid, "roster", "list", Location, []) of
 	true ->
 	    case uce_meeting:roster(Location) of
 		{error, Reason} ->

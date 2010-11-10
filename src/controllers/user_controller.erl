@@ -62,7 +62,7 @@ init() ->
 			    [string]}]}].
 
 list([], [EUid], _) ->
-    case uce_acl:check(EUid, "user", "list", []) of
+    case uce_acl:check(EUid, "user", "list", [], []) of
 	true ->
 	    case uce_user:list() of
 		Users when is_list(Users) ->
@@ -79,22 +79,22 @@ add([EUid], [Auth, Credential, Metadata], _) ->
     case uce_user:add(EUid, Auth, Credential, Metadata) of
 	ok ->
 	    uce_event:add(#uce_event{from=EUid,
-					 type="internal.user.add",
-					 metadata=Metadata}),
+				     type="internal.user.add",
+				     metadata=Metadata}),
 	    json_helpers:created();
 	Error ->
 	    Error
     end.
 
 update([To], [EUid, Auth, Credential, Metadata], _) ->
-    case uce_acl:check(EUid, "update", "user", [{"user", To},
-						  {"auth", Auth}]) of
+    case uce_acl:check(EUid, "update", "user", [], [{"user", To},
+						    {"auth", Auth}]) of
 	true ->
 	    case uce_user:update(To, Auth, Credential, Metadata) of
 		ok ->
 		    uce_event:add(#uce_event{from=To,
-						 type="internal.user.update",
-						 metadata=Metadata}),
+					     type="internal.user.update",
+					     metadata=Metadata}),
 		    json_helpers:ok();
 		Error ->
 		    Error
@@ -104,7 +104,7 @@ update([To], [EUid, Auth, Credential, Metadata], _) ->
     end.
 
 get([To], [EUid], _) ->
-    case uce_acl:check(EUid, "get", "user", [{"user", To}]) of
+    case uce_acl:check(EUid, "get", "user", [], [{"user", To}]) of
 	true ->
 	    case uce_user:get(To) of
 		User when is_record(User, uce_user) ->
@@ -120,7 +120,7 @@ get([To], [EUid], _) ->
     end.
 
 delete([To], [EUid], _) ->
-    case uce_acl:check(EUid, "delete", "user", [{"user", To}]) of
+    case uce_acl:check(EUid, "delete", "user", [], [{"user", To}]) of
 	true ->
 	    case uce_user:delete(To) of
 		ok ->

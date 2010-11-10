@@ -16,6 +16,7 @@ init() ->
 			    ["uid"],
 			    [required],
 			    [string]}]},
+
      #uce_route{module="Organisations",
 		method='GET',
 		regexp="/org/([^/]+)",
@@ -46,7 +47,7 @@ init() ->
 			    [string, dictionary]}]}].
 
 add([Name], [EUid, Metadata], _) ->
-    case uce_acl:check(EUid, "org", "add", [{"name", Name}]) of
+    case uce_acl:check(EUid, "org", "add", [], [{"name", Name}]) of
 	true ->
 	    case uce_org:add(#uce_org{name=Name, metadata=Metadata}) of
 		{error, Reason} ->
@@ -62,7 +63,7 @@ add([Name], [EUid, Metadata], _) ->
     end.
 
 update([Name], [EUid, Metadata], _) ->
-    case uce_acl:check(EUid, "org", "update", [{"name", Name}]) of
+    case uce_acl:check(EUid, "org", "update", [], [{"name", Name}]) of
 	true ->
 	    case uce_org:update(#uce_org{name=Name, metadata=Metadata}) of
 		{error, Reason} ->
@@ -83,7 +84,7 @@ get([Name], [], _) ->
     end.
 
 list([], [EUid], _) ->
-    case uce_acl:check(EUid, "org", "list", []) of
+    case uce_acl:check(EUid, "org", "list", [], []) of
 	true ->
 	    case uce_org:list() of
 		{error, Reason} ->
