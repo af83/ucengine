@@ -1,33 +1,112 @@
 {
-    "name": "UCEngine",
+    "name": "UCengine",
     "authority": "af83",
     "meta": {},
 
     "base_url": "http://localhost:5280/api/0.1/",
     "version": "0.1",
 
-    "methods": {
-	/* ACL */
-	"checkRight": {
-	    "path": "/user/:user/acl/:object/:action",
-	    "method": "GET",
-	    "required_params": ["uid", "sid", "conditions"]
-	},
-	"addRight": {
-	    "path": "/user/:user/acl/:object/:action",
-	    "method": "PUT",
-	    "required_params": ["uid", "sid", "conditions"]
-	},
-	"deleteRight": {
-	    "path": "/user/:user/acl/:object/:action",
-	    "method": "DELETE",
-	    "required_params": ["uid", "sid", "conditions"]
-	},
+    "formats": ["json"]
 
-	"time": {
-	    "path": "/time",
-	    "method": "GET",
-	    "required_params": []
-	}
+    "methods": {
+        /* ACL */
+        "checkRight": {
+            "path": "/user/:user/acl/:object/:action",
+            "method": "GET",
+            "required_params": ["uid", "sid", "conditions"],
+            "authentication": true
+        },
+
+        "addRight": {
+            "path": "/user/:user/acl/:object/:action",
+            "method": "PUT",
+            "required_params": ["uid", "sid", "conditions"],
+            "authentication": true
+        },
+
+        "deleteRight": {
+            "path": "/user/:user/acl/:object/:action",
+            "method": "DELETE",
+            "required_params": ["uid", "sid", "conditions"],
+            "authentication": true
+        },
+
+        "time": {
+            "path": "/time",
+            "method": "GET"
+        },
+
+        "auth": {
+            "path": "/presence/:org/:uid",
+            "method": "PUT",
+            "required_params": ["org", "uid", "auth", "_credential"],
+            "optional_params": ["metadata"],
+            "expected_status": [200, 400, 403]
+        },
+
+        "logout": {
+            "path": "/presence/:org/:uid/:sid",
+            "method": "DELETE",
+            "required_params": ["org", "uid", "sid"],
+            "expected_status": [200, 400, 401, 404],
+            "authentication": true
+        },
+
+        "getGlobalEvents": {
+            "path": "/event/",
+            "method": "GET",
+            "required_params": ["uid", "sid"],
+            "optional_params": ["type", "start", "end", "from",
+                                "count", "page", "order", "search",
+                                "parent", "_async"],
+            "expected_status": [200, 401, 404],
+            "authentication": true
+        },
+
+        "getOrgEvents": {
+            "path": "/event/:org/",
+            "method": "GET",
+            "required_params": ["uid", "sid", "org"],
+            "optional_params": ["type", "start", "end", "from",
+                                "count", "page", "order", "search",
+                                "parent", "_async"],
+            "expected_status": [200, 401, 404],
+            "authentication": true
+        },
+
+        "getMeetingEvents": {
+            "path": "/event/:org/:meeting",
+            "method": "GET",
+            "required_params": ["uid", "sid", "org", "meeting"],
+            "optional_params": ["type", "start", "end", "from",
+                                "count", "page", "order", "search",
+                                "parent", "_async"],
+            "expected_status": [200, 401, 404],
+            "authentication": true
+        },
+
+        "pushGlobalEvent": {
+            "path": "/event/",
+            "method": "PUT",
+            "required_params": ["uid", "sid", "_type"],
+            "expected_status": [201, 400, 401, 404],
+            "authentication": true
+        },
+
+        "pushOrgEvent": {
+            "path": "/event/:org",
+            "method": "PUT",
+            "required_params": ["uid", "sid", "_type", "org"],
+            "expected_status": [201, 400, 401, 404],
+            "authentication": true
+        },
+
+        "pushMeetingEvent": {
+            "path": "/event/:org/:meeting",
+            "method": "PUT",
+            "required_params": ["uid", "sid", "_type", "org", "meeting"],
+            "expected_status": [201, 400, 401, 404],
+            "authentication": true
+        }
     }
 }
