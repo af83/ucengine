@@ -84,7 +84,7 @@ begin
     
     twitter = UCEngineTwitterStream.new("encre_af83", "3ncr3_4f8E") do |location, tweet, hashtag|
       puts "Publish: " + tweet['text']
-      uce.publish(location, 'twitter.tweet.new',
+      uce.publish(location, 'twitter.tweet.new', nil,
                     :text => tweet['text'], :from => tweet['user']['name'], :hashtags => hashtag)
     end
     

@@ -2,97 +2,119 @@ $.widget("uce.chat", {
     options: {
         ucemeeting: null,
 	title: "Conversations",
-	lang: "fr"
+	lang: "fr",
+	langs: ["fr", "en", "it"]
     },
     _create: function() {
         this.element.addClass('ui-chat');
+
 	var title = $('<div>').attr('class', 'block-header');
 	$('<h2>').text(this.options.title).appendTo(title);
-	var languages = '<ul>' +
-                          '<li><a href="#" class="on"><img src="images/flag/fr.png" alt="FR" /></a></li>' +
-                          '<li><a href="#"><img src="images/flag/en.png" alt="EN" /></a></li>' +
-                          '<li><a href="#"><img src="images/flag/it.png" alt="IT" /></a></li>' +
-                        '</ul>';
-	$.tmpl(languages, {}).appendTo(title);
 	title.appendTo(this.element);
 
-        var template = '<div class="ui-chat-big">' +
-                         '<div class="block-content">' +
-                           '<div class="col1">' +
-                             '<div class="block chat">' +
-                               '<div class="block-header">' +
-                                 '<h3>Chatroom</h3>' +
-                               '</div>' +
-                                '<div class="block-content">' +
-                                 '<dl></dl>' +
-                                '</div>' +
-	                     '</div>' +
-                             '<div class="block tweets">' +
-                               '<div class="block-header">' +
-                                 '<h3>Tweets</h3>' +
-                               '</div>' +
-                               '<div class="block-content">' +
-                                 '<dl>' +
-                                   '<dt>All (0)</dt>' +
-                                 '</dl>' +
-                                 '<form action="#/" method="post">' +
-                                   '<p>' +
-                                     '<label>#<input name="new-hashtag" size="14" /></label>' +
-                                     '<input type="submit" value="OK" />' +
-                                   '</p>' +
-                                 '</form>' +
-                               '</div>' +
-                             '</div>' +
-                           '</div>' +
-                           '<div class="block msg">' +
-                             '<div class="block-content">' +
-                               '<ul></ul>' +
-                             '</div>' +
-                           '</div>' +
-                         '</div>' +
-                       '</div>' +
-                        '<div class="ui-chat-minus"><div class="block-content screen_1">' +
-                          '<div class="block-header">' +
-                             '<h3>Chatroom</h3>' +
-                          '</div>' +
-                          '<ul class="ui-chat-screen1 tweets">' +
-                            '<li><a href="#"></a></li>' +
-                          '</ul>' +
-                          '<div class="ui-chat-screen2">' +
-            '<p class="ui-chat-back"><span class="ui-chat-title">Chatroom</span></p>' +
-            '<ul class="ui-chat-content"></ul>' +
+        var templateBig =
+	 '<div class="ui-chat-big">' +
+            '<div class="block-content">' +
+	       '<div classe="column">' +
+               '<div class="block chat">' +
+                  '<div class="block-header">' +
+                     '<h3>Chatroom (0)</h3>' +
+                  '</div>' +
+                  '<div class="block-content">' +
+                     '<dl />' +
+                  '</div>' +
+               '</div>' +
+               '<div class="block tweets">' +
+                  '<div class="block-header">' +
+                     '<h3>Tweets (0)</h3>' +
+                  '</div>' +
+                  '<div class="block-content">' +
+                     '<dl />' +
+                     '<form action="#/" method="post">' +
+                        '<p>' +
+                           '<label>#<input name="new-hashtag" size="14" /></label>' +
+                           '<input type="submit" value="OK" />' +
+                        '</p>' +
+                     '</form>' +
+                  '</div>' +
+               '</div>' +
+	       '</div>' +
+               '<div class="block msg" />' +
             '</div>' +
-            '<div class="ui-chat-screen3">' +
-            '</div>' +
-                        '</div></div>';
-        $.tmpl(template, {}).appendTo(this.element);
-        var that = this;
-        this._hashTagOrder = {};
-	this._conversations = {};
-	this._conversations[this.options.lang] = [];
-	this._current_language=this.options.lang;
+         '</div>';
+        $.tmpl(templateBig, {}).appendTo(this.element);
 
-        var all = this.element.find('.ui-chat-minus .ui-chat-screen1 li a');
-        // back button
-        this.element.find('.ui-chat-minus .ui-chat-screen2 .ui-chat-back').click(function() {
-            that._showScreen(1);
-        });
-        this.element.find('.ui-chat-big .block.chat .block-header').click(function() {
-            that._showChat(that._current_language);
-        });
-        all.hide().click(function(e) {
+        var templateMinus =
+	    '<div class="ui-chat-minus">' +
+               '<div class="block-content" name="main">' +
+	          '<div class="block chat">' +
+                     '<div class="block-header">' +
+                        '<h3>Chatroom (0)</h3>' +
+                     '</div>' +
+	          '</div>' +
+	          '<div class="block tweets">' +
+                     '<div class="block-header">' +
+                        '<h3>Tweets (0)</h3>' +
+                     '</div>' +
+                     '<div class="block-content">' +
+	                 '<ul />'
+                     '</div>' +
+                  '</div>' +
+               '</div>' +
+	    '</div>';
+	$.tmpl(templateMinus, {}).appendTo(this.element);
+
+	/* display flags in the header */
+	var languages = $('<ul>');
+
+	/* create message block for each language */
+	var that = this;
+	$.each(this.options.langs, function(i, lang) {
+
+	    $('<img>').attr({'src': 'images/flag/' + lang + '.png', 'alt': lang})
+		.appendTo($('<a>').attr({'href': '#', 'class': 'on'})).appendTo(languages);
+	    that._addChat('chat:' + lang);
+	    
+	    /* create form to send messages */
+	    var form = $('<form>').attr({'action': '#/', 'method': 'post'});
+	    $('<input>').attr({'name': lang, 'size': '14'})
+		.appendTo('<label>').appendTo(form);
+	    $('<input>').attr({'type': 'submit', 'value': 'Send'}).appendTo(form);
+	    form.appendTo(that.element.find('.ui-chat-big .block-content[name="chat:' + lang + '"]'));
+	    form.bind('submit', function(e) {
+		e.preventDefault();
+                e.stopPropagation();
+		var input = that.element.find('.block.msg form input[name="' + lang + '"]');
+                var val = input.val();
+                input.val("");
+                that.options.ucemeeting.push("chat.message.new", {text: val, lang: lang});
+	    });
+	});
+	languages.appendTo(title);
+
+	this._addChat('hashtag:all');
+
+        this.element.find('.ui-chat-big .block.chat .block-header').click(function(e) {
             e.preventDefault();
-            that._showTweets('all');
+            that._showChat('chat:' + that.options.lang);
         });
-        this.element.find('.ui-chat-big .tweets dl dt:eq(0)').click(function(e) {
+        this.element.find('.ui-chat-big .block.tweets .block-header').click(function(e) {
             e.preventDefault();
-            that._showTweets('all');
+            that._showChat('hashtag:all');
+        });
+        this.element.find('.ui-chat-minus .block.tweets .block-header').click(function(e) {
+            e.preventDefault();
+            that._showChat('hashtag:all');
+        });
+        this.element.find('.ui-chat-minus .block.chat .block-header').click(function(e) {
+            e.preventDefault();
+            that._showChat('chat:' + that.options.lang);
         });
         this.toggleMode('minus');
         if (this.options.ucemeeting) {
-            this._nbTweets = 0;
-            this._tweets = {all: [all]};
+            this._hashtags = {};
 	    this._roster = [];
+	    this._messages = 0;
             this.options.ucemeeting.bind("twitter.hashtag.add", function(event) {
                 that._handleHashTag(event);
             });
@@ -113,10 +135,10 @@ $.widget("uce.chat", {
 		that._handleMessage(event);
 	    });
 
-            this.element.find('.col1 form').bind('submit', function(e) {
+            this.element.find('.block.tweets form').bind('submit', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
-                var input = that.element.find('.col1 form input[name="new-hashtag"]');
+                var input = that.element.find('.block.tweets form input[name="new-hashtag"]');
                 var val = '#'+input.val();
                 input.val("");
                 that.options.ucemeeting.push("twitter.hashtag.add", {hashtag: val}, function() {});
@@ -127,17 +149,12 @@ $.widget("uce.chat", {
     },
 
     clear: function() {
-        var all = this._tweets.all[0].hide();
-        this._nbTweets = 0;
-        this._tweets = {all: [all]};
-        $.each(this.element.find('ul.ui-chat-screen1').children(), function(i, li) {
-            if (i == 0)
-                return;
+        this._hashtags = {};
+	this._messages = 0;
+        $.each(this.element.find('.tweets ul').children(), function(i, li) {
             $(li).remove();
         });
         $.each(this.element.find('.tweets dl').children(), function(i, dt) {
-            if (i == 0)
-                return;
             $(dt).remove();
         });
         this.toggleMode(this.element.data('mode'));
@@ -151,137 +168,52 @@ $.widget("uce.chat", {
         if (mode == "minus") {
             this.element.find('.ui-chat-big').hide();
             this.element.find('.ui-chat-minus').show();
-            this._showScreen(1);
+	    this._showChat("main");
         } else {
             this.element.find('.ui-chat-big').show();
             this.element.find('.ui-chat-minus').hide();
-            this._showScreen(1);
-            this.element.data('hashtag', 'all');
+	    this._showChat("chat:" + this.options.lang);
         }
     },
 
-    _showScreen: function(screen) {
-        this.element.find('.ui-chat-minus .ui-chat-screen'+ screen).show();
-        var others = [1, 2, 3];
-        others.splice(others.indexOf(screen), 1);
-        var that = this;
-        $.each(others, function(i, item) {
-            that.element.find('.ui-chat-minus .ui-chat-screen'+ item).hide();
-        });
-    },
+
+    /**
+     * Event callbacks
+     */
 
     _handleHashTag: function(event) {
         var hashtag = event.metadata.hashtag.toLowerCase();
-	if (!this._tweets[hashtag]) {
-            var index = this._sortHashtags(hashtag);
-            var li = $('<li>').append($('<a>').attr('href', '#').text(hashtag + ' (0)'));
-            var dt = $('<dt>').append($('<a>').attr('href', '#').text(hashtag + ' (0)'));
-            var that = this;
-            li.click(function(e) {
-                e.preventDefault();
-                that._showTweets(hashtag);
-            });
-            dt.click(function(e) {
-                e.preventDefault();
-                that._showTweets(hashtag);
-            });
-            li.insertAfter(this.element.find('ul.ui-chat-screen1.tweets > li:eq('+ (index) +')'));
-            dt.insertAfter(this.element.find('.block.tweets dl dt:eq('+ (index) +')'));
-            this._tweets[hashtag] = [li.find('a')];
+	if (this._hashtags[hashtag] == undefined) {
+	    this._addChat('hashtag:' + hashtag);
+	    this._hashtags[hashtag] = 0;
+	    this._updateHashTags();
 	}
-    },
-
-    _sortHashtags: function(hashtag) {
-        var hashtags = [];
-        $.each(this._tweets, function(name, item) {
-            if (name == "all")
-                return;
-            hashtags.push(name.substr(1));
-        });
-        hashtags.push(hashtag.substr(1));
-        hashtags.sort();
-        var that = this;
-        $.each(hashtags, function(index, hashtag) {
-            that._hashTagOrder['#'+ hashtag] = index;
-        });
-        return hashtags.indexOf(hashtag.substr(1));
     },
 
     _handleTweet: function(event) {
         var hashtags = event.metadata.hashtags.toLowerCase().split(',');
         var that = this;
-        this._tweets.all[0].show().text('Tweets ('+ ++this._nbTweets +')');
-        this.element.find('.block.tweets dl dt:eq(0)').text('Tweets ('+ this._nbTweets +')');
         $.each(hashtags, function(i, hashtag) {
-            that._tweets[hashtag].push(event);
-            var index = that._hashTagOrder[hashtag] + 1;
-            var text = hashtag +" ("+ (that._tweets[hashtag].length - 1) +")";
-            that.element.find('ul.ui-chat-screen1.tweets > li:eq('+ (index) +')').text(text);
-            that.element.find('.block.tweets dl dt:eq('+ (index) +')').text(text);
+	    var from = event.metadata.from;
+	    var text = event.metadata.text;
+	    that._addMessage('hashtag:' + hashtag, from, text);
+	    that._addMessage('hashtag:all', from, text);
+	    that._hashtags[hashtag] += 1;
         });
-        this._tweets.all.push(event);
-        // should we refresh tweets ?
-        var current = this.element.data('hashtag');
-        if ((current == 'all' || hashtags.indexOf(current) != -1)) {
-            this._showTweets(current);
-        }
+	this._updateHashTags();
     },
 
-    _showTweets: function(hashtag) {
-        var that = this;
-        this.element.data('hashtag', hashtag);
-        if (this.element.data('mode') == 'big') {
-            this.element.find('.ui-chat-big .block.msg ul').empty();
-            $.each(this._tweets[hashtag], function(i, item) {
-                if (i == 0)
-                    return;
-                that.element.find('.ui-chat-big .block.msg ul').append($('<li>').text(item.metadata.text));
-            });
-        } else {
-            var title = (hashtag == 'all' ? 'All tweets' : hashtag);
-            this.element.find('.ui-chat-screen2 .ui-chat-title').text(title);
-            this.element.find('.ui-chat-screen2 .ui-chat-content').empty();
-            $.each(this._tweets[hashtag], function(i, item) {
-                if (i == 0)
-                    return;
-                that.element.find('.ui-chat-screen2 .ui-chat-content').append($('<li>').text(item.metadata.text));
-            });
-            this._showScreen(2);
-        }
-    },
-
-    _showChat: function(chatLang) {
-	var that = this;
-        if (this.element.data('mode') == 'big') {
-            this.element.find('.ui-chat-big .block.msg').empty();
-            $.each(this._conversations[chatLang], function(i, item) {
-                if (i == 0)
-                    return;
-                that.element.find('.ui-chat-big .block.msg ul').append($('<li>').text(item.from + " - " + item.metadata.text));
-            });
-	    var form = $('<form>').attr({'action': '#/', 'method': 'post'});
-	    $('<input>').attr({'name': 'new-message', 'size': '14'}).appendTo('<label>').appendTo(form);
-	    $('<input>').attr({'type': 'submit', 'value': 'Send'}).appendTo(form);
-	    form.appendTo(this.element.find('.ui-chat-big .block.msg'));
-	    var that = this;
-	    form.bind('submit', function(e) {
-		e.preventDefault();
-                e.stopPropagation();
-		var input = that.element.find('.block.msg form input[name="new-message"]');
-                var val = input.val();
-                input.val("");
-                that.options.ucemeeting.push("chat.message.new", {text: val, lang: chatLang}, function() {});
-	    });
-        } else {
-            this.element.find('.ui-chat-screen2 .ui-chat-content').empty();
-            $.each(this._conversations[chatLang], function(i, item) {
-                if (i == 0)
-                    return;
-                that.element.find('.ui-chat-screen2 .ui-chat-content').append($('<li>').text(item.from + " - " + item.metadata.text));
-            });
-            this._showScreen(2);
-        }
-	
+    _handleMessage: function(event) {
+	if (event.metadata.lang) {
+	    this._addMessage('chat:' + event.metadata.lang,
+			     event.from,
+			     event.metadata.text);
+	    this._messages += 1;
+	    this.element.find('.ui-chat-big .block.chat .block-header h3')
+		.text('Chatroom ('+ this._messages +')');
+	    this.element.find('.ui-chat-minus .block.chat .block-header h3')
+		.text('Chatroom ('+ this._messages +')');
+	}
     },
 
     _handleJoin: function(event) {
@@ -303,22 +235,104 @@ $.widget("uce.chat", {
 	this._updateRoster();
     },
 
+
+    /**
+     * Internal functions
+     */
+
+    _updateHashTags: function() {
+	this.element.find('.ui-chat-big .block.tweets dl').empty();
+	this.element.find('.ui-chat-minus .block.tweets ul').empty();
+	var totalTweets = 0;
+	var that = this;
+
+
+	var orderedHashtags = [];
+	$.each(this._hashtags, function(hashtag) {
+	    orderedHashtags.push(hashtag);
+	});
+	orderedHashtags.sort();
+	
+	$.each(orderedHashtags, function(i, hashtag) {
+	    len = that._hashtags[hashtag];
+	    totalTweets += len;
+
+	    onClick = function(e) {
+                e.preventDefault();
+                that._showChat('hashtag:' + hashtag, hashtag);
+	    };
+	    var dtBig = $('<dt>').append($('<a>').attr('href', '#').text(hashtag + ' (' + len + ')'));
+	    dtBig.click(onClick);
+	    dtBig.appendTo(that.element.find('.ui-chat-big .block.tweets dl'));
+
+	    var liMinus = $('<li>').append($('<a>').attr('href', '#').text(hashtag + ' (' + len + ')'));
+	    liMinus.click(onClick);
+	    liMinus.appendTo(that.element.find('.ui-chat-minus .block.tweets ul'));
+	});
+	this.element.find('.ui-chat-big .block.tweets .block-header h3')
+	    .text('Tweets ('+ totalTweets +')');
+	this.element.find('.ui-chat-minus .block.tweets .block-header h3')
+	    .text('Tweets ('+ totalTweets +')');
+    },
+
+    _showChat: function(name, title) {
+        if (this.element.data('mode') == 'big') {	    
+	    this.element.find('.ui-chat-big .block.msg .block-content').hide();
+	    this.element.find('.ui-chat-big .block.msg .block-content[name="' + name + '"]').show();
+        } else {
+	    this.element.find('.ui-chat-minus .block-content').hide();
+	    this.element.find('.ui-chat-minus .block-content[name="' + name + '"]').show();
+	    this.element.find('.ui-chat-minus .block.tweets .block-content').show();
+	    if (name != "main") {
+		if (!title) {
+		    title = name;
+		}
+		var back = $('<p>').attr('class', 'ui-chat-back');
+		$('<span>').attr('class', 'ui-chat-title').text(title).appendTo(back);
+		back.prependTo(this.element.find('.ui-chat-minus .block-content[name="' + name + '"]'));
+		var that = this;
+		back.click(function() {
+		    that._showChat("main");
+		    back.remove();
+		});
+	    }
+        }	
+    },
+
+    _addChat: function(name) {
+	var contentBlockBig = $('<div>')
+	    .attr({'class': 'block-content', 'name': name});
+	var msgBlockBig = this.element.find('.ui-chat-big .block.msg');
+	contentBlockBig.appendTo(msgBlockBig);
+	$('<ul>').appendTo(contentBlockBig);
+	contentBlockBig.hide();
+
+	var contentBlockMinus = $('<div>')
+	    .attr({'class': 'block-content', 'name': name});
+	var msgBlockMinus = this.element.find('.ui-chat-minus');
+	contentBlockMinus.appendTo(msgBlockMinus);
+	$('<ul>').appendTo(contentBlockMinus);
+	contentBlockMinus.hide();
+    },
+
     _updateRoster: function() {
-	this.element.find('.block.chat dl').empty();
+	this.element.find('.ui-chat-big .block.chat dl').empty();
 	for (var i = 0; i < this._roster.length; i++) {
 	    var dt = $('<dt>').text(this._roster[i]);
-	    dt.appendTo(this.element.find('.block.chat dl'));
+	    dt.appendTo(this.element.find('.ui-chat-big .block.chat dl'));
 	}
     },
 
-    _handleMessage: function(event) {
-	if (event.metadata.lang) {
-	    console.log(event);
-	    this._conversations[event.metadata.lang].push(event);
-	    if (this._current_language == event.metadata.lang) {
-		this._showChat(event.metadata.lang);
-	    }
-	}
+    _addMessage: function(name, from, text) {
+	var chatBig = this.element.find('.ui-chat-big .block.msg .block-content' + 
+					'[name="' + name + '"] ul');
+	var messageBig = $('<li>').text(from + ' - ' + text);
+	messageBig.appendTo(chatBig);
+
+	var chatMinus = this.element.find('.ui-chat-minus .block-content' + 
+					  '[name="' + name + '"] ul');
+	var messageMinus = $('<li>').text(from + ' - ' + text);
+	messageMinus.appendTo(chatMinus);
     },
 
     setOption: function(key, value) {

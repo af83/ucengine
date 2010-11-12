@@ -28,8 +28,8 @@ Factories.newTweetEvent = function(p) {
 test("create some elements", function() {
     $('#chat').chat();
     ok($('#chat').hasClass("ui-chat"), "should have class ui-chat");
-    equals($('#chat').children().size(), 2);
-    equals($("#chat .ui-chat-minus > div").children().size(), 3);
+    equals($('#chat').children().size(), 3);
+    equals($("#chat .ui-chat-minus > div").children().size(), 6);
     equals($("#chat .ui-chat-big > div").children().size(), 2);
 });
 
@@ -37,10 +37,8 @@ test("handle default minus mode", function() {
     $('#chat').chat();
     equals($("#chat .ui-chat-big").css('display'), 'none');
     equals($("#chat .ui-chat-minus").css('display'), 'block');
-    equals($("#chat .ui-chat-minus .ui-chat-screen1").css('display'), 'block');
-    equals($("#chat .ui-chat-minus .ui-chat-screen2").css('display'), 'none');
-    equals($("#chat .ui-chat-minus .ui-chat-screen3").css('display'), 'none');
-    equals($("#chat .ui-chat-minus .ui-chat-screen1 li a").css("display"), "none", "hide nb tweets");
+    equals($("#chat .ui-chat-minus .block.chat").css('display'), 'block');
+    equals($("#chat .ui-chat-minus .block.tweets").css('display'), 'block');
 });
 
 test("toggle to big mode", function() {
@@ -68,8 +66,8 @@ jackTest("add hashtag", function() {
     $('#chat').chat({
         ucemeeting: ucemeeting
     });
-    $('#chat').find('.col1 input[name="new-hashtag"]').val("pouet");
-    $('#chat').find('.col1 form').submit();
+    $('#chat').find('.column input[name="new-hashtag"]').val("pouet");
+    $('#chat').find('.column form').submit();
 });
 
 module("uce.chat", {
@@ -95,29 +93,29 @@ module("uce.chat", {
 test("handle new hash event", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     // minus mode
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1").children().size(), 2);
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:last").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-minus .block.tweets .block-content").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#chuck (0)');
     // big mode
-    equals($("#chat .ui-chat-big .block.tweets dl").children().size(), 2);
-    equals($("#chat .ui-chat-big .block.tweets dl dt:eq(1)").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-big .block.tweets dl").children().size(), 1);
+    equals($("#chat .ui-chat-big .block.tweets dl dt:eq(0)").text(), '#chuck (0)');
 });
 
 test("handle duplicate hashtag", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1").children().size(), 2);
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:last").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-minus .block.tweets .block-content").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#chuck (0)');
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1").children().size(), 2);
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:last").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-minus .block.tweets .block-content").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#chuck (0)');
 });
 
 test("sort hashtag by alphabetical order", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#atomic'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#TED'}));
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1").children().size(), 4);
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(1)").text(), '#atomic (0)');
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:last").text(), '#ted (0)');
+    equals($("#chat .ui-chat-minus .block.tweets .block-content ul").children().size(), 3);
+    equals($("#chat .ui-chat-minus .block.tweets .block-content li:eq(0)").text(), '#atomic (0)');
+    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#ted (0)');
 });
 
 test("handle tweets events", function() {
@@ -126,13 +124,11 @@ test("handle tweets events", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck,#norris'}));
 
-    equal($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(0)").css('display'), 'list-item', 'show nb total of tweets');
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(0)").text(), 'Tweets (2)');
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(1)").text(), '#chuck (2)');
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:last").text(), '#norris (1)');
+    equal($("#chat .ui-chat-minus .block.tweets .block-content li:eq(0)").css('display'), 'list-item', 'show nb total of tweets');
+    equals($("#chat .ui-chat-minus .block.tweets .block-content li:eq(0)").text(), '#chuck (2)');
+    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#norris (1)');
     // big mode
-    equals($("#chat .ui-chat-big .block.tweets dl dt:eq(0)").text(), 'All (2)');
-    equals($("#chat .ui-chat-big .block.tweets dl dt:eq(1)").text(), '#chuck (2)');
+    equals($("#chat .ui-chat-big .block.tweets dl dt:eq(0)").text(), '#chuck (2)');
     equals($("#chat .ui-chat-big .block.tweets dl dt:last").text(), '#norris (1)');
 });
 
@@ -186,12 +182,12 @@ test("automatic update tweets in minus mode", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(1)").click();
-    equals($("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-title").text(), '#chuck');
-    equals($("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-content").children().size(), 1);
+    $("#chat .ui-chat-minus .block.tweets .block-content li:eq(0)").click();
+    equals($("#chat .ui-chat-minus .ui-chat-title").text(), '#chuck');
+    equals($("#chat .ui-chat-minus .ui-chat-content").children().size(), 1);
 
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    equals($("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-content").children().size(), 2);
+    equals($("#chat .ui-chat-minus .ui-chat-content").children().size(), 2);
 });
 
 test("automatic update tweets in big mode", function() {
@@ -201,11 +197,10 @@ test("automatic update tweets in big mode", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
     
     $("#chat").chat("toggleMode", "big");
-    $("#chat .ui-chat-big .block.tweets dl dt:eq(1)").click();
-    equals($("#chat .ui-chat-big .msg ul").children().size(), 1);
-
+    $("#chat .ui-chat-big .block.tweets dl dt:eq(0)").click();
+    equals($('#chat .ui-chat-big .block.tweets .block-content[name="#chuck"] ul').children().size(), 1);
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    equals($("#chat .ui-chat-big .msg ul").children().size(), 2);
+    equals($('#chat .ui-chat-big .block.tweets .block-content[name="#chuck"] ul').children().size(), 2);
 });
 
 test("clear chat", function() {
@@ -213,8 +208,6 @@ test("clear chat", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
 
     $('#chat').chat('clear');
-    equals($("#chat .ui-chat-minus .block-content .ui-chat-screen1").children().size(), 1);
-    equal($("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(0) a").css('display'), 'none', 'hide nb total of tweets');
-
-    equals($("#chat .ui-chat-big .block.tweets dl").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block.tweets .block-content ul").children().size(), 0);
+    equals($("#chat .ui-chat-big .block.tweets dl").children().size(), 0);
 });

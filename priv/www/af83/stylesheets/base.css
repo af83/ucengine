@@ -40,8 +40,9 @@
   	#content section { clear: both; padding: 10px 0; }
   	#content section .block { float: left; width: 318px; margin: 0 10px 10px 0; border: 1px solid #DADADA; }
   	#content section .block.last { margin: 0; }
-  	#content section .block .block-header { padding: 10px; background: #D6D6D6; }
-  	#content section .block .block-header h2 { font: bold 16px Helvetica; color: #424242; }
+  	#content section .block .block-header { background: #D6D6D6; padding: 0px; }
+  	#content section .block .block-header h2 { font: bold 16px Helvetica; color: #424242; padding: 10px; }
+  	#content section .block .block-header h3 { font: bold 16px Helvetica; color: #424242; background: #E6E6E6; padding: 10px; padding-left: 16px; }
 
   	/* home */
   	#content section.large .block { width: 318px; margin: 0; }
@@ -65,6 +66,13 @@
   	#content section .block.welcome p { margin: 0 0 15px 0; font: normal 14px Helvetica; color: #424242; }
   	#content section .block.welcome .block-footer { margin: 60px 0 0 0; }
   	#content section .block.welcome .block-footer p a { font: bold 16px Helvetica; color: #424242; }
+
+  	#content section.large .block.chat  { }
+
+  	#content section.large .block.chat .block-content { padding: 5px 10px 10px 10px; }
+  	#content section.large .block.chat .block-content ul { margin: 0; }
+  	#content section.large .block.chat .block-content ul li { display: block; padding: 5px 0; border-bottom: 1px solid #AAA; }
+  	#content section.large .block.chat .block-content p { margin: 0; font: normal 13px Helvetica; color: #424242; }
 
   	#content section.large .block.tweets { }
   	#content section.large .block.tweets .block-header { padding: 10px 10px 0 10px; background: none; }
@@ -209,8 +217,8 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
         .ui-chat .block-header ul li a img { opacity: 0.5; width: 20px; height: 15px; }
         .ui-chat .block-header ul li a:hover img, .ui-chat .block-header ul li a.on img { opacity: 1; }
 
-        .ui-chat .col1 { float: left; width: 216px; height: 510px; overflow-y: auto; overflow-x: hidden; }
-        .ui-chat .col1 .block { clear: both; width: 216px; margin: 0; }
+        .ui-chat .column { float: left; width: 216px; height: 510px; overflow-y: auto; overflow-x: hidden; }
+        .ui-chat .column .block { clear: both; width: 216px; margin: 0; }
         .ui-chat .block .block-header { padding: 5px 10px; background: #EBEBEB; }
         .ui-chat .block .block-header h3 { font: bold 20px Helvetica; color: #424242; }
         .ui-chat .block .block-content { padding: 10px 0; }
