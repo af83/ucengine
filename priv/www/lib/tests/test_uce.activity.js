@@ -10,6 +10,12 @@ test("create element", function() {
     $("#activity").activity({ucemeeting: ucemeeting});
     $("#activity").activity("handleSearchResultsEvent", []);
     equals($("#activity > div").size(), 2);
+    ok($("#activity").hasClass('ui-widget'), 'has class ui-widget');
+    ok($("#activity").hasClass('ui-activity'), 'has class ui-widget');
+    $("#activity").activity("destroy");
+    ok(!$("#activity").hasClass('ui-widget'), 'has class ui-widget');
+    ok(!$("#activity").hasClass('ui-activity'), 'has class ui-widget');
+    equals($("#activity > div").size(), 0);
 });
 
 test("show 4 bars", function() {
