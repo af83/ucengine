@@ -6,14 +6,20 @@ require 'rsay'
 require './ucengine'
 
 begin
+  languages = ["fr", "en", "it"]
   UCEngine.new("localhost", 5280).connect("translation",
                                           :token => "d713ab03c0280f82709f865ffa2240a38c26f09b") do |uce|
     uce.subscribe(["af83", "demo"], :type => "chat.message.new", :start => uce.time) do |event|
       if event['metadata']['lang'] and event['metadata']['text']
-        uce.publish([event['org'], event['meeting']],
-                    "chat.translation.new",
-                    event['id'],
-                    :text => Translate.t(event['metadata']['text'], event['metadata']['lang'], 'en'))
+        languages.each do |language|
+          next if language == event['metadata']['lang']
+          uce.publish([event['org'], event['meeting']],
+                      "chat.translation.new",
+                      event['id'],
+                      :text => Translate.t(event['metadata']['text'], event['metadata']['lang'], language),
+                      :lang => language,
+                      :from => event['from'])
+        end
       end
     end
   end
