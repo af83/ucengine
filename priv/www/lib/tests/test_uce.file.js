@@ -7,13 +7,13 @@ test("create basic structure", function() {
     $('#files').file({ucemeeting: ucemeeting});
     ok($('#files').hasClass('ui-widget'), 'class ui-widget');
     ok($('#files').hasClass('ui-file'), 'class ui-file');
-    equals($('#files').find('.list').size(), 1);
-    equals($('#files').find('.list').children().size(), 3);
-    equals($('#files').find('.nb').text(), 'Files (0)');
-    equals($('#files').find('.new').text(), '0');
+    equals($('#files').find('.ui-file-list').size(), 1);
+    equals($('#files').find('.ui-file-list').children().size(), 3);
+    equals($('#files').find('.ui-file-nb').text(), 'Files (0)');
+    equals($('#files').find('.ui-file-new').text(), '0');
     equals($('#files').find('ul > li').size(), 0);
     equals($('#files > div').size(), 2);
-    equals($('#files > div:eq(1) .add').size(), 1);
+    equals($('#files > div:eq(1) .ui-file-add').size(), 1);
 });
 
 test("destroy everything", function() {
@@ -45,11 +45,11 @@ jackTest("handle new file event", function() {
         .exactly("1 time")
         .returnValue('toto');
     $('#files').file({ucemeeting: ucemeeting});
-    equals($('#files').find('.nb').text(), 'Files (1)');
+    equals($('#files').find('.ui-file-nb').text(), 'Files (1)');
     equals($('#files').find('ul > li').size(), 1);
     equals($('#files').find('ul > li:eq(0) a').text(), 'norris_pop.pdf');
     equals($('#files').find('ul > li:eq(0) a').attr('href'), 'toto');
-    equals($('#files').find('.new').text(), '1');
+    equals($('#files').find('.ui-file-new').text(), '1');
 });
 
 jackTest("handle 2 file event", function() {
@@ -65,12 +65,12 @@ jackTest("handle 2 file event", function() {
         .exactly("3 times")
         .returnValue('toto');
     $('#files').file({ucemeeting: ucemeeting});
-    equals($('#files').find('.nb').text(), 'Files (3)');
+    equals($('#files').find('.ui-file-nb').text(), 'Files (3)');
     equals($('#files').find('ul > li').size(), 3);
     equals($('#files').find('ul > li:eq(0)').text(), 'norris.pdf');
     equals($('#files').find('ul > li:eq(1)').text(), 'lee.pdf');
     equals($('#files').find('ul > li:eq(2)').text(), 'unknown.pdf');
-    equals($('#files').find('.new').text(), '3');
+    equals($('#files').find('.ui-file-new').text(), '3');
 });
 
 test("reinit nb new files counter on mouseover", function() {
@@ -81,24 +81,24 @@ test("reinit nb new files counter on mouseover", function() {
             callback(Factories.createFileEvent());
         });
     $('#files').file({ucemeeting: ucemeeting});
-    equals($('#files').find('.new').text(), '1');
-    $('#files').find('.list').mouseover();
-    equals($('#files').find('.new').text(), '0');
+    equals($('#files').find('.ui-file-new').text(), '1');
+    $('#files').find('.ui-file-list').mouseover();
+    equals($('#files').find('.ui-file-new').text(), '0');
 });
 
 test("can hide upload button", function() {
     $('#files').file({upload: false});
-    equals($('#files .add').size(), 0);
+    equals($('#files .ui-file-add').size(), 0);
 });
 
 test("can hide upload button after init", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files').file({ucemeeting: ucemeeting});
-    equals($('#files .add').size(), 1);
+    equals($('#files .ui-file-add').size(), 1);
     $('#files').file("option", "upload", false);
-    equals($('#files .add').css('display'), 'none');
+    equals($('#files .ui-file-add').css('display'), 'none');
     $('#files').file("option", "upload", true);
-    equals($('#files .add').css('display'), 'block');
+    equals($('#files .ui-file-add').css('display'), 'block');
 });
 
 test("clear file", function() {
@@ -112,9 +112,9 @@ test("clear file", function() {
         .exactly("1 time")
         .returnValue('toto');
     $('#files').file({ucemeeting: ucemeeting});
-    equals($('#files').find('.new').text(), '1');
+    equals($('#files').find('.ui-file-new').text(), '1');
     $('#files').file("clear");
-    equals($('#files').find('.new').text(), '0');
-    equals($('#files').find('.nb').text(), 'Files (0)');
+    equals($('#files').find('.ui-file-new').text(), '0');
+    equals($('#files').find('.ui-file-nb').text(), 'Files (0)');
     equals($('#files').find('ul > li').size(), 0);
 });
