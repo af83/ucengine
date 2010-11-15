@@ -34,6 +34,7 @@ $.widget("uce.whiteboard", {
         widget_transport_id : "transportWidget",
     },
     _create: function() {
+        this.element.addClass('ui-widget ui-whiteboard');
         $('<canvas>').attr({
             id     : this.options.canvas_id_bottom,
             width  : this.options.width,
@@ -178,6 +179,7 @@ $.widget("uce.whiteboard", {
 
     destroy: function() {
         this.element.find('*').remove();
+        this.element.removeClass('ui-widget ui-whiteboard');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });
