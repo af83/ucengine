@@ -1,7 +1,7 @@
 module("uce.replay",
        {
            teardown: function() {
-               //$("#replay").replay("destroy");
+               $("#replay").replay("destroy");
            }
        }
 );
