@@ -7,6 +7,11 @@ test("create some elements", function() {
     equals($('#whiteboard > canvas').size(), 2);
     equals($('#whiteboard #controls > *').size(), 6);
     equals($('#whiteboard #chooserWidgets > canvas').size(), 3);
+    ok($('#whiteboard').hasClass('ui-widget'), 'should have class ui-widget');
+    ok($('#whiteboard').hasClass('ui-whiteboard'), 'should have class ui-whiteboard');
+    $('#whiteboard').whiteboard('destroy');
+    ok(!$('#whiteboard').hasClass('ui-widget'), 'should have class ui-widget');
+    ok(!$('#whiteboard').hasClass('ui-whiteboard'), 'should have class ui-whiteboard');
 });
 
 test("create some element with custom ids", function() {
