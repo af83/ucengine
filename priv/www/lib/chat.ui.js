@@ -15,7 +15,7 @@ $.widget("uce.chat", {
         var templateBig =
 	 '<div class="ui-chat-big">' +
             '<div class="block-content">' +
-	       '<div classe="column">' +
+	       '<div class="column">' +
                '<div class="block chat">' +
                   '<div class="block-header">' +
                      '<h3>Chatroom (0)</h3>' +
@@ -71,8 +71,12 @@ $.widget("uce.chat", {
 	var that = this;
 	$.each(this.options.langs, function(i, lang) {
 
-	    $('<img>').attr({'src': 'images/flag/' + lang + '.png', 'alt': lang})
-		.appendTo($('<a>').attr({'href': '#', 'class': 'on'})).appendTo(languages);
+	    var flag = $('<img>').attr({'src': 'images/flag/' + lang + '.png', 'alt': lang});
+	    flag.appendTo($('<a>').attr({'href': '#', 'class': 'on'})).appendTo(languages);
+	    flag.click(function(e) {
+		e.preventDefault();
+		that._showChat('chat:' + lang, "Chatroom (" + lang + ")");
+	    });
 	    that._addChat('chat:' + lang);
 	    
 	    /* create form to send messages */
@@ -104,11 +108,11 @@ $.widget("uce.chat", {
         });
         this.element.find('.ui-chat-minus .block.tweets .block-header').click(function(e) {
             e.preventDefault();
-            that._showChat('hashtag:all');
+            that._showChat('hashtag:all', "All tweets");
         });
         this.element.find('.ui-chat-minus .block.chat .block-header').click(function(e) {
             e.preventDefault();
-            that._showChat('chat:' + that.options.lang);
+            that._showChat('chat:' + that.options.lang, "Chatroom (" + that.options.lang + ")");
         });
         this.toggleMode('minus');
         if (this.options.ucemeeting) {
@@ -217,6 +221,7 @@ $.widget("uce.chat", {
     },
 
     _handleJoin: function(event) {
+	console.log(event);
 	for (var index = 0; index < this._roster.length; index++) {
 	    if (this._roster[index] == event.from) {
 		return;
@@ -287,6 +292,7 @@ $.widget("uce.chat", {
 		if (!title) {
 		    title = name;
 		}
+		this.element.find('.ui-chat-minus .block-content[name="' + name + '"] .ui-chat-back').remove();
 		var back = $('<p>').attr('class', 'ui-chat-back');
 		$('<span>').attr('class', 'ui-chat-title').text(title).appendTo(back);
 		back.prependTo(this.element.find('.ui-chat-minus .block-content[name="' + name + '"]'));

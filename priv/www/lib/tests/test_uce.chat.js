@@ -25,6 +25,42 @@ Factories.newTweetEvent = function(p) {
     } ;
 }
 
+Factories.addRosterEvent = function(from) {
+    return {
+        type: "internal.roster.add",
+	from: from
+    };
+}
+
+Factories.deleteRosterEvent = function(from) {
+    return {
+        type: "internal.roster.delete",
+	from: from
+    };
+}
+
+Factories.newChatEvent = function(from, text) {
+    return {
+        type: "chat.message.new",
+	from: from,
+	metadata: {
+	    text: text,
+	    lang: 'fr'
+	}
+    };
+}
+
+Factories.newTranslationEvent = function(from, text, lang) {
+    return {
+        type: "chat.translation.new",
+	from: from,
+	metadata: {
+	    text: text,
+	    lang: lang
+	}
+    };
+}
+
 test("create some elements", function() {
     $('#chat').chat();
     ok($('#chat').hasClass("ui-chat"), "should have class ui-chat");
@@ -61,7 +97,7 @@ jackTest("add hashtag", function() {
         .mock(function(eventname, metadata) {
             equals(eventname, "twitter.hashtag.add");
             equals(metadata.hashtag, "#pouet");
-            equals($('#chat').find('.col1 input[name="new-hashtag"]').val(), "");
+            equals($('#chat').find('.column input[name="new-hashtag"]').val(), "");
         });
     $('#chat').chat({
         ucemeeting: ucemeeting
@@ -77,8 +113,16 @@ module("uce.chat", {
             bind: function(eventName, callback) {
                 if (eventName == "twitter.hashtag.add") {
                     that.callback_hashtag = callback;
-                } else {
+                } else if (eventName == "twitter.tweet.new") {
                     that.callback_tweet = callback;
+                } else if (eventName == "internal.roster.add") {
+                    that.callback_roster_add = callback;
+                } else if (eventName == "internal.roster.delete") {
+                    that.callback_roster_delete = callback;
+                } else if (eventName == "chat.message.new") {
+                    that.callback_chat = callback;
+                } else if (eventName == "chat.translation.new") {
+                    that.callback_translation = callback;
                 }
             }
         };
@@ -138,12 +182,11 @@ test("can show all tweets in minus mode", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(0) a").click();
-    equals($("#chat .ui-chat-minus .ui-chat-screen1").css('display'), 'none');
-    equals($("#chat .ui-chat-minus .ui-chat-screen2").css('display'), 'block');
-    equals($("#chat .ui-chat-minus .ui-chat-screen3").css('display'), 'none');
-    equals($("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-title").text(), 'All tweets');
-    equals($("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-content").children().size(), 2);
+    $("#chat .ui-chat-minus .block-content .block.tweets .block-header h3").click();
+    equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'none');
+    equals($("#chat .ui-chat-minus .block-content[name='hashtag:all']").css('display'), 'block');
+    equals($("#chat .ui-chat-minus .block-content[name='hashtag:all'] .ui-chat-title").text(), 'All tweets');
+    equals($("#chat .ui-chat-minus .block-content[name='hashtag:all'] ul").children().size(), 2);
 });
 
 test("can show all tweets in big mode", function() {
@@ -153,8 +196,8 @@ test("can show all tweets in big mode", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
     $("#chat").chat("toggleMode", "big");
-    $("#chat .ui-chat-big .block.tweets dl dt:eq(0)").click();
-    equals($("#chat .ui-chat-big .block.msg ul").children().size(), 2);
+    $("#chat .ui-chat-big .block.tweets .block-header h3").click();
+    equals($("#chat .ui-chat-big .block.msg .block-content[name='hashtag:all']").children().size(), 1);
 });
 
 test("can show hastag tweet and go back", function() {
@@ -163,17 +206,12 @@ test("can show hastag tweet and go back", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(1)").click();
-    equals($("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-title").text(), '#chuck');
-    equals($("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-content").children().size(), 1);
+    $("#chat .ui-chat-minus .block.tweets .block-content ul li:eq(0)").click();
+    equals($("#chat .ui-chat-minus .ui-chat-title").text(), '#chuck');
+    equals($("#chat .ui-chat-minus .block-content[name='hashtag:#chuck'] ul").children().size(), 1);
 
-    $("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-back").click();
-    equals($("#chat .ui-chat-minus .ui-chat-screen1").css('display'), 'block');
-    equals($("#chat .ui-chat-minus .ui-chat-screen2").css('display'), 'none');
-    equals($("#chat .ui-chat-minus .ui-chat-screen3").css('display'), 'none');
-
-    $("#chat .ui-chat-minus .block-content .ui-chat-screen1 li:eq(0) a").click();
-    equals($("#chat .ui-chat-minus .ui-chat-screen2 .ui-chat-content").children().size(), 2);
+    $('#chat .ui-chat-minus .block-content[name="hashtag:#chuck"] .ui-chat-back').click();
+    equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'block');
 });
 
 test("automatic update tweets in minus mode", function() {
@@ -182,12 +220,12 @@ test("automatic update tweets in minus mode", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .block.tweets .block-content li:eq(0)").click();
+    $("#chat .ui-chat-minus .block.tweets .block-content ul li:eq(0)").click();
     equals($("#chat .ui-chat-minus .ui-chat-title").text(), '#chuck');
-    equals($("#chat .ui-chat-minus .ui-chat-content").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block-content[name='hashtag:#chuck'] ul").children().size(), 1);
 
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    equals($("#chat .ui-chat-minus .ui-chat-content").children().size(), 2);
+    equals($("#chat .ui-chat-minus .block-content[name='hashtag:#chuck'] ul").children().size(), 2);
 });
 
 test("automatic update tweets in big mode", function() {
@@ -198,9 +236,9 @@ test("automatic update tweets in big mode", function() {
     
     $("#chat").chat("toggleMode", "big");
     $("#chat .ui-chat-big .block.tweets dl dt:eq(0)").click();
-    equals($('#chat .ui-chat-big .block.tweets .block-content[name="#chuck"] ul').children().size(), 1);
+    equals($("#chat .ui-chat-big .block-content[name='hashtag:#chuck'] ul").children().size(), 1);
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    equals($('#chat .ui-chat-big .block.tweets .block-content[name="#chuck"] ul').children().size(), 2);
+    equals($("#chat .ui-chat-big .block-content[name='hashtag:#chuck'] ul").children().size(), 2);
 });
 
 test("clear chat", function() {
@@ -210,4 +248,91 @@ test("clear chat", function() {
     $('#chat').chat('clear');
     equals($("#chat .ui-chat-minus .block.tweets .block-content ul").children().size(), 0);
     equals($("#chat .ui-chat-big .block.tweets dl").children().size(), 0);
+});
+
+test("handle join", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
+    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+});
+
+test("handle duplicate participant", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
+    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+});
+
+test("handle leave", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
+    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+
+    this.callback_roster_delete(Factories.deleteRosterEvent('chuck'));
+    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 0);
+});
+
+test("test messages", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
+    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+
+    $("#chat .ui-chat-big .block.chat dl dt:eq(0)").click();
+    this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
+    equals($("#chat .ui-chat-big .block-content[name='chat:fr'] ul").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 1);
+});
+
+test("test automatic update messages", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
+    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+
+    $("#chat .ui-chat-big .block.chat dl dt:eq(0)").click();
+
+    this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
+    equals($("#chat .ui-chat-big .block-content[name='chat:fr'] ul").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 1);
+
+    this.callback_chat(Factories.newChatEvent('chuck', 'hello2'));
+    equals($("#chat .ui-chat-big .block-content[name='chat:fr'] ul").children().size(), 2);
+    equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 2);
+});
+
+test("test translation", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
+    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+
+    $("#chat .ui-chat-big .block.chat dl dt:eq(0)").click();
+    this.callback_translation(Factories.newTranslationEvent('chuck', 'hello', 'en'));
+    equals($("#chat .ui-chat-big .block-content[name='chat:en'] ul").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block-content[name='chat:en'] ul").children().size(), 1);
+});
+
+test("test automatic update translations", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
+    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+
+    $("#chat .ui-chat-big .block.chat dl dt:eq(0)").click();
+    this.callback_translation(Factories.newTranslationEvent('chuck', 'hello', 'en'));
+    equals($("#chat .ui-chat-big .block-content[name='chat:en'] ul").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block-content[name='chat:en'] ul").children().size(), 1);
+
+    this.callback_translation(Factories.newTranslationEvent('chuck', 'hello2', 'en'));
+    equals($("#chat .ui-chat-big .block-content[name='chat:en'] ul").children().size(), 2);
+    equals($("#chat .ui-chat-minus .block-content[name='chat:en'] ul").children().size(), 2);
+});
+
+test("can show chatroom and go back", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
+
+    $("#chat .ui-chat-minus .block.chat .block-header h3").click();
+    equals($("#chat .ui-chat-minus .ui-chat-title").text(), 'Chatroom (fr)');
+    equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 1);
+
+    $('#chat .ui-chat-minus .block-content[name="chat:fr"] .ui-chat-back').click();
+    equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'block');
 });
