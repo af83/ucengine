@@ -4,6 +4,16 @@ module("uce.results", {
     }
 });
 
+test("create and destroy", function() {
+    var ucemeeting = jack.create("ucemeeting", ['bind']);
+    $("#results").results({ucemeeting: ucemeeting});
+    ok($("#results").hasClass('ui-widget'), 'has class ui-widget');
+    ok($("#results").hasClass('ui-results'), 'has class ui-results');
+    $("#results").results("destroy");
+    ok(!$("#results").hasClass('ui-widget'), 'has class ui-widget');
+    ok(!$("#results").hasClass('ui-results'), 'has class ui-results');
+});
+
 test("show 5 events", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind']);
     $("#results").results({ucemeeting: ucemeeting});

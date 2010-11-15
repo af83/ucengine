@@ -1,10 +1,10 @@
 $.widget("uce.results", {
     options: {
         ucemeeting : null,
-        start      : 0,
-        disabled   : false
+        start      : 0
     },
     _create: function() {
+        this.element.addClass('ui-widget ui-results');
         if (this.options.ucemeeting) {
             var that = this;
             this.options.ucemeeting.bind("internal.search.result", function(event) {
@@ -15,18 +15,18 @@ $.widget("uce.results", {
     handleSearchResultsEvent: function(results) {
         var that = this;
         this.clear();
-        $('<div>').attr('class', 'ui-search-elem-title').text("Related events").appendTo(this.element);
-        var list = $('<div>').attr('class', 'ui-search-list');
+        $('<div>').attr('class', 'ui-widget-header').text("Related events").appendTo(this.element);
+        var list = $('<div>').attr('class', 'ui-widget-content');
         list.appendTo(this.element);
         this.list = $('<ul>');
         this.list.appendTo(list);
         var that = this;
         $.each(results, function(i, event) {
             if (event.metadata.text) {
-                var listElem = $('<li>').attr({'class': 'ui-list-element'});
-                var from = $('<div>').attr({'class': 'ui-list-from'}).text(event.metadata.from + ' at ' + that._formatDate(event.datetime - that.options.start) + ':');
+                var listElem = $('<li>').attr({'class': 'ui-results-list-element'});
+                var from = $('<div>').attr({'class': 'ui-results-list-from'}).text(event.metadata.from + ' at ' + that._formatDate(event.datetime - that.options.start) + ':');
                 from.appendTo(listElem);
-                var link = $('<span>').attr({'class': 'ui-list-element-content'})
+                var link = $('<span>').attr({'class': 'ui-results-list-element-content'})
                     .text(event.metadata.text);
                 link.click(function(e) {
                     that._trigger("jump", event, parseInt(event.datetime, 10));
@@ -55,6 +55,7 @@ $.widget("uce.results", {
 
     destroy: function() {
         this.element.find('*').remove();
+        this.element.removeClass('ui-widget ui-results');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });
