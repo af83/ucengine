@@ -221,7 +221,6 @@ $.widget("uce.chat", {
     },
 
     _handleJoin: function(event) {
-	console.log(event);
 	for (var index = 0; index < this._roster.length; index++) {
 	    if (this._roster[index] == event.from) {
 		return;
