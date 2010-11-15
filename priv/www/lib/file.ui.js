@@ -6,6 +6,7 @@ $.widget("uce.file", {
     _create: function() {
         this._nbFiles    = 0;
         this._nbNewFiles = 0;
+        this.element.addClass('ui-widget ui-file');
         var list = ($('<div>')).attr('class', 'list').appendTo(this.element);
         var newFiles = $("<p>").attr('class', 'new').text(this._nbNewFiles).appendTo(list);
         this._nbFilesP = ($("<p>")).attr('class', 'nb').text("Files (0)").appendTo(list);
@@ -63,6 +64,7 @@ $.widget("uce.file", {
 
     destroy: function() {
         this.element.find('*').remove();
+        this.element.removeClass('ui-widget ui-file');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });

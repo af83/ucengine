@@ -5,6 +5,8 @@ module("uce.file", {teardown: function() {
 test("create basic structure", function() {
     var ucemeeting = jack.create("ycemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files').file({ucemeeting: ucemeeting});
+    ok($('#files').hasClass('ui-widget'), 'class ui-widget');
+    ok($('#files').hasClass('ui-file'), 'class ui-file');
     equals($('#files').find('.list').size(), 1);
     equals($('#files').find('.list').children().size(), 3);
     equals($('#files').find('.nb').text(), 'Files (0)');
@@ -18,6 +20,8 @@ test("destroy everything", function() {
     $('#files').file();
     $('#files').file("destroy");
     equals($('#files').children().size(), 0);
+    ok(!$('#files').hasClass('ui-widget'), 'class ui-widget');
+    ok(!$('#files').hasClass('ui-file'), 'class ui-file');
 });
 
 jackTest("bind event", function() {
