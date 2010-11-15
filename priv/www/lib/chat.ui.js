@@ -18,7 +18,7 @@ $.widget("uce.chat", {
 	       '<div class="column">' +
                '<div class="block chat">' +
                   '<div class="block-header">' +
-                     '<h3>Chatroom (0)</h3>' +
+                     '<h3>Chatroom</h3>' +
                   '</div>' +
                   '<div class="block-content">' +
                      '<dl />' +
@@ -214,7 +214,7 @@ $.widget("uce.chat", {
 			     event.metadata.text);
 	    this._messages += 1;
 	    this.element.find('.ui-chat-big .block.chat .block-header h3')
-		.text('Chatroom ('+ this._messages +')');
+		.text('Chatroom');
 	    this.element.find('.ui-chat-minus .block.chat .block-header h3')
 		.text('Chatroom ('+ this._messages +')');
 	}
