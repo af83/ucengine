@@ -16,6 +16,7 @@ $.widget("uce.video", {
         return "stream=test_stream&streamtype=live&server=rtmp://" + this.options.domain + "/encrev1/room1&width="+ this.options.width  +"&height="+ this.options.height +"&token=token1";
     },
     _create: function() {
+        this.element.addClass('ui-widget ui-video');
         $('<embed>').attr(this._videoAttr()).appendTo(this.element);
     },
     _videoAttr: function() {
@@ -41,6 +42,7 @@ $.widget("uce.video", {
     },
     destroy: function() {
         this.element.find('embed').remove();
+        this.element.removeClass('ui-widget ui-video');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });

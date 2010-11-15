@@ -2,9 +2,15 @@ module("uce.video", {teardown: function() {
     $("#video").video("destroy");
 }});
 
-test("create embed tag", function() {
+test("create embed tag, and destroy", function() {
     $("#video").video();
     equals($("#video embed").size(), 1);
+    ok($("#video").hasClass('ui-widget'), 'has class ui-widget');
+    ok($("#video").hasClass('ui-video'), 'has class ui-video');
+    $("#video").video("destroy");
+    ok(!$("#video").hasClass('ui-widget'), 'has class ui-widget');
+    ok(!$("#video").hasClass('ui-video'), 'has class ui-video');
+    equals($("#video embed").size(), 0);
 });
 
 test("customize with domain and width/height", function() {
