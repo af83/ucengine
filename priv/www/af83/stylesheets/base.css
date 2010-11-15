@@ -304,8 +304,10 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
     left: 0;
     width: 100%;
 }
-
-#replay .ui-button {
+/**
+ * replay widget
+ */
+.ui-replay .ui-button {
     width: 64px;
     float: left;
     margin-left: 12px;
@@ -316,21 +318,18 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
     color: black;
     border: 1px solid #DADADA;
 }
-#replay .ui-slider {
+.ui-replay .ui-slider {
     float: left;
     width: 650px;
     height: 24px;
 }
-
-#replay .ui-slider-range {
+.ui-replay .ui-slider .ui-slider-range {
     background: none repeat scroll 0 0 #DADADA;
 }
-
-#replay .ui-slider-handle {
+.ui-replay .ui-slider  .ui-slider-handle {
     height: 28px;
 }
-
-#replay .time {
+.ui-replay .ui-replay-time {
     float: left;
     margin-left: 12px;
     padding: 4px;

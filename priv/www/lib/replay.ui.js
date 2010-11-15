@@ -8,6 +8,7 @@ $.widget("uce.replay", {
     },
     _create: function() {
         var that = this;
+        this.element.addClass('ui-widget ui-replay');
         $('<a>').appendTo(this.element).button({label: "Play"}).click(function(e) {
             if ($(this).text() == 'Play') {
                 $(this).button({label: 'Stop'});
@@ -24,7 +25,7 @@ $.widget("uce.replay", {
                                                       var timecode = that._getTimecode(ui.value);
                                                       that.jump(timecode);
                                                   }});
-        $('<p>').attr('class', 'time').appendTo(this.element);
+        $('<p>').attr('class', 'ui-replay-time').appendTo(this.element);
         this._updateTime(0);
     },
 
@@ -47,7 +48,7 @@ $.widget("uce.replay", {
     },
 
     _updateTime: function(current) {
-        this.element.find('.time').text(this._formatDate(current) +' / ' + this._formatDate(this.options.date_end - this.options.date_start));
+        this.element.find('.ui-replay-time').text(this._formatDate(current) +' / ' + this._formatDate(this.options.date_end - this.options.date_start));
     },
 
     _updateSlider: function(current) {
@@ -92,6 +93,7 @@ $.widget("uce.replay", {
     destroy: function() {
         this._stopTimer();
         this.element.find('*').remove();
+        this.element.removeClass('ui-widget ui-replay');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });
