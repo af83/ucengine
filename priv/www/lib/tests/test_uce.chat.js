@@ -65,7 +65,7 @@ test("create some elements", function() {
     $('#chat').chat();
     ok($('#chat').hasClass("ui-chat"), "should have class ui-chat");
     equals($('#chat').children().size(), 3);
-    equals($("#chat .ui-chat-minus > div").children().size(), 6);
+    equals($("#chat .ui-chat-minus > div").children().size(), 7);
     equals($("#chat .ui-chat-big > div").children().size(), 2);
 });
 
@@ -73,8 +73,7 @@ test("handle default minus mode", function() {
     $('#chat').chat();
     equals($("#chat .ui-chat-big").css('display'), 'none');
     equals($("#chat .ui-chat-minus").css('display'), 'block');
-    equals($("#chat .ui-chat-minus .block.chat").css('display'), 'block');
-    equals($("#chat .ui-chat-minus .block.tweets").css('display'), 'block');
+    equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'block');
 });
 
 test("toggle to big mode", function() {
@@ -137,8 +136,8 @@ module("uce.chat", {
 test("handle new hash event", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     // minus mode
-    equals($("#chat .ui-chat-minus .block.tweets .block-content").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-minus .block-content.hashtags ul").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#chuck (0)');
     // big mode
     equals($("#chat .ui-chat-big .block.tweets dl").children().size(), 1);
     equals($("#chat .ui-chat-big .block.tweets dl dt:eq(0)").text(), '#chuck (0)');
@@ -146,20 +145,20 @@ test("handle new hash event", function() {
 
 test("handle duplicate hashtag", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    equals($("#chat .ui-chat-minus .block.tweets .block-content").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-minus .block-content.hashtags").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#chuck (0)');
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    equals($("#chat .ui-chat-minus .block.tweets .block-content").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-minus .block-content.hashtags").children().size(), 1);
+    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#chuck (0)');
 });
 
 test("sort hashtag by alphabetical order", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#atomic'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#TED'}));
-    equals($("#chat .ui-chat-minus .block.tweets .block-content ul").children().size(), 3);
-    equals($("#chat .ui-chat-minus .block.tweets .block-content li:eq(0)").text(), '#atomic (0)');
-    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#ted (0)');
+    equals($("#chat .ui-chat-minus .block-content.hashtags ul").children().size(), 3);
+    equals($("#chat .ui-chat-minus .block-content.hashtags li:eq(0)").text(), '#atomic (0)');
+    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#ted (0)');
 });
 
 test("handle tweets events", function() {
@@ -168,9 +167,9 @@ test("handle tweets events", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck,#norris'}));
 
-    equal($("#chat .ui-chat-minus .block.tweets .block-content li:eq(0)").css('display'), 'list-item', 'show nb total of tweets');
-    equals($("#chat .ui-chat-minus .block.tweets .block-content li:eq(0)").text(), '#chuck (2)');
-    equals($("#chat .ui-chat-minus .block.tweets .block-content li:last").text(), '#norris (1)');
+    equal($("#chat .ui-chat-minus .block-content.hashtags li:eq(0)").css('display'), 'list-item', 'show nb total of tweets');
+    equals($("#chat .ui-chat-minus .block-content.hashtags li:eq(0)").text(), '#chuck (2)');
+    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#norris (1)');
     // big mode
     equals($("#chat .ui-chat-big .block.tweets dl dt:eq(0)").text(), '#chuck (2)');
     equals($("#chat .ui-chat-big .block.tweets dl dt:last").text(), '#norris (1)');
@@ -182,7 +181,7 @@ test("can show all tweets in minus mode", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .block-content .block.tweets .block-header h3").click();
+    $("#chat .ui-chat-minus .ui-chat-minus-header.tweets h3").click();
     equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'none');
     equals($("#chat .ui-chat-minus .block-content[name='hashtag:all']").css('display'), 'block');
     equals($("#chat .ui-chat-minus .block-content[name='hashtag:all'] .ui-chat-title").text(), 'All tweets');
@@ -206,7 +205,7 @@ test("can show hastag tweet and go back", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .block.tweets .block-content ul li:eq(0)").click();
+    $("#chat .ui-chat-minus .block-content.hashtags ul li:eq(0)").click();
     equals($("#chat .ui-chat-minus .ui-chat-title").text(), '#chuck');
     equals($("#chat .ui-chat-minus .block-content[name='hashtag:#chuck'] ul").children().size(), 1);
 
@@ -220,7 +219,7 @@ test("automatic update tweets in minus mode", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .block.tweets .block-content ul li:eq(0)").click();
+    $("#chat .ui-chat-minus .block-content.hashtags ul li:eq(0)").click();
     equals($("#chat .ui-chat-minus .ui-chat-title").text(), '#chuck');
     equals($("#chat .ui-chat-minus .block-content[name='hashtag:#chuck'] ul").children().size(), 1);
 
@@ -329,7 +328,7 @@ test("can show chatroom and go back", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
 
-    $("#chat .ui-chat-minus .block.chat .block-header h3").click();
+    $("#chat .ui-chat-minus .ui-chat-minus-header.chat h3").click();
     equals($("#chat .ui-chat-minus .ui-chat-title").text(), 'Chatroom (fr)');
     equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 1);
 

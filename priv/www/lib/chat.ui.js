@@ -47,18 +47,14 @@ $.widget("uce.chat", {
         var templateMinus =
 	    '<div class="ui-chat-minus">' +
                '<div class="block-content" name="main">' +
-	          '<div class="block chat">' +
-                     '<div class="block-header">' +
+                  '<div class="ui-chat-minus-header chat">' +
                         '<h3>Chatroom (0)</h3>' +
-                     '</div>' +
-	          '</div>' +
-	          '<div class="block tweets">' +
-                     '<div class="block-header">' +
-                        '<h3>Tweets (0)</h3>' +
-                     '</div>' +
-                     '<div class="block-content">' +
-	                 '<ul />'
-                     '</div>' +
+                  '</div>' +
+                  '<div class="ui-chat-minus-header tweets">' +
+                     '<h3>Tweets (0)</h3>' +
+                  '</div>' +
+                  '<div class="block-content hashtags">' +
+                     '<ul />'
                   '</div>' +
                '</div>' +
 	    '</div>';
@@ -106,11 +102,11 @@ $.widget("uce.chat", {
             e.preventDefault();
             that._showChat('hashtag:all');
         });
-        this.element.find('.ui-chat-minus .block.tweets .block-header').click(function(e) {
+        this.element.find('.ui-chat-minus .ui-chat-minus-header.tweets').click(function(e) {
             e.preventDefault();
             that._showChat('hashtag:all', "All tweets");
         });
-        this.element.find('.ui-chat-minus .block.chat .block-header').click(function(e) {
+        this.element.find('.ui-chat-minus .ui-chat-minus-header.chat').click(function(e) {
             e.preventDefault();
             that._showChat('chat:' + that.options.lang, "Chatroom (" + that.options.lang + ")");
         });
@@ -215,7 +211,7 @@ $.widget("uce.chat", {
 	    this._messages += 1;
 	    this.element.find('.ui-chat-big .block.chat .block-header h3')
 		.text('Chatroom');
-	    this.element.find('.ui-chat-minus .block.chat .block-header h3')
+	    this.element.find('.ui-chat-minus .ui-chat-minus-header.chat h3')
 		.text('Chatroom ('+ this._messages +')');
 	}
     },
@@ -246,7 +242,7 @@ $.widget("uce.chat", {
 
     _updateHashTags: function() {
 	this.element.find('.ui-chat-big .block.tweets dl').empty();
-	this.element.find('.ui-chat-minus .block.tweets ul').empty();
+	this.element.find('.ui-chat-minus .block-content.hashtags ul').empty();
 	var totalTweets = 0;
 	var that = this;
 
@@ -271,11 +267,11 @@ $.widget("uce.chat", {
 
 	    var liMinus = $('<li>').append($('<a>').attr('href', '#').text(hashtag + ' (' + len + ')'));
 	    liMinus.click(onClick);
-	    liMinus.appendTo(that.element.find('.ui-chat-minus .block.tweets ul'));
+	    liMinus.appendTo(that.element.find('.ui-chat-minus .block-content.hashtags ul'));
 	});
 	this.element.find('.ui-chat-big .block.tweets .block-header h3')
 	    .text('Tweets ('+ totalTweets +')');
-	this.element.find('.ui-chat-minus .block.tweets .block-header h3')
+	this.element.find('.ui-chat-minus .ui-chat-minus-header.tweets h3')
 	    .text('Tweets ('+ totalTweets +')');
     },
 
@@ -286,7 +282,7 @@ $.widget("uce.chat", {
         } else {
 	    this.element.find('.ui-chat-minus .block-content').hide();
 	    this.element.find('.ui-chat-minus .block-content[name="' + name + '"]').show();
-	    this.element.find('.ui-chat-minus .block.tweets .block-content').show();
+	    this.element.find('.ui-chat-minus .block-content.hashtags').show();
 	    if (name != "main") {
 		if (!title) {
 		    title = name;
@@ -306,14 +302,14 @@ $.widget("uce.chat", {
 
     _addChat: function(name) {
 	var contentBlockBig = $('<div>')
-	    .attr({'class': 'block-content', 'name': name});
+	    .attr({'class': 'block-content messages', 'name': name});
 	var msgBlockBig = this.element.find('.ui-chat-big .block.msg');
 	contentBlockBig.appendTo(msgBlockBig);
 	$('<ul>').appendTo(contentBlockBig);
 	contentBlockBig.hide();
 
 	var contentBlockMinus = $('<div>')
-	    .attr({'class': 'block-content', 'name': name});
+	    .attr({'class': 'block-content messages', 'name': name});
 	var msgBlockMinus = this.element.find('.ui-chat-minus');
 	contentBlockMinus.appendTo(msgBlockMinus);
 	$('<ul>').appendTo(contentBlockMinus);
