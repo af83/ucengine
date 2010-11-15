@@ -1,13 +1,15 @@
 module("uce.replay",
        {
            teardown: function() {
-               $("#replay").replay("destroy");
+               //$("#replay").replay("destroy");
            }
        }
 );
 
 test("create element play and slider", function() {
     $("#replay").replay();
+    ok($("#replay").hasClass('ui-widget'), 'has class ui-widget');
+    ok($("#replay").hasClass('ui-replay'), 'has class ui-replay');
     equal($("#replay .ui-button").size(), 1);
     equal($("#replay .ui-button").text(), 'Play');
     equal($("#replay .ui-slider").size(), 1);
@@ -18,6 +20,8 @@ test("destroy remove all element", function() {
     ok($("#replay").children().size() > 0);
     $("#replay").replay("destroy");
     equal($("#replay").children().size(), 0);
+    ok(!$("#replay").hasClass('ui-widget'), 'has class ui-widget');
+    ok(!$("#replay").hasClass('ui-replay'), 'has class ui-replay');
 });
 
 test("on init, compute total time", function() {
@@ -25,7 +29,7 @@ test("on init, compute total time", function() {
         date_start : 1000,
         date_end   : 1000 + (60 * 66 * 1000)
     });
-    equal($("#replay .time").text(), '00:00:00 / 01:06:00');
+    equal($("#replay .ui-replay-time").text(), '00:00:00 / 01:06:00');
 });
 
 test("on init, compute real time", function() {
@@ -33,7 +37,7 @@ test("on init, compute real time", function() {
         date_start : 1000,
         date_end   : 1000 + (60  * 74 * 1000) + (30 * 1000)
     });
-    equal($("#replay .time").text(), '00:00:00 / 01:14:30');
+    equal($("#replay .ui-replay-time").text(), '00:00:00 / 01:14:30');
 });
 
 test("click on play, trigger start event, toggle button and time updated", function() {
@@ -62,10 +66,10 @@ test("click on stop, trigger stop event and toggle button", function() {
         date_end   : 3000,
         stop: function(event, ui) {
             equal($("#replay .ui-button").text(), 'Play');
-            var text = $("#replay .time").text();
+            var text = $("#replay .ui-replay-time").text();
             setTimeout(function() {
                 start();
-                equal($("#replay .time").text(), text, "time ellapsed should not be updated");
+                equal($("#replay .ui-replay-time").text(), text, "time ellapsed should not be updated");
             }, 1500);
         }
     });
@@ -81,7 +85,7 @@ test("trigger stop event at the end", function() {
             equal($("#replay .ui-button").text(), 'Play');
             setTimeout(function() {
                 start();
-                equal($("#replay .time").text(), "00:00:03 / 00:00:03");
+                equal($("#replay .ui-replay-time").text(), "00:00:03 / 00:00:03");
             }, 1500);
         }
     });

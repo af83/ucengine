@@ -174,15 +174,18 @@
 
 /* tools */
 #content section .block.tools { width: 320px; margin: 0; border: none; }
-#content section .block.tools .block-content.files { position: relative; padding: 0 10px 10px 10px; border: 1px solid #DADADA; }
-#content section .block.tools .block-content.files .list { width: 50%; }
-#content section .block.tools .block-content.files .list p { width: 80%; padding: 5px; font: bold 14px Helvetica; color: #424242; border: 1px solid #DADADA; cursor: pointer; }
-#content section .block.tools .block-content.files .list p.new { position: absolute; width: 15px; height: 15px; top: -5px; left: 132px; padding: 0; background: red; border: 1px solid red; -moz-border-radius: 8px; border-radius: 8px; text-align: center; font: bold 12px/15px Helvetica; color: #FFF; }
-#content section .block.tools .block-content.files ul { display: none; z-index: 3000; }
-#content section .block.tools .block-content.files .list:hover ul { display: block; position: absolute; top: 21px; padding: 5px; border: 1px solid #DADADA; background: #FFF; }
-#content section .block.tools .block-content.files ul li { display: block; padding: 2px 0; }
 #content section .block.tools .block-content { padding: 0; }
-#content section .block.tools .block-content.files p.add { position: absolute; right: 10px; top: 8px; font: bold 14px Helvetica; color: #424242; cursor: pointer; }
+/**
+ * File widget
+ */
+.ui-file { position: relative; padding: 0 10px 10px 10px !important; border: 1px solid #DADADA; }
+.ui-file .ui-file-list { width: 50%; }
+.ui-file .ui-file-list p { width: 80%; padding: 5px; font: bold 14px Helvetica; color: #424242; border: 1px solid #DADADA; cursor: pointer; }
+.ui-file .ui-file-list p.ui-file-new { position: absolute; width: 15px; height: 15px; top: -5px; left: 132px; padding: 0; background: red; border: 1px solid red; -moz-border-radius: 8px; border-radius: 8px; text-align: center; font: bold 12px/15px Helvetica; color: #FFF; }
+.ui-file ul { display: none; z-index: 3000; }
+.ui-file .ui-file-list:hover ul { display: block; position: absolute; top: 21px; padding: 5px; border: 1px solid #DADADA; background: #FFF; }
+.ui-file ul li { display: block; padding: 2px 0; }
+.ui-file p.ui-file-add { position: absolute; right: 10px; top: 8px; font: bold 14px Helvetica; color: #424242; cursor: pointer; }
 
 #content section .block.tools .block-content.speak {}
 #content section .block.tools .block-content.speak ul { margin: 10px 0 0 0;}
@@ -319,8 +322,10 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
     left: 0;
     width: 100%;
 }
-
-#replay .ui-button {
+/**
+ * replay widget
+ */
+.ui-replay .ui-button {
     width: 64px;
     float: left;
     margin-left: 12px;
@@ -331,21 +336,18 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
     color: black;
     border: 1px solid #DADADA;
 }
-#replay .ui-slider {
+.ui-replay .ui-slider {
     float: left;
     width: 650px;
     height: 24px;
 }
-
-#replay .ui-slider-range {
+.ui-replay .ui-slider .ui-slider-range {
     background: none repeat scroll 0 0 #DADADA;
 }
-
-#replay .ui-slider-handle {
+.ui-replay .ui-slider  .ui-slider-handle {
     height: 28px;
 }
-
-#replay .time {
+.ui-replay .ui-replay-time {
     float: left;
     margin-left: 12px;
     padding: 4px;
@@ -368,7 +370,7 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
     padding: 3px;
     margin-left: 18px;
     line-height: 0px;
-    
+
 }
 
 #search input[type="text"] {
