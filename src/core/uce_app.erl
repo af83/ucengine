@@ -15,6 +15,7 @@ start() ->
     application:start(crypto),
     mnesia:create_schema([node()]),
     application:start(mnesia, permanent),
+    application:start(inets),
     application:start(uce),
     ok.
 

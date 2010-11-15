@@ -44,6 +44,7 @@ list(EUid, Object, Action) ->
 				    mnesia:match_object(#uce_acl{uid=EUid,
 								 object=Object,
 								 action=Action,
+								 location='_',
 								 conditions='_'})
 			    end) of
 	{aborted, _Reason} ->

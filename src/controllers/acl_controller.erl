@@ -62,7 +62,7 @@ check([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
 							      {"org", Org},
 							      {"meeting", Meeting}] ++ Conditions) of
 	true ->
-	    case uce_acl:check(To, Object, Action, Conditions) of
+	    case uce_acl:check(To, Object, Action, [Org, Meeting], Conditions) of
 		{error, Reason} ->
 		    {error, Reason};
 		true ->
