@@ -3,7 +3,7 @@
 require 'rubygems'
 require 'rsay'
 
-require './ucengine'
+require 'ucengine'
 
 begin
   languages = ["fr", "en", "it"]

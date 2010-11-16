@@ -4,7 +4,7 @@ require 'rubygems'
 require 'twitterstream'
 require 'set'
 
-require './ucengine'
+require 'ucengine'
 
 class UCEngineTwitterStream
   def initialize(login, password, &callback)
