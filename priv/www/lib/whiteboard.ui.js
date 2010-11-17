@@ -50,7 +50,7 @@ $.widget("uce.whiteboard", {
         }).appendTo(this.element);
         // TODO: customize actions
         $.each(["brush", "brush2", "line", "rectangle", "circle", "clear"], function(index, value) {
-                    $("<div>").addClass("ctr_btn draw_fct").attr("id", "btn_"+ index).text(value).appendTo(controls);
+                    $("<div>").addClass("ui-whiteboard-btn").attr("id", "btn_"+ index).text(value).appendTo(controls);
                 });
         var chooser = $('<div>').attr({
             id: this.options.choosers_id
@@ -82,9 +82,9 @@ $.widget("uce.whiteboard", {
 	         var transportWidget = new TransportWidget(this.options.widget_transport_id, {x: 500, y: 190}, canvasAnimator);
              }
             var that = this;
-            $('#'+ this.options.controls_id +' .draw_fct').click(function() {
-                $('#'+ that.options.controls_id +' .draw_fct.active').removeClass('active');
-                $(this).addClass("active");
+            $('#'+ this.options.controls_id +' .ui-whiteboard-btn').click(function() {
+                $('#'+ that.options.controls_id +' .ui-whiteboard-btn.ui-state-active').removeClass('ui-state-active');
+                $(this).addClass("ui-state-active");
             });
             $('#btn_0').click(function() {canvasPainter.setDrawAction(0)});
             $('#btn_1').click(function() {canvasPainter.setDrawAction(1)});
