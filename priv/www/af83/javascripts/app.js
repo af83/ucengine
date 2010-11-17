@@ -395,11 +395,18 @@ $.sammy("#meeting", function() {
         $('#files').file({ucemeeting: meeting});
 
         if (inReplay) {
-            $('#video #video_player').player({src: result_meeting.metadata.video,
-                                              start: result_meeting.start_date});
+            $('#video_player').player({src: result_meeting.metadata.video,
+                                        start: result_meeting.start_date});
         } else {
-            $('#video #video_player').video({domain : "localhost/ucengine",
-                                             stream : result_meeting.name});
+            $('#video_player').video({domain : "localhost/ucengine",
+                                       stream : result_meeting.name});
+            $('<a href="#">Publish</a>').insertBefore($("#video .block-header h2")).css("float", "right").toggle(function() {
+                $('#video_player').video("publish");
+                $(this).text('Stop publish');
+            }, function() {
+                $(this).text('Publish');
+                $('#video_player').video("receive");
+            });
         }
         widgets.push({name: 'video', widget: $('#video #video_player')});
 
