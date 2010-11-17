@@ -154,10 +154,10 @@ test("clear method", function() {
 test("toggle class active on button", function() {
     $('#whiteboard').whiteboard();
     $('#whiteboard #btn_0').click();
-    ok($('#whiteboard #btn_0').hasClass('active'), "btn 0 should have class active");
+    ok($('#whiteboard #btn_0').hasClass('ui-state-active'), "btn 0 should have class active");
     $('#whiteboard #btn_1').click();
-    ok(!$('#whiteboard #btn_0').hasClass('active'), "btn 0 should not have class active");
-    ok($('#whiteboard #btn_1').hasClass('active'), "btn 1 should have class active");
+    ok(!$('#whiteboard #btn_0').hasClass('ui-state-active'), "btn 0 should not have class active");
+    ok($('#whiteboard #btn_1').hasClass('ui-state-active'), "btn 1 should have class active");
 });
 
 jackTest("when disabled, no event are send to ucengine", function() {

@@ -67,7 +67,7 @@ canvas {
 	width: 70px;
 }
 
-.ctr_btn {
+.ui-whiteboard-btn {
 	overflow: hidden;
 	width: 70px;
 	height: 20px;
@@ -78,12 +78,12 @@ canvas {
 	background-color:#FFFFFF;
 }
 
-.ctr_btn:hover {
+.ui-whiteboard-btn:hover {
   background-color: #EEEEEE;
 }
 
-.ctr_btn.active,
-.ctr_btn:active {
+.ui-whiteboard-btn.ui-state-active,
+.ui-whiteboard-btn:active {
   background-color: #CCCCCC;
 }
 
