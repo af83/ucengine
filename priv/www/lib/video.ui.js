@@ -36,13 +36,17 @@ $.widget("uce.video", {
         $.Widget.prototype._setOption.apply(this, arguments);
         this.element.find("embed").attr(this._videoAttr());
     },
+    _updateEmbed: function() {
+        this.element.find("embed").remove();
+        $('<embed>').attr(this._videoAttr()).appendTo(this.element);
+    },
     publish: function() {
         this._publish = true;
-        this.element.find("embed").attr(this._videoAttr());
+        this._updateEmbed();
     },
     receive: function() {
         this._publish = false;
-        this.element.find("embed").attr(this._videoAttr());
+        this._updateEmbed();
     },
     destroy: function() {
         this.element.find('embed').remove();
