@@ -30,7 +30,6 @@ start(_, _) ->
 	    setup_db(),
 	    setup_acl(),
 	    setup_modules(),
-	    setup_triggers(),
 	    setup_bricks(),
 	    setup_root(),
 	    setup_controllers(),
@@ -64,14 +63,6 @@ setup_modules() ->
 setup_db() ->
     DBBackend = list_to_atom(atom_to_list(config:get(db)) ++ "_db"),
     DBBackend:init(config:get(config:get(db))).    
-
-setup_triggers() ->
-    lists:map(fun({Type, URL}) ->
-		      triggers:add(#uce_trigger{location='_',
-						type=Type,
-						action={{url, URL}, []}})
-	      end,
-	      config:get(triggers)).
 
 setup_bricks() ->
     lists:map(fun({Name, Token}) ->
