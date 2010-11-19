@@ -409,15 +409,15 @@ $.sammy("#meeting", function() {
                 $('#video_player').video("receive");
             });
         }
-        widgets.push({name: 'video', widget: $('#video #video_player')});
+        widgets.push('video');
 
         var chat = $('#chat_content').chat({ucemeeting: meeting});
-        widgets.push({name: 'chat', widget: chat});
+        widgets.push('chat');
         $('#whiteboard #whiteboard_content').whiteboard({ucemeeting       : meeting,
                                                          widget_transport : false,
                                                          width            : 318,
                                                          height           : 350});
-        widgets.push({name: 'whiteboard', widget: $('#whiteboard #whiteboard_content')});
+        widgets.push('whiteboard');
         this.trigger('focus-updated', 'video');
 
         if (inReplay) {
@@ -481,7 +481,7 @@ $.sammy("#meeting", function() {
     this.bind("click", function(e) {
         if (e.target == this.$element().find("#wheel img").get(0)) {
             initFocus = (initFocus + 1) % widgets.length;
-            this.trigger('focus-updated', widgets[initFocus].name);
+            this.trigger('focus-updated', widgets[initFocus]);
         }
     });
     this.bind("focus-updated", function(e, data) {
