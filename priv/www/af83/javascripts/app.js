@@ -400,11 +400,11 @@ $.sammy("#meeting", function() {
         } else {
             $('#video_player').video({domain : "localhost/ucengine",
                                        stream : result_meeting.name});
-            $('<a href="#">Publish</a>').insertBefore($("#video .block-header h2")).css("float", "right").toggle(function() {
+            $('<a href="#"></a>').button({label: "Publish"}).insertBefore($("#video .block-header h2")).css("float", "right").toggle(function() {
                 $('#video_player').video("publish");
-                $(this).text('Stop publish');
+                $(this).button('option', 'label', 'Stop publish');
             }, function() {
-                $(this).text('Publish');
+                $(this).button('option', 'label', 'Publish');
                 $('#video_player').video("receive");
             });
         }
