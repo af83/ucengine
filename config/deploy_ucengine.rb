@@ -5,26 +5,26 @@ set :scm, :git
 set :deploy_via, :remote_cache
 
 desc "Local Environment"
-task :env_local do
+task :ucengine_local do
   set :branch, 'master'
-  set :repository,  "git@github.com:AF83/ucengine.git"
+  set :repository,  "git://github.com/AF83/ucengine.git"
   set :application, "localhost"
   set :application_type, "development"
-  set :deploy_to, "/home/encre"
+  set :deploy_to, "/home/encre/ucengine/"
   set :config_file, "local.cfg"
   server "#{user}@#{application}", :app, :web, :db, :primary => true
 end
 
 desc "Test Environment"
-task :env_test do
+task :ucengine_test do
   set :branch, 'master'
-  set :repository,  "git@github.com:AF83/ucengine.git"
+  set :repository,  "git://github.com/AF83/ucengine.git"
   set :application, "encre-test.af83.com"
   set :application_type, "development"
   set :deploy_to, "/var/www/encre/ucengine"
   set :config_file, "test.cfg"
   server "#{user}@#{application}", :app, :web, :db, :primary => true
-  set :default_environment, {"ERL_LIBS" => "/var/www/ucengine/lib/erlang/lib"}
+  set :default_environment, {"ERL_LIBS" => "/var/www/encre/lib/erlang/lib"}
 end
 
 namespace :deploy do
@@ -46,6 +46,7 @@ namespace :deploy do
     config = "#{current_path}/config/#{config_file}"
     run "cp #{config} #{current_path}/etc/uce.cfg"
   end
+
 end
 
 before 'deploy:update', 'deploy:stop'
