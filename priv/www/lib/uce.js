@@ -258,8 +258,12 @@
                                     });
                                 return this;
                             },
-
-                            dispatchEvent: function(event) {
+                            /**
+                             * Trigger event on the internal queue
+                             * @param Object event
+                             *  - type
+                             */
+                            trigger: function(event) {
                                  $.each(handlers, function(i, item) {
                                     if (!item.type) {
                                         item.callback(event);
@@ -277,7 +281,7 @@
                             startLoop: function(start) {
                                 var that = this;
                                 return this.waitEvents({start: start}, function(err, result, xhr) {
-                                    that.dispatchEvent(result);
+                                    that.trigger(result);
                                 });
                             },
 
@@ -295,7 +299,7 @@
                                 var next = null;
                                 while (next = events[index]) {
                                     if (next && start > next.datetime) {
-                                        this.dispatchEvent(next);
+                                        this.trigger(next);
                                         index++;
                                     } else {
                                         break;
