@@ -41,4 +41,15 @@
         </div>
 
     </section>
+
+    <section id="replay-mode">
+        <div id="replay"></div>
+        <div id="search"></div>
+
+        <div id="search-results">
+            <div class="ui-search-title">Search results</div>
+            <div id="activity"></div>
+            <div id="results"></div>
+        </div>
+    </section>
 </div>

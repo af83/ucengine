@@ -393,6 +393,7 @@ $.sammy("#meeting", function() {
         inReplay = new Date(parseInt(result_meeting.end_date, 10)) < Date.now();
 
         $('#files').file({ucemeeting: meeting});
+        $("#replay-mode").hide();
 
         if (inReplay) {
             $('#video_player').player({src: result_meeting.metadata.video,
@@ -420,18 +421,12 @@ $.sammy("#meeting", function() {
         this.trigger('focus-updated', 'video');
 
         if (inReplay) {
+            // disabled some widgets
             $('#files').file("option", "upload", false);
             $('#whiteboard #whiteboard_content').whiteboard("option", {disabled: true});
 
-            $("<section>").attr("id", "replay-mode").appendTo($("#meeting"));
-            $("<div>").attr("id", "replay").appendTo($("#replay-mode"));
-	    $("<div>").attr("id", "search").appendTo($("#replay-mode"));
-	    search_results = $("<div>").attr("id", "search-results").appendTo($("#replay-mode"));
-	    $("<div>").attr("class", "ui-search-title").text("Search results").appendTo(search_results);
-	    $("<div>").attr("id", "activity").appendTo(search_results);
-	    $("<div>").attr("id", "results").appendTo(search_results);
-
             $('#search').search({ucemeeting: meeting});
+            $("#replay-mode").show();
 
             var events = meeting.getEvents({start: start}, function(err, result) {
                 if (err) {
