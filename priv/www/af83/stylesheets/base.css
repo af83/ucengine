@@ -191,6 +191,21 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
     border-top-color: #424242;
 }
 
+.toggle-results {
+    font-size: 36px;
+    float: right;
+    padding: 3px;
+    margin-left: 18px;
+    line-height: 0px;
+    width: 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    background-image: url("../images/pane_show.png");
+}
+.toggle-results.show {
+    background-image: url("../images/pane_hide.png");
+}
+
 .ui-search-title {
     font-size: 20px;
     font-weight: bold;
@@ -210,7 +225,6 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
 
 .ui-search {
     float: right;
-    margin-right: 32px;
 }
 
 .ui-results .ui-widget-header {

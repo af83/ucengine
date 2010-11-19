@@ -38,14 +38,6 @@
 /**
  * search widget
  */
-.ui-search .ui-search-toggle {
-    font-size: 36px;
-    float: right;
-    padding: 3px;
-    margin-left: 18px;
-    line-height: 0px;
-
-}
 .ui-search input[type="text"] {
     width: 200px;
     padding: 2px 2px;

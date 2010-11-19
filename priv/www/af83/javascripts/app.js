@@ -390,7 +390,7 @@ $.sammy("#meeting", function() {
         result_meeting = data[1];
         var start = parseInt(result_meeting.start_date, 10);
 
-        inReplay = new Date(parseInt(result_meeting.end_date, 10)) < Date.now();
+        inReplay = new Date(parseInt(result_meeting.end_date, 10)) < new Date().getTime();
 
         $('#files').file({ucemeeting: meeting});
         $("#replay-mode").hide();
@@ -427,6 +427,18 @@ $.sammy("#meeting", function() {
 
             $('#search').search({ucemeeting: meeting});
             $("#replay-mode").show();
+
+            // toggle results pane
+            meeting.bind("internal.search.result", function() {
+                $('.toggle-results').click();
+            });
+            $('.toggle-results').toggle(function() {
+                $(this).toggleClass('show');
+                $('#search-results').show(4);
+            }, function() {
+                $(this).toggleClass('show');
+                $('#search-results').hide(3);
+            });
 
             var events = meeting.getEvents({start: start}, function(err, result) {
                 if (err) {

@@ -44,6 +44,7 @@
 
     <section id="replay-mode">
         <div id="replay"></div>
+        <div class="toggle-results"></div>
         <div id="search"></div>
 
         <div id="search-results">
