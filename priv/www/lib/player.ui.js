@@ -7,13 +7,14 @@ $.widget("uce.player", {
         height : 477
     },
     _create: function() {
+        this.element.addClass("ui-widget ui-player");
         this.player = $('<video>').attr(this._videoAttr());
         $('<source>').attr(this._sourceAttr('mp4', 'avc1.42E01E, mp4a.40.2')).appendTo(this.player);
         $('<source>').attr(this._sourceAttr('webm', 'vp8, vorbis')).appendTo(this.player);
         this.player.appendTo(this.element);
     },
     _videoAttr: function() {
-        return {"class"   : 'video-js',
+        return {"class"   : 'ui-player-video',
                 preload   : 'auto',
                 width     : this.options.width,
                 height    : this.options.height}
@@ -55,6 +56,7 @@ $.widget("uce.player", {
     },
     destroy: function() {
         this.element.find('*').remove();
+        this.element.removeClass("ui-widget ui-player");
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });
