@@ -15,9 +15,13 @@ var videourl = "http://encre.2metz.fr/windowsill";
 
 test("create video tag", function() {
     $("#player").player({src: videourl});
+    ok($("#player").hasClass("ui-widget ui-player"), "has class ui-widget ui-player");
     equals($("#player video").size(), 1);
     equals($("#player video source[name=mp4]").size(), 1);
     equals($("#player video source[name=webm]").size(), 1);
+    $("#player").player("destroy");
+    ok(!$("#player").hasClass("ui-widget ui-player"), "should not have class ui-widget ui-player");
+    equals($("#player video").size(), 0);
 });
 
 test("customize with src and width/height", function() {

@@ -15,14 +15,14 @@ test("create basic structure", function() {
 });
 
 jackTest("submit keywords and call the UCE API", function() {
-    var ucemeeting = jack.create("ucemeeting", ['getEvents', 'dispatchEvent']);
+    var ucemeeting = jack.create("ucemeeting", ['getEvents', 'trigger']);
     jack.expect("ucemeeting.getEvents")
 	.exactly("1 time")
 	.mock(function(params, callback) {
 	    callback([{'type': 'coucou'}]);
 	});
 
-    jack.expect("ucemeeting.dispatchEvent")
+    jack.expect("ucemeeting.trigger")
 	.exactly("1 time");
 
     $('#search').search({ucemeeting: ucemeeting});

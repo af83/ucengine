@@ -6,7 +6,7 @@ $.widget("uce.chat", {
 	langs: ["fr", "en", "it"]
     },
     _create: function() {
-        this.element.addClass('ui-chat');
+        this.element.addClass('ui-chat ui-widget');
 
 	var title = $('<div>').attr('class', 'block-header');
 	$('<h2>').text(this.options.title).appendTo(title);
@@ -342,7 +342,7 @@ $.widget("uce.chat", {
 
     destroy: function() {
         this.element.find('*').remove();
-        this.element.removeClass('ui-chat');
+        this.element.removeClass('ui-chat ui-widget');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });

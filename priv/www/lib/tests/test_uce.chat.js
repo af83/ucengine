@@ -64,9 +64,18 @@ Factories.newTranslationEvent = function(from, text, lang) {
 test("create some elements", function() {
     $('#chat').chat();
     ok($('#chat').hasClass("ui-chat"), "should have class ui-chat");
+    ok($('#chat').hasClass("ui-widget"), "should have class ui-widget");
     equals($('#chat').children().size(), 3);
     equals($("#chat .ui-chat-minus > div").children().size(), 7);
     equals($("#chat .ui-chat-big > div").children().size(), 2);
+});
+
+test("destroy delete all elements", function() {
+    $('#chat').chat();
+    $('#chat').chat("destroy");
+    ok(!$('#chat').hasClass("ui-chat"), "should not have class ui-chat");
+    ok(!$('#chat').hasClass("ui-widget"), "should not have class ui-widget");
+    equals($('#chat > *').size(), 0);
 });
 
 test("handle default minus mode", function() {
@@ -80,13 +89,6 @@ test("toggle to big mode", function() {
     $('#chat').chat().chat("toggleMode", "big");
     equals($("#chat .ui-chat-big").css('display'), 'block');
     equals($("#chat .ui-chat-minus").css('display'), 'none');
-});
-
-test("destroy delete all elements", function() {
-    $('#chat').chat();
-    $('#chat').chat("destroy");
-    ok(!$('#chat').hasClass("ui-chat"), "should not have class ui-chat");
-    equals($('#chat > *').size(), 0);
 });
 
 jackTest("add hashtag", function() {

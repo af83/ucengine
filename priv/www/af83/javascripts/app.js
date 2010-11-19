@@ -1,5 +1,3 @@
-var video;
-
 function sammyapp() {
     this.use('Mustache', 'tpl');
     this.use('NestedParams');
@@ -391,10 +389,25 @@ $.sammy("#meeting", function() {
         meeting = data[0];
         result_meeting = data[1];
         var start = parseInt(result_meeting.start_date, 10);
+
+        inReplay = new Date(parseInt(result_meeting.end_date, 10)) < Date.now();
+
         $('#files').file({ucemeeting: meeting});
 
-        $('#video #video_player').player({src: result_meeting.metadata.video,
-                                          start: result_meeting.start_date});
+        if (inReplay) {
+            $('#video_player').player({src: result_meeting.metadata.video,
+                                        start: result_meeting.start_date});
+        } else {
+            $('#video_player').video({domain : "localhost/ucengine",
+                                       stream : result_meeting.name});
+            $('<a href="#"></a>').button({label: "Publish"}).insertBefore($("#video .block-header h2")).css("float", "right").toggle(function() {
+                $('#video_player').video("publish");
+                $(this).button('option', 'label', 'Stop publish');
+            }, function() {
+                $(this).button('option', 'label', 'Publish');
+                $('#video_player').video("receive");
+            });
+        }
         widgets.push({name: 'video', widget: $('#video #video_player')});
 
         var chat = $('#chat_content').chat({ucemeeting: meeting});
@@ -405,8 +418,6 @@ $.sammy("#meeting", function() {
                                                          height           : 350});
         widgets.push({name: 'whiteboard', widget: $('#whiteboard #whiteboard_content')});
         this.trigger('focus-updated', 'video');
-
-        inReplay = new Date(parseInt(result_meeting.end_date, 10)) < Date.now();
 
         if (inReplay) {
             $('#files').file("option", "upload", false);
@@ -482,12 +493,16 @@ $.sammy("#meeting", function() {
         $('.focus').removeClass('focus');
         $('#'+data).addClass('focus');
         if (data == 'video') {
-            $('#video').find('#video_player').player('option', {'height': 477,
-                                                               'width' : 636});
+            var videoAttrs = {'height': 475,
+                              'width' : 630};
         } else {
-            $('#video').find('#video_player').player('option', {'height': 240,
-                                                               'width' : 318});
+            var videoAttrs = {'height': 240,
+                              'width' : 318};
         }
+        if (inReplay)
+            $('#video_player').player('option', videoAttrs);
+        else
+            $('#video_player').video('option', videoAttrs);
 
         if (data == 'whiteboard') {
             $('#whiteboard_content').whiteboard('option', {widget_color: true,
@@ -512,15 +527,16 @@ $.sammy("#meeting", function() {
         if (inReplay) {
             meeting.stopReplay();
             $("#replay").replay("destroy");
+            $('#video_player').player("destroy");
+
         } else {
             loop.stop();
             loop = null;
+            $('#video_player').video("destroy");
         }
         $('#chat_content').chat("destroy");
-        $('#video').find('#video_player').player("destroy");
         $('#whiteboard').find('#whiteboard_content').whiteboard("destroy");
         $('#files').file("destroy");
         this.unload();
     };
 });
-

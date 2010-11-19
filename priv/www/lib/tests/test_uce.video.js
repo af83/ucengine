@@ -13,11 +13,13 @@ test("create embed tag, and destroy", function() {
     equals($("#video embed").size(), 0);
 });
 
-test("customize with domain and width/height", function() {
+test("customize with domain, stream and width/height", function() {
     $("#video").video({width  : 400,
                        height : 200,
-                       domain : 'example.com'});
+                       domain : 'example.com/ucengine',
+                       stream : 'plop'});
     equals(/rtmp:\/\/([\w\.]+)/.exec($("#video embed").attr('flashvars'))[1], 'example.com');
+    equals(/stream=(\w+)/.exec($("#video embed").attr('flashvars'))[1], 'plop');
     equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 400);
     equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 200);
     equals($("#video embed").attr('width'), 400);
@@ -28,8 +30,10 @@ test("dynamic updated options", function() {
     $("#video").video();
     $("#video").video("option", {"width" : "100",
                                  "height": "150",
-                                 "domain": "example.org"});
+                                 "domain": "example.org",
+                                 "stream": "plop2"});
     equals(/rtmp:\/\/([\w\.]+)/.exec($("#video embed").attr('flashvars'))[1], 'example.org');
+    equals(/stream=(\w+)/.exec($("#video embed").attr('flashvars'))[1], 'plop2');
     equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 100);
     equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 150);
     equals($("#video embed").attr('width'), 100);
@@ -46,7 +50,6 @@ test("publish video and set option", function() {
     $("#video").video();
     $("#video").video("publish");
     $("#video").video("option", "width", "100");
-    equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 100);
     equals($("#video embed").attr('width'), 100);
     equals(/(publish_video.swf)/.exec($("#video embed").attr('src'))[1], 'publish_video.swf');
 });

@@ -3,17 +3,21 @@ $.widget("uce.video", {
     // Default options
     options: {
         domain : "localhost",
+        stream : "ucengine",
         width  : 610,
         height : 415
     },
     _getFlashSrc: function() {
         if (this._publish)
-            return '/publish_video.swf?stream=test_stream%20&streamtype=live&server=rtmp://' + this.options.domain + '/encrev1/room1&token=token1';
+            return '/publish_video.swf';
         else
-            return '/receive_video.swf?stream=test_stream%20&streamtype=live&server=rtmp://' + this.options.domain + '/encrev1/room1&token=token1';
+            return '/receive_video.swf';
     },
     _getFlashVar: function() {
-        return "stream=test_stream&streamtype=live&server=rtmp://" + this.options.domain + "/encrev1/room1&width="+ this.options.width  +"&height="+ this.options.height +"&token=token1";
+        if (this._publish)
+            return "stream="+ this.options.stream +"&server=rtmp://" + this.options.domain;
+        else
+            return "stream="+ this.options.stream +"&streamtype=live&server=rtmp://" + this.options.domain +"&token=p&width="+ this.options.width  +"&height="+ this.options.height;
     },
     _create: function() {
         this.element.addClass('ui-widget ui-video');
@@ -32,13 +36,17 @@ $.widget("uce.video", {
         $.Widget.prototype._setOption.apply(this, arguments);
         this.element.find("embed").attr(this._videoAttr());
     },
+    _updateEmbed: function() {
+        this.element.find("embed").remove();
+        $('<embed>').attr(this._videoAttr()).appendTo(this.element);
+    },
     publish: function() {
         this._publish = true;
-        this.element.find("embed").attr(this._videoAttr());
+        this._updateEmbed();
     },
     receive: function() {
         this._publish = false;
-        this.element.find("embed").attr(this._videoAttr());
+        this._updateEmbed();
     },
     destroy: function() {
         this.element.find('embed').remove();

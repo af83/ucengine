@@ -25,9 +25,9 @@ $.widget("uce.search", {
         this.form.bind('submit', function() {
             var keywords = this.elements['keywords'].value;
             that.options.ucemeeting.getEvents({'search': keywords, 'type': 'twitter.tweet.new'}, function(err, events) {
-                that.options.ucemeeting.dispatchEvent({'type': 'internal.search.result',
-                                                       'from': 'internal',
-                                                       'metadata': {'events': events}});
+                that.options.ucemeeting.trigger({'type': 'internal.search.result',
+                                                 'from': 'internal',
+                                                 'metadata': {'events': events}});
                 $('#search-results')[0].style.display='block';
                 that.toggle.text("↓");
             });
