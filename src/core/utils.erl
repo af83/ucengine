@@ -10,10 +10,8 @@
 	 random/0,
 	 random/1,
 	 get/2,
-	 get/3,
-	 timestamp_to_ical_date/1,
-	 timestamp_to_solr_date/1,
-	 concat_with_pattern/2
+	 get/3
+%	 timestamp_to_ical_date/1
 	]).
 
 %% Get current timestamp
@@ -56,35 +54,13 @@ get(Params, [Key|Keys], [Default|Defaults]) ->
     ValueList ++ ?MODULE:get(Params, Keys, Defaults).
 
 % 19970714T170000Z
-timestamp_to_ical_date(Date) when is_integer(Date) ->
-	if
-		Date > 0 ->
-			BaseDate = calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
-			{{Y,M,D},{H,Min,S}} = calendar:gregorian_seconds_to_datetime(BaseDate + (Date div 1000) ),
-			int2str(Y) ++ int2str(M) ++ int2str(D) ++ "T" ++ int2str(H) ++ int2str(Min) ++ int2str(S) ++ "Z";
-		true -> none
-	end;
-timestamp_to_ical_date(_) -> "".
+%% timestamp_to_ical_date(Date) when is_integer(Date) ->
+%% 	if
+%% 		Date > 0 ->
+%% 			BaseDate = calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
+%% 			{{Y,M,D},{H,Min,S}} = calendar:gregorian_seconds_to_datetime(BaseDate + (Date div 1000) ),
+%% 			int2str(Y) ++ int2str(M) ++ int2str(D) ++ "T" ++ int2str(H) ++ int2str(Min) ++ int2str(S) ++ "Z";
+%% 		true -> none
+%% 	end;
+%% timestamp_to_ical_date(_) -> "".
 
-% 1997-07-14T17:00:00Z
-timestamp_to_solr_date(SDate) when is_list(SDate) ->
-	timestamp_to_solr_date(list_to_integer(SDate));
-timestamp_to_solr_date(Date) when is_integer(Date) ->
-	if
-		Date > 0 ->
-			BaseDate = calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
-			{{Y,M,D},{H,Min,S}} = calendar:gregorian_seconds_to_datetime(BaseDate + (Date div 1000) ),
-			int2str(Y) ++ "-" ++ int2str(M) ++ "-" ++ int2str(D) ++ "T" ++ int2str(H) ++ ":" ++ int2str(Min) ++ ":" ++ int2str(S) ++ "Z";
-		true -> none
-	end.
-	
-int2str(Int) when Int < 10 ->
-	"0" ++ integer_to_list(Int);
-int2str(Int) ->
-	integer_to_list(Int).
-
-concat_with_pattern(Pattern, List) ->
-	case length(List) of
-		1 -> lists:flatten(List);
-		_ -> lists:flatten( hd(List) ++ Pattern ++ concat_with_pattern(Pattern, tl(List) ))
-	end.

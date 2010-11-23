@@ -19,6 +19,7 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
 		    {error, Reason};
 		_ ->
 		    mnesia_pubsub:publish(Location, Type, From, Id),
+		    ?SEARCH_MOD:add(Event),
 		    case catch triggers:run(Location, Type, Event) of
 			{error, Reason} ->
 			    ?DEBUG("Error : ~p~n", [{error, Reason}]);
@@ -40,41 +41,13 @@ list(_, _, _, [], _, _, _) ->
     [];
 list(Location, Search, From, '_', Start, End, Parent) ->
     ?MODULE:list(Location, Search, From, ['_'], Start, End, Parent);
-list(Location, Search, From, [Type|Tail] = Types, Start, End, Parent) ->
-    SearchEngine = ?SEARCH_ENGINE,
-    if
-	SearchEngine /= undefined, Search /= '_' ->
-	    [Org, Meeting] = Location,
-	    SearchEngine:search(Org, Meeting,
-				case From of
-				    '_' ->
-					none;
-				    _ ->
-					From
-				end
-				, case Types of
-				      ['_'] ->
-					  none;
-				      _ ->
-					  Types
-				  end
-				, case Start of
-				      0 ->
-					  none;
-				      _ ->
-					  Start
-				  end
-				, case End of
-				      infinity ->
-					  none;
-				      _ ->
-					  End
-				  end
-				, Search);
-	true ->
-	    ?DBMOD:list(Location, Search, From, Type, Start, End, Parent) ++
-		?MODULE:list(Location, Search, From, Tail, Start, End, Parent)
-    end.
+list(Location, Search, From, [Type|Tail], Start, End, Parent) ->
+    case Search of
+	'_' ->
+	    ?DBMOD:list(Location, From, Type, Start, End, Parent);
+	_ ->
+	    ?SEARCH_MOD:list(Location, Search, From, Type, Start, End, Parent)
+    end ++ ?MODULE:list(Location, Search, From, Tail, Start, End, Parent).
 
 last(Location, Type) ->
     last(Location, '_', Type).

@@ -29,7 +29,6 @@ start(_, _) ->
 
 	    setup_db(),
 	    setup_acl(),
-	    setup_modules(),
 	    setup_bricks(),
 	    setup_root(),
 	    setup_controllers(),
@@ -52,13 +51,6 @@ setup_acl() ->
 						 action=Action,
 						 conditions=Conditions}}})
       || {Object, Action, Conditions} <- Rules] || {Type, Rules} <- config:get(acl)].
-
-setup_modules() ->
-    lists:map(fun({Module, Options}) ->
-     		      Module:start(Options),
-		      ?INFO_MSG("~p module loaded", [Module])
-     	      end,
-    	      config:get(modules)).    
 
 setup_db() ->
     DBBackend = list_to_atom(atom_to_list(config:get(db)) ++ "_db"),
