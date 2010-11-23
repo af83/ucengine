@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: UTF-8 -*-
+# -*- coding: utf-8 -*-
 
 # Import from the standard library
 from json import dumps, loads
@@ -46,7 +46,7 @@ def authent(base_url, org):
 
 def push_event(base_url, org, meeting, euid, esid):
     """
-    Push a new_hashtag_event to Encre.
+    Push a new_hashtag_event to UCengine.
     """
     url = '%s/event/%s/%s' % (base_url, org, meeting)
     print(url)
@@ -89,7 +89,7 @@ def main():
     """
     Usage: push_event.py http://host:port
 
-        The first parameter is the Encre URL.
+        The first parameter is the UCengine URL.
         For instance : http://localhost.localdomain:5280
     """
     if len(argv) < 2:
@@ -100,7 +100,7 @@ def main():
     # Set some default variables
     base_url, org, meeting = argv[1], 'af83', 'demo'
 
-    # We have to authenticate an anonymous user to have access to the Encre API
+    # We have to authenticate an anonymous user to have access to the UCengine API
     session_infos = authent(base_url, org)['result']
     # Euid and Esid identify the user's session
     euid = session_infos['euid']
