@@ -3,13 +3,6 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--define(TEST_EVENT, {uce_event, "test_solr_event",
-              1287652875728,
-              ["af83","demo"],
-              "root","test_solr_event",
-              [{"text","This is test event, indexing by solr to test search"}]}
-	   ).
-
 -export([test_add/0, test_search/0]).
 
 solr_test_() ->
@@ -24,18 +17,18 @@ solr_test_() ->
     }.
 
 test_add() ->
-	R = case utils:get(utils:get(config:get(modules), solr), [host, token, blacklist]) of
-		[_Host, _Token, _Blacklist] = Params->  Add = solr:add(?TEST_EVENT, Params),
-											 io:format("Result test_add : ~p", [Add]),
-											 Add;
-		_ -> {error, "solr not configured"}
-	end,
-	ok = R.
+    ok = uce_event_solr_search:add(#uce_event{id=utils:random(),
+					      datetime=utils:now(),
+					      location=["testorg", "testmeeting"],
+					      from="chuck_norris",
+					      type="test_solr_event",
+					      metadata=[{"text","This is a test event."}]}).
 
 test_search() ->
-	R = case solr:search("af83", "demo", none, ["test_solr_event"], none, none, ["solr", "index"]) of
-		{error, _Error} = TupleErr -> TupleErr;
-		_ = Results -> ok
-	end,
-	ok = R.
+    ok = case uce_event_solr_search:list(['_', '_'], ["This is"], '_', '_', 0, infinity, '_') of
+	     {error, Reason} ->
+		 {error, Reason};
+	     Results when is_list(Results) ->
+		 ok
+	 end.
 

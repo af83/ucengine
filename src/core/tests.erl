@@ -20,8 +20,13 @@ run() ->
 	       presence_tests,
 	       user_tests,
 	       time_tests,
-	       file_tests,
-	       solr_tests],
+	       file_tests] ++
+	case config:get(search_engine) of
+	    solr ->
+		[solr_tests];
+	    _ ->
+		[]
+	end,
     Failed = lists:filter(fun(Module) ->
 				  io:format("> ~p~n", [Module]),
 				  case Module:test() of

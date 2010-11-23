@@ -19,8 +19,8 @@ add(Event) ->
 		  to_solrxml(Event)
 		 },
 		 [{timeout, ?TIMEOUT}],
-		 []).
-
+		 []),
+    ok.
 
 %% Encode event in solrxml format which be used to add solr index
 to_solrxml(#uce_event{id=Id,
