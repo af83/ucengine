@@ -5,7 +5,7 @@
 -export([init/0,
 	 add/1,
 	 get/1,
-	 list/7]).
+	 list/6]).
 
 -include("uce.hrl").
 
@@ -35,7 +35,7 @@ get(Id) ->
 	    Event
     end.
 
-list(Location, Search, From, Type, Start, End, Parent) ->
+list(Location, From, Type, Start, End, Parent) ->
     MatchObject = if
 		      Start == 0, End == infinity ->
 			  #uce_event{id='_',
@@ -97,17 +97,11 @@ list(Location, Search, From, Type, Start, End, Parent) ->
 				     SelectFrom, SelectType, SelectParent, '$8'}},
 			  {Match, Guard, [Result]}
 		  end,
-    Events = case MatchObject of
-		 #uce_event{} ->
-		     mnesia:dirty_match_object(MatchObject);
-		 {_, _, _} = MatchSpec ->
-		     mnesia:dirty_select(uce_event, [MatchSpec]);
-		 none ->
-		     []
-	     end,
-    case Search of
-	'_' ->
-	    Events;
-	_ ->
-	    event_helpers:search(Events, Search)
+    case MatchObject of
+	#uce_event{} ->
+	    mnesia:dirty_match_object(MatchObject);
+	{_, _, _} = MatchSpec ->
+	    mnesia:dirty_select(uce_event, [MatchSpec]);
+	none ->
+	    []
     end.
