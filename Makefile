@@ -67,7 +67,7 @@ stop:
 restart: stop start
 
 tests: compile
-	@erl +K true +P 65535 +A 2 -name ucengine -pa ebin -run uce_app \
+	@erl +K true +P 65535 +A 2 -noshell -name ucengine -pa ebin -run uce_app \
         $(ERL_ARGS) -eval 'tests:start().'
 
 ###############################################################################

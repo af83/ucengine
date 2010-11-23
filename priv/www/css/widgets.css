@@ -141,11 +141,11 @@
 
 
 .ui-chat-minus-header { position: relative; padding: 0; list-style-type: none; border-bottom: 1px solid #D7D7D7; }
-.ui-chat-minus-header h3 {display: block; padding: 5px 50px 5px 10px; font: bold 14px Helvetica; color: #424242; background: url('../images/next.png') 270px no-repeat; }
+.ui-chat-minus-header h3 {display: block; padding: 5px 50px 5px 10px; font: bold 14px Helvetica; color: #424242; }
 .ui-chat-minus li { position: relative; list-style-type: none; border-bottom: 1px solid #D7D7D7; }
-.ui-chat-minus li a { display: block; padding: 5px 50px 5px 10px; font: bold 14px Helvetica; color: #424242; background: url('../images/next.png') 270px no-repeat; }
+.ui-chat-minus li a { display: block; padding: 5px 50px 5px 10px; font: bold 14px Helvetica; color: #424242; }
 .ui-chat-minus .messages li { position: relative; list-style-type: none; border: none; padding-left: 8px; padding-top: 6px; padding-bottom: 3px;}
-.ui-chat-minus .block-content p.ui-chat-back { display: block; padding: 5px 10px 5px 50px; font: bold 14px Helvetica; color: #424242; background: url('../images/back.png') 10px no-repeat; margin-bottom: 4px; border-bottom: 1px solid #D7D7D7; }
+.ui-chat-minus .block-content p.ui-chat-back { display: block; padding: 5px 10px 5px 50px; font: bold 14px Helvetica; color: #424242; margin-bottom: 4px; border-bottom: 1px solid #D7D7D7; }
 
 
 /**

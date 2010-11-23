@@ -15,4 +15,3 @@ then
 	    cap -f Capfile.erlyvideo erlyvideo_test deploy:setup;
 	    cap -f Capfile.erlyvideo erlyvideo_test deploy;
 fi
-done

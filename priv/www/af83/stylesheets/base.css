@@ -240,3 +240,7 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
     height: 170px;
     overflow: auto;
 }
+
+.ui-chat-minus-header h3 {background: url('../images/next.png') 270px no-repeat; }
+.ui-chat-minus li a { background: url('../images/next.png') 270px no-repeat; }
+.ui-chat-minus .block-content p.ui-chat-back { background: url('../images/back.png') 10px no-repeat; }
