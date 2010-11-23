@@ -78,25 +78,27 @@ class UCEngineTwitterStream
 end
 
 
-begin
-  UCEngine.new("localhost", 5280).connect("twitter",
-                                          :token => "da39a3ee5e6b4b0d3255bfef95601890afd80709") do |uce|
-    
-    twitter = UCEngineTwitterStream.new("encre_af83", "3ncr3_4f8E") do |location, tweet, hashtag|
-      puts "Publish: " + tweet['text']
-      uce.publish(location, 'twitter.tweet.new', nil,
+Daemons.run_proc('twitter') do
+  begin
+    UCEngine.new("localhost", 5280).connect("twitter",
+                                            :token => "da39a3ee5e6b4b0d3255bfef95601890afd80709") do |uce|
+      
+      twitter = UCEngineTwitterStream.new("encre_af83", "3ncr3_4f8E") do |location, tweet, hashtag|
+        puts "Publish: " + tweet['text']
+        uce.publish(location, 'twitter.tweet.new', nil,
                     :text => tweet['text'], :from => tweet['user']['name'], :hashtags => hashtag)
+      end
+      
+      uce.subscribe([], :type => "twitter.hashtag.add") do |event|
+        twitter.subscribe([event['org'], event['meeting']], event['metadata']['hashtag'].downcase)
+      end
+      
+      uce.subscribe([], :type => "twitter.hashtag.del") do |event|
+        twitter.unsubscribe([event['org'], event['meeting']], event['metadata']['hashtag'].downcase)
+      end
     end
-    
-    uce.subscribe([], :type => "twitter.hashtag.add") do |event|
-      twitter.subscribe([event['org'], event['meeting']], event['metadata']['hashtag'].downcase)
-    end
-    
-    uce.subscribe([], :type => "twitter.hashtag.del") do |event|
-      twitter.unsubscribe([event['org'], event['meeting']], event['metadata']['hashtag'].downcase)
-    end
+  rescue => error
+    puts "Fatal error: #{error}"
+    retry
   end
-rescue => error
-  puts "Fatal error: #{error}"
-  retry
 end
