@@ -119,7 +119,7 @@
 		error_logger:critical_msg("~p:~p: " ++ Format, [?MODULE, ?LINE] ++ Args)).
 
 -define(UCE_SCHEMA_LOCATION, "uce_schema_v1.xsd").
--define(UCE_XMLNS, "http://uce-project.fr").
+-define(UCE_XMLNS, "http://ucengine.org").
 
 -define(DB_TYPE, db_type).
 
