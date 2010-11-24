@@ -12,7 +12,13 @@ add(#uce_meeting{} = Meeting) ->
 	true ->
 	    {error, conflict};
 	false ->
-	    ?DBMOD:add(Meeting)
+	    [Org, _] = Meeting#uce_meeting.id,
+	    case uce_org:exists(Org) of
+		false ->
+		    {error, not_found};
+		true ->
+		    ?DBMOD:add(Meeting)
+	    end
     end.
 
 delete(Id) ->
@@ -84,31 +90,41 @@ exists(Id) ->
 	    true
     end.
 
-join(MeetingId, Uid) when is_list(Uid) ->
-    case ?MODULE:get(MeetingId) of
-	{error, Reason} ->
-	    {error, Reason};
-	#uce_meeting{} = Meeting ->
-	    case lists:member(Uid, Meeting#uce_meeting.roster) of
-		false ->
-		    Roster = Meeting#uce_meeting.roster ++ [Uid],
-		    ?MODULE:update(Meeting#uce_meeting{roster=Roster});
-		true ->
-		    ok
+join(Id, Uid) when is_list(Uid) ->
+    case uce_user:exists(Uid) of
+	false ->
+	    {error, not_found};
+	true ->
+	    case ?MODULE:get(Id) of
+		{error, Reason} ->
+		    {error, Reason};
+		#uce_meeting{} = Meeting ->
+		    case lists:member(Uid, Meeting#uce_meeting.roster) of
+			false ->
+			    Roster = Meeting#uce_meeting.roster ++ [Uid],
+			    ?MODULE:update(Meeting#uce_meeting{roster=Roster});
+			true ->
+			    ok
+		    end
 	    end
-    end.
+    end.	
 
 leave(Id, Uid) when is_list(Uid) ->
-    case ?MODULE:get(Id) of
-	{error, Reason} ->
-	    {error, Reason};
-	#uce_meeting{} = Meeting ->
-	    case lists:member(Uid, Meeting#uce_meeting.roster) of
-		false ->
-		    {error, not_found};
-		true ->
-		    Roster = lists:subtract(Meeting#uce_meeting.roster, [Uid]),
-		    ?MODULE:update(Meeting#uce_meeting{roster=Roster})
+    case uce_user:exists(Uid) of
+	false ->
+	    {error, not_found};
+	true ->
+	    case ?MODULE:get(Id) of
+		{error, Reason} ->
+		    {error, Reason};
+		#uce_meeting{} = Meeting ->
+		    case lists:member(Uid, Meeting#uce_meeting.roster) of
+			false ->
+			    {error, not_found};
+			true ->
+			    Roster = lists:subtract(Meeting#uce_meeting.roster, [Uid]),
+			    ?MODULE:update(Meeting#uce_meeting{roster=Roster})
+		    end
 	    end
     end.
 

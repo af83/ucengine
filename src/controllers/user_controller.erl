@@ -22,7 +22,7 @@ init() ->
 		regexp="/user/([^/]+)",
 		callbacks=[{?MODULE, add,
 			    ["auth", "credential", "metadata"],
-			    [required, "", []],
+			    [required, required, []],
 			    [string, string, dictionary]}]},
      
      #uce_route{module="Users",
@@ -34,7 +34,7 @@ init() ->
 			    [string, string]},
 			   {?MODULE, update,
 			    ["uid", "auth", "credential", "metadata"],
-			    [required, required, "", []],
+			    [required, required, required, []],
 			    [string, string, string, dictionary]}]},
      
      #uce_route{module="Users",
@@ -58,18 +58,18 @@ init() ->
 			    [string, string]},
 			   {?MODULE, delete,
 			    ["uid"],
-				     [required],
+			    [required],
 			    [string]}]}].
 
 list([], [Uid], _) ->
     case uce_acl:check(Uid, "user", "list", ["", ""], []) of
 	true ->
 	    case uce_user:list() of
-		Users when is_list(Users) ->
+		{error, Reason} ->
+		    {error, Reason};
+		Users ->
 		    JSONUsers = [ user_helpers:to_json(User) || User <- Users],
-		    json_helpers:json({array, JSONUsers});
-		Error ->
-		    Error
+		    json_helpers:json({array, JSONUsers})
 	    end;
 	false ->
 	    {error, unauthorized}
@@ -77,27 +77,22 @@ list([], [Uid], _) ->
 
 add([Uid], [Auth, Credential, Metadata], _) ->
     case uce_user:add(#uce_user{uid=Uid, auth=Auth, credential=Credential, metadata=Metadata}) of
+	{error, Reason} ->
+	    {error, Reason};
 	ok ->
-	    uce_event:add(#uce_event{from=Uid,
-				     type="internal.user.add",
-				     metadata=Metadata}),
-	    json_helpers:created();
-	Error ->
-	    Error
+	    uce_event:add(#uce_event{from=Uid, type="internal.user.add"}),
+	    json_helpers:created()
     end.
 
 update([To], [Uid, Auth, Credential, Metadata], _) ->
-    case uce_acl:check(Uid, "update", "user", ["", ""], [{"user", To},
-							 {"auth", Auth}]) of
+    case uce_acl:check(Uid, "update", "user", ["", ""], [{"user", To}, {"auth", Auth}]) of
 	true ->
 	    case uce_user:update(To, Auth, Credential, Metadata) of
+		{error, Reason} ->
+		    {error, Reason};
 		ok ->
-		    uce_event:add(#uce_event{from=To,
-					     type="internal.user.update",
-					     metadata=Metadata}),
-		    json_helpers:ok();
-		Error ->
-		    Error
+		    uce_event:add(#uce_event{from=To, type="internal.user.update"}),
+		    json_helpers:ok()
 	    end;
 	false ->
 	    {error, unauthorized}
@@ -107,13 +102,10 @@ get([To], [Uid], _) ->
     case uce_acl:check(Uid, "get", "user", ["", ""], [{"user", To}]) of
 	true ->
 	    case uce_user:get(To) of
-		User when is_record(User, uce_user) ->
-		    UserJson = {struct, [{uid, User#uce_user.uid},
-					 {auth, User#uce_user.auth},
-					 {metadata, {struct, User#uce_user.metadata}}]},
-		    json_helpers:json(UserJson);
-		Error ->
-		    Error
+		{error, Reason} ->
+		    {error, Reason};
+		User ->
+		    json_helpers:json(user_helpers:to_json(User))
 	    end;
 	false ->
 	    {error, unauthorized}
@@ -123,10 +115,10 @@ delete([To], [Uid], _) ->
     case uce_acl:check(Uid, "delete", "user", ["", ""], [{"user", To}]) of
 	true ->
 	    case uce_user:delete(To) of
+		{error, Reason} ->
+		    {error, Reason};
 		ok ->
-		    json_helpers:ok();
-		Error ->
-		    Error
+		    json_helpers:ok()
 	    end;
 	false ->
 	    {error, unauthorized}

@@ -9,13 +9,12 @@ setup() ->
     setup_meetings(),
     setup_users(),
     setup_events(),
-    {ROOT_UID, ROOT_SID} = setup_root(),
-    {ROOT_UID, ROOT_SID}.
+    setup_testers().
 
-teardown(ROOT_INFOS) ->
+teardown(Testers) ->
     teardown_org(),
     teardown_meetings(),
-    teardown_root(ROOT_INFOS),
+    teardown_testers(Testers),
     teardown_users(),
     ok.
 
@@ -59,14 +58,6 @@ teardown_meetings() ->
 setup_users() ->
     teardown_users(),
     
-    uce_user:add(#uce_user{uid="root.user@af83.com",
-			   auth="password",
-			   credential="pwd"}),
-    uce_acl:add(#uce_acl{uid="root.user@af83.com",
-			 action="all",
-			 object="all",
-			 conditions=[]}),
-    
     uce_user:add(#uce_user{uid="participant.user@af83.com",
 			   auth="password",
 			   credential="pwd"}),
@@ -93,9 +84,6 @@ setup_users() ->
     
     ok.
 teardown_users() ->
-    uce_user:delete("root.user@af83.com"),
-    uce_acl:delete("root.user@af83.com", "all", "all", ["", ""], []),
-    
     uce_user:delete("participant.user@af83.com"),
     uce_acl:delete("participant.user@af83.com", "add", "presence", ["testorg"], []),
     uce_acl:delete("participant.user@af83.com", "delete", "presence", ["", ""], [{"user", "participant.user@af83.com"}]),
@@ -140,15 +128,33 @@ setup_events() ->
 			    }),
     ok.
 
-setup_root() ->
-    Uid = "root.user@af83.com",
-    ESid = uce_presence:add(#uce_presence{uid=Uid,
-					  org="testorg",
-					  auth="password",
-					  metadata=[]}),
-    {Uid, ESid}.
-teardown_root({_, ROOT_SID}) ->
-    ok = uce_presence:delete(ROOT_SID),
+setup_testers() ->
+    RootUid = "root.user@af83.com",
+    uce_user:add(#uce_user{uid=RootUid,
+			   auth="password",
+			   credential="pwd"}),
+    uce_acl:add(#uce_acl{uid=RootUid,
+			 action="all",
+			 object="all",
+			 conditions=[]}),    
+    RootSid = uce_presence:add(#uce_presence{uid=RootUid,
+					     org="testorg",
+					     auth="password",
+					     metadata=[]}),
+    UglyUid = "ugly.user@af83.com",
+    UglySid = uce_presence:add(#uce_presence{uid=UglyUid,
+					     org="testorg",
+					     auth="password",
+					     metadata=[]}),
+    [{RootUid, RootSid}, {UglyUid, UglySid}].
+
+teardown_testers([{RootUid, RootSid}, {UglyUid, UglySid}]) ->
+    uce_user:delete(RootUid),
+    uce_acl:delete(RootUid, "all", "all", ["", ""], []),
+    uce_presence:delete(RootSid),
+
+    uce_user:delete(UglyUid),
+    uce_presence:delete(UglySid),
     ok.
 
 teardown_solr() ->

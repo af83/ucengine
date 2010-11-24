@@ -46,14 +46,14 @@ init() ->
 			    [none, []],
 			    [string, dictionary]}]}].
 
-add([Name], [EUid, Metadata], _) ->
-    case uce_acl:check(EUid, "org", "add", ["", ""], [{"name", Name}]) of
+add([Name], [Uid, Metadata], _) ->
+    case uce_acl:check(Uid, "org", "add", ["", ""], [{"name", Name}]) of
 	true ->
 	    case uce_org:add(#uce_org{name=Name, metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
 		ok ->
-		    uce_event:add(#uce_event{from=EUid,
+		    uce_event:add(#uce_event{from=Uid,
 						 type="internal.org.add",
 						 metadata=[{"name", Name}]}),
 		    json_helpers:created()
@@ -62,8 +62,8 @@ add([Name], [EUid, Metadata], _) ->
 	    {error, unauthorized}
     end.
 
-update([Name], [EUid, Metadata], _) ->
-    case uce_acl:check(EUid, "org", "update", ["", ""], [{"name", Name}]) of
+update([Name], [Uid, Metadata], _) ->
+    case uce_acl:check(Uid, "org", "update", ["", ""], [{"name", Name}]) of
 	true ->
 	    case uce_org:update(#uce_org{name=Name, metadata=Metadata}) of
 		{error, Reason} ->
@@ -83,8 +83,8 @@ get([Name], [], _) ->
 	    json_helpers:json(org_helpers:to_json(Org))
     end.
 
-list([], [EUid], _) ->
-    case uce_acl:check(EUid, "org", "list", ["", ""], []) of
+list([], [Uid], _) ->
+    case uce_acl:check(Uid, "org", "list", ["", ""], []) of
 	true ->
 	    case uce_org:list() of
 		{error, Reason} ->

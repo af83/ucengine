@@ -7,20 +7,20 @@ file_test_() ->
     { setup
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
-    , fun({ROOT_UID, ROOT_SID}) ->
-	      [?_test(test_upload_small(ROOT_UID, ROOT_SID)),
-	       ?_test(test_upload_big(ROOT_UID, ROOT_SID)),
-	       ?_test(test_upload_not_found_org(ROOT_UID, ROOT_SID)),
-	       ?_test(test_upload_not_found_meeting(ROOT_UID, ROOT_SID)),
+    , fun(Testers) ->
+	      [?_test(test_upload_small(Testers)),
+	       ?_test(test_upload_big(Testers)),
+	       ?_test(test_upload_not_found_org(Testers)),
+	       ?_test(test_upload_not_found_meeting(Testers)),
 
-	       ?_test(test_list(ROOT_UID, ROOT_SID)),
-	       ?_test(test_list_not_found_org(ROOT_UID, ROOT_SID)),
-	       ?_test(test_list_not_found_meeting(ROOT_UID, ROOT_SID)),
+	       ?_test(test_list(Testers)),
+	       ?_test(test_list_not_found_org(Testers)),
+	       ?_test(test_list_not_found_meeting(Testers)),
 
-	       ?_test(test_get(ROOT_UID, ROOT_SID)),
-	       ?_test(test_get_not_found(ROOT_UID, ROOT_SID)),
+	       ?_test(test_get(Testers)),
+	       ?_test(test_get_not_found(Testers)),
 
-	       ?_test(test_delete(ROOT_UID, ROOT_SID))]
+	       ?_test(test_delete(Testers))]
       end
     }.
 
@@ -32,27 +32,27 @@ gen_file(Size, FileName) ->
 	Body ++ "\r\n" ++
 	"------WebKitFormBoundaryLwCN5mZmxIA54Aif--\r\n".
 
-test_upload_small(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID},
+test_upload_small([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid},
 	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
     {struct,[{"result", _}]} = tests_utils:post("/file/testorg/testmeeting/", Params,
 						"multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
 						gen_file(4, "small")).
 
-test_upload_big(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID},
+test_upload_big([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid},
 	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
     {struct,[{"result", _}]} = tests_utils:post("/file/testorg/testmeeting/", Params,
 						"multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
 						gen_file(4000, "big")).
 
-test_upload_not_found_org(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID},
+test_upload_not_found_org([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid},
 	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
     {struct,[{"error", "not_found"}]} = tests_utils:post("/file/unexistentorg/testmeeting/",
@@ -60,9 +60,9 @@ test_upload_not_found_org(ROOT_UID, ROOT_SID) ->
 							 "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
 							 gen_file(4, "small")).
 
-test_upload_not_found_meeting(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID},
+test_upload_not_found_meeting([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid},
 	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
     {struct,[{"error", "not_found"}]} = tests_utils:post("/file/testorg/unexistentmeeting/",
@@ -70,9 +70,9 @@ test_upload_not_found_meeting(ROOT_UID, ROOT_SID) ->
 							 "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
 							 gen_file(4, "small")).
 
-test_list(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID}],
+test_list([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid}],
     {struct,
      [{"result",
        {array,
@@ -84,48 +84,48 @@ test_list(ROOT_UID, ROOT_SID) ->
 	   {"meeting", "testmeeting"},
 	   {"metadata",{struct,_}}]}|_]}}]} = tests_utils:get("/file/testorg/testmeeting/", Params).
 
-test_list_not_found_org(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID}],
+test_list_not_found_org([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid}],
     {struct,[{"error", "not_found"}]} = tests_utils:get("/file/unexistentorg/testmeeting/", Params).
 
-test_list_not_found_meeting(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID}],
+test_list_not_found_meeting([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid}],
     {struct,[{"error", "not_found"}]} = tests_utils:get("/file/testorg/unexistentmeeting/", Params).
 
-test_get(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID},
+test_get([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid},
 	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
     {struct,[{"result", Id}]} = tests_utils:post("/file/testorg/testmeeting/",
 						 Params,
 						 "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
 						 gen_file(4, "small")),
-    ParamsGet = [{"uid", ROOT_UID},
-		 {"sid", ROOT_SID}],
+    ParamsGet = [{"uid", RootUid},
+		 {"sid", RootSid}],
     tests_utils:get_raw("/file/testorg/testmeeting/" ++ Id, ParamsGet),
     true.
 
-test_get_not_found(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID}],
+test_get_not_found([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid}],
     {struct,[{"error", "not_found"}]} = tests_utils:get("/file/testorg/testmeeting/unexistentfile", Params).
 
-test_delete(ROOT_UID, ROOT_SID) ->
-    Params = [{"uid", ROOT_UID},
-	      {"sid", ROOT_SID},
+test_delete([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid},
 	      {"_method", "put"}],
     {struct,[{"result", Id}]} = tests_utils:post("/file/testorg/testmeeting/",
 						 Params,
 						 "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
 						 gen_file(4, "small")),
 
-    ParamsDelete = [{"uid", ROOT_UID},
-		    {"sid", ROOT_SID}],
+    ParamsDelete = [{"uid", RootUid},
+		    {"sid", RootSid}],
     {struct,[{"result", "ok"}]} = tests_utils:delete("/file/testorg/testmeeting/" ++ Id, ParamsDelete),
     
-    ParamsGet = [{"uid", ROOT_UID},
-		 {"sid", ROOT_SID}],
+    ParamsGet = [{"uid", RootUid},
+		 {"sid", RootSid}],
     {struct,[{"error", "not_found"}]} = tests_utils:get("/file/testorg/testmeeting/" ++ Id, ParamsGet).

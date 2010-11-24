@@ -75,10 +75,10 @@ init() ->
 			    [required],
 			    [string]}]}].
 
-add(Location, [EUid, Start, End, Metadata], _) ->
-    case uce_acl:check(EUid, "meeting", "add", Location, []) of
+add([Org, Name], [EUid, Start, End, Metadata], _) ->
+    case uce_acl:check(EUid, "meeting", "add", [Org, ""], [{"name", Name}]) of
 	true ->
-	    case uce_meeting:add(#uce_meeting{id=Location,
+	    case uce_meeting:add(#uce_meeting{id=[Org, Name],
 					      start_date=Start,
 					      end_date=End,
 					      metadata=Metadata}) of
@@ -91,10 +91,10 @@ add(Location, [EUid, Start, End, Metadata], _) ->
 	    {error, unauthorized}
     end.
 
-update(Location, [EUid, Start, End, Metadata], _) ->
-    case uce_acl:check(EUid, "meeting", "update", Location, []) of
+update([Org, Name], [EUid, Start, End, Metadata], _) ->
+    case uce_acl:check(EUid, "meeting", "update", [Org, ""], [{"name", Name}]) of
 	true ->
-	    case uce_meeting:update(#uce_meeting{id=Location,
+	    case uce_meeting:update(#uce_meeting{id=[Org, Name],
 						 start_date=Start,
 						 end_date=End,
 						 metadata=Metadata}) of

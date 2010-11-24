@@ -11,7 +11,7 @@ init() ->
 		regexp="/presence/([^/]+)/([^/]+)",
 		callbacks=[{?MODULE, add,
 			    ["auth", "credential", "metadata"],
-			    [required, "", []],
+			    [required, required, []],
 			    [string, string, dictionary]}]},
      
      #uce_route{module="Presence",
