@@ -24,30 +24,12 @@
 
 -export([update/6, insert/4, do_query/4, get_more/5, 
 		 delete/4, kill_cursors/2, msg/2, decode_response/1,
-		 ensure_index/4, get_last_error/2, server_status/2]).
+		 ensure_index/4]).
 
 -include("emongo.hrl").
-
-get_last_error(Database, ReqId) ->
-    %%Query = #emo_query{q=[{<<"getlasterror">>, 1}], limit=1},
-    %%do_query(Database, "$cmd", ReqId, Query).
-    DatabaseLength = byte_size(Database),
-    <<(57+DatabaseLength):32/little-signed, ReqId:32/little-signed, 0:32,
-     ?OP_QUERY:32/little-signed, 0:32, Database/binary, ".$cmd", 0, 0:32, 1:32/little-signed,
-     %% Encoded document
-     23:32/little-signed, 16, "getlasterror", 0, 1:32/little-signed, 0>>.
-
-server_status(Database, ReqId) ->
-    %%Query = #emo_query{q=[{<<"serverStatus">>, 1}], limit=1},
-    %%do_query(Database, "$cmd", ReqId, Query).
-    DatabaseLength = byte_size(Database),
-    <<(57+DatabaseLength):32/little-signed, ReqId:32/little-signed, 0:32,
-     ?OP_QUERY:32/little-signed, 0:32, Database/binary, ".$cmd", 0, 0:32, 1:32/little-signed,
-     %% Encoded document
-     23:32/little-signed, 16, "serverStatus", 0, 1:32/little-signed, 0>>.
-
+	
 update(Database, Collection, ReqID, Upsert, Selector, Document) ->
-	FullName = unicode:characters_to_binary([Database, ".", Collection], unicode),
+	FullName = unicode:characters_to_binary([Database, ".", Collection]),
 	EncodedSelector = emongo_bson:encode(Selector),
 	EncodedDocument = emongo_bson:encode(Document),
 	BinUpsert = if Upsert == true -> 1; true -> 0 end,
@@ -56,7 +38,7 @@ update(Database, Collection, ReqID, Upsert, Selector, Document) ->
     <<(Length+16):32/little-signed, ReqID:32/little-signed, 0:32, ?OP_UPDATE:32/little-signed, Message/binary>>.
 
 insert(Database, Collection, ReqID, Documents) ->
-	FullName = unicode:characters_to_binary([Database, ".", Collection], unicode),
+	FullName = unicode:characters_to_binary([Database, ".", Collection]),
 	EncodedDocument = iolist_to_binary([emongo_bson:encode(Document) || Document <- Documents]),
 	Message = <<0:32, FullName/binary, 0, EncodedDocument/binary>>,
 	Length = byte_size(Message),
@@ -64,7 +46,7 @@ insert(Database, Collection, ReqID, Documents) ->
 
 do_query(Database, Collection, ReqID, Query) when is_record(Query, emo_query) ->
 	OptsSum = lists:foldl(fun(X, Acc) -> Acc+X end, 0, Query#emo_query.opts),
-	FullName = unicode:characters_to_binary([Database, ".", Collection], unicode),
+	FullName = unicode:characters_to_binary([Database, ".", Collection]),
 	EncodedDocument = if 
 		is_binary(Query#emo_query.q) -> Query#emo_query.q; 
 		true -> emongo_bson:encode(Query#emo_query.q)
@@ -81,23 +63,23 @@ do_query(Database, Collection, ReqID, Query) when is_record(Query, emo_query) ->
     <<(Length+16):32/little-signed, ReqID:32/little-signed, 0:32, ?OP_QUERY:32/little-signed, Message/binary>>.
 
 get_more(Database, Collection, ReqID, NumToReturn, CursorID) ->
-	FullName = unicode:characters_to_binary([Database, ".", Collection], unicode),
+	FullName = unicode:characters_to_binary([Database, ".", Collection]),
 	Message = <<0:32, FullName/binary, 0, NumToReturn:32/little-signed, CursorID:64/little-signed>>,
 	Length = byte_size(Message),
     <<(Length+16):32/little-signed, ReqID:32/little-signed, 0:32, ?OP_GET_MORE:32/little-signed, Message/binary>>.
 	
 delete(Database, Collection, ReqID, Selector) ->
-	FullName = unicode:characters_to_binary([Database, ".", Collection], unicode),
+	FullName = unicode:characters_to_binary([Database, ".", Collection]),
 	EncodedDocument = emongo_bson:encode(Selector),
 	Message = <<0:32, FullName/binary, 0, 0:32, EncodedDocument/binary>>,
 	Length = byte_size(Message),
     <<(Length+16):32/little-signed, ReqID:32/little-signed, 0:32, ?OP_DELETE:32/little-signed, Message/binary>>.
 
 ensure_index(Database, Collection, ReqID, Keys) ->
-	FullName = unicode:characters_to_binary([Database, ".system.indexes"], unicode),
+	FullName = unicode:characters_to_binary([Database, ".system.indexes"]),
 	Selector = [
 		{<<"name">>, index_name(Keys, <<>>)},
-		{<<"ns">>, unicode:characters_to_binary([Database, ".", Collection], unicode)},
+		{<<"ns">>, unicode:characters_to_binary([Database, ".", Collection])},
 		{<<"key">>, Keys}],
 	EncodedDocument = emongo_bson:encode(Selector),
 	Message = <<0:32, FullName/binary, 0, EncodedDocument/binary>>,
@@ -128,10 +110,7 @@ decode_response(<<Length:32/little-signed, ReqID:32/little-signed, RespTo:32/lit
 			  Documents:DocLen/binary,
 			  Tail/binary>> = Message,
 			Resp = #response{
-				header = #header{message_length = Length,
-                                                 request_id = ReqID,
-                                                 response_to = RespTo,
-                                                 op_code = Op},
+				header = {header, Length, ReqID, RespTo, Op}, 
 				response_flag = RespFlag, 
 				cursor_id = CursorID, 
 				offset = StartingFrom, 
@@ -139,14 +118,11 @@ decode_response(<<Length:32/little-signed, ReqID:32/little-signed, RespTo:32/lit
 				documents = Documents
 			},
 			{Resp, Tail}
-	end;
-
-decode_response(_) ->
-    undefined.
+	end.
 
 index_name([], Bin) -> Bin;
 index_name([{Key, Val}|Tail], Bin) ->
-	KeyBin = unicode:characters_to_binary(Key, unicode),
+	KeyBin = unicode:characters_to_binary(Key),
 	ValBin = if
 		is_integer(Val) -> list_to_binary(integer_to_list(Val));
 		true -> <<>>
