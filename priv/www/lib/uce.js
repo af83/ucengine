@@ -388,6 +388,11 @@
                 registerWithPassword: function(uid, credential, metadata, callback) {
                     return this.register(uid, "password", credential, metadata, callback);
                 },
+                get: function(uid, callback) {
+                     get("/user/"+ uid, $.extend({}, presence), function(err, result, xhr) {
+                        callback(err, result, xhr);
+                    });
+                },
                 can: function(uid, object, action, callback) {
                     get("/user/"+ uid +"/acl/"+ action +"/"+ action, presence, function(err, result) {
                         if (err)

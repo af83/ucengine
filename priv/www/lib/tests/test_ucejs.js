@@ -482,6 +482,16 @@ jackTest("register with password", function() {
     });
 });
 
+jackTest("get user", function() {
+    stop();
+    addUceApiCall("get", "/api/0.1/user/test@example.net",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": {}}');
+    uce.attachPresence(Factories.createPresence()).user.get('test@example.net', function(err, result) {
+        start();
+        equals(null, err);
+        same(result, {"result":{}});
+    });
+});
+
 module("ucejs.replay",
        {
            setup:function() {
