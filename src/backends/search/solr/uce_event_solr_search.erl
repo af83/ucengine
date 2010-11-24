@@ -58,13 +58,6 @@ to_solrxml(#uce_event{id=Id,
     Add = {add, [], [{doc, [], DocElements}]},
     lists:flatten(xmerl:export_simple_element(Add, xmerl_xml)).
 
-metadata_to_solrxml([]) ->
-    [];
-metadata_to_solrxml([{Key, Value} | Rest]) ->
-    Metadatas = metadata_to_solrxml(Rest),
-    XMLValue = lists:flatten(Value),
-    [{field, [{name,"metadata_" ++ Key}], [XMLValue]} | Metadatas].
-
 int2str(Int) when Int < 10 ->
 	"0" ++ integer_to_list(Int);
 int2str(Int) ->
