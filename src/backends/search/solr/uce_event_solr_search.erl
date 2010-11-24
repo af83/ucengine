@@ -2,7 +2,7 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/1, list/7]).
+-export([add/1, list/7, delete/1]).
 
 -include("uce.hrl").
 
@@ -31,6 +31,10 @@ to_solrxml(#uce_event{id=Id,
 		      metadata=Metadata}) ->
     LocationElement =
 	case Location of
+            [] ->
+                [];
+            [Org] ->
+                [{field, [{name,"org"}], [Org]}];
 	    ['_', '_'] ->
 		[];
 	    [Org, '_'] ->
@@ -48,7 +52,7 @@ to_solrxml(#uce_event{id=Id,
 			  {field, [{name, "metadata_" ++ Key}], [Value]}
 		  end,
 		  Metadata),
-    
+
     DocElements = [{field, [{name,"id"}], [Id]},
 		   {field, [{name,"datetime"}], [timestamp_to_date(Datetime)]},
 		   {field, [{name,"type"}], [Type]},
@@ -161,23 +165,37 @@ search(Host, [Org, Meeting], Search, From, Type, Start, End, _) ->
     EncodedParams = [yaws_api:url_encode(Elem) ++ "=" ++ yaws_api:url_encode(Value) ||
 			{Elem, Value} <- Query ++ TimeSelector ++ [{"wt", "json"}]],
 
-    io:format("R: ~p~n", [Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")]),
+    Url = Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&"),
+    io:format("R: ~p~n", [Url]),
 
-    Response = httpc:request(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")),
-    Result = case Response of
-		 {ok, {_, _, JSONStr}} -> JSON = mochijson:decode(JSONStr),
-					  {struct, ArrayJSON} = JSON,
-					  {value, {"response", {struct, RespArrayJSON}}} = lists:keysearch("response", 1, ArrayJSON),
-					  {value, {"docs", {array, ArrayResults}}} = lists:keysearch("docs", 1, RespArrayJSON),
-					  make_list_json_events(ArrayResults);
-		 {error, _} = RetErr -> RetErr;
-		 _ -> []
-	     end,
-    Result.
+    process_response(httpc:request(Url)).
+
+process_response(Response) ->
+    case Response of
+        {ok, {_, _, JSONStr}} -> JSON = mochijson:decode(JSONStr),
+                                 {struct, ArrayJSON} = JSON,
+                                 {value, {"response", {struct, RespArrayJSON}}} = lists:keysearch("response", 1, ArrayJSON),
+                                 {value, {"docs", {array, ArrayResults}}} = lists:keysearch("docs", 1, RespArrayJSON),
+                                 make_list_json_events(ArrayResults);
+        {error, _} = RetErr -> RetErr;
+        _ -> []
+    end.
 
 make_list_json_events([]) -> [];
 make_list_json_events([HdJSON | TlJSON]) ->
     {struct, StructInfos} = HdJSON,
-    {value, {"id", IdEvent}} = lists:keysearch("id", 1, StructInfos),
-    Event = event:get(IdEvent),
+    {value, {"id", {array, IdEvent}}} = lists:keysearch("id", 1, StructInfos),
+    Event = uce_event:get(lists:flatten(IdEvent)),
     [Event] ++ make_list_json_events(TlJSON).
+
+delete(Id) ->
+    [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
+    httpc:request(post,
+                  {Host ++ ?SOLR_UPDATE,
+                   [],
+                   [],
+                   "<delete><query>"++ Id ++"</query></delete>"
+                  },
+                  [{timeout, ?TIMEOUT}],
+                  []),
+    ok.

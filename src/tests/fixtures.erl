@@ -16,6 +16,7 @@ teardown(Testers) ->
     teardown_meetings(),
     teardown_testers(Testers),
     teardown_users(),
+    teardown_solr(),
     ok.
 
 setup_org() ->
@@ -158,5 +159,5 @@ teardown_testers([{RootUid, RootSid}, {UglyUid, UglySid}]) ->
     ok.
 
 teardown_solr() ->
-    solr:delete("test_solr_event"),
+    uce_event_solr_search:delete("*:*"),
     ok.
