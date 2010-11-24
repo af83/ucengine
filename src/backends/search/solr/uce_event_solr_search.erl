@@ -12,7 +12,7 @@
 
 add(Event) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
-    http:request(post,
+    httpc:request(post,
 		 {Host ++ ?SOLR_UPDATE,
 		  [],
 		  [],
@@ -99,7 +99,7 @@ list(Location, Search, From, Type, Start, End, Parent) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     search(Host, Location, Search, From, Type, Start, End, Parent).
 
-search(Host, [Org, Meeting], Search, From, Type, Start, End, Parent) ->
+search(Host, [Org, Meeting], Search, From, Type, Start, End, _) ->
     OrgSelector =
 	if
 	    Org /= '_' ->
@@ -164,20 +164,20 @@ search(Host, [Org, Meeting], Search, From, Type, Start, End, Parent) ->
 				       FromSelector ++
 				       TypeSelector ++
 				       SearchSelector)}],
-    
+
     EncodedParams = [yaws_api:url_encode(Elem) ++ "=" ++ yaws_api:url_encode(Value) ||
 			{Elem, Value} <- Query ++ TimeSelector ++ [{"wt", "json"}]],
 
     io:format("R: ~p~n", [Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")]),
 
-    Response = http:request(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")),
+    Response = httpc:request(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")),
     Result = case Response of
 		 {ok, {_, _, JSONStr}} -> JSON = mochijson:decode(JSONStr),
 					  {struct, ArrayJSON} = JSON,
 					  {value, {"response", {struct, RespArrayJSON}}} = lists:keysearch("response", 1, ArrayJSON),
 					  {value, {"docs", {array, ArrayResults}}} = lists:keysearch("docs", 1, RespArrayJSON),
 					  make_list_json_events(ArrayResults);
-		 {error, Error} = RetErr -> RetErr;  
+		 {error, _} = RetErr -> RetErr;
 		 _ -> []
 	     end,
     Result.
