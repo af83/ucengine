@@ -3,7 +3,7 @@
 -author('victor.goya@af83.com').
 
 -export([add/1,
-	 delete/4,
+	 delete/5,
 	 list/3,
 	 from_collection/1,
 	 to_collection/1]).
@@ -12,18 +12,19 @@
 -include("mongodb.hrl").
 
 add(#uce_acl{}=ACL) ->
-    case catch emongo:insert(?MONGO_POOL, ?MODULE:to_collection(ACL)) of
+    case catch emongo:insert(?MONGO_POOL, "uce_acl", ?MODULE:to_collection(ACL)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
 	    ok
     end.
 
-delete(EUid, Object, Action, Conditions) ->
+delete(EUid, Object, Action, Location, Conditions) ->
     case catch emongo:delete(?MONGO_POOL, "uce_acl", [{"uid", EUid},
-							{"object", Object},
-							{"action", Action},
-							{"conditions", Conditions}]) of
+						      {"object", Object},
+						      {"action", Action},
+						      {"location", Location},
+						      {"conditions", Conditions}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -31,9 +32,9 @@ delete(EUid, Object, Action, Conditions) ->
     end.
 
 list(EUid, Object, Action) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"uid", EUid},
-							  {"object", Object},
-							  {"action", Action}]) of
+    case catch emongo:find(?MONGO_POOL, "uce_acl", [{"uid", EUid},
+						    {"object", Object},
+						    {"action", Action}]) of
 	
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -59,25 +60,24 @@ list(EUid, Object, Action) ->
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		   ["uid", "object", "action", "conditions"]) of
-	[EUid, Object, Action, Conditions] ->
+		   ["uid", "object", "action", "location", "conditions"]) of
+	[EUid, Object, Action, Location, Conditions] ->
 	    #uce_acl{uid=EUid,
-		       action=Action,
-		       object=Object,
-		       conditions=Conditions};
+		     action=Action,
+		     object=Object,
+		     location=Location,
+		     conditions=Conditions};
 	_ ->
 	    {error, bad_parameters}
     end.
 						      
 to_collection(#uce_acl{uid=EUid,
-			 object=Object,
-			 action=Action,
-			 conditions=Conditions}) ->
-    #collection{name="uce_acl",
-		fields=[{"uid", EUid},
-			{"object", Object},
-			{"action", Action},
-			{"conditions", Conditions}],
-		index=[{"uid", EUid},
-		       {"action", Action},
-		       {"object", Object}]}.
+		       object=Object,
+		       action=Action,
+		       location=Location,
+		       conditions=Conditions}) ->
+    [{"uid", EUid},
+     {"object", Object},
+     {"action", Action},
+     {"location", Location},
+     {"conditions", Conditions}].

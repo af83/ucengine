@@ -48,7 +48,7 @@ get_subscribers(Location, Type, From) ->
 							   from='_',
 							   pid='_'})
 			    end) of
-	{aborted, Reason} ->
+	{aborted, _} ->
 	    {error, bad_parameters};
 	{atomic, Subscribers} ->
 	    lists:filter(fun(#uce_mnesia_pubsub{type=SubType, from=SubFrom}) ->

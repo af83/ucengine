@@ -14,7 +14,7 @@
 -include("mongodb.hrl").
 
 add(#uce_org{}=Org) ->
-    case catch emongo:insert(?MONGO_POOL, ?MODULE:to_collection(Org)) of
+    case catch emongo:insert(?MONGO_POOL, "uce_org", ?MODULE:to_collection(Org)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -23,8 +23,10 @@ add(#uce_org{}=Org) ->
 
 update(#uce_org{}=Org) ->
     case catch emongo:update(?MONGO_POOL,
-			     ?MODULE:to_collection(Org),
-			     [{"name", Org#uce_org.name}]) of
+			     "uce_org",
+			     [{"name", Org#uce_org.name}],
+			     ?MODULE:to_collection(Org)) of
+
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -32,7 +34,7 @@ update(#uce_org{}=Org) ->
     end.
 
 get(Name) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_org", [{"name", Name}]) of
+    case catch emongo:find(?MONGO_POOL, "uce_org", [{"name", Name}], [{limit, 1}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Collection] ->
@@ -50,7 +52,7 @@ delete(Name) ->
     end.
 
 list() ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_org", []) of
+    case catch emongo:find(?MONGO_POOL, "uce_org") of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
@@ -70,8 +72,4 @@ from_collection(Collection) ->
     end.
 	
 to_collection(#uce_org{name=Org, metadata=Metadata}) ->
-    #collection{
-	      name="uce_org", 
-	      fields = [{"name", Org},
-			{"metadata", Metadata}],
-	      index = [{"name", Org}]}.
+    [{"name", Org}, {"metadata", Metadata}].

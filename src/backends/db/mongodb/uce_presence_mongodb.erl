@@ -14,7 +14,7 @@
 -include("mongodb.hrl").
 
 add(#uce_presence{}=Presence) ->
-    case catch emongo:insert(?MONGO_POOL, ?MODULE:to_collection(Presence)) of
+    case catch emongo:insert(?MONGO_POOL, "uce_presence", ?MODULE:to_collection(Presence)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -28,7 +28,7 @@ list(EUid, Org) ->
 		      _ ->
 			  [{"org", Org}]
 		  end,
-    case catch emongo:find_all(?MONGO_POOL, "uce_presence", [{"uid", EUid}] ++ OrgSelector) of
+    case catch emongo:find(?MONGO_POOL, "uce_presence", [{"uid", EUid}] ++ OrgSelector) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
@@ -39,7 +39,7 @@ list(EUid, Org) ->
     end.
 
 get(ESid) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_presence", [{"id", ESid}]) of
+    case catch emongo:find(?MONGO_POOL, "uce_presence", [{"id", ESid}], [{limit, 1}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Collection] ->
@@ -48,14 +48,23 @@ get(ESid) ->
 	    {error, not_found}
     end.
 
-delete(#uce_presence{}=Presence) ->
-    emongo:delete(?MONGO_POOL, "uce_presence", [{"id", Presence#uce_presence.sid}]),
-    ok.
+delete(Sid) ->
+    case catch emongo:delete(?MONGO_POOL, "uce_presence", [{"id", Sid}]) of
+	{'EXIT', _} ->
+	    {error, bad_parameters};
+	_ ->
+	    ok
+    end.
 
 update(#uce_presence{}=Presence) ->
-    emongo:update(?MONGO_POOL, ?MODULE:to_collection(Presence),
-		  [{"sid", Presence#uce_presence.sid}]),
-    ok.
+    case catch emongo:update(?MONGO_POOL, "uce_presence",
+			     [{"sid", Presence#uce_presence.sid}],
+			     ?MODULE:to_collection(Presence)) of
+	{'EXIT', _} ->
+	    {error, bad_parameters};
+	_ ->
+	    ok
+    end.
 
 
 from_collection(Collection) ->
@@ -70,11 +79,7 @@ from_collection(Collection) ->
     end.
 
 to_collection(#uce_presence{} = Presence) ->
-    #collection{name="uce_presence",
-		fields=[{"id", Presence#uce_presence.sid},
-			{"uid", Presence#uce_presence.uid},
-			{"org", Presence#uce_presence.org},
-			{"metadata", Presence#uce_presence.metadata}],
-		index=[{"id", Presence#uce_presence.sid},
-		       {"uid", Presence#uce_presence.uid},
-		       {"org", Presence#uce_presence.org}]}.
+    [{"id", Presence#uce_presence.sid},
+     {"uid", Presence#uce_presence.uid},
+     {"org", Presence#uce_presence.org},
+     {"metadata", Presence#uce_presence.metadata}].

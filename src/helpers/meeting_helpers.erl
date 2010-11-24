@@ -42,20 +42,20 @@ to_ical(#uce_meeting{start_date=Start, end_date=End, metadata=Metadata}) ->
 
 exists(Location) ->
     case Location of
+	["", ""] ->
+	    true;
+	[Org, ""] ->
+	    case uce_org:get(Org) of
+		{error, _} ->
+		    false;
+		_ ->
+		    true
+	    end;	    
 	[Org, Meeting] ->
 	    case uce_meeting:get([Org, Meeting]) of
 		{error, _} ->
 		    false;
 		_ ->
 		    true
-	    end;
-	[Org] ->
-	    case uce_org:get(Org) of
-		{error, _} ->
-		    false;
-		_ ->
-		    true
-	    end;
-	[] ->
-	    true
+	    end
     end.

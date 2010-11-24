@@ -12,13 +12,13 @@ init() ->
 		regexp="/doc\.(.+)",
 		callbacks=[{?MODULE, view, [], [], []}]}].
 
-format([{Module, Route}|Tail], "html") ->
+format([{_Module, Route}|Tail], "html") ->
     #uce_route{title=Title,
 	       desc=Description,
-	       path=Path,
-	       method=Method,
-	       regexp=Regexp,
-	       callbacks=Callbacks} = Route,
+%	       path=Path,
+%	       regexp=Regexp,
+%	       callbacks=Callbacks,
+	       method=Method} = Route,
     [{p, [],
      [{h2, [], Title},
       {p, [], Description},

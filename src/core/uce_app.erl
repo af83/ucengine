@@ -3,15 +3,12 @@
 
 -behaviour(application).
 
--export([start/0,
-	 start/2,
-	 stop/1]).
+-export([start/0, start/2, stop/1]).
 
 -include("uce.hrl").
 -include("yaws.hrl").
 
 start() ->
-    application:start(emongo),
     application:start(crypto),
     mnesia:create_schema([node()]),
     application:start(mnesia, permanent),
@@ -79,10 +76,14 @@ setup_root() ->
     case utils:get(config:get(admin),
 		   [uid, auth, credential, metadata],
 		   [none, none, none, []]) of
-	[EUid, Auth, Credential, Metadata]
-	  when is_list(EUid) and is_list(Auth) and is_list(Credential) ->
-	    uce_user:add(EUid, Auth, Credential, Metadata),
-	    uce_acl:add(#uce_acl{uid=EUid,
+	[Uid, Auth, Credential, Metadata]
+	  when is_list(Uid) and is_list(Auth) and is_list(Credential) ->
+	    uce_user:add(#uce_user{uid=Uid,
+				   auth=Auth,
+				   credential=Credential,
+				   metadata=Metadata}),
+
+	    uce_acl:add(#uce_acl{uid=Uid,
 				 action="all",
 				 object="all", 
 				 conditions=[]});

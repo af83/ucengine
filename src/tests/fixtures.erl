@@ -60,8 +60,8 @@ setup_users() ->
     teardown_users(),
     
     uce_user:add(#uce_user{uid="root.user@af83.com",
-			       auth="password",
-			       credential="pwd"}),
+			   auth="password",
+			   credential="pwd"}),
     uce_acl:add(#uce_acl{uid="root.user@af83.com",
 			 action="all",
 			 object="all",
@@ -94,57 +94,59 @@ setup_users() ->
     ok.
 teardown_users() ->
     uce_user:delete("root.user@af83.com"),
-    uce_acl:delete("root.user@af83.com", "all", "all", [], []),
+    uce_acl:delete("root.user@af83.com", "all", "all", ["", ""], []),
     
     uce_user:delete("participant.user@af83.com"),
     uce_acl:delete("participant.user@af83.com", "add", "presence", ["testorg"], []),
-    uce_acl:delete("participant.user@af83.com", "delete", "presence", [], [{"user", "participant.user@af83.com"}]),
+    uce_acl:delete("participant.user@af83.com", "delete", "presence", ["", ""], [{"user", "participant.user@af83.com"}]),
     
     uce_user:delete("anonymous.user@af83.com"),
     uce_acl:delete("anonymous.user@af83.com", "add", "presence", ["testorg"], []),
-    uce_acl:delete("anonymous.user@af83.com", "delete", "presence", [], [{"user", "anonymous.user@af83.com"}]),
+    uce_acl:delete("anonymous.user@af83.com", "delete", "presence", ["", ""], [{"user", "anonymous.user@af83.com"}]),
     
     uce_user:delete("test.user@af83.com"),
     ok.
 
 setup_events() ->
     uce_event:add(#uce_event{ type="test_event_1",
-				  location=["testorg", "testmeeting"],
-				  from="user_1"
-				}),
+			      location=["testorg", "testmeeting"],
+			      from="user_1"}),
     timer:sleep(10),
     uce_event:add(#uce_event{ type="test_event_2",
-				  location=["testorg", "testmeeting"],
-				  from="user_2"
-				}),
+			      location=["testorg", "testmeeting"],
+			      from="user_2"
+			    }),
     timer:sleep(10),
     uce_event:add(#uce_event{ type="test_event_3",
-				  location=["testorg", "testmeeting"],
-				  from="user_3",
-				  metadata=[{"description", "test"}]
-				}),
+			      location=["testorg", "testmeeting"],
+			      from="user_3",
+			      metadata=[{"description", "test"}]
+			    }),
     
     uce_event:add(#uce_event{ type="test_event_1",
-				  location=["otherorg", "testmeeting"],
-				  from="user_1"
-				}),
+			      location=["otherorg", "testmeeting"],
+			      from="user_1"
+			    }),
     timer:sleep(10),
     uce_event:add(#uce_event{ type="test_event_2",
-				  location=["otherorg", "testmeeting"],
-				  from="user_1"
-				}),
+			      location=["otherorg", "testmeeting"],
+			      from="user_1"
+			    }),
     timer:sleep(10),
     uce_event:add(#uce_event{ type="test_event_3",
-				  location=["otherorg", "testmeeting"],
-				  from="user_1",
-				  metadata=[{"description", "test"}]
-				}),
+			      location=["otherorg", "testmeeting"],
+			      from="user_1",
+			      metadata=[{"description", "test"}]
+			    }),
     ok.
 
 setup_root() ->
-    EUid = "root.user@af83.com",
-    ESid = uce_presence:add(EUid, "testorg", "password", "pwd", []),
-    {EUid, ESid}.
+    Uid = "root.user@af83.com",
+    ESid = uce_presence:add(#uce_presence{uid=Uid,
+					  org="testorg",
+					  auth="password",
+					  metadata=[]}),
+    {Uid, ESid}.
 teardown_root({_, ROOT_SID}) ->
     ok = uce_presence:delete(ROOT_SID),
     ok.

@@ -27,9 +27,9 @@ add(#uce_meeting{} = Meeting) ->
 	    {error, Reason}
     end.
 
-delete(#uce_meeting{} = Meeting) ->
+delete(Id) ->
     case mnesia:transaction(fun() ->
-				    mnesia:delete({uce_meeting, Meeting#uce_meeting.id})
+				    mnesia:delete({uce_meeting, Id})
 			    end) of
 	{atomic, ok} ->
 	    ok;

@@ -237,6 +237,7 @@ test_get_with_type_and_timeend_and_org(ROOT_UID, ROOT_SID) ->
 test_get_with_timeend_and_from_and_org(ROOT_UID, ROOT_SID) ->
     Params = [{"uid", ROOT_UID},
 	      {"sid", ROOT_SID}],
+    io:format("~p~n", [tests_utils:get("/event/otherorg/testmeeting", Params)]),
     {struct, [{"result", {array,
 			  [ {struct, [{"type", "test_event_1"}
 				      , {"datetime", First}

@@ -2,7 +2,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, list/7, last/3, last/2]).
+-export([add/1, get/1, list/8]).
 
 -include("uce.hrl").
 -include("models.hrl").
@@ -37,23 +37,27 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
 get(Id) ->
     ?DBMOD:get(Id).
 
-list(_, _, _, [], _, _, _) ->
+list(_, _, _, [], _, _, _, _) ->
     [];
-list(Location, Search, From, '_', Start, End, Parent) ->
-    ?MODULE:list(Location, Search, From, ['_'], Start, End, Parent);
-list(Location, Search, From, [Type|Tail], Start, End, Parent) ->
-    case Search of
-	'_' ->
-	    ?DBMOD:list(Location, From, Type, Start, End, Parent);
-	_ ->
-	    ?SEARCH_MOD:list(Location, Search, From, Type, Start, End, Parent)
-    end ++ ?MODULE:list(Location, Search, From, Tail, Start, End, Parent).
+list(Location, Search, From, '_', Uid, Start, End, Parent) ->
+    ?MODULE:list(Location, Search, From, ['_'], Uid, Start, End, Parent);
+list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
+    AllEvents = case Search of
+		    '_' ->
+			?DBMOD:list(Location, From, Type, Start, End, Parent);
+		    _ ->
+			?SEARCH_MOD:list(Location, Search, From, Type, Start, End, Parent)
+		end,
+    FilteredEvents = lists:filter(fun(#uce_event{to=To}) ->
+					  if
+					      To == "all" ->
+						  true;
+					      To == Uid ->
+						  true;
+					      true ->
+						  false
+					  end
+				  end,
+				  AllEvents),
+    FilteredEvents ++ ?MODULE:list(Location, Search, From, Tail, Uid, Start, End, Parent).
 
-last(Location, Type) ->
-    last(Location, '_', Type).
-
-last(Location, From, Type) ->
-    case ?MODULE:get(Location, From, Type, '_', '_', -1) of
-	[R] -> R;
-	_ -> none
-    end.

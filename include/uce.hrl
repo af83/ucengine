@@ -4,10 +4,12 @@
 	  % date (ms from epoch)
 	  datetime = none,
 	  %% location = [Org,Meeting]
-	  location = [],
+	  location = ["", ""],
 	  %% From: uid|brick
 	  from,
-	  %% Type event : atom
+	  %% To : string
+	  to = "all",
+	  %% Type event : string
 	  type,
 	  %% parent id
 	  parent = "",
@@ -18,7 +20,7 @@
 	  %% Event type
 	  type,
 	  %% [org, meeting]
-	  location,
+	  location = ["", ""],
 	  %% action : {Action, Params}
 	  action}).
 
@@ -31,7 +33,7 @@
 	  % organisation
 	  org,
 	  % timeout
-	  last_activity,
+	  last_activity = undefined,
 	  % resource
 	  resource,
 	  %% MetaData : list
@@ -60,7 +62,7 @@
 	  % name
 	  name,
 	  % [org, meeting]
-	  location,
+	  location = ["", ""],
 	  % path
 	  uri = [],
 	  % name as send by the browser
@@ -71,14 +73,13 @@
 	  uid,
 	  auth,
 	  credential,
-	  metadata = []
-	 }).
+	  metadata = []}).
 
 -record(uce_acl, {
 	  uid,
 	  action,
 	  object,
-	  location=[],
+	  location=["", ""],
 	  conditions=[]}).
 
 -record(uce_route, {

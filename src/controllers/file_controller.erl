@@ -57,16 +57,16 @@ add(Location, [EUid, Name, Uri, Metadata], _) ->
     case uce_acl:check(EUid, "file", "add", Location, []) of
 	true ->
 	    case uce_file:add(#uce_file{location=Location,
-					    name=Name,
-					    uri=Uri,
-					    metadata=Metadata}) of
+					name=Name,
+					uri=Uri,
+					metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
 		Id ->
 		    uce_event:add(#uce_event{location=Location,
-						 from=EUid,
-						 type="internal.file.add",
-						 metadata=[{"id", Id}]}),
+					     from=EUid,
+					     type="internal.file.add",
+					     metadata=[{"id", Id}]}),
 		    file_helpers:upload(Id)
 	    end;
 	false ->

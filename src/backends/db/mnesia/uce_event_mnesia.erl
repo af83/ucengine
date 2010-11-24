@@ -36,72 +36,53 @@ get(Id) ->
     end.
 
 list(Location, From, Type, Start, End, Parent) ->
-    MatchObject = if
-		      Start == 0, End == infinity ->
-			  #uce_event{id='_',
-				     datetime='_',
-				     location=Location,
-				     from=From,
-				     type=Type,
-				     parent=Parent,
-				     metadata='_'};
-		      
-		      true ->
-			  SelectLocation = case Location of
-					     ['_', '_'] ->
-						 ['$3', '$4'];
-					     [Org, '_'] ->
-						 [Org, '$4'];
-					     [Org, Meeting] ->
-						 [Org, Meeting]
-					 end,
-			  SelectFrom = if
-					   From == '_' ->
-					       '$5';
-					   true ->
-					       From
-				       end,
-			  SelectType = if
-					   Type == '_' ->
-					       '$6';
-					   true ->
-					       Type
-				       end,			  
-			  SelectParent = if
-					   Parent == '_' ->
-					       '$7';
-					   true ->
-					       Parent
-				       end,
-			  Guard = if 
-				      Start /= 0, End /= infinity ->
-					  [{'>=', '$2', Start}, {'=<', '$2', End}];
-				      
-				      Start /= 0 ->
-					  [{'>=', '$2', Start}];
-				      
-				      End /= infinity ->
-					  [{'=<', '$2', End}];
-				      
-				      true ->
-					  []
-				  end,
-			  Match = #uce_event{id='$1',
-					     datetime='$2',
-					     location=SelectLocation,
-					     from=SelectFrom,
-					     type=SelectType,
-					     parent=SelectParent,
-					     metadata='$8'},
-			  Result = {{'uce_event', '$1','$2', SelectLocation,
-				     SelectFrom, SelectType, SelectParent, '$8'}},
-			  {Match, Guard, [Result]}
-		  end,
-    case MatchObject of
-	#uce_event{} ->
-	    mnesia:dirty_match_object(MatchObject);
-	{_, _, _} = MatchSpec ->
-	    mnesia:dirty_select(uce_event, [MatchSpec]);
-	none ->
-	    []
-    end.
+    SelectLocation = case Location of
+			 ["", ""] ->
+			     ['$3', '$4'];
+			 [Org, ""] ->
+			     [Org, '$4'];
+			 [Org, Meeting] ->
+			     [Org, Meeting]
+		     end,
+    SelectFrom = if
+		     From == '_' ->
+			 '$5';
+		     true ->
+			 From
+		 end,
+    SelectType = if
+		     Type == '_' ->
+			 '$7';
+		     true ->
+			 Type
+		 end,			  
+    SelectParent = if
+		       Parent == '_' ->
+			   '$8';
+		       true ->
+			   Parent
+		   end,
+    Guard = if 
+		Start /= 0, End /= infinity ->
+		    [{'>=', '$2', Start}, {'=<', '$2', End}];
+		
+		Start /= 0 ->
+		    [{'>=', '$2', Start}];
+		
+		End /= infinity ->
+		    [{'=<', '$2', End}];
+		
+		true ->
+		    []
+	    end,
+    Match = #uce_event{id='$1',
+		       datetime='$2',
+		       location=SelectLocation,
+		       from=SelectFrom,
+		       to='$6',
+		       type=SelectType,
+		       parent=SelectParent,
+		       metadata='$9'},
+    Result = {{'uce_event', '$1','$2', SelectLocation,
+	       SelectFrom, '$6', SelectType, SelectParent, '$9'}},
+    mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}]).

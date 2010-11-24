@@ -34,7 +34,7 @@ init() ->
 			     [integer, atom],
 			     [integer, atom],
 			     integer,
-				       atom,
+			     atom,
 			     [string, atom],
 			     string]}]},
      
@@ -46,9 +46,9 @@ init() ->
 			    [required, required],
 			    [string, string]},
 			   {?MODULE, add,
-			    ["uid", "type", "parent", "metadata"],
-			    [required, required, "", []],
-			    [string, string, string, dictionary]}]}].
+			    ["uid", "type", "to", "parent", "metadata"],
+			    [required, required, "all", "", []],
+			    [string, string, string, string, dictionary]}]}].
 
 listen(Location, EUid, Search, Type, From, Socket) ->
     mnesia_pubsub:subscribe(Location, EUid, Search, Type, From, self()),
@@ -93,9 +93,9 @@ wait(Location, EUid, Search, Type, From, Start, Socket) ->
     {streamcontent_from_pid, "application/json", Pid}.
 
 list([], Match, Arg) ->
-    ?MODULE:list(['_', '_'], Match, Arg);
+    ?MODULE:list(["", ""], Match, Arg);
 list([Org], Match, Arg) ->
-    ?MODULE:list([Org, '_'], Match, Arg);
+    ?MODULE:list([Org, ""], Match, Arg);
 list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
     case uce_acl:check(EUid, "event", "add", Location, [{"from", From}]) of
 	true ->
@@ -111,7 +111,7 @@ list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Parent
 			   _ ->
 			       string:tokens(Search, " ")
 		       end,
-	    case uce_event:list(Location, Keywords, From, Types, Start, End, Parent) of
+	    case uce_event:list(Location, Keywords, From, Types, EUid, Start, End, Parent) of
 		{error, Reason} ->
 		    {error, Reason};
 		[] ->
@@ -135,12 +135,18 @@ list(Location, [EUid, Search, Type, From, Start, End, Count, Page, Order, Parent
 	    {error, unauthorized}
     end.
 
-add(Location, [EUid, Type, Parent, Metadata], _) ->
-    case uce_acl:check(EUid, "event", "add", Location, [{"type", Type}]) of
+add([], [EUid, Type, To, Parent, Metadata], Arg) ->
+    ?MODULE:add(["", ""], [EUid, Type, To, Parent, Metadata], Arg);
+add([Org], [EUid, Type, To, Parent, Metadata], Arg) ->
+    ?MODULE:add([Org, ""], [EUid, Type, To, Parent, Metadata], Arg);
+add(Location, [EUid, Type, To, Parent, Metadata], _) ->
+    case uce_acl:check(EUid, "event", "add", Location, [{"type", Type},
+							{"to", To}]) of
 	true ->
 	    case uce_event:add(#uce_event{location=Location,
 					  from=EUid,
 					  type=Type,
+					  to=To,
 					  parent=Parent,
 					  metadata=Metadata}) of
 		{error, Reason} ->

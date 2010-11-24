@@ -14,25 +14,25 @@
 -include("mongodb.hrl").
 
 add(#uce_meeting{} = Meeting) ->
-    case catch emongo:insert(?MONGO_POOL, ?MODULE:to_collection(Meeting)) of
+    case catch emongo:insert(?MONGO_POOL, "uce_meeting", ?MODULE:to_collection(Meeting)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
 	    ok
     end.
 
-delete(#uce_meeting{id=[Org, Meeting]}) ->
+delete([Org, Meeting]) ->
     case emongo:delete(?MONGO_POOL, "uce_meeting", [{"org", Org},
-						      {"meeting", Meeting}]) of
+						    {"meeting", Meeting}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
 	    ok
     end.
 
-get({Org, Meeting}) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_meeting", [{"org", Org},
-							      {"meeting", Meeting}]) of
+get([Org, Meeting]) ->
+    case catch emongo:find(?MONGO_POOL, "uce_meeting",
+			   [{"org", Org}, {"meeting", Meeting}], [{limit, 1}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Record] ->
@@ -42,8 +42,9 @@ get({Org, Meeting}) ->
     end.
 
 update(#uce_meeting{id=[OrgName, MeetingName]} = Meeting) ->
-    case catch emongo:update(?MONGO_POOL, ?MODULE:to_collection(Meeting),
-			     [{"org", OrgName}, {"meeting", MeetingName}]) of
+    case catch emongo:update(?MONGO_POOL, "uce_meeting",
+			     [{"org", OrgName}, {"meeting", MeetingName}],
+			     ?MODULE:to_collection(Meeting)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -51,7 +52,7 @@ update(#uce_meeting{id=[OrgName, MeetingName]} = Meeting) ->
     end.
 
 list(Org) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_meeting", [{"org", Org}]) of
+    case catch emongo:find(?MONGO_POOL, "uce_meeting", [{"org", Org}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
@@ -67,18 +68,12 @@ to_collection(#uce_meeting{id=[OrgName, MeetingName],
 			     end_date=End,
 			     roster=Roster,
 			     metadata=Metadata}) ->
-    #collection{name="uce_meeting", 
-		fields=[{"org", OrgName},
-			{"meeting", MeetingName},
-			{"start_date", integer_to_list(Start)},
-			{"end_date", integer_to_list(End)},
-			{"roster", Roster},
-			{"metadata", Metadata}
-		       ],
-		index=[{"org", OrgName},
-		       {"meeting", MeetingName},
-		       {"start_date", integer_to_list(Start)},
-		       {"end_date" ,  integer_to_list(End)}]}.
+    [{"org", OrgName},
+     {"meeting", MeetingName},
+     {"start_date", integer_to_list(Start)},
+     {"end_date", integer_to_list(End)},
+     {"roster", Roster},
+     {"metadata", Metadata}].
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
@@ -88,8 +83,7 @@ from_collection(Collection) ->
 			   start_date=list_to_integer(Start),
 			   end_date=list_to_integer(End),
 			   roster=Roster,
-			   metadata=Metadata
-			  };
+			   metadata=Metadata};
 	_ ->
 	    {error, bad_parameters}
     end.

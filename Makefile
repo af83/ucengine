@@ -23,6 +23,7 @@ BEAM_TARGETS := $(addprefix ebin/, $(BEAM_TARGETS))
 APP_FILES     = $(shell find src -type f -and -name "*.app" -exec basename '{}' \;)
 APP_TARGETS  := $(addprefix ebin/, $(APP_FILES))
 
+export ERL_LIBS := $(ERL_LIBS):deps
 
 all: compile
 

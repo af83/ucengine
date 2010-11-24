@@ -14,7 +14,7 @@
 -include("mongodb.hrl").
 
 add(#uce_user{} = User) ->
-    case catch emongo:insert(?MONGO_POOL, ?MODULE:to_collection(User)) of
+    case catch emongo:insert(?MONGO_POOL, "uce_user", ?MODULE:to_collection(User)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -29,8 +29,8 @@ delete(EUid) ->
 	    ok
     end.    
 
-update(#uce_user{} = User) ->
-    case catch emongo:insert(?MONGO_POOL, ?MODULE:to_collection(User)) of
+update(#uce_user{uid=Uid} = User) ->
+    case catch emongo:update(?MONGO_POOL, "uce_user", [{"uid", Uid}], ?MODULE:to_collection(User)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -38,7 +38,7 @@ update(#uce_user{} = User) ->
     end.
 
 list() ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_user", []) of
+    case catch emongo:find(?MONGO_POOL, "uce_user") of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
@@ -49,7 +49,7 @@ list() ->
     end.
 
 get(EUid) ->
-    case emongo:find_one(?MONGO_POOL, "uce_user", [{"uid", EUid}]) of
+    case emongo:find(?MONGO_POOL, "uce_user", [{"uid", EUid}], [{limit, 1}]) of
 	[Collection] ->
 	    ?MODULE:from_collection(Collection);
 	_ ->
@@ -61,18 +61,15 @@ from_collection(Collection) ->
 		   ["uid", "auth", "credential", "metadata"]) of
 	[EUid, Auth, Credential, Metadata] ->
 	    #uce_user{uid=EUid,
-			auth=Auth,
-			credential=Credential,
-			metadata=Metadata
-		       };
+		      auth=Auth,
+		      credential=Credential,
+		      metadata=Metadata};
 	_ ->
 	    {error, bad_parameters}
     end.
 
 to_collection(#uce_user{} = User) ->
-    #collection{name="uce_user",
-		fields=[{"uid", User#uce_user.uid},
-			{"auth", User#uce_user.auth},
-			{"credential", User#uce_user.credential},
-			{"metadata", User#uce_user.metadata}],
-		index=[{"uid", User#uce_user.uid}]}.
+    [{"uid", User#uce_user.uid},
+     {"auth", User#uce_user.auth},
+     {"credential", User#uce_user.credential},
+     {"metadata", User#uce_user.metadata}].

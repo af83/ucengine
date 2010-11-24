@@ -51,10 +51,10 @@ init() ->
 			    [string, dictionary]}]}].
 
 
-check([To, Object, Action], Params, _) ->
-    ?MODULE:check([To, Object, Action, '_', '_'], Params, '_');
-check([To, Object, Action, Org], Params, _) ->
-    ?MODULE:check([To, Object, Action, Org, '_'], Params, '_');
+check([To, Object, Action], Params, Arg) ->
+    ?MODULE:check([To, Object, Action, "", ""], Params, Arg);
+check([To, Object, Action, Org], Params, Arg) ->
+    ?MODULE:check([To, Object, Action, Org, ""], Params, Arg);
 check([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
     case uce_acl:check(EUid, "acl", "check", [Org, Meeting], [{"user", To},
 							      {"action", Action},
@@ -74,10 +74,10 @@ check([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
 	    {error, unauthorized}
     end.
 
-add([To, Object, Action], Params, _) ->
-    ?MODULE:add([To, Object, Action, '_', '_'], Params, '_');
-add([To, Object, Action, Org], Params, _) ->
-    ?MODULE:add([To, Object, Action, Org, '_'], Params, '_');
+add([To, Object, Action], Params, Arg) ->
+    ?MODULE:add([To, Object, Action, "", ""], Params, Arg);
+add([To, Object, Action, Org], Params, Arg) ->
+    ?MODULE:add([To, Object, Action, Org, ""], Params, Arg);
 add([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
     case uce_acl:check(EUid, "acl", "add", [Org, Meeting], [{"user", To},
 							    {"action", Action},
@@ -99,10 +99,10 @@ add([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
 	    {error, unauthorized}
     end.
 
-delete([To, Object, Action], Params, _) ->
-    ?MODULE:delete([To, Object, Action, '_', '_'], Params, '_');
-delete([To, Object, Action, Org], Params, _) ->
-    ?MODULE:delete([To, Object, Action, Org, '_'], Params, '_');
+delete([To, Object, Action], Params, Arg) ->
+    ?MODULE:delete([To, Object, Action, "", ""], Params, Arg);
+delete([To, Object, Action, Org], Params, Arg) ->
+    ?MODULE:delete([To, Object, Action, Org, ""], Params, Arg);
 delete([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
     case uce_acl:check(EUid, "acl", "delete", [Org, Meeting], [{"user", To},
 							       {"action", Action},

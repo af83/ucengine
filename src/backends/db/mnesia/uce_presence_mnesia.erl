@@ -30,12 +30,12 @@ add(#uce_presence{}=Presence) ->
 list(EUid, Org) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_presence{sid='_',
-								       uid=EUid,
-								       auth='_',
-								       org=Org,
-								       last_activity='_',
-								       resource='_',
-								       metadata='_'})
+								      uid=EUid,
+								      auth='_',
+								      org=Org,
+								      last_activity='_',
+								      resource='_',
+								      metadata='_'})
 			    end) of
 	{atomic, []} ->
 	    [];
@@ -57,9 +57,9 @@ get(ESid) ->
 	    {error, Reason}
     end.
 
-delete(#uce_presence{}=Presence) ->
+delete(Sid) ->
     case mnesia:transaction(fun() ->
-				     mnesia:delete({uce_presence, Presence#uce_presence.sid})
+				     mnesia:delete({uce_presence, Sid})
 			     end) of
 	{atomic, _} ->
 	    ok;

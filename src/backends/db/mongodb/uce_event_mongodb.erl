@@ -14,22 +14,26 @@
 -include("mongodb.hrl").
 
 add(#uce_event{} = Event) ->
-    emongo:insert(?MONGO_POOL, ?MODULE:to_collection(Event)),
-    ok.
+    case catch emongo:insert(?MONGO_POOL, "uce_event", ?MODULE:to_collection(Event)) of
+	{'EXIT', _} ->
+	    {error, bad_parameters};
+	_ ->
+	    ok
+    end.
 
 get(Id) ->
-    case emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
+    case emongo:find(?MONGO_POOL, "uce_event", [{"id", Id}], [{limit, 1}]) of
 	[Collection] ->
 	    ?MODULE:from_collection(Collection);
 	_ ->
 	    {error, not_found}
     end.
 
-list(Location, Search, From, Type, Start, End) ->
+list(Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
-			 ['_', '_'] ->
+			 ["", ""] ->
 			     [];
-			 [Org, '_'] ->
+			 [Org, ""] ->
 			     [{"org", Org}];
 			 [Org, Meeting] ->
 			     [{"org", Org}, {"meeting", Meeting}]
@@ -46,6 +50,12 @@ list(Location, Search, From, Type, Start, End) ->
 		       true ->
 			   [{"type", Type}]
 		   end,
+    SelectParent = if
+		       Parent == '_' ->
+			   [];
+		       true ->
+			   [{"parent", Type}]
+		   end,
     SelectTime = if
 		       Start == 0, End == infinity -> 
 			   [];
@@ -59,70 +69,47 @@ list(Location, Search, From, Type, Start, End) ->
 		       true ->
 			   []
 	       end,
-    Events = lists:map(fun(Collection) ->
-			       ?MODULE:from_collection(Collection)
-		       end,
-		       emongo:find_all(?MONGO_POOL,"uce_event",
-				       SelectLocation ++
-					   SelectFrom ++
-					   SelectType ++
-					   SelectTime,
-				       [{orderby, [{"this.datetime", asc}]}])),
-    case Search of
-	'_' ->
-	    Events;
-	_ ->
-	    event_helpers:search(Events, Search)
-    end.
+    lists:map(fun(Collection) ->
+		      ?MODULE:from_collection(Collection)
+	      end,
+	      emongo:find_all(?MONGO_POOL,"uce_event",
+			      SelectLocation ++
+				  SelectFrom ++
+				  SelectType ++
+				  SelectParent ++
+				  SelectTime,
+			      [{orderby, [{"this.datetime", asc}]}])).
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		  ["id", "org", "meeting", "from", "metadata", "datetime", "type"]) of
-	[Id, Org, Meeting, From, Metadata, Datetime, Type] ->
-	    Location = case [Org, Meeting] of
-			   ["_", "_"] ->
-			       [];
-			   [_, "_"] ->
-			       [Org];
-			   [_, _] ->
-			       [Org, Meeting]
-		       end,
+		  ["id", "org", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
+	[Id, Org, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
 	    #uce_event{id=Id,
-			 datetime=Datetime,
-			 from=From,
-			 location=Location,
-			 type=Type,
-			 metadata=Metadata};
+		       datetime=Datetime,
+		       from=From,
+		       to=To,
+		       location=[Org, Meeting],
+		       type=Type,
+		       parent=Parent,
+		       metadata=Metadata};
 	_ ->
 	    {error, bad_parameters}
     end.
 
 to_collection(#uce_event{id=Id,
-			   location=Location,
-			   from=From,
-			   metadata=Metadata,
-			   datetime=Datetime,
-			   type=Type}) ->
-    [Org, Meeting] = case Location of
-			 [] ->
-			     ["_", "_"];
-			 [LocOrg] ->
-			     [LocOrg, "_"];
-			 [LocOrg, LocMeeting] ->
-			     [LocOrg, LocMeeting]
-		     end,
-    #collection{name="uce_event", 
-		fields=[{"id", Id},
-			{"org", Org},
-			{"meeting", Meeting},
-			{"from", From},
-			{"metadata", Metadata},
-			{"datetime", Datetime},
-			{"type", Type}
-		       ],
-		index=[{"id", Id},
-		       {"org", Org},
-		       {"meeting", Meeting},
-		       {"from", From},
-		       {"datetime", Datetime},
-		       {"type", Type}]}.
+			 location=[Org, Meeting],
+			 from=From,
+			 to=To,
+			 metadata=Metadata,
+			 datetime=Datetime,
+			 type=Type,
+			 parent=Parent}) ->
+    [{"id", Id},
+     {"org", Org},
+     {"meeting", Meeting},
+     {"from", From},
+     {"to", To},
+     {"metadata", Metadata},
+     {"datetime", Datetime},
+     {"type", Type},
+     {"parent", Parent}].

@@ -13,11 +13,15 @@
 -include("mongodb.hrl").
 
 add(#uce_file{} = File) ->
-    emongo:insert(?MONGO_POOL, ?MODULE:to_collection(File)),
-    ok.
+    case catch emongo:insert(?MONGO_POOL, "uce_file", ?MODULE:to_collection(File)) of
+	{'EXIT', _} ->
+	    {error, bad_parameters};
+	_ ->
+	    ok
+    end.
 
 list(Location) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_file", [{"location", Location}]) of
+    case catch emongo:find(?MONGO_POOL, "uce_file", [{"location", Location}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Files ->
@@ -25,7 +29,7 @@ list(Location) ->
     end.
 
 get(Id) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_file", [{"id", Id}]) of
+    case catch emongo:find(?MONGO_POOL, "uce_file", [{"id", Id}], [{limit, 1}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[File] ->
@@ -56,12 +60,8 @@ from_collection(Collection) ->
     end.
 
 to_collection(#uce_file{id=Id, name=Name, location=Location, uri=Uri, metadata=Metadata}) ->
-    #collection{name="uce_file",
-		fields=[{"id", Id},
-			{"location", Location},
-			{"name", Name},
-			{"uri", Uri},
-			{"metadata", Metadata}],
-		index=[{"id", Id},
-		       {"location", Location},
-		       {"name", Name}]}.
+    [{"id", Id},
+     {"location", Location},
+     {"name", Name},
+     {"uri", Uri},
+     {"metadata", Metadata}].

@@ -2,7 +2,7 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1, update/1, get/1, delete/1, list/0]).
+-export([add/1, update/1, get/1, delete/1, list/0, exists/1]).
 
 -include("uce.hrl").
 -include("models.hrl").
@@ -39,3 +39,11 @@ delete(Name) ->
 
 list() ->
     ?DBMOD:list().
+
+exists(Name) ->
+    case ?MODULE:get(Name) of
+	{error, _} ->
+	    false;
+	_ ->
+	    true
+    end.

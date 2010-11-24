@@ -16,6 +16,10 @@ collection_member_to_list({Key, Value})
     {binary_to_list(Key), tuple_to_list(Value)};
 
 collection_member_to_list({Key, Value})
+  when is_integer(Value) ->
+    {binary_to_list(Key), Value};
+
+collection_member_to_list({Key, Value})
   when is_list(Value) ->
     {binary_to_list(Key), ?MODULE:collection_to_list(Value)};
 

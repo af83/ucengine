@@ -22,62 +22,65 @@ init() ->
 			    [required, required],
 			    [string, string]},
 			   {?MODULE, delete,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string]}]}].
+			    ["uid"],
+			    [required],
+			    [string]}]}].
 
-add([Org, EUid], [Auth, Credential, Metadata], _) ->
-    case uce_org:get(Org) of
-	{error, Reason} ->
-	    {error, Reason};
-	_ ->
-	    case uce_acl:check(EUid, "presence", "add", [Org], []) of
-		true ->
-		    case uce_presence:add(EUid, Org, Auth, Credential, Metadata) of
-			ESid when is_list(ESid) ->
-			    uce_event:add(#uce_event{location=[Org],
-							 from=EUid,
-							 type="internal.presence.add",
-							 metadata=Metadata}),
-			    json_helpers:created(ESid);
-			Error ->
-			    Error
-		    end;
-		false ->
-		    {error, unauthorized}
-	    end
-    end.
-
-delete([Org, ToEUid, ToESid], [EUid, ESid], _) ->
-    case uce_org:get(Org) of
-	{error, Reason} ->
-	    {error, Reason};
-	_ ->
-	    case uce_presence:check(ToESid, ToEUid) of
-		true ->
-		    case uce_acl:check(EUid, "presence", "delete", [Org], [{"user", ToEUid}]) of
-			true ->
-			    case uce_presence:delete(ESid) of
-				ok ->
-				    uce_event:add(#uce_event{location=[Org],
-							     from=EUid,
-							     type="internal.presence.delete"}),
-				    json_helpers:json(ok);
-				Error ->
-				    Error
-			    end;
-			false ->
-			    {error, unauthorized}
-		    end;
-		false ->
-		    {error, not_found}
-	    end
-    end.
-
-check(_, [EUid, ESid], _) ->
-    case uce_presence:check(ESid, EUid) of
+add([Org, Uid], [Auth, Credential, Metadata], _) ->
+    case uce_acl:check(Uid, "presence", "add", [Org, ""], []) of
 	true ->
-	    {ok, continue};
+	    case uce_user:get(Uid) of
+		{error, Reason} ->
+		    {error, Reason};
+		#uce_user{} = User ->
+		    case {User#uce_user.auth, User#uce_user.credential} of
+			{Auth, Credential} ->
+			    case uce_presence:add(#uce_presence{uid=Uid,
+								auth=Auth,
+								org=Org,
+								metadata=Metadata}) of
+				{error, Reason} ->
+				    {error, Reason};
+				Sid ->
+				    uce_event:add(#uce_event{location=[Org, ""],
+							     from=Uid,
+							     type="internal.presence.add",
+							     metadata=Metadata}),
+				    json_helpers:created(Sid)
+			    end;
+			_ ->
+			    {error, bad_credentials}
+		    end
+	    end;
 	false ->
 	    {error, unauthorized}
+    end.
+
+delete([Org, ToUid, ToSid], [Uid], _) ->
+    case uce_acl:check(Uid, "presence", "delete", [Org, ""], [{"user", ToUid}]) of
+	true ->
+	    case uce_presence:delete(ToSid) of
+		{error, Reason} ->
+		    {error, Reason};
+		ok ->
+		    uce_event:add(#uce_event{location=[Org, ""],
+					     from=Uid,
+					     type="internal.presence.delete"}),
+		    json_helpers:json(ok)
+	    end;
+	false ->
+	    {error, unauthorized}
+    end.
+
+check(_, [Uid, Sid], _) ->
+    case uce_presence:get(Sid) of
+	{error, Reason} ->
+	    {error, Reason};
+	Presence ->
+	    case Presence#uce_presence.uid of
+		Uid ->
+		    {ok, continue};
+		_ ->
+		    {error, unauthorized}
+	    end
     end.

@@ -58,9 +58,12 @@ start() ->
     ok = feed(),
 
     case utils:get(config:get(admin), [uid, auth, credential]) of
-	[EUid, Auth, Credential] ->
-	    ESid = uce_presence:add(EUid, "af83", Auth, Credential, []),
-	    io:format("Admin: ~p/~p~n", [EUid, ESid]);
+	[Uid, Auth] ->
+	    Sid = uce_presence:add(#uce_presence{uid=Uid, 
+						 org="af83",
+						 auth=Auth,
+						 metadata=[]}),
+	    io:format("Admin: ~p/~p~n", [Uid, Sid]);
 	_ ->
 	    io:format("No admin account~n")
     end,
