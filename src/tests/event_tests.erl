@@ -89,18 +89,18 @@ test_get_with_keywords(ROOT_UID, ROOT_SID) ->
 
     ParamsGet = [{"uid", ROOT_UID},
 		 {"sid", ROOT_SID},
-		 {"search", "event lonely"},
+		 {"search", "lonely"},
 		 {"count", "1"}],
     ?DEBUG("~p~n", [tests_utils:get("/event/testorg/testmeeting", ParamsGet)]),
     {struct, [{"result", {array,
-			  [{struct, [{"type", "search_event"}
+                          [{array, [{struct, [{"type", "search_event"}
 				    , {"datetime", _}
 				    , {"id", _}
 				    , {"org", "testorg"}
 				    , {"meeting", "testmeeting"}
 				    , {"from", ROOT_UID}
 				    , {"metadata", {struct, [{"description", "lonely event"}]}}
-				   ]}]}}]} = tests_utils:get("/event/testorg/testmeeting", ParamsGet).
+				   ]}]}]}}]} = tests_utils:get("/event/testorg/testmeeting", ParamsGet).
 
 test_get_with_type_and_timestart(ROOT_UID, ROOT_SID) ->
     Params = [{"uid", ROOT_UID},
