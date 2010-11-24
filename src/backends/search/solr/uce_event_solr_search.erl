@@ -2,7 +2,7 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/1, list/7]).
+-export([add/1, list/7, delete/1]).
 
 -include("uce.hrl").
 
@@ -187,3 +187,15 @@ make_list_json_events([HdJSON | TlJSON]) ->
     {value, {"id", {array, IdEvent}}} = lists:keysearch("id", 1, StructInfos),
     Event = uce_event:get(lists:flatten(IdEvent)),
     [Event] ++ make_list_json_events(TlJSON).
+
+delete(Id) ->
+    [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
+    httpc:request(post,
+                  {Host ++ ?SOLR_UPDATE,
+                   [],
+                   [],
+                   "<delete><query>"++ Id ++"</query></delete>"
+                  },
+                  [{timeout, ?TIMEOUT}],
+                  []),
+    ok.
