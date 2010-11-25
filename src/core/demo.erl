@@ -57,15 +57,15 @@ start() ->
 
     ok = feed(),
 
-    case utils:get(config:get(admin), [uid, auth, credential]) of
+    case utils:get(config:get(admin), [uid, auth]) of
 	[Uid, Auth] ->
 	    Sid = uce_presence:add(#uce_presence{uid=Uid, 
 						 org="af83",
 						 auth=Auth,
 						 metadata=[]}),
 	    io:format("Admin: ~p/~p~n", [Uid, Sid]);
-	_ ->
-	    io:format("No admin account~n")
+	Reason ->
+	    io:format("No admin account (~p)~n", [Reason])
     end,
     ok.
 
