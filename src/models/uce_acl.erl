@@ -12,29 +12,62 @@
 -include("uce.hrl").
 -include("models.hrl").
 
-add(#uce_acl{uid=EUid} = ACL) ->
-    case uce_user:get(EUid) of
-	{error, Error} ->
-	    {error, Error};
-	_ ->
-	    ?DBMOD:add(ACL)
+add(#uce_acl{uid=Uid, location=Location} = ACL) ->
+    case uce_user:exists(Uid) of
+	false ->
+	    {error, not_found};
+	true ->
+	    case location_helpers:exists(Location) of
+		false ->
+		    {error, not_found};
+		true ->
+		    case uce_user:get(Uid) of
+			{error, Error} ->
+			    {error, Error};
+			_ ->
+			    ?DBMOD:add(ACL)
+		    end
+	    end
     end.
 
-delete(EUid, Object, Action, Location, Conditions) ->
-    case uce_user:get(EUid) of
+delete(Uid, Object, Action, Location, Conditions) ->
+    case uce_user:get(Uid) of
 	{error, Reason} ->
 	    {error, Reason};
 	_ ->
-	    ?DBMOD:delete(EUid, Object, Action, Location, Conditions)
+	    ?DBMOD:delete(Uid, Object, Action, Location, Conditions)
     end.
 
-check(EUid, Object, Action, Location, Conditions) ->
-    case ?DBMOD:list(EUid, Object, Action) of
+check(Uid, Object, Action, Location, Conditions) ->
+    case ?DBMOD:list(Uid, Object, Action) of
 	{error, Reason} ->
 	    {error, Reason};
 	ACL ->
-	    check_conditions(ACL, Conditions)
+	    case filter_location(ACL, Location) of
+		[] ->
+		    false;
+		FilteredACL ->
+		    check_conditions(FilteredACL, Conditions)
+	    end
     end.
+
+filter_location(ACL, [RequiredOrg, RequiredMeeting]) ->
+    lists:filter(fun(#uce_acl{location=[Org, Meeting]}) ->
+			 if
+			     Org == RequiredOrg,
+			     Meeting == RequiredMeeting ->
+				 true;
+			     Org == RequiredOrg,
+			     Meeting == "" ->
+				 true;
+			     Org == "",
+			     Meeting == "" ->
+				 true;
+			     true ->
+				 false
+			 end
+		 end,
+		 ACL).
 
 check_conditions([], _) ->
     false;
