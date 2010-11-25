@@ -10,6 +10,8 @@
 -define(SOLR_UPDATE, "/update?commit=true").
 -define(SOLR_SELECT, "/select?").
 
+-define(META_PREFIX, "metadata_").
+
 add(Event) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     httpc:request(post,
@@ -31,13 +33,9 @@ to_solrxml(#uce_event{id=Id,
 		      metadata=Metadata}) ->
     LocationElement =
 	case Location of
-            [] ->
-                [];
-            [Org] ->
-                [{field, [{name,"org"}], [Org]}];
-	    ['_', '_'] ->
+	    ["", ""] ->
 		[];
-	    [Org, '_'] ->
+	    [Org, ""] ->
 		[{field, [{name,"org"}], [Org]}];
 	    [Org, Meeting] ->
 		[{field, [{name,"org"}], [Org]},
@@ -54,30 +52,15 @@ to_solrxml(#uce_event{id=Id,
 		  Metadata),
 
     DocElements = [{field, [{name,"id"}], [Id]},
-		   {field, [{name,"datetime"}], [timestamp_to_date(Datetime)]},
+		   {field, [{name,"datetime"}], [integer_to_list(Datetime)]},
 		   {field, [{name,"type"}], [Type]},
 		   {field, [{name,"from"}], [From]}] ++
-	LocationElement ++ MetadataFlattenElement ++ MetadataElement,
+	LocationElement ++
+	MetadataFlattenElement ++
+	MetadataElement,
 
     Add = {add, [], [{doc, [], DocElements}]},
     lists:flatten(xmerl:export_simple_element(Add, xmerl_xml)).
-
-int2str(Int) when Int < 10 ->
-	"0" ++ integer_to_list(Int);
-int2str(Int) ->
-	integer_to_list(Int).
-
-timestamp_to_date(SDate) when is_list(SDate) ->
-    timestamp_to_date(list_to_integer(SDate));
-timestamp_to_date(Date) when is_integer(Date) ->
-    if
-	Date > 0 ->
-	    BaseDate = calendar:datetime_to_gregorian_seconds({{1970,1,1},{0,0,0}}),
-	    {{Y,M,D},{H,Min,S}} = calendar:gregorian_seconds_to_datetime(BaseDate + (Date div 1000) ),
-	    int2str(Y) ++ "-" ++ int2str(M) ++ "-" ++ int2str(D) ++ "T" ++ int2str(H) ++ ":" ++ int2str(Min) ++ ":" ++ int2str(S) ++ "Z";
-	true ->
-	    none
-    end.
 
 params_to_query([{Key, Value}|Tail]) ->
     case Key of
@@ -140,18 +123,11 @@ search(Host, [Org, Meeting], Search, From, Type, Start, End, _) ->
     TimeSelector =
 	if
 	    Start /= 0, End /= infinity ->
-		[{"facet.date", "timecode"},
-		 {"facet.date.gap", "+1HOUR"},
-		 {"facet.date.start", timestamp_to_date(Start)},
-		 {"facet.date.end", timestamp_to_date(End)}];
+		[{"date", "[" ++ integer_to_list(Start) ++ " TO " ++ integer_to_list(End) ++ "]"}];
 	    Start /= 0 ->
-		[{"facet.date", "timecode"},
-		 {"facet.date.gap", "+1HOUR"},
-		 {"facet.date.start", timestamp_to_date(Start)}];
+		[{"date", "[" ++ integer_to_list(Start) ++ " TO *"}];
 	    End /= infinity ->
-		[{"facet.date", "timecode"},
-		 {"facet.date.gap", "+1HOUR"},
-		 {"facet.date.end", timestamp_to_date(End)}];
+		[{"date", "* TO " ++ integer_to_list(End) ++ "]"}];
 	    true ->
 		[]
 	end,
@@ -165,28 +141,88 @@ search(Host, [Org, Meeting], Search, From, Type, Start, End, _) ->
     EncodedParams = [yaws_api:url_encode(Elem) ++ "=" ++ yaws_api:url_encode(Value) ||
 			{Elem, Value} <- Query ++ TimeSelector ++ [{"wt", "json"}]],
 
-    Url = Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&"),
-    io:format("R: ~p~n", [Url]),
-
-    process_response(httpc:request(Url)).
-
-process_response(Response) ->
-    case Response of
-        {ok, {_, _, JSONStr}} -> JSON = mochijson:decode(JSONStr),
-                                 {struct, ArrayJSON} = JSON,
-                                 {value, {"response", {struct, RespArrayJSON}}} = lists:keysearch("response", 1, ArrayJSON),
-                                 {value, {"docs", {array, ArrayResults}}} = lists:keysearch("docs", 1, RespArrayJSON),
-                                 make_list_json_events(ArrayResults);
-        {error, _} = RetErr -> RetErr;
-        _ -> []
+    case httpc:request(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")) of
+	{error, _} ->
+	    {error, bad_parameters};	   
+	{ok, {_, _, JSON}} ->
+	    json_to_events(mochijson:decode(JSON));
+	_ ->
+	    []
     end.
 
-make_list_json_events([]) -> [];
-make_list_json_events([HdJSON | TlJSON]) ->
-    {struct, StructInfos} = HdJSON,
-    {value, {"id", {array, IdEvent}}} = lists:keysearch("id", 1, StructInfos),
-    Event = uce_event:get(lists:flatten(IdEvent)),
-    [Event] ++ make_list_json_events(TlJSON).
+json_to_events({struct, JSON}) ->
+    {"response", {struct, ResponseJSON}} = lists:keyfind("response", 1, JSON),
+    {"docs", {array, DocsJSON}} = lists:keyfind("docs", 1, ResponseJSON),
+    make_list_json_events(DocsJSON).
+
+make_list_json_events([]) ->
+    [];
+make_list_json_events([{struct, Elems}|Tail]) ->
+    case utils:get(Elems,
+		   ["id",
+		    "datetime",
+		    "org",
+		    "meeting",
+		    "from",
+		    "to",
+		    "type",
+		    "parent"],
+		   [none,
+		    none,
+		    {array, [""]},
+		    {array, [""]},
+		    none,
+		    {array, ["all"]},
+		    none,
+		    {array, [""]}]) of
+
+	[none, _, _, _, _, _, _, _] ->
+	    {error, bad_record};
+	[_, none, _, _, _, _, _, _] ->
+	    {error, bad_record};
+	[_, _, _, _, none, _, _, _] ->
+	    {error, bad_record};
+	[_, _, _, _, _, _, none, _] ->
+	    {error, bad_record};
+
+	[{array, [Id]},
+	 {array, [Datetime]},
+	 {array, [Org]},
+	 {array, [Meeting]},
+	 {array, [From]},
+	 {array, [To]},
+	 {array, [Type]},
+	 {array, [Parent]}] ->
+	    FlatMetadata =
+		lists:filter(fun({Name, _}) ->
+				     if
+					 length(Name) < length(?META_PREFIX) ->
+					     false;
+					 true ->
+					     SubName = string:substr(Name, 1, length(?META_PREFIX)),
+					     if
+						 SubName == ?META_PREFIX ->
+						     true;
+						 true ->
+						     false
+					     end
+				     end
+			     end,
+			     Elems),
+	    Metadata = lists:map(fun({Name, {array, [Value]}}) ->
+					 {string:substr(Name, length(?META_PREFIX) + 1, length(Name)),
+					  Value}
+				 end,
+				 FlatMetadata),
+	    [#uce_event{id=Id,
+			datetime=list_to_integer(Datetime),
+			location=[Org, Meeting],
+			from=From,
+			to=To,
+			type=Type,
+			parent=Parent,
+			metadata=Metadata}] ++ make_list_json_events(Tail)
+    end.
 
 delete(Id) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
