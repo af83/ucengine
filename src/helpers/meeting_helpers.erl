@@ -22,20 +22,3 @@ to_json(#uce_meeting{id=[Org, Meeting],
 			 end},
 	      {roster, {array, Roster}},
 	      {metadata, {struct, Metadata}}]}.
-
-to_ical(#uce_meeting{start_date=Start, end_date=End, metadata=Metadata}) ->
-    Desc = case lists:keysearch("description", 1, Metadata) of
-	       {value, {"description", Value}} ->
-		   Value;
-	       _ ->
-		   []
-	   end,
-    "BEGIN:VCALENDAR
-    VERSION:2.0
-    PRODID:-//hacksw/handcal//NONSGML v1.0//EN
-    BEGIN:VEVENT
-    DTSTART:" ++ utils:timestamp_to_ical_date(Start) ++ "
-    DTEND:" ++ utils:timestamp_to_ical_date(End) ++ "
-    SUMMARY:" ++ Desc ++ "
-    END:VEVENT
-    END:VCALENDAR".
