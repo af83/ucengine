@@ -4,7 +4,7 @@
 
 -include("uce.hrl").
 
--export([to_json/1, to_ical/1, exists/1]).
+-export([to_json/1, to_ical/1]).
 
 to_json(#uce_meeting{id=[Org, Meeting],
 		       start_date=StartDate,
@@ -39,23 +39,3 @@ to_ical(#uce_meeting{start_date=Start, end_date=End, metadata=Metadata}) ->
     SUMMARY:" ++ Desc ++ "
     END:VEVENT
     END:VCALENDAR".
-
-exists(Location) ->
-    case Location of
-	["", ""] ->
-	    true;
-	[Org, ""] ->
-	    case uce_org:get(Org) of
-		{error, _} ->
-		    false;
-		_ ->
-		    true
-	    end;	    
-	[Org, Meeting] ->
-	    case uce_meeting:get([Org, Meeting]) of
-		{error, _} ->
-		    false;
-		_ ->
-		    true
-	    end
-    end.
