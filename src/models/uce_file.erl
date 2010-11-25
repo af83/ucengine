@@ -8,7 +8,7 @@
 -include("models.hrl").
 
 add(#uce_file{location=Location, name=Name} = File) ->
-    case meeting_helpers:exists(Location) of
+    case location_helpers:exists(Location) of
 	false ->
 	    {error, not_found};
 	true ->
@@ -27,7 +27,7 @@ add(#uce_file{location=Location, name=Name} = File) ->
     end.
 
 list(Location) ->
-    case meeting_helpers:exists(Location) of
+    case location_helpers:exists(Location) of
 	false ->
 	    {error, not_found};
 	true ->

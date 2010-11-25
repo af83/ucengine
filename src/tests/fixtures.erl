@@ -22,9 +22,11 @@ teardown(Testers) ->
 setup_org() ->
     teardown_org(),
     uce_org:add(#uce_org{name="testorg", metadata=[{"description", "testorg"}]}),
+    uce_org:add(#uce_org{name="otherorg", metadata=[{"description", "testorg"}]}),
     ok.
 teardown_org() ->
     uce_org:delete("testorg"),
+    uce_org:delete("otherorg"),
     uce_org:delete("neworg"),
     ok.
 

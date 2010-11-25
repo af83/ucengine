@@ -12,7 +12,9 @@ add(#uce_event{id=none}=Event) ->
 add(#uce_event{datetime=none}=Event) ->
     ?MODULE:add(Event#uce_event{datetime=utils:now()});
 add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
-    case meeting_helpers:exists(Location) of
+    case location_helpers:exists(Location) of
+	false ->
+	    {error, not_found};
 	true ->
 	    case ?DBMOD:add(Event) of
 		{error, Reason} ->
@@ -29,9 +31,7 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
 			    nothing
 		    end,
 		    Id
-	    end;
-	false ->
-	    {error, not_found}
+	    end
     end.
 
 get(Id) ->

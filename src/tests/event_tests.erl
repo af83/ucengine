@@ -86,20 +86,19 @@ test_get_with_keywords([{RootUid, RootSid}, _]) ->
 	      {"metadata[description]", "lonely event"}],
     {struct, [{"result", _}]} = tests_utils:put("/event/testorg/testmeeting", Params),
 
-    ParamsGet = [{"uid", ROOT_UID},
-		 {"sid", ROOT_SID},
+    ParamsGet = [{"uid", RootUid},
+		 {"sid", RootSid},
 		 {"search", "lonely"},
 		 {"count", "1"}],
-    ?DEBUG("~p~n", [tests_utils:get("/event/testorg/testmeeting", ParamsGet)]),
     {struct, [{"result", {array,
-                          [{array, [{struct, [{"type", "search_event"}
-				    , {"datetime", _}
-				    , {"id", _}
-				    , {"org", "testorg"}
-				    , {"meeting", "testmeeting"}
-				    , {"from", RootUid}
-				    , {"metadata", {struct, [{"description", "lonely event"}]}}
-				   ]}]}]}}]} = tests_utils:get("/event/testorg/testmeeting", ParamsGet).
+                          [{struct, [{"type", "search_event"}
+				     , {"datetime", _}
+				     , {"id", _}
+				     , {"org", "testorg"}
+				     , {"meeting", "testmeeting"}
+				     , {"from", RootUid}
+				     , {"metadata", {struct, [{"description", "lonely event"}]}}
+				    ]}]}}]} = tests_utils:get("/event/testorg/testmeeting", ParamsGet).
 
 test_get_with_type_and_timestart([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
