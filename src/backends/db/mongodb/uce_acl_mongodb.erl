@@ -19,20 +19,25 @@ add(#uce_acl{}=ACL) ->
 	    ok
     end.
 
-delete(EUid, Object, Action, Location, Conditions) ->
-    case catch emongo:delete(?MONGO_POOL, "uce_acl", [{"uid", EUid},
-						      {"object", Object},
-						      {"action", Action},
-						      {"location", Location},
-						      {"conditions", Conditions}]) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    ok
+delete(Uid, Object, Action, Location, Conditions) ->
+    case exists(Uid, Object, Action, Location, Conditions) of
+	false ->
+	    {error, not_found};
+	true ->
+	    case catch emongo:delete(?MONGO_POOL, "uce_acl", [{"uid", Uid},
+							      {"object", Object},
+							      {"action", Action},
+							      {"location", Location},
+							      {"conditions", Conditions}]) of
+		{'EXIT', _} ->
+		    {error, bad_parameters};
+		_ ->
+		    ok
+	    end
     end.
 
-list(EUid, Object, Action) ->
-    case catch emongo:find(?MONGO_POOL, "uce_acl", [{"uid", EUid},
+list(Uid, Object, Action) ->
+    case catch emongo:find(?MONGO_POOL, "uce_acl", [{"uid", Uid},
 						    {"object", Object},
 						    {"action", Action}]) of
 	
@@ -47,13 +52,13 @@ list(EUid, Object, Action) ->
 			     "all" ->
 				 [];
 			     _ ->
-				 ?MODULE:list(EUid, Object, "all")
+				 ?MODULE:list(Uid, Object, "all")
 			 end,
 	    AllObjects = case Object of
 			     "all" ->
 				 [];
 			     _ ->
-				 ?MODULE:list(EUid, "all", Action)
+				 ?MODULE:list(Uid, "all", Action)
 			 end,
 	    ACL ++ AllActions ++ AllObjects
     end.
@@ -61,8 +66,8 @@ list(EUid, Object, Action) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
 		   ["uid", "object", "action", "location", "conditions"]) of
-	[EUid, Object, Action, Location, Conditions] ->
-	    #uce_acl{uid=EUid,
+	[Uid, Object, Action, Location, Conditions] ->
+	    #uce_acl{uid=Uid,
 		     action=Action,
 		     object=Object,
 		     location=Location,
@@ -71,13 +76,28 @@ from_collection(Collection) ->
 	    {error, bad_parameters}
     end.
 						      
-to_collection(#uce_acl{uid=EUid,
+to_collection(#uce_acl{uid=Uid,
 		       object=Object,
 		       action=Action,
 		       location=Location,
 		       conditions=Conditions}) ->
-    [{"uid", EUid},
+    [{"uid", Uid},
      {"object", Object},
      {"action", Action},
      {"location", Location},
      {"conditions", Conditions}].
+
+exists(Uid, Object, Action, Location, Conditions) ->
+    case catch emongo:find(?MONGO_POOL, "uce_acl", [{"uid", Uid},
+						    {"object", Object},
+						    {"action", Action},
+						    {"location", Location},
+						    {"conditions", Conditions}],
+			  [{limit, 1}]) of
+	{'EXIT', _} ->
+	    false;
+	[] ->
+	    false;
+	_ ->
+	    true
+    end.

@@ -26,19 +26,24 @@ add(#uce_acl{}=ACL) ->
     end.
 
 delete(EUid, Object, Action, Location, Conditions) ->
-    case mnesia:transaction(fun() ->
-				    mnesia:delete_object(#uce_acl{uid=EUid,
-								  object=Object,
-								  action=Action,
-								  location=Location,
-								  conditions=Conditions})
-			    end) of
-	{atomic, _} ->
-	    ok;
-	{aborted, Reason} ->
-	    {error, Reason}
+    case exists(EUid, Object, Action, Location, Conditions) of
+	false ->
+	    {error, not_found};
+	true ->
+	    case mnesia:transaction(fun() ->
+					    mnesia:delete_object(#uce_acl{uid=EUid,
+									  object=Object,
+									  action=Action,
+									  location=Location,
+									  conditions=Conditions})
+				    end) of
+		{atomic, _} ->
+		    ok;
+		{aborted, Reason} ->
+		    {error, Reason}
+	    end
     end.
-
+	
 list(EUid, Object, Action) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_acl{uid=EUid,
@@ -63,4 +68,20 @@ list(EUid, Object, Action) ->
 				 ?MODULE:list(EUid, Action, "all")
 			 end,
 	    ACL ++ AllActions ++ AllObjects
+    end.
+
+exists(EUid, Object, Action, Location, Conditions) ->
+    case mnesia:transaction(fun() ->
+				    mnesia:match_object(#uce_acl{uid=EUid,
+								 object=Object,
+								 action=Action,
+								 location=Location,
+								 conditions=Conditions})
+			    end) of
+	{atomic, [_]} ->
+	    true;
+	{atomic, _} ->
+	    false;
+	{aborted, _} ->
+	    false
     end.
