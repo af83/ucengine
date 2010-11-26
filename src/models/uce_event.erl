@@ -2,7 +2,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, list/8]).
+-export([add/1, get/1, exists/1, list/8]).
 
 -include("uce.hrl").
 -include("models.hrl").
@@ -11,7 +11,7 @@ add(#uce_event{id=none}=Event) ->
     ?MODULE:add(Event#uce_event{id=utils:random()});
 add(#uce_event{datetime=none}=Event) ->
     ?MODULE:add(Event#uce_event{datetime=utils:now()});
-add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
+add(#uce_event{location=Location, type=Type, id=Id, from=From, parent=Parent, to=To} = Event) ->
     case location_helpers:exists(Location) of
 	false ->
 	    {error, not_found};
@@ -37,6 +37,19 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
 get(Id) ->
     ?DBMOD:get(Id).
 
+exists(Id) ->
+    case Id of
+	"" -> % "" is the root of the event hierarchy
+	    true;
+	_ ->
+	    case ?MODULE:get(Id) of
+		{error, _} ->
+		    false;	       
+		_ ->
+		    true
+	    end
+    end.
+		    
 list(_, _, _, [], _, _, _, _) ->
     [];
 list(Location, Search, From, '_', Uid, Start, End, Parent) ->
@@ -60,4 +73,3 @@ list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
 				  end,
 				  AllEvents),
     FilteredEvents ++ ?MODULE:list(Location, Search, From, Tail, Uid, Start, End, Parent).
-

@@ -13,30 +13,20 @@
 -include("models.hrl").
 
 add(#uce_acl{uid=Uid, location=Location} = ACL) ->
-    case uce_user:exists(Uid) of
+    case location_helpers:exists(Location) of
 	false ->
 	    {error, not_found};
 	true ->
-	    case location_helpers:exists(Location) of
-		false ->
-		    {error, not_found};
-		true ->
-		    case uce_user:get(Uid) of
-			{error, Error} ->
-			    {error, Error};
-			_ ->
-			    ?DBMOD:add(ACL)
-		    end
+	    case uce_user:get(Uid) of
+		{error, Error} ->
+		    {error, Error};
+		_ ->
+		    ?DBMOD:add(ACL)
 	    end
     end.
 
 delete(Uid, Object, Action, Location, Conditions) ->
-    case uce_user:get(Uid) of
-	{error, Reason} ->
-	    {error, Reason};
-	_ ->
-	    ?DBMOD:delete(Uid, Object, Action, Location, Conditions)
-    end.
+    ?DBMOD:delete(Uid, Object, Action, Location, Conditions).
 
 check(Uid, Object, Action, Location, Conditions) ->
     case ?DBMOD:list(Uid, Object, Action) of

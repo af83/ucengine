@@ -87,6 +87,7 @@
 	  title = [],
 	  desc = [],
 	  path = [],
+	  types = [],
 	  method,
 	  regexp,
 	  callbacks}).

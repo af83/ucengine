@@ -11,11 +11,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, list,
 			    ["uid"],
 			    [required],
-			    [string]}]},
+			    [string],
+			    [user]}]},
      
      #uce_route{module="Files",
 		method='GET',
@@ -23,11 +25,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, get,
 			    ["uid"],
 			    [required],
-			    [string]}]},
+			    [string],
+			    [user]}]},
      
      #uce_route{module="Files",
 		method='PUT',
@@ -35,11 +39,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, add,
 			    ["uid", "_filename", "_uri", "metadata"],
 			    [required, required, required, []],
-			    [string, string, string, dictionary]}]},
+			    [string, string, string, dictionary],
+			    [user, any, any, any]}]},
      
      #uce_route{module="Files",
 		method='DELETE',
@@ -47,11 +53,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, delete,
 			    ["uid"],
 			    [required],
-			    [string]}]}].
+			    [string],
+			    [user]}]}].
 
 add(Location, [EUid, Name, Uri, Metadata], _) ->
     case uce_acl:check(EUid, "file", "add", Location, []) of

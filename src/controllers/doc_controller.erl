@@ -10,6 +10,7 @@ init() ->
 		path="/doc.format",
 		method='GET',
 		regexp="/doc\.(.+)",
+		types=[any],
 		callbacks=[{?MODULE, view, [], [], []}]}].
 
 format([{_Module, Route}|Tail], "html") ->

@@ -4,7 +4,7 @@
 
 -include("uce.hrl").
 
--export([to_json/1, to_ical/1]).
+-export([to_json/1]).
 
 to_json(#uce_meeting{id=[Org, Meeting],
 		       start_date=StartDate,

@@ -11,16 +11,18 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, list,
 			    ["uid"],
 			    [required],
-			    [string]}]},
+			    [string],
+			    [user]}]},
 
      #uce_route{module="Organisations",
 		method='GET',
 		regexp="/org/([^/]+)",
-		callbacks=[{?MODULE, get, [], [], []}]},
+		callbacks=[{?MODULE, get, [], [], [], []}]},
      
      #uce_route{module="Organisations",
 		method='PUT',
@@ -28,11 +30,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, add,
 			    ["uid", "metadata"],
 			    [none, []],
-			    [string, dictionary]}]},
+			    [string, dictionary],
+			    [user, any]}]},
      
      #uce_route{module="Organisations",
 		method='POST',
@@ -40,11 +44,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, update,
 			    ["uid", "metadata"],
 			    [none, []],
-			    [string, dictionary]}]}].
+			    [string, dictionary],
+			    [user, any]}]}].
 
 add([Name], [Uid, Metadata], _) ->
     case uce_acl:check(Uid, "org", "add", ["", ""], [{"name", Name}]) of

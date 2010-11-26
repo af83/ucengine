@@ -11,11 +11,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, list,
 			    ["uid"],
 			    [required],
-			    [string]}]},
+			    [string],
+			    [user]}]},
      
      #uce_route{module="Users",
 		method='PUT',
@@ -23,7 +25,8 @@ init() ->
 		callbacks=[{?MODULE, add,
 			    ["auth", "credential", "metadata"],
 			    [required, required, []],
-			    [string, string, dictionary]}]},
+			    [string, string, dictionary],
+			    [any, any, any]}]},
      
      #uce_route{module="Users",
 		method='POST',
@@ -31,11 +34,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, update,
 			    ["uid", "auth", "credential", "metadata"],
 			    [required, required, required, []],
-			    [string, string, string, dictionary]}]},
+			    [string, string, string, dictionary],
+			    [user, any, any, any]}]},
      
      #uce_route{module="Users",
 		method='GET',
@@ -43,11 +48,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, get,
 			    ["uid"],
 			    [required],
-			    [string]}]},
+			    [string],
+			    [user]}]},
      
      #uce_route{module="Users",
 		method='DELETE',
@@ -55,11 +62,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, delete,
 			    ["uid"],
 			    [required],
-			    [string]}]}].
+			    [string],
+			    [user]}]}].
 
 list([], [Uid], _) ->
     case uce_acl:check(Uid, "user", "list", ["", ""], []) of

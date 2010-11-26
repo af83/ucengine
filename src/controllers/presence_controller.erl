@@ -12,7 +12,8 @@ init() ->
 		callbacks=[{?MODULE, add,
 			    ["auth", "credential", "metadata"],
 			    [required, required, []],
-			    [string, string, dictionary]}]},
+			    [string, string, dictionary],
+			    [any, any, any]}]},
      
      #uce_route{module="Presence",
 		method='DELETE',
@@ -20,11 +21,13 @@ init() ->
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
-			    [string, string]},
+			    [string, string],
+			    [user, presence]},
 			   {?MODULE, delete,
 			    ["uid"],
 			    [required],
-			    [string]}]}].
+			    [string],
+			    [user]}]}].
 
 add([Org, Uid], [Auth, Credential, Metadata], _) ->
     case uce_acl:check(Uid, "presence", "add", [Org, ""], []) of

@@ -27,13 +27,13 @@ to_xml(#uce_event{id=Id,
 		  parent=Parent,
 		  datetime=Datetime}) ->
     XMLLocation = case Location of
-		      [Org, Meeting] ->
-			  [{org, Org}, {meeting, Meeting}];
-		      [Org] ->
+		      ["", ""] ->
+			  [];
+		      [Org, ""] ->
 			  [{org, Org}];
-		      [] ->
-			  []
-		  end,
+		      [Org, Meeting] ->
+			  [{org, Org}, {meeting, Meeting}]
+		      end,
     XMLParent = case Parent of
 		    "" ->
 			[];
@@ -63,12 +63,12 @@ to_json(#uce_event{id=Id,
 		   parent=Parent,
 		   metadata=Metadata}) ->
     JSONLocation = case Location of
-		       [Org, Meeting] ->
-			   [{"org", Org}, {"meeting", Meeting}];
-		       [Org] ->
+		       ["", ""] ->
+			   [];
+		       [Org, ""] ->
 			   [{"org", Org}];
-		       [] ->
-			   []
+		       [Org, Meeting] ->
+			   [{"org", Org}, {"meeting", Meeting}]
 		   end,
     JSONParent = case Parent of
 		     "" ->

@@ -31,7 +31,9 @@ get(Id) ->
 			    end) of
 	{aborted, Reason} ->
 	    {error, Reason};
-	{atomic, Event} ->
+	{atomic, []} ->
+	    {error, not_found};
+	{atomic, [Event]} ->
 	    Event
     end.
 
