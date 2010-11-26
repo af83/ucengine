@@ -101,7 +101,7 @@ teardown_users() ->
 setup_events() ->
     uce_event:add(#uce_event{ type="test_event_1",
 			      location=["testorg", "testmeeting"],
-			      from="user_1"}),
+			      from="participant.user@af83.com"}),
     timer:sleep(10),
     uce_event:add(#uce_event{ type="test_event_2",
 			      location=["testorg", "testmeeting"],
@@ -116,17 +116,17 @@ setup_events() ->
     
     uce_event:add(#uce_event{ type="test_event_1",
 			      location=["otherorg", "testmeeting"],
-			      from="user_1"
+			      from="participant.user@af83.com"
 			    }),
     timer:sleep(10),
     uce_event:add(#uce_event{ type="test_event_2",
 			      location=["otherorg", "testmeeting"],
-			      from="user_1"
+			      from="participant.user@af83.com"
 			    }),
     timer:sleep(10),
     uce_event:add(#uce_event{ type="test_event_3",
 			      location=["otherorg", "testmeeting"],
-			      from="user_1",
+			      from="participant.user@af83.com",
 			      metadata=[{"description", "test"}]
 			    }),
     ok.
@@ -145,6 +145,9 @@ setup_testers() ->
 					     auth="password",
 					     metadata=[]}),
     UglyUid = "ugly.user@af83.com",
+    uce_user:add(#uce_user{uid=UglyUid,
+			   auth="password",
+			   credential="pwd"}),
     UglySid = uce_presence:add(#uce_presence{uid=UglyUid,
 					     org="testorg",
 					     auth="password",
