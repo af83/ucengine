@@ -21,7 +21,8 @@ start(Path) ->
 	    lists:foreach(fun({Key, Value}) ->
 				  config:set(Key, Value)
 			  end,
-			  Configs);
+			  Configs),
+	    ok;
 	_ ->
 	    {error, parsing_error}
     end.
