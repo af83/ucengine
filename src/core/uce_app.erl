@@ -13,28 +13,96 @@ start() ->
     mnesia:create_schema([node()]),
     application:start(mnesia, permanent),
     application:start(inets),
-    application:start(uce),
-    ok.
+    application:start(uce).
 
 start(_, _) ->
     case uce_sup:start_link() of
 	{ok, Pid} ->
-	    config:start("etc/uce.cfg"),
-	    save_pid(),
-
-	    triggers:init(),
-
-	    setup_db(),
-	    setup_acl(),
-	    setup_bricks(),
-	    setup_root(),
-	    setup_controllers(),
-	    setup_server(),
-
-	    {ok, Pid};
+	    case catch setup() of
+		{'EXIT', Reason} ->
+		    ?ERROR_MSG("~p~n", [lists:flatten(Reason)]),
+		    {error, lists:flatten(Reason)};
+		ok ->
+		    {ok, Pid}
+	    end;
 	Error ->
 	    {error, Error}
     end.
+
+setup() ->
+    case catch config:start("etc/uce.cfg") of
+	{'EXIT', ReasonConfig} ->
+	    throw({'EXIT', io_lib:format("Could not load configuration file: ~p", [ReasonConfig])});
+	{error, ReasonConfig} ->
+	    throw({'EXIT', io_lib:format("Could not load configuration file: ~p", [ReasonConfig])});
+	ok ->
+	    nothing
+    end,
+    case catch save_pid() of
+	{'EXIT', ReasonPid} ->
+	    throw({'EXIT', io_lib:format("Could not save pid in ~p: ~p", [config:get(pidfile), ReasonPid])});
+	{error, ReasonPid} ->
+	    throw({'EXIT', io_lib:format("Could not save pid in ~p: ~p", [config:get(pidfile), ReasonPid])});
+	ok ->
+	    nothing
+    end,
+    case catch triggers:init() of
+	{'EXIT', ReasonTriggers} ->
+	    throw({'EXIT', io_lib:format("Could not setup triggers: ~p", [ReasonTriggers])});
+	{error, ReasonTriggers} ->
+	    throw({'EXIT', io_lib:format("Could not setup triggers: ~p", [ReasonTriggers])});
+	ok ->
+	    nothing
+    end,
+    case catch setup_db() of
+	{'EXIT', ReasonDB} ->
+	    throw({'EXIT', io_lib:format("Could not setup database: ~p", [ReasonDB])});
+	{error, ReasonDB} ->
+	    throw({'EXIT', io_lib:format("Could not setup database: ~p", [ReasonDB])});
+	ok ->
+	    nothing
+    end,
+    case catch setup_acl() of
+	{'EXIT', ReasonACL} ->
+	    throw({'EXIT', io_lib:format("Could not setup ACL: ~p", [ReasonACL])});
+	{error, ReasonACL} ->
+	    throw({'EXIT', io_lib:format("Could not setup ACL: ~p", [ReasonACL])});
+	ok ->
+	    nothing
+    end,
+    case catch setup_bricks() of
+	{'EXIT', ReasonBricks} ->
+	    throw({'EXIT', io_lib:format("Could not setup Bricks: ~p", [ReasonBricks])});
+	{error, ReasonBricks} ->
+	    throw({'EXIT', io_lib:format("Could not setup Bricks: ~p", [ReasonBricks])});
+	ok ->
+	    nothing
+    end,
+    case catch setup_root() of
+	{'EXIT', ReasonRoot} ->
+	    throw({'EXIT', io_lib:format("Could not setup root account: ~p", [ReasonRoot])});
+	{error, ReasonRoot} ->
+	    throw({'EXIT', io_lib:format("Could not setup root account: ~p", [ReasonRoot])});
+	ok ->
+	    nothing
+    end,
+    case catch setup_controllers() of
+	{'EXIT', ReasonControllers} ->
+	    throw({'EXIT', io_lib:format("Could not setup controllers: ~p", [ReasonControllers])});
+	{error, ReasonControllers} ->
+	    throw({'EXIT', io_lib:format("Could not setup controllers: ~p", [ReasonControllers])});
+	ok ->
+	    nothing
+    end,
+    case catch setup_server() of
+	{'EXIT', ReasonServer} ->
+	    throw({'EXIT', io_lib:format("Could not setup HTTP server: ~p", [ReasonServer])});
+	{error, ReasonServer} ->
+	    throw({'EXIT', io_lib:format("Could not setup HTTP server: ~p", [ReasonServer])});
+	ok ->
+	    nothing
+    end,
+    ok.
 
 stop(State) ->
     remove_pid(),
