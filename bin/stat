@@ -23,5 +23,8 @@ echo $tests
 
 echo
 
+echo -n "Total without tests: "
+echo "$core+$controllers+$helpers+$models" | bc
+
 echo -n "Total: "
 echo "$core+$controllers+$helpers+$models+$tests" | bc
