@@ -34,6 +34,7 @@ $(DIRS):
 # Build
 ###############################################################################
 compile: $(DIRS) $(BEAM_TARGETS) $(APP_TARGETS)
+	(cd deps/emongo && make)
 
 ebin/%.beam: src/%.erl
 	erlc -pa ebin -W $(CFLAGS) -o ebin $<
