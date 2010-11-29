@@ -23,7 +23,10 @@ event_test_() ->
 
 		 ?_test(test_get(Testers)),
 		 ?_test(test_get_with_keywords(Testers)),
+		 ?_test(test_get_with_type(Testers)),
+		 ?_test(test_get_with_types(Testers)),
 		 ?_test(test_get_with_type_and_timestart(Testers)),
+		 ?_test(test_get_with_type_and_timestart_and_timeend(Testers)),
 		 ?_test(test_get_with_type_and_timeend(Testers)),
 		 ?_test(test_get_with_type_and_timeend_and_org(Testers)),
 		 ?_test(test_get_with_timeend_and_from_and_org(Testers)),
@@ -231,12 +234,106 @@ test_get_with_keywords([{RootUid, RootSid}, _]) ->
 				     , {"metadata", {struct, [{"description", "lonely event"}]}}
 				    ]}]}}]} = tests_utils:get("/event/testorg/testmeeting", ParamsGet).
 
+test_get_with_type([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid}],
+    {struct, [{"result", {array,
+			  [ {struct, [{"type", "test_event_1"}
+				      , {"datetime", _}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "participant.user@af83.com"}
+				      , {"metadata", {struct, []}}
+				     ]},
+			    {struct, [{"type", "test_event_2"}
+				      , {"datetime", _}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_2"}
+				      , {"metadata", {struct, []}}
+				     ]},
+			    {struct, [{"type", "test_event_3"}
+				      , {"datetime", Third}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_3"}
+				      , {"metadata", {struct, [{"description", "test"}]}}
+				     ]}|_]
+			 }}]} = tests_utils:get("/event/testorg/testmeeting", Params),
+    ParamsGetStart = [{"uid", RootUid},
+		      {"sid", RootSid},
+		      {"type", "test_event_3"}],
+    {struct, [{"result", {array,
+			  [ {struct, [{"type", "test_event_3"}
+				      , {"datetime", Third}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_3"}
+				      , {"metadata", {struct, [{"description", "test"}]}}
+				     ]}|_]
+			 }}]} = tests_utils:get("/event/testorg/testmeeting/", ParamsGetStart).
+
+test_get_with_types([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid}],
+    {struct, [{"result", {array,
+			  [ {struct, [{"type", "test_event_1"}
+				      , {"datetime", _}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "participant.user@af83.com"}
+				      , {"metadata", {struct, []}}
+				     ]},
+			    {struct, [{"type", "test_event_2"}
+				      , {"datetime", _}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_2"}
+				      , {"metadata", {struct, []}}
+				     ]},
+			    {struct, [{"type", "test_event_3"}
+				      , {"datetime", Third}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_3"}
+				      , {"metadata", {struct, [{"description", "test"}]}}
+				     ]}|_]
+			 }}]} = tests_utils:get("/event/testorg/testmeeting", Params),
+    ParamsGetStart = [{"uid", RootUid},
+		      {"sid", RootSid},
+		      {"type", "test_event_3,test_event_1"}],
+    {struct, [{"result", {array,
+			  [ {struct, [{"type", "test_event_1"}
+				      , {"datetime", _}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "participant.user@af83.com"}
+				      , {"metadata", {struct, []}}
+				     ]},
+			    {struct, [{"type", "test_event_3"}
+				      , {"datetime", Third}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_3"}
+				      , {"metadata", {struct, [{"description", "test"}]}}
+				     ]}|_]
+			 }}]} = tests_utils:get("/event/testorg/testmeeting/", ParamsGetStart).
+
 test_get_with_type_and_timestart([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid}],
     {struct, [{"result", {array,
 			  [ {struct, [{"type", "test_event_1"}
-				      , {"datetime", First}
+				      , {"datetime", _}
 				      , {"id", _}
 				      , {"org", "testorg"}
 				      , {"meeting", "testmeeting"}
@@ -263,7 +360,7 @@ test_get_with_type_and_timestart([{RootUid, RootSid}, _]) ->
     ParamsGetStart = [{"uid", RootUid},
 		      {"sid", RootSid},
 		      {"type", "test_event_3"},
-		      {"start", integer_to_list(First + 1)}],
+		      {"start", integer_to_list(Third)}],
     {struct, [{"result", {array,
 			  [ {struct, [{"type", "test_event_3"}
 				      , {"datetime", Third}
@@ -274,6 +371,58 @@ test_get_with_type_and_timestart([{RootUid, RootSid}, _]) ->
 				      , {"metadata", {struct, [{"description", "test"}]}}
 				     ]}|_]
 			 }}]} = tests_utils:get("/event/testorg/testmeeting/", ParamsGetStart).
+
+test_get_with_type_and_timestart_and_timeend([{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+	      {"sid", RootSid}],
+    {struct, [{"result", {array,
+			  [ {struct, [{"type", "test_event_1"}
+				      , {"datetime", _}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "participant.user@af83.com"}
+				      , {"metadata", {struct, []}}
+				     ]},
+			    {struct, [{"type", "test_event_2"}
+				      , {"datetime", _}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_2"}
+				      , {"metadata", {struct, []}}
+				     ]},
+			    {struct, [{"type", "test_event_3"}
+				      , {"datetime", Third}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_3"}
+				      , {"metadata", {struct, [{"description", "test"}]}}
+				     ]}|_]
+			 }}]} = tests_utils:get("/event/testorg/testmeeting", Params),
+    ParamsGetStart = [{"uid", RootUid},
+		      {"sid", RootSid},
+		      {"type", "test_event_3"},
+		      {"start", integer_to_list(Third)},
+		      {"end", integer_to_list(Third + 1)}],
+    {struct, [{"result", {array,
+			  [ {struct, [{"type", "test_event_3"}
+				      , {"datetime", Third}
+				      , {"id", _}
+				      , {"org", "testorg"}
+				      , {"meeting", "testmeeting"}
+				      , {"from", "user_3"}
+				      , {"metadata", {struct, [{"description", "test"}]}}
+				     ]}|_]
+			 }}]} = tests_utils:get("/event/testorg/testmeeting/", ParamsGetStart),
+    ParamsGetNothing = [{"uid", RootUid},
+		      {"sid", RootSid},
+		      {"type", "test_event_3"},
+		      {"start", integer_to_list(Third - 2)},
+		      {"end", integer_to_list(Third - 1)}],
+    {struct, [{"result", {array,[]}}]} =
+	tests_utils:get("/event/testorg/testmeeting/", ParamsGetNothing).
 
 test_get_with_type_and_timeend([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
