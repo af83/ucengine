@@ -31,8 +31,8 @@ delete([Org, Meeting]) ->
     end.
 
 get([Org, Meeting]) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_meeting",
-			   [{"org", Org}, {"meeting", Meeting}], [{limit, 1}]) of
+    case catch emongo:find_one(?MONGO_POOL, "uce_meeting",
+                               [{"org", Org}, {"meeting", Meeting}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Record] ->

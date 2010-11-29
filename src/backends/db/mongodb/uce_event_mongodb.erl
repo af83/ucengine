@@ -23,7 +23,7 @@ add(#uce_event{} = Event) ->
     end.
 
 get(Id) ->
-    case emongo:find_all(?MONGO_POOL, "uce_event", [{"id", Id}], [{limit, 1}]) of
+    case emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
 	[Collection] ->
 	    ?MODULE:from_collection(Collection);
 	_ ->

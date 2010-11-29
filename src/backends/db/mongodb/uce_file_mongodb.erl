@@ -29,7 +29,7 @@ list(Location) ->
     end.
 
 get(Id) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_file", [{"id", Id}], [{limit, 1}]) of
+    case catch emongo:find_one(?MONGO_POOL, "uce_file", [{"id", Id}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[File] ->

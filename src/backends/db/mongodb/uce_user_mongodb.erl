@@ -49,7 +49,7 @@ list() ->
     end.
 
 get(EUid) ->
-    case emongo:find_all(?MONGO_POOL, "uce_user", [{"uid", EUid}], [{limit, 1}]) of
+    case emongo:find_one(?MONGO_POOL, "uce_user", [{"uid", EUid}]) of
 	[Collection] ->
 	    ?MODULE:from_collection(Collection);
 	_ ->

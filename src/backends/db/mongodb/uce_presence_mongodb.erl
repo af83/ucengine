@@ -39,7 +39,7 @@ list(EUid, Org) ->
     end.
 
 get(ESid) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_presence", [{"id", ESid}], [{limit, 1}]) of
+    case catch emongo:find_one(?MONGO_POOL, "uce_presence", [{"id", ESid}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Collection] ->
