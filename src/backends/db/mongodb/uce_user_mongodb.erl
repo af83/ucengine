@@ -14,8 +14,8 @@
 -include("mongodb.hrl").
 
 add(#uce_user{} = User) ->
-    case catch emongo:insert(?MONGO_POOL, "uce_user", ?MODULE:to_collection(User)) of
-	{'EXIT', _} ->
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_user", ?MODULE:to_collection(User)) of
+	{'EXIT', Error} ->
 	    {error, bad_parameters};
 	_ ->
 	    ok

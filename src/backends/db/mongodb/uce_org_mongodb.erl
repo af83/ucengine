@@ -14,7 +14,7 @@
 -include("mongodb.hrl").
 
 add(#uce_org{}=Org) ->
-    case catch emongo:insert(?MONGO_POOL, "uce_org", ?MODULE:to_collection(Org)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_org", ?MODULE:to_collection(Org)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->

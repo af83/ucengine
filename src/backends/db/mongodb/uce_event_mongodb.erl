@@ -15,7 +15,7 @@
 
 add(#uce_event{} = Event) ->
     ?MODULE:to_collection(Event),
-    case catch emongo:insert(?MONGO_POOL, "uce_event", ?MODULE:to_collection(Event)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_event", ?MODULE:to_collection(Event)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->

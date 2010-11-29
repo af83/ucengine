@@ -13,7 +13,7 @@
 -include("mongodb.hrl").
 
 add(#uce_file{} = File) ->
-    case catch emongo:insert(?MONGO_POOL, "uce_file", ?MODULE:to_collection(File)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_file", ?MODULE:to_collection(File)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->

@@ -12,7 +12,7 @@
 -include("mongodb.hrl").
 
 add(#uce_acl{}=ACL) ->
-    case catch emongo:insert(?MONGO_POOL, "uce_acl", ?MODULE:to_collection(ACL)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_acl", ?MODULE:to_collection(ACL)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
