@@ -38,7 +38,7 @@ update(#uce_user{uid=Uid} = User) ->
     end.
 
 list() ->
-    case catch emongo:find(?MONGO_POOL, "uce_user") of
+    case catch emongo:find_all(?MONGO_POOL, "uce_user") of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
@@ -49,7 +49,7 @@ list() ->
     end.
 
 get(EUid) ->
-    case emongo:find(?MONGO_POOL, "uce_user", [{"uid", EUid}], [{limit, 1}]) of
+    case emongo:find_all(?MONGO_POOL, "uce_user", [{"uid", EUid}], [{limit, 1}]) of
 	[Collection] ->
 	    ?MODULE:from_collection(Collection);
 	_ ->

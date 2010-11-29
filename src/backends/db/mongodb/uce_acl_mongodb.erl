@@ -37,9 +37,9 @@ delete(Uid, Object, Action, Location, Conditions) ->
     end.
 
 list(Uid, Object, Action) ->
-    case catch emongo:find(?MONGO_POOL, "uce_acl", [{"uid", Uid},
-						    {"object", Object},
-						    {"action", Action}]) of
+    case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"uid", Uid},
+                                                        {"object", Object},
+                                                        {"action", Action}]) of
 	
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -88,11 +88,11 @@ to_collection(#uce_acl{uid=Uid,
      {"conditions", Conditions}].
 
 exists(Uid, Object, Action, Location, Conditions) ->
-    case catch emongo:find(?MONGO_POOL, "uce_acl", [{"uid", Uid},
-						    {"object", Object},
-						    {"action", Action},
-						    {"location", Location},
-						    {"conditions", Conditions}],
+    case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"uid", Uid},
+                                                        {"object", Object},
+                                                        {"action", Action},
+                                                        {"location", Location},
+                                                        {"conditions", Conditions}],
 			  [{limit, 1}]) of
 	{'EXIT', _} ->
 	    false;

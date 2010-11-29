@@ -1,0 +1,3 @@
+[submodule "deps/emongo"]
+	path = deps/emongo
+	url = https://github.com/boorad/emongo.git

@@ -21,7 +21,7 @@ add(#uce_file{} = File) ->
     end.
 
 list(Location) ->
-    case catch emongo:find(?MONGO_POOL, "uce_file", [{"location", Location}]) of
+    case catch emongo:find_all(?MONGO_POOL, "uce_file", [{"location", Location}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Files ->
@@ -29,7 +29,7 @@ list(Location) ->
     end.
 
 get(Id) ->
-    case catch emongo:find(?MONGO_POOL, "uce_file", [{"id", Id}], [{limit, 1}]) of
+    case catch emongo:find_all(?MONGO_POOL, "uce_file", [{"id", Id}], [{limit, 1}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[File] ->

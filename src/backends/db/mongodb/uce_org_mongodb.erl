@@ -34,7 +34,7 @@ update(#uce_org{}=Org) ->
     end.
 
 get(Name) ->
-    case catch emongo:find(?MONGO_POOL, "uce_org", [{"name", Name}], [{limit, 1}]) of
+    case catch emongo:find_all(?MONGO_POOL, "uce_org", [{"name", Name}], [{limit, 1}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Collection] ->
@@ -52,7 +52,7 @@ delete(Name) ->
     end.
 
 list() ->
-    case catch emongo:find(?MONGO_POOL, "uce_org") of
+    case catch emongo:find_all(?MONGO_POOL, "uce_org") of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->

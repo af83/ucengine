@@ -31,7 +31,7 @@ delete([Org, Meeting]) ->
     end.
 
 get([Org, Meeting]) ->
-    case catch emongo:find(?MONGO_POOL, "uce_meeting",
+    case catch emongo:find_all(?MONGO_POOL, "uce_meeting",
 			   [{"org", Org}, {"meeting", Meeting}], [{limit, 1}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -52,7 +52,7 @@ update(#uce_meeting{id=[OrgName, MeetingName]} = Meeting) ->
     end.
 
 list(Org) ->
-    case catch emongo:find(?MONGO_POOL, "uce_meeting", [{"org", Org}]) of
+    case catch emongo:find_all(?MONGO_POOL, "uce_meeting", [{"org", Org}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
