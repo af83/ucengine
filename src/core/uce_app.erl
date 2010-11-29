@@ -20,7 +20,8 @@ start(_, _) ->
 	{ok, Pid} ->
 	    case catch setup() of
 		{'EXIT', Reason} ->
-		    ?ERROR_MSG("~p~n", [lists:flatten(Reason)]),
+		    ?ERROR_MSG("~p~n", [lists:flatten(io_lib:format("~p", [Reason]))]),
+		    io:format("~p~n", [lists:flatten(io_lib:format("~p", [Reason]))]),
 		    {error, lists:flatten(Reason)};
 		ok ->
 		    {ok, Pid}
@@ -35,7 +36,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not load configuration file: ~p", [ReasonConfig])});
 	{error, ReasonConfig} ->
 	    throw({'EXIT', io_lib:format("Could not load configuration file: ~p", [ReasonConfig])});
-	ok ->
+	_ ->
 	    nothing
     end,
     case catch save_pid() of
@@ -43,7 +44,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not save pid in ~p: ~p", [config:get(pidfile), ReasonPid])});
 	{error, ReasonPid} ->
 	    throw({'EXIT', io_lib:format("Could not save pid in ~p: ~p", [config:get(pidfile), ReasonPid])});
-	ok ->
+	_ ->
 	    nothing
     end,
     case catch triggers:init() of
@@ -51,7 +52,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup triggers: ~p", [ReasonTriggers])});
 	{error, ReasonTriggers} ->
 	    throw({'EXIT', io_lib:format("Could not setup triggers: ~p", [ReasonTriggers])});
-	ok ->
+	_ ->
 	    nothing
     end,
     case catch setup_db() of
@@ -59,7 +60,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup database: ~p", [ReasonDB])});
 	{error, ReasonDB} ->
 	    throw({'EXIT', io_lib:format("Could not setup database: ~p", [ReasonDB])});
-	ok ->
+	_ ->
 	    nothing
     end,
     case catch setup_acl() of
@@ -67,7 +68,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup ACL: ~p", [ReasonACL])});
 	{error, ReasonACL} ->
 	    throw({'EXIT', io_lib:format("Could not setup ACL: ~p", [ReasonACL])});
-	ok ->
+	_ ->
 	    nothing
     end,
     case catch setup_bricks() of
@@ -75,7 +76,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup Bricks: ~p", [ReasonBricks])});
 	{error, ReasonBricks} ->
 	    throw({'EXIT', io_lib:format("Could not setup Bricks: ~p", [ReasonBricks])});
-	ok ->
+	_ ->
 	    nothing
     end,
     case catch setup_root() of
@@ -83,7 +84,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup root account: ~p", [ReasonRoot])});
 	{error, ReasonRoot} ->
 	    throw({'EXIT', io_lib:format("Could not setup root account: ~p", [ReasonRoot])});
-	ok ->
+	_ ->
 	    nothing
     end,
     case catch setup_controllers() of
@@ -91,7 +92,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup controllers: ~p", [ReasonControllers])});
 	{error, ReasonControllers} ->
 	    throw({'EXIT', io_lib:format("Could not setup controllers: ~p", [ReasonControllers])});
-	ok ->
+	_ ->
 	    nothing
     end,
     case catch setup_server() of
@@ -99,7 +100,7 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup HTTP server: ~p", [ReasonServer])});
 	{error, ReasonServer} ->
 	    throw({'EXIT', io_lib:format("Could not setup HTTP server: ~p", [ReasonServer])});
-	ok ->
+	_ ->
 	    nothing
     end,
     ok.
