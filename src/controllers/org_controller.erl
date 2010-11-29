@@ -60,8 +60,8 @@ add([Name], [Uid, Metadata], _) ->
 		    {error, Reason};
 		ok ->
 		    uce_event:add(#uce_event{from=Uid,
-						 type="internal.org.add",
-						 metadata=[{"name", Name}]}),
+					     type="internal.org.add",
+					     metadata=[{"name", Name}]}),
 		    json_helpers:created()
 	    end;
 	false ->

@@ -70,11 +70,6 @@ list(Location, From, Type, Start, End, Parent) ->
 		       true ->
 			   []
 	       end,
-    io:format("SEL: ~p~n", [SelectLocation ++
-				SelectFrom ++
-				SelectType ++
-				SelectParent ++
-				SelectTime]),
     lists:map(fun(Collection) ->
 		      ?MODULE:from_collection(Collection)
 	      end,
