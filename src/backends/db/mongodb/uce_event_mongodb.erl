@@ -14,6 +14,7 @@
 -include("mongodb.hrl").
 
 add(#uce_event{} = Event) ->
+    ?MODULE:to_collection(Event),
     case catch emongo:insert(?MONGO_POOL, "uce_event", ?MODULE:to_collection(Event)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -60,15 +61,20 @@ list(Location, From, Type, Start, End, Parent) ->
 		       Start == 0, End == infinity -> 
 			   [];
 		       Start /= 0, End == infinity ->
-			   [{"datetime", [{'>', Start}]}];
+			   [{"datetime", [{'>=', Start}]}];
 		       Start /= 0, End /= infinity ->
-			   [{"datetime", [{'>', Start},
-					  {'<', End}]}];
+			   [{"datetime", [{'>=', Start},
+					  {'=<', End}]}];
 		       Start == 0, End /= infinity ->
-			   [{"datetime", [{'<', End}]}];
+			   [{"datetime", [{'=<', End}]}];
 		       true ->
 			   []
 	       end,
+    io:format("SEL: ~p~n", [SelectLocation ++
+				SelectFrom ++
+				SelectType ++
+				SelectParent ++
+				SelectTime]),
     lists:map(fun(Collection) ->
 		      ?MODULE:from_collection(Collection)
 	      end,
