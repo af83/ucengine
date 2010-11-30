@@ -4,7 +4,7 @@
 
 -export([init/0,
 	 add/1,
-	 list/2,
+	 list/1,
 	 get/1,
 	 delete/1,
 	 update/1]).
@@ -27,12 +27,11 @@ add(#uce_presence{}=Presence) ->
 	    {error, Reason}
     end.
 
-list(EUid, Org) ->
+list(EUid) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_presence{sid='_',
 								      uid=EUid,
 								      auth='_',
-								      org=Org,
 								      last_activity='_',
 								      resource='_',
 								      metadata='_'})

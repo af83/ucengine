@@ -3,7 +3,7 @@
 -author('victor.goya@af83.com').
 
 -export([add/1,
-	 list/2,
+	 list/1,
 	 get/1,
 	 delete/1,
 	 update/1,
@@ -21,14 +21,8 @@ add(#uce_presence{}=Presence) ->
 	    Presence#uce_presence.sid
     end.
 
-list(EUid, Org) ->
-    OrgSelector = case Org of
-		      '_' ->
-			  [];
-		      _ ->
-			  [{"org", Org}]
-		  end,
-    case catch emongo:find_all(?MONGO_POOL, "uce_presence", [{"uid", EUid}] ++ OrgSelector) of
+list(EUid) ->
+    case catch emongo:find_all(?MONGO_POOL, "uce_presence", [{"uid", EUid}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
@@ -68,11 +62,10 @@ update(#uce_presence{}=Presence) ->
 
 
 from_collection(Collection) ->
-    case utils:get(mongodb_helpers:collection_to_list(Collection), ["id", "uid", "org", "metadata"]) of
-	[ESid, EUid, Org, Metadata] ->
+    case utils:get(mongodb_helpers:collection_to_list(Collection), ["id", "uid", "metadata"]) of
+	[ESid, EUid, Metadata] ->
 	    #uce_presence{sid=ESid,
 			   uid=EUid,
-			   org=Org,
 			   metadata=Metadata};
 	_ ->
 	    {error, bad_parameters}
@@ -81,5 +74,4 @@ from_collection(Collection) ->
 to_collection(#uce_presence{} = Presence) ->
     [{"id", Presence#uce_presence.sid},
      {"uid", Presence#uce_presence.uid},
-     {"org", Presence#uce_presence.org},
      {"metadata", Presence#uce_presence.metadata}].

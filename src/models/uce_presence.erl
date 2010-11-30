@@ -11,13 +11,8 @@ add(#uce_presence{sid=[]}=Presence) ->
     add(Presence#uce_presence{sid=utils:random()});
 add(#uce_presence{last_activity=undefined}=Presence) ->
     add(Presence#uce_presence{last_activity=utils:now()});
-add(#uce_presence{org=Org}=Presence) ->
-    case uce_org:exists(Org) of
-	false ->
-	    {error, not_found};
-	true ->
-	    ?DBMOD:add(Presence)
-    end.
+add(#uce_presence{}=Presence) ->
+    ?DBMOD:add(Presence).
 
 get(Sid) ->
     ?DBMOD:get(Sid).
