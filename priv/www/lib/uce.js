@@ -76,11 +76,12 @@
                  */
                 create: function(auth, credential, org, uid, nickname, callback)
                 {
-                    var params = {"auth" : auth, "metadata[nickname]" : nickname};
+                    var params = {"auth" : auth,
+				  "metadata" : {"nickname": nickname, "org": org}};
                     if (credential) {
                         params.credential = credential;
                     }
-                    put("/presence/" + org + "/" + uid, params, function(err, result, xhr) {
+                    put("/presence/" + uid, params, function(err, result, xhr) {
                         if (err) {
                             callback(err, result, xhr);
                         } else {
@@ -94,7 +95,7 @@
                  * Close user presence
                  */
                 close: function(org, callback) {
-                    del("/presence/" + org + "/" + presence.uid +"/"+ presence.sid, presence, callback);
+                    del("/presence/" + presence.uid +"/"+ presence.sid, presence, callback);
                     return this;
                 }
             },
