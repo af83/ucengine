@@ -8,7 +8,7 @@
 init() ->
     [#uce_route{module="Presence",
 		method='PUT',
-		regexp="/presence/([^/]+)/([^/]+)",
+		regexp="/presence/([^/]+)",
 		callbacks=[{?MODULE, add,
 			    ["auth", "credential", "metadata"],
 			    [required, required, []],
@@ -17,7 +17,7 @@ init() ->
      
      #uce_route{module="Presence",
 		method='DELETE',
-		regexp="/presence/([^/]+)/([^/]+)/([^/]+)",
+		regexp="/presence/([^/]+)/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -29,8 +29,8 @@ init() ->
 			    [string],
 			    [user]}]}].
 
-add([Org, Uid], [Auth, Credential, Metadata], _) ->
-    case uce_acl:check(Uid, "presence", "add", [Org, ""], []) of
+add([Uid], [Auth, Credential, Metadata], _) ->
+    case uce_acl:check(Uid, "presence", "add", ["", ""], []) of
 	true ->
 	    case uce_user:get(Uid) of
 		{error, Reason} ->
@@ -40,12 +40,11 @@ add([Org, Uid], [Auth, Credential, Metadata], _) ->
 			{Auth, Credential} ->
 			    case uce_presence:add(#uce_presence{uid=Uid,
 								auth=Auth,
-								org=Org,
 								metadata=Metadata}) of
 				{error, Reason} ->
 				    {error, Reason};
 				Sid ->
-				    uce_event:add(#uce_event{location=[Org, ""],
+				    uce_event:add(#uce_event{location=["", ""],
 							     from=Uid,
 							     type="internal.presence.add",
 							     metadata=Metadata}),
@@ -59,14 +58,14 @@ add([Org, Uid], [Auth, Credential, Metadata], _) ->
 	    {error, unauthorized}
     end.
 
-delete([Org, ToUid, ToSid], [Uid], _) ->
-    case uce_acl:check(Uid, "presence", "delete", [Org, ""], [{"user", ToUid}]) of
+delete([ToUid, ToSid], [Uid], _) ->
+    case uce_acl:check(Uid, "presence", "delete", ["", ""], [{"user", ToUid}]) of
 	true ->
 	    case uce_presence:delete(ToSid) of
 		{error, Reason} ->
 		    {error, Reason};
 		ok ->
-		    uce_event:add(#uce_event{location=[Org, ""],
+		    uce_event:add(#uce_event{location=["", ""],
 					     from=Uid,
 					     type="internal.presence.delete"}),
 		    json_helpers:json(ok)
