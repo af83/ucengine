@@ -141,7 +141,6 @@ setup_testers() ->
 			 object="all",
 			 conditions=[]}),    
     RootSid = uce_presence:add(#uce_presence{uid=RootUid,
-					     org="testorg",
 					     auth="password",
 					     metadata=[]}),
     UglyUid = "ugly.user@af83.com",
@@ -149,7 +148,6 @@ setup_testers() ->
 			   auth="password",
 			   credential="pwd"}),
     UglySid = uce_presence:add(#uce_presence{uid=UglyUid,
-					     org="testorg",
 					     auth="password",
 					     metadata=[]}),
     [{RootUid, RootSid}, {UglyUid, UglySid}].

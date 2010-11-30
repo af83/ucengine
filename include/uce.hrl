@@ -30,8 +30,6 @@
 	  uid,
 	  %% authification method
 	  auth,
-	  % organisation
-	  org,
 	  % timeout
 	  last_activity = undefined,
 	  % resource

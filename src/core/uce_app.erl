@@ -132,7 +132,6 @@ setup_bricks() ->
 		      uce_presence:add(#uce_presence{sid=Token,
 						     uid=Name,
 						     auth="token",
-						     org=[],
 						     metadata=[]}),
 		      uce_acl:add(#uce_acl{uid=Name,
 					   action="all",

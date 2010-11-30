@@ -60,7 +60,6 @@ start() ->
     case utils:get(config:get(admin), [uid, auth]) of
 	[Uid, Auth] ->
 	    Sid = uce_presence:add(#uce_presence{uid=Uid, 
-						 org="af83",
 						 auth=Auth,
 						 metadata=[]}),
 	    io:format("Admin: ~p/~p~n", [Uid, Sid]);
