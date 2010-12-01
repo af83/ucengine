@@ -75,7 +75,7 @@ test("can be accessed via window.uce", function() {
 
 jackTest("can open a new presence", function() {
     stop();
-    addUceApiCall("post", "/api/0.1/presence/org/uid", { "_method": "put", "auth": "password", "metadata[nickname]": "nickname" }, 200, '{"result": "sid"}');
+    addUceApiCall("post", "/api/0.1/presence/uid", { "_method": "put", "auth": "password", "metadata": {"nickname": "nickname", "org": "af83"}, 200, '{"result": "sid"}');
     uce.presence.create("password", "", "org", "uid", "nickname",
                          function(err, presence, xhr) {
                              start();
@@ -87,7 +87,7 @@ jackTest("can open a new presence", function() {
 
 jackTest("can close a presence", function() {
     stop();
-    addUceApiCall("post", "/api/0.1/presence/af83/myuid/mysid", { "_method": "delete", "uid": "myuid", "sid": "mysid"}, 200, '');
+    addUceApiCall("post", "/api/0.1/presence/myuid/mysid", { "_method": "delete", "uid": "myuid", "sid": "mysid"}, 200, '');
     uce.attachPresence(Factories.createPresence()).presence.close("af83", function(err, r, xhr) {
         start();
         equals(err, null);
