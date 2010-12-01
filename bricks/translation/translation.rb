@@ -10,24 +10,34 @@ require 'ucengine'
 Daemons.run_proc('translation') do
   begin
     languages = ["fr", "en", "it"]
-    UCEngine.new("localhost", 5280).connect("translation",
+    UCEngine.new("localhost", 5280, UCEngine::DEBUG).connect("translation",
                                             :token => "d713ab03c0280f82709f865ffa2240a38c26f09b") do |uce|
       uce.subscribe(["af83", "demo"], :type => "chat.message.new", :start => uce.time) do |event|
         if event['metadata']['lang'] and event['metadata']['text']
           languages.each do |language|
             next if language == event['metadata']['lang']
-            uce.publish([event['org'], event['meeting']],
-                        "chat.translation.new",
-                        event['id'],
-                        :text => Translate.t(event['metadata']['text'], event['metadata']['lang'], language),
-                        :lang => language,
-                        :from => event['from'])
+            begin
+              text = Translate.t(event['metadata']['text'], event['metadata']['lang'], language)
+              uce.publish(:location => [event['org'], event['meeting']],
+                          :type => "chat.translation.new",
+                          :parent => event['id'],
+                          :metadata => {:text => text,
+                            :lang => language,
+                            :from => event['from']})
+            rescue => error
+              if error.to_s == "can't convert Translate::UnsupportedLanguagePair into String"
+                puts "Unsupported language pair: #{event['metadata']['lang']} to #{language}"
+              else
+                raise
+              end
+            end
           end
         end
       end
     end
   rescue => error
     puts "Fatal error: #{error}"
+    puts error.backtrace
     puts "Retry in 5 seconds ..."
     sleep(5)
     retry
