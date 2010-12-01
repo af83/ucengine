@@ -102,7 +102,7 @@ listen(Location, Uid, Search, Type, From, Socket) ->
 		      Event ->
 			  JSONEvent = mochijson:encode({struct,
 							[{result,
-							  event_helpers:to_json(Event)}]}),
+							  event_helpers:to_json([Event])}]}),
 			  yaws_api:stream_process_deliver_final_chunk(Socket, list_to_binary(JSONEvent)),			  
 			  ok
 		  end;
