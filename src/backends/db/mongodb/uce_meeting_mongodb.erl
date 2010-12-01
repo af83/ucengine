@@ -42,9 +42,9 @@ get([Org, Meeting]) ->
     end.
 
 update(#uce_meeting{id=[OrgName, MeetingName]} = Meeting) ->
-    case catch emongo:update(?MONGO_POOL, "uce_meeting",
-			     [{"org", OrgName}, {"meeting", MeetingName}],
-			     ?MODULE:to_collection(Meeting)) of
+    case catch emongo:update_sync(?MONGO_POOL, "uce_meeting",
+                                  [{"org", OrgName}, {"meeting", MeetingName}],
+                                  ?MODULE:to_collection(Meeting)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
