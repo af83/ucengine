@@ -3,6 +3,7 @@
 require 'rubygems'
 require 'twitterstream'
 require 'set'
+require 'daemons'
 
 require 'ucengine'
 
@@ -22,6 +23,7 @@ class UCEngineTwitterStream
       reload
     rescue => error
       puts "#{location}: unable to subscribe to '#{hashtag}': #{error}"
+      puts error.backtrace
     end
   end
 
@@ -32,6 +34,7 @@ class UCEngineTwitterStream
       reload
     rescue => error
       puts "#{location}: unable to unsubscribe to '#{hashtag}': #{error}"
+      puts error.backtrace
     end
   end
 
@@ -47,6 +50,7 @@ class UCEngineTwitterStream
       end
     rescue => error
       puts "Unable to create twitter thread: #{error}"
+      puts error.backtrace
     end
   end
 
@@ -63,6 +67,7 @@ class UCEngineTwitterStream
         end
       rescue => error
         puts "Unable to broadcast tweet: #{error}"
+        puts error.backtrace
       end
     end
   end
@@ -73,6 +78,7 @@ class UCEngineTwitterStream
       @thread.join
     rescue => error
       puts "Unable to kill twitter thread: #{error}"
+      puts error.backtrace
     end
   end
 end
@@ -80,13 +86,16 @@ end
 
 Daemons.run_proc('twitter') do
   begin
-    UCEngine.new("localhost", 5280).connect("twitter",
-                                            :token => "da39a3ee5e6b4b0d3255bfef95601890afd80709") do |uce|
+    UCEngine.new("localhost", 5280, UCEngine::DEBUG).connect("twitter",
+                                                             :token => "da39a3ee5e6b4b0d3255bfef95601890afd80709") do |uce|
       
       twitter = UCEngineTwitterStream.new("encre_af83", "3ncr3_4f8E") do |location, tweet, hashtag|
         puts "Publish: " + tweet['text']
-        uce.publish(location, 'twitter.tweet.new', nil,
-                    :text => tweet['text'], :from => tweet['user']['name'], :hashtags => hashtag)
+        uce.publish(:location => location,
+                    :type => 'twitter.tweet.new',
+                    :metadata => {:text => tweet['text'],
+                                  :from => tweet['user']['name'],
+                                  :hashtags => hashtag})
       end
       
       uce.subscribe([], :type => "twitter.hashtag.add") do |event|
@@ -99,6 +108,7 @@ Daemons.run_proc('twitter') do
     end
   rescue => error
     puts "Fatal error: #{error}"
+    puts error.backtrace
     retry
   end
 end
