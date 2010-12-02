@@ -1,18 +1,7 @@
 VERSION       = 0.0.1
 CC            = erlc
-ERL           = erl
 EBIN          = ebin
 CFLAGS        = -Iinclude -I/usr/lib/yaws/include/ +warn_unused_vars +warn_unused_import
-
-MNESIA_DIR    = tmp
-LOG_DIR       = tmp
-ERL_ARGS      = -mnesia dir $(MNESIA_DIR) -boot start_sasl
-    ERL_ARGS += -sasl sasl_error_logger '{file, "$(LOG_DIR)/ucengine-sasl.log"}'
-    ERL_ARGS += -kernel error_logger '{file, "$(LOG_DIR)/ucengine.log"}'
-    ERL_ARGS += -os_mon start_memsup false
-ERL_COMMANDS  = -eval 'demo:start()'
-
-PIDFILE       = tmp/ucengine.pid
 
 DIRS          = ebin datas/files
 
@@ -57,20 +46,19 @@ ebin/%.app: src/*/*/%.app
 # Usual targets
 ###############################################################################
 run: compile
-	@erl +K true +P 65535 +A 2 -name ucengine -pa ebin -run uce_app \
-        $(ERL_ARGS) $(ERL_COMMANDS)
+	bin/uce_ctl.sh run
+
 start: compile
-	@erl +K true +P 65535 +A 2 -name ucengine -pa ebin -run uce_app \
-        $(ERL_ARGS) -detached $(ERL_COMMANDS)
-	@echo Started
+	bin/uce_ctl.sh start
+
 stop:
-	-@kill -15 $(shell cat $(PIDFILE))
-	@echo Stopped
-restart: stop start
+	bin/uce_ctl.sh stop
+
+restart:
+	bin/uce_ctl.sh restart
 
 tests: compile
-	@erl +K true +P 65535 +A 2 -noshell -name ucengine -pa ebin -run uce_app \
-        $(ERL_ARGS) -eval 'tests:start().'
+	bin/uce_ctl.sh tests
 
 ###############################################################################
 # Cleanup
