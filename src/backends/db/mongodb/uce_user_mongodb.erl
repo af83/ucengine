@@ -2,6 +2,8 @@
 
 -author('victor.goya@af83.com').
 
+-behaviour(gen_uce_user).
+
 -export([add/1,
 	 delete/1,
 	 update/1,

@@ -16,7 +16,7 @@ PIDFILE       = tmp/ucengine.pid
 
 DIRS          = ebin datas/files
 
-ERL_FILES     = $(shell find src -type f -and -name "*.erl" -exec basename '{}' \;)
+ERL_FILES     = $(shell find src/models/behaviours src -type f -and -name "*.erl" -exec basename '{}' \;)
 BEAM_TARGETS  = $(ERL_FILES:.erl=.beam)
 BEAM_TARGETS := $(addprefix ebin/, $(BEAM_TARGETS))
 

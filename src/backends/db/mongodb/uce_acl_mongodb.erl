@@ -2,6 +2,8 @@
 
 -author('victor.goya@af83.com').
 
+-behaviour(gen_uce_acl).
+
 -export([add/1,
 	 delete/5,
 	 list/3,

@@ -2,6 +2,8 @@
 
 -author('victor.goya@af83.com').
 
+-behaviour(gen_uce_file).
+
 -export([init/0, add/1, list/1, get/1, delete/1]).
 
 -include("uce.hrl").
