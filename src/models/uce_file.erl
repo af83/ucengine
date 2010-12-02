@@ -5,7 +5,7 @@
 -export([add/1, list/1, get/1, delete/1]).
 
 -include("uce.hrl").
--include("models.hrl").
+-include("uce_models.hrl").
 
 add(#uce_file{location=Location, name=Name} = File) ->
     case location_helpers:exists(Location) of
@@ -18,7 +18,7 @@ add(#uce_file{location=Location, name=Name} = File) ->
 		     _ ->
 			 Name ++ "_" ++ utils:random()
 		 end,
-	    case ?DBMOD:add(File#uce_file{id=Id}) of
+	    case ?DB_MODULE:add(File#uce_file{id=Id}) of
 		{error, Reason} ->
 		    {error, Reason};
 		_ ->
@@ -31,16 +31,16 @@ list(Location) ->
 	false ->
 	    {error, not_found};
 	true ->
-	    ?DBMOD:list(Location)
+	    ?DB_MODULE:list(Location)
     end.
 
 get(Id) ->
-    ?DBMOD:get(Id).
+    ?DB_MODULE:get(Id).
 
 delete(Id) ->
     case ?MODULE:get(Id) of
 	{error, Reason} ->
 	    {error, Reason};
 	_ ->
-	    ?DBMOD:delete(Id)
+	    ?DB_MODULE:delete(Id)
     end.

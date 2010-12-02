@@ -5,14 +5,14 @@
 -export([add/1, delete/1, update/4, update/1, list/0, get/1, exists/1]).
 
 -include("uce.hrl").
--include("models.hrl").
+-include("uce_models.hrl").
 
 add(#uce_user{} = User) ->
     case ?MODULE:exists(User#uce_user.uid) of
 	true ->
 	    {error, conflict};
 	false ->
-	    case ?DBMOD:add(User) of
+	    case ?DB_MODULE:add(User) of
 		ok ->
 		    ok;
 		{error, Reason} ->
@@ -25,7 +25,7 @@ delete(Uid) ->
 	{error, Reason} ->
 	    {error, Reason};
 	_ ->
-	    ?DBMOD:delete(Uid)
+	    ?DB_MODULE:delete(Uid)
     end.
 
 update(Uid, Auth, Credential, Metadata) ->
@@ -39,14 +39,14 @@ update(#uce_user{} = User) ->
 	{error, Reason} ->
 	    {error, Reason};
 	_ ->
-	    ?DBMOD:update(User)
+	    ?DB_MODULE:update(User)
     end.
 
 list() ->
-    ?DBMOD:list().
+    ?DB_MODULE:list().
 
 get(Uid) ->
-    ?DBMOD:get(Uid).
+    ?DB_MODULE:get(Uid).
 
 exists(Uid) ->
     case ?MODULE:get(Uid) of

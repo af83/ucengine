@@ -5,7 +5,7 @@
 -export([add/1, get/1, exists/1, list/8]).
 
 -include("uce.hrl").
--include("models.hrl").
+-include("uce_models.hrl").
 
 add(#uce_event{id=none}=Event) ->
     ?MODULE:add(Event#uce_event{id=utils:random()});
@@ -16,12 +16,12 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From, parent=Parent, to
 	false ->
 	    {error, not_found};
 	true ->
-	    case ?DBMOD:add(Event) of
+	    case ?DB_MODULE:add(Event) of
 		{error, Reason} ->
 		    {error, Reason};
 		_ ->
 		    mnesia_pubsub:publish(Location, Type, From, Id),
-		    ?SEARCH_MOD:add(Event),
+		    ?SEARCH_MODULE:add(Event),
 		    case catch triggers:run(Location, Type, Event) of
 			{error, Reason} ->
 			    ?DEBUG("Error : ~p~n", [{error, Reason}]);
@@ -35,7 +35,7 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From, parent=Parent, to
     end.
 
 get(Id) ->
-    ?DBMOD:get(Id).
+    ?DB_MODULE:get(Id).
 
 exists(Id) ->
     case Id of
@@ -57,9 +57,9 @@ list(Location, Search, From, '_', Uid, Start, End, Parent) ->
 list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
     AllEvents = case Search of
 		    '_' ->
-			?DBMOD:list(Location, From, Type, Start, End, Parent);
+			?DB_MODULE:list(Location, From, Type, Start, End, Parent);
 		    _ ->
-			?SEARCH_MOD:list(Location, Search, From, Type, Start, End, Parent)
+			?SEARCH_MODULE:list(Location, Search, From, Type, Start, End, Parent)
 		end,
     FilteredEvents = lists:filter(fun(#uce_event{to=To}) ->
 					  if

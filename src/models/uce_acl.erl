@@ -2,15 +2,13 @@
 
 -author('victor.goya@af83.com').
 
--export([
-	 add/1,
+-export([add/1,
 	 delete/5,
 	 check/5,
-	 trigger/2
-	]).
+	 trigger/2]).
 
 -include("uce.hrl").
--include("models.hrl").
+-include("uce_models.hrl").
 
 add(#uce_acl{uid=Uid, location=Location} = ACL) ->
     case location_helpers:exists(Location) of
@@ -21,15 +19,15 @@ add(#uce_acl{uid=Uid, location=Location} = ACL) ->
 		{error, Error} ->
 		    {error, Error};
 		_ ->
-		    ?DBMOD:add(ACL)
+		    ?DB_MODULE:add(ACL)
 	    end
     end.
 
 delete(Uid, Object, Action, Location, Conditions) ->
-    ?DBMOD:delete(Uid, Object, Action, Location, Conditions).
+    ?DB_MODULE:delete(Uid, Object, Action, Location, Conditions).
 
 check(Uid, Object, Action, Location, Conditions) ->
-    case ?DBMOD:list(Uid, Object, Action) of
+    case ?DB_MODULE:list(Uid, Object, Action) of
 	{error, Reason} ->
 	    {error, Reason};
 	ACL ->

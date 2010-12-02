@@ -5,7 +5,7 @@
 -export([add/1, delete/1, update/1, get/1, list/2, join/2, leave/2, roster/1, exists/1]).
 
 -include("uce.hrl").
--include("models.hrl").
+-include("uce_models.hrl").
 
 add(#uce_meeting{} = Meeting) ->
     case ?MODULE:exists(Meeting#uce_meeting.id) of
@@ -17,7 +17,7 @@ add(#uce_meeting{} = Meeting) ->
 		false ->
 		    {error, not_found};
 		true ->
-		    ?DBMOD:add(Meeting)
+		    ?DB_MODULE:add(Meeting)
 	    end
     end.
 
@@ -26,19 +26,19 @@ delete(Id) ->
 	false ->
 	    {error, not_found};
 	true ->
-	    ?DBMOD:delete(Id)
+	    ?DB_MODULE:delete(Id)
     end.
 
 
 get(Id) ->
-    ?DBMOD:get(Id).
+    ?DB_MODULE:get(Id).
 
 update(#uce_meeting{} = Meeting) ->
     case ?MODULE:get(Meeting#uce_meeting.id) of
 	{error, Reason} ->
 	    {error, Reason};
 	_ ->
-	    ?DBMOD:update(Meeting)
+	    ?DB_MODULE:update(Meeting)
     end.
 
 list(Org, Status) ->
@@ -76,7 +76,7 @@ list(Org, Status) ->
 						 false
 					 end
 				 end,
-				 ?DBMOD:list(Org));
+				 ?DB_MODULE:list(Org));
 		true ->
 		    {error, bad_parameters}
 	    end
