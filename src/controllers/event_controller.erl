@@ -91,48 +91,6 @@ get([_, _, Id], [Uid], _) ->
 	    end
     end.
 
-listen(Location, Uid, Search, Type, From, Socket) ->
-    mnesia_pubsub:subscribe(Location, Uid, Search, Type, From, self()),
-    Res = receive
-	      {message, Id} ->
-		  case uce_event:get(Id) of
-		      {error, Reason} ->
-			  ?DEBUG("Pubsub: unknown message ID: ~s (~p)~n", [Id, Reason]),
-			  {error, Reason};
-		      Event ->
-			  JSONEvent = mochijson:encode({struct,
-							[{result,
-							  event_helpers:to_json([Event])}]}),
-			  yaws_api:stream_process_deliver_final_chunk(Socket, list_to_binary(JSONEvent)),			  
-			  ok
-		  end;
-	      {error, Reason} ->
-		  {error, Reason};
-	      _ ->
-		  ok
-	  end,
-    mnesia_pubsub:unsubscribe(Location, Uid, Search, Type, From, self()),
-    Res.
-
-wait(Location, Uid, Search, Type, From, Start, Socket) ->
-    Pid = spawn(fun() ->
-			receive
-			    {ok, YawsPid} ->
-				case listen(Location, Uid, Search, Type, From, Socket) of
-				    ok ->
-					nothing;
-				    {error, Reason} ->
-					?ERROR_MSG("Error in event wait: ~p~n", [Reason])
-				end,
-				yaws_api:stream_process_end(Socket, YawsPid);
-			    {discard, YawsPid}->
-				yaws_api:stream_process_end(Socket, YawsPid);
-			    _ ->
-				nothing
-			end
-		end),
-    {streamcontent_from_pid, "application/json", Pid}.
-
 list([], Match, Arg) ->
     ?MODULE:list(["", ""], Match, Arg);
 list([Org], Match, Arg) ->
@@ -160,7 +118,23 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
 			"no" ->
 			    json_helpers:json(event_helpers:to_json([]));
 			"lp" ->
-			    wait(Location, Uid, Keywords, Type, From, Start, Arg#arg.clisock);
+			    uce_async_lp:wait(Location,
+					      Keywords,
+					      From,
+					      Types,
+					      Uid,
+					      Start,
+					      End,
+					      Parent,
+					      Arg#arg.clisock);
+			"ws" ->
+			    uce_async_ws:wait(Location,
+					      Uid,
+					      Keywords,
+					      Type,
+					      From,
+					      Start,
+					      Arg#arg.clisock);
 			_ ->
 			    {error, bad_parameters}
 		    end;

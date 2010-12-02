@@ -7,7 +7,7 @@
 -export([init/1,
 	 start_link/0,
 	 publish/4,
-	 subscribe/6,
+	 subscribe/9,
 	 unsubscribe/6,
 	 handle_call/3,
 	 handle_cast/2,
@@ -32,11 +32,11 @@ init([]) ->
 publish(Location, Type, From, Message) ->
     gen_server:call(?MODULE, {publish, Location, Type, From, Message}).
 
-subscribe(Location, EUid, Search, Type, From, Pid) ->
-    gen_server:cast(?MODULE, {subscribe, Location, EUid, Search, Type, From, Pid}).
+subscribe(Location, Search, From, Types, Uid, _Start, _End, _Parent, Pid) ->
+    [gen_server:cast(?MODULE, {subscribe, Location, Uid, Search, Type, From, Pid}) || Type <- Types].
 
-unsubscribe(Location, EUid, Search, Type, From, Pid) ->
-    gen_server:cast(?MODULE, {unsubscribe, Location, EUid, Search, Type, From, Pid}).
+unsubscribe(Location, Uid, Search, Type, From, Pid) ->
+    gen_server:cast(?MODULE, {unsubscribe, Location, Uid, Search, Type, From, Pid}).
 
 get_subscribers(Location, Type, From) ->
     case mnesia:transaction(fun() ->
@@ -79,24 +79,24 @@ handle_call({publish, Location, Type, From, Message}, _From, {}) ->
 	     end,
     {reply, Return, {}}.
 
-handle_cast({subscribe, Location, EUid, Search, Type, From, Pid}, {}) ->
+handle_cast({subscribe, Location, Uid, Search, Type, From, Pid}, {}) ->
     mnesia:transaction(fun() ->
 			       mnesia:write(#uce_mnesia_pubsub{location=Location,
-								 uid=EUid,
-								 search=Search,
-								 type=Type, 
-								 from=From,
-								 pid=Pid})
+							       uid=Uid,
+							       search=Search,
+							       type=Type, 
+							       from=From,
+							       pid=Pid})
 		       end),
     {noreply, {}};
-handle_cast({unsubscribe, Location, EUid, Search, Type, From, Pid}, {}) ->
+handle_cast({unsubscribe, Location, Uid, Search, Type, From, Pid}, {}) ->
     mnesia:transaction(fun() ->
 			       mnesia:delete(#uce_mnesia_pubsub{location=Location,
-								  uid=EUid,
-								  search=Search,
-								  type=Type,
-								  from=From,
-								  pid=Pid})
+								uid=Uid,
+								search=Search,
+								type=Type,
+								from=From,
+								pid=Pid})
 		       end),
     {noreply, {}}.
 
