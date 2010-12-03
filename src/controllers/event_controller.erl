@@ -3,7 +3,7 @@
 -export([init/0, get/3, list/3, add/3]).
 
 -include("uce.hrl").
--include("yaws_api.hrl").
+-include_lib("yaws/include/yaws_api.hrl").
 
 init() ->
     [#uce_route{module="Events",

@@ -2,7 +2,7 @@ VERSION       = 0.0.1
 CC            = erlc
 ERL           = erl
 EBIN          = ebin
-CFLAGS        = -Iinclude -I/usr/lib/yaws/include/ +warn_unused_vars +warn_unused_import
+CFLAGS        = -Iinclude +warn_unused_vars +warn_unused_import
 
 MNESIA_DIR    = tmp
 LOG_DIR       = tmp

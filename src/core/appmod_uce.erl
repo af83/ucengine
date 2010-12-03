@@ -3,7 +3,7 @@
 -author('victor.goya@af83.com').
 
 -include("uce.hrl").
--include("yaws_api.hrl").
+-include_lib("yaws/include/yaws_api.hrl").
 
 -export([out/1, call_handlers/4, convert_param/2]).
 
