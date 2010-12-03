@@ -6,7 +6,7 @@
 -export([start/0, start/2, stop/1]).
 
 -include("uce.hrl").
--include("yaws.hrl").
+-include_lib("yaws/include/yaws.hrl").
 
 start() ->
     application:start(crypto),
@@ -21,7 +21,6 @@ start(_, _) ->
 	    case catch setup() of
 		{'EXIT', Reason} ->
 		    ?ERROR_MSG("~p~n", [lists:flatten(io_lib:format("~p", [Reason]))]),
-		    io:format("~p~n", [lists:flatten(io_lib:format("~p", [Reason]))]),
 		    {error, lists:flatten(Reason)};
 		ok ->
 		    {ok, Pid}
@@ -31,7 +30,7 @@ start(_, _) ->
     end.
 
 setup() ->
-    case catch config:start("etc/uce.cfg") of
+    case catch setup_config() of
 	{'EXIT', ReasonConfig} ->
 	    throw({'EXIT', io_lib:format("Could not load configuration file: ~p", [ReasonConfig])});
 	{error, ReasonConfig} ->
@@ -60,6 +59,14 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup database: ~p", [ReasonDB])});
 	{error, ReasonDB} ->
 	    throw({'EXIT', io_lib:format("Could not setup database: ~p", [ReasonDB])});
+	_ ->
+	    nothing
+    end,
+    case catch setup_pubsub() of
+	{'EXIT', ReasonPubSub} ->
+	    throw({'EXIT', io_lib:format("Could not setup Pub/Sub backend: ~p", [ReasonPubSub])});
+	{error, ReasonPubSub} ->
+	    throw({'EXIT', io_lib:format("Could not setup Pub/Sub backend: ~p", [ReasonPubSub])});
 	_ ->
 	    nothing
     end,
@@ -109,6 +116,9 @@ stop(State) ->
     remove_pid(),
     State.
 
+setup_config() ->
+    config:start("etc/uce.cfg").
+
 setup_acl() ->
     [[triggers:add(#uce_trigger{location='_',
 				type=Type,
@@ -121,6 +131,10 @@ setup_acl() ->
 setup_db() ->
     DBBackend = list_to_atom(atom_to_list(config:get(db)) ++ "_db"),
     DBBackend:init(config:get(config:get(db))).    
+
+setup_pubsub() ->
+    PubSubBackend = list_to_atom(atom_to_list(config:get(pubsub)) ++ "_pubsub"),
+    PubSubBackend:init(config:get(config:get(pubsub))).
 
 setup_bricks() ->
     lists:map(fun({Name, Token}) ->

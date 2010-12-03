@@ -27,7 +27,9 @@ init([]) ->
 			[{ram_copies, [node()]},
 			 {type, bag},
 			 {attributes, record_info(fields, uce_mnesia_pubsub)}]),
-    {ok, {}}.
+    {ok, {}};
+init(_) ->
+    ok.
 
 publish(Location, Type, From, Message) ->
     gen_server:call(?MODULE, {publish, Location, Type, From, Message}).
