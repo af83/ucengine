@@ -8,7 +8,13 @@ ERL=erl
 MNESIA_DIR=tmp
 LOG_DIR=tmp
 
-ERL_ARGS="+K true +P 65535 +A 2 -name ucengine -pa ebin -run uce_app  \
+NODE=ucengine
+HOST=localhost
+ERLANG_NODE=$NODE@$HOST
+
+NAME=-name
+
+ERL_ARGS="+K true +P 65535 +A 2 -pa ebin -run uce_app  \
           -mnesia dir ${MNESIA_DIR} -boot start_sasl  \
           -sasl sasl_error_logger {file,\"${LOG_DIR}/ucengine-sasl.log\"} \
           -kernel error_logger {file,\"${LOG_DIR}/ucengine.log\"} \
@@ -19,13 +25,18 @@ PIDFILE=tmp/ucengine.pid
 
 run()
 {
-    $ERL $ERL_ARGS $ERL_COMMANDS
+    $ERL $NAME $ERLANG_NODE $ERL_ARGS $ERL_COMMANDS
 }
 
 start()
 {
-    $ERL $ERL_ARGS -detached $ERL_COMMANDS
+    $ERL $NAME $ERLANG_NODE $ERL_ARGS -detached $ERL_COMMANDS
     echo Started
+}
+
+debug()
+{
+    $ERL -sname ucengine-dbg -hidden -remsh $ERLANG_NODE
 }
 
 stop()
@@ -36,12 +47,13 @@ stop()
 
 tests()
 {
-    $ERL $ERL_ARGS -noshell -eval 'tests:start().'
+    $ERL $NAME $ERLANG_NODE $ERL_ARGS -noshell -eval 'tests:start().'
 }
 
 case $1 in
     run) run;;
     start) start;;
+    debug) debug;;
     restart) stop; start;;
     stop) stop;;
     tests) tests;;
