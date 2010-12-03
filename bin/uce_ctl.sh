@@ -23,6 +23,8 @@ ERL_ARGS="+K true +P 65535 +A 2 -pa ebin -run uce_app  \
 ERL_COMMANDS=" -eval demo:start()"
 PIDFILE=tmp/ucengine.pid
 
+export ERL_LIBS=deps:/usr/lib/yaws/
+
 run()
 {
     $ERL $NAME $ERLANG_NODE $ERL_ARGS $ERL_COMMANDS
