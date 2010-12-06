@@ -4,7 +4,7 @@
 
 -behaviour(gen_server).
 
--export([start/1,
+-export([start_link/1,
 	 init/1,
 	 set/2,
 	 get/1,
@@ -14,7 +14,7 @@
 	 handle_info/2,
 	 terminate/2]).
 
-start(Path) ->
+start_link(Path) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []),
     case file:consult(Path) of
 	{ok, Configs} ->

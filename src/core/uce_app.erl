@@ -16,28 +16,27 @@ start() ->
     application:start(uce).
 
 start(_, _) ->
-    case uce_sup:start_link() of
-	{ok, Pid} ->
-	    case catch setup() of
-		{'EXIT', Reason} ->
-		    ?ERROR_MSG("~p~n", [lists:flatten(io_lib:format("~p", [Reason]))]),
-		    {error, lists:flatten(Reason)};
-		ok ->
-		    {ok, Pid}
-	    end;
-	Error ->
-	    {error, Error}
+    case catch config:start_link("etc/uce.cfg") of
+	{'EXIT', ReasonConfig} ->
+	    throw({'EXIT', io_lib:format("Could not setup config: ~p", [ReasonConfig])});
+	{error, ReasonConfig} ->
+	    throw({'EXIT', io_lib:format("Could not setup config: ~p", [ReasonConfig])});
+	ok ->
+	    case uce_sup:start_link() of
+		{ok, Pid} ->
+		    case catch setup() of
+			{'EXIT', Reason} ->
+			    ?ERROR_MSG("~p~n", [lists:flatten(io_lib:format("~p", [Reason]))]),
+			    {error, lists:flatten(Reason)};
+			ok ->
+			    {ok, Pid}
+		    end;
+		Error ->
+		    {error, Error}
+	    end
     end.
 
 setup() ->
-    case catch setup_config() of
-	{'EXIT', ReasonConfig} ->
-	    throw({'EXIT', io_lib:format("Could not load configuration file: ~p", [ReasonConfig])});
-	{error, ReasonConfig} ->
-	    throw({'EXIT', io_lib:format("Could not load configuration file: ~p", [ReasonConfig])});
-	_ ->
-	    nothing
-    end,
     case catch save_pid() of
 	{'EXIT', ReasonPid} ->
 	    throw({'EXIT', io_lib:format("Could not save pid in ~p: ~p", [config:get(pidfile), ReasonPid])});
@@ -59,14 +58,6 @@ setup() ->
 	    throw({'EXIT', io_lib:format("Could not setup database: ~p", [ReasonDB])});
 	{error, ReasonDB} ->
 	    throw({'EXIT', io_lib:format("Could not setup database: ~p", [ReasonDB])});
-	_ ->
-	    nothing
-    end,
-    case catch setup_pubsub() of
-	{'EXIT', ReasonPubSub} ->
-	    throw({'EXIT', io_lib:format("Could not setup Pub/Sub backend: ~p", [ReasonPubSub])});
-	{error, ReasonPubSub} ->
-	    throw({'EXIT', io_lib:format("Could not setup Pub/Sub backend: ~p", [ReasonPubSub])});
 	_ ->
 	    nothing
     end,
@@ -116,9 +107,6 @@ stop(State) ->
     remove_pid(),
     State.
 
-setup_config() ->
-    config:start("etc/uce.cfg").
-
 setup_acl() ->
     [[triggers:add(#uce_trigger{location='_',
 				type=Type,
@@ -131,10 +119,6 @@ setup_acl() ->
 setup_db() ->
     DBBackend = list_to_atom(atom_to_list(config:get(db)) ++ "_db"),
     DBBackend:init(config:get(config:get(db))).    
-
-setup_pubsub() ->
-    PubSubBackend = list_to_atom(atom_to_list(config:get(pubsub)) ++ "_pubsub"),
-    PubSubBackend:init(config:get(config:get(pubsub))).
 
 setup_bricks() ->
     lists:map(fun({Name, Token}) ->
