@@ -6,6 +6,7 @@
 
 -include("uce.hrl").
 -include("uce_models.hrl").
+-include("uce_async.hrl").
 
 add(#uce_event{id=none}=Event) ->
     ?MODULE:add(Event#uce_event{id=utils:random()});
@@ -20,7 +21,7 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From, parent=Parent, to
 		{error, Reason} ->
 		    {error, Reason};
 		_ ->
-		    mnesia_pubsub:publish(Location, Type, From, Id),
+		    ?PUBSUB_MODULE:publish(Location, Type, From, Id),
 		    ?SEARCH_MODULE:add(Event),
 		    case catch triggers:run(Location, Type, Event) of
 			{error, Reason} ->
