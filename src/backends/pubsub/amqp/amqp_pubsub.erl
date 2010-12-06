@@ -40,7 +40,7 @@ init([]) ->
 publish(Location, Type, From, Message) ->
     gen_server:call(?MODULE, {publish, Location, Type, From, Message}).
 
-subscribe(Location, Search, From, Types, Uid, _Start, _End, _Parent, Pid) ->
+subscribe(Pid, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
     lists:foreach(fun(Type) ->
 			  case Location of
 			      [Org, Meeting] ->
