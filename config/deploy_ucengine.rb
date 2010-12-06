@@ -4,6 +4,8 @@ set :user, 'encre'
 set :scm, :git
 set :deploy_via, :remote_cache
 
+set :git_enable_submodules, 1
+
 desc "Local Environment"
 task :ucengine_local do
   set :branch, 'master'
@@ -38,7 +40,8 @@ namespace :deploy do
   end
   desc "Restart the ucengine server"
   task :restart, :roles => :app, :except => { :no_release => true } do
-    run "make restart -C #{current_path}"
+    stop
+    start
   end
 
   desc "Copy the configuration file"
