@@ -25,6 +25,14 @@ $(DIRS):
 compile: $(DIRS) $(BEAM_TARGETS) $(APP_TARGETS)
 	(cd deps/emongo && make)
 
+ebin/amqp_pubsub.beam: src/backends/pubsub/amqp/amqp_pubsub.erl
+ifdef WITH_AMQP
+	@echo "AMQP support enabled"
+	erlc -pa ebin -W $(CFLAGS) -o ebin $<
+else
+	@echo "AMQP support disabled, set the WITH_AMQP environnement variable to 'yes' to enable it."
+endif
+
 ebin/%.beam: src/%.erl
 	erlc -pa ebin -W $(CFLAGS) -o ebin $<
 ebin/%.beam: src/*/%.erl
