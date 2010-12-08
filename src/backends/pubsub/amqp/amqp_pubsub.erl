@@ -42,12 +42,12 @@ publish(Location, Type, From, Id) ->
 	["", ""] ->
 	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, Location, '_', From, Id});
-	[Org, ""] ->
+	[_, ""] ->
 	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
 	    gen_server:call(?MODULE, {publish, ["", ""], Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, ["", ""], '_', From, Id});
-	[Org, Meeting] ->
+	[Org, _] ->
 	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
 	    gen_server:call(?MODULE, {publish, [Org, ""], Type, From, Id}),
@@ -83,7 +83,7 @@ handle_messages(Channel, Queue, Pid) ->
 	    Pid ! {message, Id}
     end.
 
-handle_call({publish, Location, Type, From, Id}, _From, {Channel} = State) ->
+handle_call({publish, Location, Type, _From, Id}, _From, {Channel} = State) ->
     Queue = params_to_queue(Location, Type),
 
     Exchange = <<>>,
@@ -91,7 +91,7 @@ handle_call({publish, Location, Type, From, Id}, _From, {Channel} = State) ->
     amqp_channel:cast(Channel, Publish, #amqp_msg{payload = list_to_binary(Id)}),
     {reply, ok, State}.
 
-handle_cast({subscribe, Location, Uid, Search, Type, From, Pid}, {Channel} = State) ->
+handle_cast({subscribe, Location, _Uid, _Search, Type, _From, Pid}, {Channel} = State) ->
     Queue = params_to_queue(Location, Type),
 
     % Create queue

@@ -72,7 +72,7 @@ start() ->
 feed([]) ->
     ok;
 feed([Path|Paths]) ->
-    ["config", "samples", Org, Meeting, File] = re:split(Path, "/", [{return, list}]),
+    ["config", "samples", Org, Meeting, _File] = re:split(Path, "/", [{return, list}]),
     event_helpers:feed(Path, [{"location", [Org, Meeting]}]),
     feed(Paths).
 

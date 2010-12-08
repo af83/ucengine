@@ -12,7 +12,7 @@ add(#uce_event{id=none}=Event) ->
     ?MODULE:add(Event#uce_event{id=utils:random()});
 add(#uce_event{datetime=none}=Event) ->
     ?MODULE:add(Event#uce_event{datetime=utils:now()});
-add(#uce_event{location=Location, type=Type, id=Id, from=From, parent=Parent, to=To} = Event) ->
+add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
     case location_helpers:exists(Location) of
 	false ->
 	    {error, not_found};

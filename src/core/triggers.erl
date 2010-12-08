@@ -58,19 +58,7 @@ run([Trigger|Tl], Event) ->
 					      [{timeout, ?TIMEOUT}],
 					      []) of
 			 {'EXIT', _} ->
-			     case http:request(post,
-					       {Url,
-						[],
-						[],
-						"{\"event\":" ++
-						    lists:flatten(event:to_json(Event)) ++
-						    "}"
-					       },
-					       [{timeout, ?TIMEOUT}],
-					       []) of
-				 {'EXIT', Reason} -> {error, Reason};
-				 _ -> ok
-			     end;
+			     {error, bad_parameters};
 			 _ ->
 			     ok
 		     end;

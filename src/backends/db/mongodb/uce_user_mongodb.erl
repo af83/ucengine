@@ -17,7 +17,7 @@
 
 add(#uce_user{} = User) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_user", ?MODULE:to_collection(User)) of
-	{'EXIT', Error} ->
+	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
 	    ok
