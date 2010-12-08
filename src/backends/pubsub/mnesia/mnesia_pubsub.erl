@@ -29,8 +29,24 @@ init([]) ->
 			 {attributes, record_info(fields, uce_mnesia_pubsub)}]),
     {ok, {}}.
 
-publish(Location, Type, From, Message) ->
-    gen_server:call(?MODULE, {publish, Location, Type, From, Message}).
+publish(Location, Type, From, Id) ->
+    case Location of
+	["", ""] ->
+	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, Location, '_', From, Id});
+	[_, ""] ->
+	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
+	    gen_server:call(?MODULE, {publish, ["", ""], Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, ["", ""], '_', From, Id});
+	[Org, _] ->
+	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
+	    gen_server:call(?MODULE, {publish, [Org, ""], Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, [Org, ""], '_', From, Id}),
+	    gen_server:call(?MODULE, {publish, ["", ""], Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, ["", ""], '_', From, Id})
+    end.
 
 subscribe(Pid, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
     [gen_server:cast(?MODULE, {subscribe, Location, Uid, Search, Type, From, Pid}) || Type <- Types].
