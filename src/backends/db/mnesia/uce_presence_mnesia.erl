@@ -15,7 +15,7 @@
 
 init() ->
     mnesia:create_table(uce_presence,
-			[{ram_copies, [node()]},
+			[{disc_copies, [node()]},
 			 {type, set},
 			 {attributes, record_info(fields, uce_presence)}]).
 
