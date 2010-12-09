@@ -2,8 +2,10 @@ $.widget("uce.video", {
     _publish : false,
     // Default options
     options: {
+        ucemeeting : null,
         domain : "localhost",
         stream : "ucengine",
+        token : "",
         width  : 610,
         height : 415
     },
@@ -17,11 +19,14 @@ $.widget("uce.video", {
         if (this._publish)
             return "stream="+ this.options.stream +"&server=rtmp://" + this.options.domain;
         else
-            return "stream="+ this.options.stream +"&streamtype=live&server=rtmp://" + this.options.domain +"&token=p&width="+ this.options.width  +"&height="+ this.options.height;
+            return "stream="+ this.options.stream +"&streamtype=live&server=rtmp://" + this.options.domain +"&token=" + this.options.token + "&width="+ this.options.width  +"&height="+ this.options.height;
     },
     _create: function() {
         this.element.addClass('ui-widget ui-video');
-        $('<embed>').attr(this._videoAttr()).appendTo(this.element);
+        if (this.options.ucemeeting != null)
+            this.options.ucemeeting.bind('video.stream.new', $.proxy(this.handleEvent, this));
+        else
+            $('<embed>').attr(this._videoAttr()).appendTo(this.element);
     },
     _videoAttr: function() {
         return {wmode     : 'transparent',
@@ -46,6 +51,11 @@ $.widget("uce.video", {
     },
     receive: function() {
         this._publish = false;
+        this._updateEmbed();
+    },
+    handleEvent: function(event) {
+        this.options.stream = event.metadata.channel;
+        this.options.token = event.metadata.token;
         this._updateEmbed();
     },
     destroy: function() {

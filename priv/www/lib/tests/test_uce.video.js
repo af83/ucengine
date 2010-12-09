@@ -60,3 +60,19 @@ test("receive video", function() {
     $("#video").video("receive");
     equals(/(receive_video.swf)/.exec($("#video embed").attr('src'))[1], 'receive_video.swf');
 });
+
+jackTest("handle video.stream.new", function() {
+    var ucemeeting = jack.create("ucemeeting", ['bind']);
+     jack.expect("ucemeeting.bind")
+        .exactly("1 time").mock(function(eventName) {
+            equals(eventName, 'video.stream.new');
+        });
+    $("#video").video({ucemeeting: ucemeeting,
+                       "domain": "example.org"});
+    equals($("#video embed").size(), 0);
+    $("#video").video("handleEvent", {"metadata" : {"token" : "123456",
+                                                    "channel" : "channel_1"}});
+    equals($("#video embed").size(), 1);
+    equals(/stream=(\w+)/.exec($("#video embed").attr('flashvars'))[1], 'channel_1');
+    equals(/token=(\w+)/.exec($("#video embed").attr('flashvars'))[1], '123456');
+});
