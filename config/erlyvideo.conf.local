@@ -3,7 +3,7 @@
 {http_port, 8082}.
 {iphone_segment_size, 10000}.
 {rtmp_default_wait, false}.
-{modules,[rtsp,mpegts]}.
+{modules,[rtsp,mpegts,ucengine]}.
 {paths, ["/var/lib/erlyvideo/plugins", "/usr/local/lib/erlyvideo/plugins"]}.
 {file_formats,[mp4_reader,flv_reader,mp3_reader]}.
 {vhosts, [
@@ -23,8 +23,7 @@
 	 ]
 }.
 
-
-
-
-
-
+{ucengine, [{host, "localhost"},
+            {port, 5280},
+            {uid, "erlyvideo"},
+            {token, "da93ae03c1280f82709f857ffa22f0a30c26fa9c"}]}.

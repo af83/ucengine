@@ -32,6 +32,9 @@ namespace :deploy do
   task :build, :once => true do
     run "mkdir #{current_path}/erlyvideo"
     run "mv #{current_path}/* #{current_path}/erlyvideo/. ; true"
+    run "cd #{current_path} && git submodule add -f git://github.com/AF83/erlyvideo-ucengine.git erlyvideo/plugins/ucengine"
+    run "cd #{current_path} && git submodule add https://github.com/dizzyd/ibrowse.git erlyvideo/deps/ibrowse"
+    run "make -C #{current_path}/erlyvideo/deps/ibrowse/"
     run "make -C #{current_path}/erlyvideo"
   end  
 
