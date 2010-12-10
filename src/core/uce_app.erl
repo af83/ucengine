@@ -13,6 +13,7 @@ start() ->
     mnesia:create_schema([node()]),
     application:start(mnesia, permanent),
     application:start(inets),
+    ibrowse:start(),
     application:start(uce).
 
 start(_, _) ->

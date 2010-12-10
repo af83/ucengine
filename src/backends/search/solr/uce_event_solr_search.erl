@@ -14,14 +14,7 @@
 
 add(Event) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
-    httpc:request(post,
-		 {Host ++ ?SOLR_UPDATE,
-		  [],
-		  [],
-		  to_solrxml(Event)
-		 },
-		 [{timeout, ?TIMEOUT}],
-		 []),
+    ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, to_solrxml(Event)),
     ok.
 
 %% Encode event in solrxml format which be used to add solr index
@@ -141,13 +134,11 @@ search(Host, [Org, Meeting], Search, From, Type, Start, End, _) ->
     EncodedParams = [yaws_api:url_encode(Elem) ++ "=" ++ yaws_api:url_encode(Value) ||
 			{Elem, Value} <- Query ++ TimeSelector ++ [{"wt", "json"}]],
 
-    case httpc:request(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")) of
-	{error, _} ->
-	    {error, bad_parameters};	   
-	{ok, {_, _, JSON}} ->
+    case ibrowse:send_req(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&"), [], get) of
+	{ok, _, _, JSON} ->
 	    json_to_events(mochijson:decode(JSON));
-	_ ->
-	    []
+	{error, _} ->
+	    {error, bad_parameters}
     end.
 
 json_to_events({struct, JSON}) ->
@@ -226,12 +217,5 @@ make_list_json_events([{struct, Elems}|Tail]) ->
 
 delete(Id) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
-    httpc:request(post,
-                  {Host ++ ?SOLR_UPDATE,
-                   [],
-                   [],
-                   "<delete><query>"++ Id ++"</query></delete>"
-                  },
-                  [{timeout, ?TIMEOUT}],
-                  []),
+    ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, "<delete><query>"++ Id ++"</query></delete>"),
     ok.

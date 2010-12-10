@@ -22,6 +22,7 @@ $(DIRS):
 ###############################################################################
 compile: $(DIRS) $(BEAM_TARGETS) $(APP_TARGETS)
 	(cd deps/emongo && make)
+	(cd deps/ibrowse && make)
 
 ebin/amqp_pubsub.beam: src/backends/pubsub/amqp/amqp_pubsub.erl
 ifdef WITH_AMQP
