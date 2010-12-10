@@ -11,7 +11,7 @@ Daemons.run_proc('translation') do
   begin
     languages = ["fr", "en", "it"]
     UCEngine.new("localhost", 5280, UCEngine::DEBUG).connect("translation",
-                                            :token => "d713ab03c0280f82709f865ffa2240a38c26f09b") do |uce|
+                                            :credential => "d713ab03c0280f82709f865ffa2240a38c26f09b") do |uce|
       uce.subscribe(["af83", "demo"], :type => "chat.message.new", :start => uce.time) do |event|
         if event['metadata']['lang'] and event['metadata']['text']
           languages.each do |language|
