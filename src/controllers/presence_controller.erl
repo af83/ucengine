@@ -3,17 +3,17 @@
 -export([init/0, delete/3, add/3, check/3]).
 
 -include("uce.hrl").
-
+-include("uce_auth.hrl").
 
 init() ->
     [#uce_route{module="Presence",
 		method='PUT',
 		regexp="/presence/([^/]+)",
 		callbacks=[{?MODULE, add,
-			    ["auth", "credential", "metadata"],
-			    [required, required, []],
-			    [string, string, dictionary],
-			    [any, any, any]}]},
+			    ["credential", "metadata"],
+			    [required, []],
+			    [string, dictionary],
+			    [any, any]}]},
      
      #uce_route{module="Presence",
 		method='DELETE',
@@ -29,17 +29,17 @@ init() ->
 			    [string],
 			    [user]}]}].
 
-add([Uid], [Auth, Credential, Metadata], _) ->
+add([Uid], [Credential, Metadata], _) ->
     case uce_acl:check(Uid, "presence", "add", ["", ""], []) of
 	true ->
 	    case uce_user:get(Uid) of
 		{error, Reason} ->
 		    {error, Reason};
 		#uce_user{} = User ->
-		    case {User#uce_user.auth, User#uce_user.credential} of
-			{Auth, Credential} ->
+		    case catch ?AUTH_MODULE(User#uce_user.auth):check(User, Credential) of
+			true ->
 			    case uce_presence:add(#uce_presence{uid=Uid,
-								auth=Auth,
+								auth=User#uce_user.auth,
 								metadata=Metadata}) of
 				{error, Reason} ->
 				    {error, Reason};
@@ -50,6 +50,8 @@ add([Uid], [Auth, Credential, Metadata], _) ->
 							     metadata=Metadata}),
 				    json_helpers:created(Sid)
 			    end;
+			false ->
+			    {error, bad_credentials};
 			_ ->
 			    {error, bad_credentials}
 		    end
