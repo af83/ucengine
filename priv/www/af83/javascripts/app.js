@@ -101,13 +101,11 @@ function sammyapp() {
         var uid      = this.params['email'];
         var nickname = uid;
         var password = this.params['password'];
-        if (uid) {
-            var auth = "password";
-        } else {
+        if (!uid) {
             return false;
         }
         var that = this;
-        uce.presence.create(auth, password, "af83", uid, nickname, function(err, result, xhr) {
+        uce.presence.create(password, "af83", uid, nickname, function(err, result, xhr) {
             if (err) {
                 return;
             }

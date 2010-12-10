@@ -74,10 +74,9 @@
                 /**
                  * Create user presence
                  */
-                create: function(auth, credential, org, uid, nickname, callback)
+                create: function(credential, org, uid, nickname, callback)
                 {
-                    var params = {"auth" : auth,
-				  "metadata" : {"nickname": nickname, "org": org}};
+                    var params = {"metadata" : {"nickname": nickname, "org": org}};
                     if (credential) {
                         params.credential = credential;
                     }

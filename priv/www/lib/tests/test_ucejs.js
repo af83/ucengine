@@ -75,8 +75,8 @@ test("can be accessed via window.uce", function() {
 
 jackTest("can open a new presence", function() {
     stop();
-    addUceApiCall("post", "/api/0.1/presence/uid", { "_method": "put", "auth": "password", "metadata": {"nickname": "nickname", "org": "myorg"}}, 200, '{"result": "sid"}');
-    uce.presence.create("password", "", "myorg", "uid", "nickname",
+    addUceApiCall("post", "/api/0.1/presence/uid", { "_method": "put", "metadata": {"nickname": "nickname", "org": "myorg"}}, 200, '{"result": "sid"}');
+    uce.presence.create("", "myorg", "uid", "nickname",
                          function(err, presence, xhr) {
                              start();
                              equals(err, null, "shoud not have error");
