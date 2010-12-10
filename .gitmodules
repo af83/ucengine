@@ -1,3 +1,6 @@
 [submodule "deps/emongo"]
 	path = deps/emongo
 	url = https://github.com/boorad/emongo.git
+[submodule "deps/ibrowse"]
+	path = deps/ibrowse
+	url = https://github.com/cmullaparthi/ibrowse.git
