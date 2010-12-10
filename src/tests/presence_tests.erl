@@ -9,7 +9,6 @@ presence_test_() ->
     , fun fixtures:teardown/1
     , fun(Testers) ->
         [ ?_test(test_presence_create_password()),
-	  ?_test(test_presence_create_missing_auth()),
 	  ?_test(test_presence_create_missing_credential()),
 	  ?_test(test_presence_create_bad_password()),
 	  ?_test(test_presence_create_not_found_user()),
@@ -26,12 +25,6 @@ test_presence_create_password() ->
 	      {"auth", "password"},
 	      {"credential", "pwd"}],
     {struct,[{"result", _}]} = tests_utils:put("/presence/participant.user@af83.com", Params).
-
-test_presence_create_missing_auth() ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-	      {"credential", "pwd"}],
-    {struct,[{"error", "missing_parameters"}]} =
-	tests_utils:put("/presence/participant.user@af83.com", Params).
 
 test_presence_create_missing_credential() ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
