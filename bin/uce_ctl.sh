@@ -52,6 +52,18 @@ tests()
     $ERL $NAME $ERLANG_NODE $ERL_ARGS -noshell -eval 'tests:start().'
 }
 
+internal_cmd()
+{
+    exec $ERL			\
+	-pa "ebin/"		\
+	-hidden			\
+	-noinput		\
+	-sname uce_ctl_$$	\
+	-s uce_ctl		\
+	-nodename uce_ctl	\
+	-extra "$@"
+}
+
 case $1 in
     run) run;;
     start) start;;
@@ -59,4 +71,5 @@ case $1 in
     restart) stop; start;;
     stop) stop;;
     tests) tests;;
+    org) internal_cmd $@;;
 esac
