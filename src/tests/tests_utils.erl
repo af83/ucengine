@@ -49,11 +49,11 @@ delete(Path, Params) ->
     mochijson:decode(JSON).
 
 request(Path, Method, Params, ContentType, Body) ->
-     Query = case Params of
-             [] ->
-                "";
-             _ ->
-                "?" ++ url_encode(Params)
+    Query = case Params of
+		[] ->
+		    "";
+		_ ->
+		    "?" ++ url_encode(Params)
             end,
     Request = httpc:request(Method, {?BASE_URL ++ Path ++ Query,
 				     [], ContentType,

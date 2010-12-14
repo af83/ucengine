@@ -15,7 +15,7 @@ test_get() ->
     Diff = Time - utils:now(),
     if
 	Diff > 1000 ->
-	    throw({error, too_much_delay});
+	    throw({error, too_much_delay, Diff});
 	true ->
 	    nothing
     end.

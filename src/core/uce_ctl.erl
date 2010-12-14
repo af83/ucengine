@@ -51,6 +51,8 @@ start() ->
     end,
     [Object, Action | Args] = FullCommand,
     case catch action(list_to_atom(Object), list_to_atom(Action), args_to_dictionary(Args)) of
+	{ok, nothing} ->
+	    nothing;
 	{ok, Result} ->
 	    io:format("Success: ~p~n", [Result]);
 	{error, Reason} ->
@@ -64,9 +66,10 @@ stop() ->
     ok.
 
 usage() ->
-    nothing.
+    io:format("Usage:~n"),
+    {ok, nothing}.
 
-getopt(Keys, []) ->
+getopt(_Keys, []) ->
     {[], []};
 getopt(Keys, [{Key, Value} | Tail]) ->
     {Wanted, Remaining} = getopt(Keys, Tail),
@@ -80,10 +83,15 @@ getopt(Keys, [{Key, Value} | Tail]) ->
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
     NodeStr = "ucengine@localhost",
-    rpc:call(list_to_atom(NodeStr), Module, Action, [Args]).
+    rpc:call(list_to_atom(NodeStr), Module, Action, Args).
 
 format_field([], []) ->
     [];
+format_field([Metadata|Values], [metadata|Fields]) ->
+    FormattedMetadata =
+	[io_lib:format("metadata[~p]: ~p", [Key, Value]) || {Key, Value} <- Metadata],
+    string:join(FormattedMetadata, "~n") ++ format_field(Values, Fields);
+
 format_field([Value|Values], [Field|Fields]) ->
     io_lib:format("~p: ~p~n", [Field, Value]) ++ format_field(Values, Fields).
 
@@ -93,10 +101,20 @@ format(Record, Fields) ->
 
 action(org, add, Args) ->
     {[Name], Metadata} = getopt(["name"], Args),
-    call(org, add, #uce_org{name=Name, metadata=Metadata});
+    call(org, add, [#uce_org{name=Name, metadata=Metadata}]);
 
 action(org, get, Args) ->
-    NodeStr = "ucengine@localhost",
+    {[Name], _} = getopt(["name"], Args),
+    Response = call(org, get, [Name]),
+    format(Response, record_info(fields, uce_org));
+
+action(org, update, Args) ->
     {[Name], Metadata} = getopt(["name"], Args),
-    Response = call(org, get, Name),
-    format(Response, record_info(fields, uce_org)).
+    call(org, update, [#uce_org{name=Name, metadata=Metadata}]);
+
+action(org, delete, Args) ->
+    {[Name], _} = getopt(["name"], Args),
+    call(org, update, [Name]);
+
+action(_, _, _) ->
+    usage().
