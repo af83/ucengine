@@ -82,11 +82,21 @@ call(Object, Action, Args) ->
     NodeStr = "ucengine@localhost",
     rpc:call(list_to_atom(NodeStr), Module, Action, [Args]).
 
+format_field([], []) ->
+    [];
+format_field([Value|Values], [Field|Fields]) ->
+    io_lib:format("~p: ~p~n", [Field, Value]) ++ format_field(Values, Fields).
+
+format(Record, Fields) ->
+    [_|Values] = tuple_to_list(Record),
+    format_field(Values, Fields).
+
 action(org, add, Args) ->
     {[Name], Metadata} = getopt(["name"], Args),
     call(org, add, #uce_org{name=Name, metadata=Metadata});
+
 action(org, get, Args) ->
     NodeStr = "ucengine@localhost",
     {[Name], Metadata} = getopt(["name"], Args),
     Response = call(org, get, Name),
-    rpc:call(list_to_atom(NodeStr), utils, format, [Response]).
+    format(Response, record_info(fields, uce_org)).
