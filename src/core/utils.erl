@@ -2,6 +2,8 @@
 
 -author('tbomandouki@af83.com').
 
+-include("uce.hrl").
+
 -export([
 	 now/0,
 	 token/0,
@@ -10,8 +12,10 @@
 	 random/0,
 	 random/1,
 	 get/2,
-	 get/3
+	 get/3,
 %	 timestamp_to_ical_date/1
+
+	 format/1
 	]).
 
 %% Get current timestamp
@@ -64,3 +68,27 @@ get(Params, [Key|Keys], [Default|Defaults]) ->
 %% 	end;
 %% timestamp_to_ical_date(_) -> "".
 
+format(R) when is_atom(R) -> atom_to_list(R);
+format(Tuple) when is_tuple(Tuple) ->
+	HdList = tuple_to_list(Tuple),
+	RecName = hd(HdList),
+	RecFieldsValue = tl(HdList),
+	RecFields = mnesia:table_info(RecName, attributes),
+	FieldsStr = format_fields(RecFields, RecFieldsValue),
+	lists:flatten(atom_to_list(RecName) ++ "~n" ++ FieldsStr);
+format([HdTuple | TlTuple]) when is_tuple(HdTuple) ->
+	lists:flatten(format(HdTuple) ++ format(TlTuple));
+format([]) -> "[]";
+format(_) -> "Unknown returned value".	
+
+format_fields([], []) -> "";
+format_fields([Field | Fields], [Value | Values]) when Field == location ; Field == roster ->
+	[ "metadata["++Key++"] = " ++ string:join(Val, ", ") ++ "~n" || {Key, Val} <- Value ] ++ format_fields(Fields, Values);	
+format_fields([metadata | Fields], [Value | Values]) when is_list(Value) ->
+	[ "metadata["++Key++"] = " ++ Val ++ "~n" || {Key, Val} <- Value ] ++ format_fields(Fields, Values);	
+format_fields([Field | Fields], [Value | Values]) when is_integer(Value) ->
+	atom_to_list(Field) ++ " = " ++ integer_to_list(Value) ++ "~n" ++ format_fields(Fields, Values);
+format_fields([Field | Fields], [Value | Values]) when is_atom(Value) ->
+	atom_to_list(Field) ++ " = " ++ atom_to_list(Value) ++ "~n" ++ format_fields(Fields, Values);
+format_fields([Field | Fields], [Value | Values]) when is_list(Value) ->
+	atom_to_list(Field) ++ " = " ++ Value ++ "~n" ++ format_fields(Fields, Values).

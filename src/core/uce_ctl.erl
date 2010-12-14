@@ -56,7 +56,7 @@ start() ->
 	{error, Reason} ->
 	    io:format("Error: ~p~n", [Reason]);
 	Exception ->
-	    io:format("Fatal: ~p~n", [Exception])
+	    io:format("Fatal: " ++ Exception ++ "~n")
     end,
     halt().
 
@@ -84,4 +84,9 @@ call(Object, Action, Args) ->
 
 action(org, add, Args) ->
     {[Name], Metadata} = getopt(["name"], Args),
-    call(org, add, #uce_org{name=Name, metadata=Metadata}).
+    call(org, add, #uce_org{name=Name, metadata=Metadata});
+action(org, get, Args) ->
+    NodeStr = "ucengine@localhost",
+    {[Name], Metadata} = getopt(["name"], Args),
+    Response = call(org, get, Name),
+    rpc:call(list_to_atom(NodeStr), utils, format, [Response]).
