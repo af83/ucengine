@@ -20,7 +20,7 @@ ERL_ARGS="+K true +P 65535 +A 2 -pa ebin -run uce_app  \
           -kernel error_logger {file,\"${LOG_DIR}/ucengine.log\"} \
           -os_mon start_memsup false"
 
-ERL_COMMANDS=" -eval demo:start()"
+ERL_COMMANDS=""
 PIDFILE=tmp/ucengine.pid
 
 export ERL_LIBS=deps:/usr/lib/yaws/
@@ -72,4 +72,5 @@ case $1 in
     stop) stop;;
     tests) tests;;
     org) internal_cmd $@;;
+    demo) internal_cmd $@;;
 esac
