@@ -54,30 +54,30 @@ init() ->
 
 add([Name], [Uid, Metadata], _) ->
     case uce_acl:check(Uid, "org", "add", ["", ""], [{"name", Name}]) of
-	true ->
+	{ok, true} ->
 	    case uce_org:add(#uce_org{name=Name, metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, created} ->
 		    uce_event:add(#uce_event{from=Uid,
 					     type="internal.org.add",
 					     metadata=[{"name", Name}]}),
 		    json_helpers:created()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
 update([Name], [Uid, Metadata], _) ->
     case uce_acl:check(Uid, "org", "update", ["", ""], [{"name", Name}]) of
-	true ->
+	{ok, true} ->
 	    case uce_org:update(#uce_org{name=Name, metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, updated} ->
 		    json_helpers:ok()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
@@ -85,19 +85,19 @@ get([Name], [], _) ->
     case uce_org:get(Name) of
 	{error, Reason} ->
 	    {error, Reason};
-	Org ->
+	{ok, Org} ->
 	    json_helpers:json(org_helpers:to_json(Org))
     end.
 
 list([], [Uid], _) ->
     case uce_acl:check(Uid, "org", "list", ["", ""], []) of
-	true ->
+	{ok, true} ->
 	    case uce_org:list() of
 		{error, Reason} ->
 		    {error, Reason};
-		Orgs ->
+		{ok, Orgs} ->
 		    json_helpers:json({array, [org_helpers:to_json(Org) || Org <- Orgs]})
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.

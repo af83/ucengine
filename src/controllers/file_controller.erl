@@ -63,34 +63,34 @@ init() ->
 
 add(Location, [EUid, Name, Uri, Metadata], _) ->
     case uce_acl:check(EUid, "file", "add", Location, []) of
-	true ->
+	{ok, true} ->
 	    case uce_file:add(#uce_file{location=Location,
 					name=Name,
 					uri=Uri,
 					metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
-		Id ->
+		{ok, Id} ->
 		    uce_event:add(#uce_event{location=Location,
 					     from=EUid,
 					     type="internal.file.add",
 					     metadata=[{"id", Id}]}),
 		    file_helpers:upload(Id)
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
 list(Location, [EUid], _) ->
     case uce_acl:check(EUid, "file", "list", Location, []) of
-	true ->		    
+	{ok, true} ->
 	    case uce_file:list(Location) of
 		{error, Reason} ->
 		    {error, Reason};
-		Files ->
+		{ok, Files} ->
 		    json_helpers:json({array, [file_helpers:to_json(File) || File <- Files]})
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
@@ -109,11 +109,11 @@ sanitize_file_name([]) ->
 
 get([Org, Meeting, Id], [EUid], _) ->
     case uce_acl:check(EUid, "file", "get", [Org, Meeting], [{"id", Id}]) of
-	true ->
+	{ok, true} ->
 	    case uce_file:get(Id) of
 		{error, Reason} ->
 		    {error, Reason};
-		File ->
+		{ok, File} ->
 		    case re:run(File#uce_file.uri, "^([^/]+)://(.+)", [{capture, all, list}]) of
 			{match, [_, "file", UnsafePath]} ->
 			    Path = config:get(datas) ++ "/" ++ sanitize_file_name(UnsafePath),
@@ -127,19 +127,19 @@ get([Org, Meeting, Id], [EUid], _) ->
 			    {error, not_implemented}
 		    end
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
 delete([Org, Meeting, Id], [EUid], _) ->
     case uce_acl:check(EUid, "file", "delete", [Org, Meeting], [{"id", Id}]) of
-	true ->
+	{ok, true} ->
 	    case uce_file:delete(Id) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, deleted} ->
 		    json_helpers:ok()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.

@@ -22,7 +22,7 @@ add(#uce_user{} = User) ->
 			       mnesia:write(User)
 		       end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, created};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -32,7 +32,7 @@ delete(EUid) ->
 				    mnesia:delete({uce_user, EUid})
 			    end) of
 	{atomic, ok} ->
-	    ok;
+	    {ok, deleted};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -42,20 +42,20 @@ update(#uce_user{} = User) ->
 			       mnesia:write(User)
 		       end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, updated};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
 
 list() ->
-    ets:tab2list(uce_user).
+    {ok, ets:tab2list(uce_user)}.
 
 get(EUid) ->
     case mnesia:transaction(fun() ->
 				    mnesia:read(uce_user, EUid)
 			    end) of
 	{atomic, [Record]} ->
-	    Record;
+	    {ok, Record};
 	{atomic, _} ->
 	    {error, not_found};
 	{aborted, Reason} ->

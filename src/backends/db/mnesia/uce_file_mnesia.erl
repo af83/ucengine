@@ -19,7 +19,7 @@ add(#uce_file{} = File) ->
 				    mnesia:write(File)
 			    end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, created};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -27,13 +27,13 @@ add(#uce_file{} = File) ->
 list(Location) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_file{id='_',
-								    name='_',
-								    location=Location,
-								    uri='_',
-								    metadata='_'})
+								  name='_',
+								  location=Location,
+								  uri='_',
+								  metadata='_'})
 			    end) of
 	{atomic, Files} ->
-	    Files;
+	    {ok, Files};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -43,7 +43,7 @@ get(Id) ->
 				    mnesia:read(uce_file, Id)
 			    end) of
 	{atomic, [File]} ->
-	    File;
+	    {ok, File};
 	{aborted, Reason} ->
 	    {error, Reason};
 	_ ->
@@ -55,7 +55,7 @@ delete(Id) ->
 				    mnesia:delete({uce_file, Id})
 			    end) of
 	{atomic, ok} ->
-	    ok;
+	    {ok, deleted};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.

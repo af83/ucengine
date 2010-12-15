@@ -70,16 +70,16 @@ check([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
 							      {"object", Object},
 							      {"org", Org},
 							      {"meeting", Meeting}] ++ Conditions) of
-	true ->
+	{ok, true} ->
 	    case uce_acl:check(To, Object, Action, [Org, Meeting], Conditions) of
 		{error, Reason} ->
 		    {error, Reason};
-		true ->
+		{ok, true} ->
 		    json_helpers:true();
-		false ->
+		{ok, false} ->
 		    json_helpers:false()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
@@ -93,7 +93,7 @@ add([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
 							    {"object", Object},
 							    {"org", Org},
 							    {"meeting", Meeting}] ++ Conditions) of
-	true ->
+	{ok, true} ->
 	    case uce_acl:add(#uce_acl{uid=To,
 				      action=Action,
 				      object=Object,
@@ -101,10 +101,10 @@ add([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
 				      conditions=Conditions}) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, created} ->
 		    json_helpers:created()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
@@ -116,13 +116,13 @@ delete([To, Object, Action, Org, Meeting], [EUid, Conditions], _) ->
     case uce_acl:check(EUid, "acl", "delete", [Org, Meeting], [{"user", To},
 							       {"action", Action},
 							       {"object", Object}] ++ Conditions) of
-	true ->
+	{ok, true} ->
 	    case uce_acl:delete(To, Object, Action, [Org, Meeting], Conditions) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, deleted} ->
 		    json_helpers:ok()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.

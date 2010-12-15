@@ -31,11 +31,11 @@ init() ->
 
 add([Uid], [Credential, Metadata], _) ->
     case uce_acl:check(Uid, "presence", "add", ["", ""], []) of
-	true ->
+	{ok, true} ->
 	    case uce_user:get(Uid) of
 		{error, Reason} ->
 		    {error, Reason};
-		#uce_user{} = User ->
+		{ok, #uce_user{} = User} ->
 		    case catch ?AUTH_MODULE(User#uce_user.auth):check(User, Credential) of
 			true ->
 			    case uce_presence:add(#uce_presence{uid=Uid,
@@ -43,7 +43,7 @@ add([Uid], [Credential, Metadata], _) ->
 								metadata=Metadata}) of
 				{error, Reason} ->
 				    {error, Reason};
-				Sid ->
+				{ok, Sid} ->
 				    uce_event:add(#uce_event{location=["", ""],
 							     from=Uid,
 							     type="internal.presence.add",
@@ -56,23 +56,23 @@ add([Uid], [Credential, Metadata], _) ->
 			    {error, bad_credentials}
 		    end
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
 delete([ToUid, ToSid], [Uid], _) ->
     case uce_acl:check(Uid, "presence", "delete", ["", ""], [{"user", ToUid}]) of
-	true ->
+	{ok, true} ->
 	    case uce_presence:delete(ToSid) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, deleted} ->
 		    uce_event:add(#uce_event{location=["", ""],
 					     from=Uid,
 					     type="internal.presence.delete"}),
 		    json_helpers:json(ok)
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
@@ -80,7 +80,7 @@ check(_, [Uid, Sid], _) ->
     case uce_presence:get(Sid) of
 	{error, Reason} ->
 	    {error, Reason};
-	Presence ->
+	{ok, Presence} ->
 	    case Presence#uce_presence.uid of
 		Uid ->
 		    {ok, continue};

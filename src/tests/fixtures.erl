@@ -140,16 +140,16 @@ setup_testers() ->
 			 action="all",
 			 object="all",
 			 conditions=[]}),    
-    RootSid = uce_presence:add(#uce_presence{uid=RootUid,
-					     auth="password",
-					     metadata=[]}),
+    {ok, RootSid} = uce_presence:add(#uce_presence{uid=RootUid,
+						   auth="password",
+						   metadata=[]}),
     UglyUid = "ugly.user@af83.com",
     uce_user:add(#uce_user{uid=UglyUid,
 			   auth="password",
 			   credential="pwd"}),
-    UglySid = uce_presence:add(#uce_presence{uid=UglyUid,
-					     auth="password",
-					     metadata=[]}),
+    {ok, UglySid} = uce_presence:add(#uce_presence{uid=UglyUid,
+						   auth="password",
+						   metadata=[]}),
     [{RootUid, RootSid}, {UglyUid, UglySid}].
 
 teardown_testers([{RootUid, RootSid}, {UglyUid, UglySid}]) ->

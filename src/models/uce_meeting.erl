@@ -37,7 +37,7 @@ update(#uce_meeting{} = Meeting) ->
     case ?MODULE:get(Meeting#uce_meeting.id) of
 	{error, Reason} ->
 	    {error, Reason};
-	_ ->
+	{ok, _} ->
 	    ?DB_MODULE:update(Meeting)
     end.
 
@@ -47,38 +47,45 @@ list(Org, Status) ->
 	    {error, not_found};
 	true ->
 	    Now = utils:now(),
-	    if
-		Status == "all"; Status=="upcoming"; Status=="opened"; Status=="closed" ->
-		    lists:filter(fun(#uce_meeting{start_date=Start, end_date=End}) ->
-					 case Status of
-					     "all" ->
-						 true;
-					     "upcoming" ->
-						 Now < Start;
-					     "opened" ->
-						 case Now >= Start of
-						     true ->
-							 if					     
-							     End == ?NEVER_ENDING_MEETING -> true;
-							     Now =< End -> true;
-							     true -> false
-							 end;
-						     false ->
-							 false
-						 end;
-					     "closed" ->
-						 if
-						     End == ?NEVER_ENDING_MEETING -> false;
-						     Now >= End -> true;
-						     true -> false
-						 end;
-					     _ ->
-						 false
-					 end
-				 end,
-				 ?DB_MODULE:list(Org));
-		true ->
-		    {error, bad_parameters}
+	    case ?DB_MODULE:list(Org) of
+		{error, Reason} ->
+		    {error, Reason};
+		{ok, Meetings} ->
+		    if
+			Status == "all"; Status=="upcoming"; Status=="opened"; Status=="closed" ->
+			    FilteredMeetings =
+				lists:filter(fun(#uce_meeting{start_date=Start, end_date=End}) ->
+						     case Status of
+							 "all" ->
+							     true;
+							 "upcoming" ->
+							     Now < Start;
+							 "opened" ->
+							     case Now >= Start of
+								 true ->
+								     if					     
+									 End == ?NEVER_ENDING_MEETING -> true;
+									 Now =< End -> true;
+									 true -> false
+								     end;
+								 false ->
+								     false
+							     end;
+							 "closed" ->
+							     if
+								 End == ?NEVER_ENDING_MEETING -> false;
+								 Now >= End -> true;
+								 true -> false
+							     end;
+							 _ ->
+							     false
+						     end
+					     end,
+					     Meetings),
+			    {ok, FilteredMeetings};
+			true ->
+			    {error, bad_parameters}
+		    end
 	    end
     end.
 
@@ -98,13 +105,13 @@ join(Id, Uid) when is_list(Uid) ->
 	    case ?MODULE:get(Id) of
 		{error, Reason} ->
 		    {error, Reason};
-		#uce_meeting{} = Meeting ->
+		{ok, #uce_meeting{} = Meeting} ->
 		    case lists:member(Uid, Meeting#uce_meeting.roster) of
 			false ->
 			    Roster = Meeting#uce_meeting.roster ++ [Uid],
 			    ?MODULE:update(Meeting#uce_meeting{roster=Roster});
 			true ->
-			    ok
+			    {ok, updated}
 		    end
 	    end
     end.	
@@ -117,7 +124,7 @@ leave(Id, Uid) when is_list(Uid) ->
 	    case ?MODULE:get(Id) of
 		{error, Reason} ->
 		    {error, Reason};
-		#uce_meeting{} = Meeting ->
+		{ok, #uce_meeting{} = Meeting} ->
 		    case lists:member(Uid, Meeting#uce_meeting.roster) of
 			false ->
 			    {error, not_found};
@@ -132,6 +139,6 @@ roster(Id) ->
     case ?MODULE:get(Id) of
 	{error, Reason} ->
 	    {error, Reason};
-	#uce_meeting{} = Meeting ->
-	    Meeting#uce_meeting.roster
+	{ok, #uce_meeting{} = Meeting} ->
+	    {ok, Meeting#uce_meeting.roster}
     end.

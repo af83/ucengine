@@ -24,7 +24,7 @@ add(#uce_presence{}=Presence) ->
 				    mnesia:write(Presence)
 			    end) of
 	{atomic, _} ->
-	    Presence#uce_presence.sid;
+	    {ok, Presence#uce_presence.sid};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -39,9 +39,9 @@ list(EUid) ->
 								      metadata='_'})
 			    end) of
 	{atomic, []} ->
-	    [];
+	    {ok, []};
 	{atomic, Records} ->
-	    Records;
+	    {ok, Records};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -51,7 +51,7 @@ get(ESid) ->
 				    mnesia:read(uce_presence, ESid)
 			    end) of
 	{atomic, [Record]} ->
-	    Record;
+	    {ok, Record};
 	{atomic, _} ->
 	    {error, not_found};
 	{aborted, Reason} ->
@@ -63,7 +63,7 @@ delete(Sid) ->
 				     mnesia:delete({uce_presence, Sid})
 			     end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, deleted};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -73,7 +73,7 @@ update(#uce_presence{}=Presence) ->
 				       mnesia:write(Presence)
 			    end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, updated};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.

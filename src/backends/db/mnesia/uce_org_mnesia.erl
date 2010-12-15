@@ -24,7 +24,7 @@ add(#uce_org{}=Org) ->
 			       mnesia:write(Org)
 		       end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, created};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -34,7 +34,7 @@ update(#uce_org{}=Org) ->
 				    mnesia:write(Org)
 			    end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, updated};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -44,7 +44,7 @@ get(Name) ->
 				    mnesia:read(uce_org, Name)
 			    end) of
 	{atomic, [Record]} ->
-	    Record;
+	    {ok, Record};
 	{atomic, _} ->
 	    {error, not_found};
 	{aborted, Reason} ->
@@ -56,10 +56,10 @@ delete(Name) ->
 				    mnesia:delete({uce_org, Name})
 			    end) of
 	{atomic, ok} ->
-	    ok;
+	    {ok, deleted};
 	{aborted, Reason} ->
 	    {aborted, Reason}
     end.
 
 list() ->
-    ets:tab2list(uce_org).
+    {ok, ets:tab2list(uce_org)}.

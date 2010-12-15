@@ -30,10 +30,10 @@ check(Uid, Object, Action, Location, Conditions) ->
     case ?DB_MODULE:list(Uid, Object, Action) of
 	{error, Reason} ->
 	    {error, Reason};
-	ACL ->
+	{ok, ACL} ->
 	    case filter_location(ACL, Location) of
 		[] ->
-		    false;
+		    {ok, false};
 		FilteredACL ->
 		    check_conditions(FilteredACL, Conditions)
 	    end
@@ -58,13 +58,13 @@ filter_location(ACL, [RequiredOrg, RequiredMeeting]) ->
 		 ACL).
 
 check_conditions([], _) ->
-    false;
+    {ok, false};
 check_conditions(_, []) ->
-    true;
+    {ok, true};
 check_conditions([#uce_acl{conditions=Conditions}|Tail], Required) ->
     case Conditions of
 	[] ->
-	    true;
+	    {ok, true};
 	_ ->
 	    case lists:filter(fun({Key, Value}) ->
 				      case lists:keyfind(Key, 1, Required) of
@@ -82,7 +82,7 @@ check_conditions([#uce_acl{conditions=Conditions}|Tail], Required) ->
 		[] ->
 		    check_conditions(Tail, Required);
 		_ ->
-		    true
+		    {ok, true}
 	    end
     end.
 

@@ -20,7 +20,7 @@ add(#uce_org{}=Org) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, created}
     end.
 
 update(#uce_org{}=Org) ->
@@ -32,7 +32,7 @@ update(#uce_org{}=Org) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, updated}
     end.
 
 get(Name) ->
@@ -40,7 +40,7 @@ get(Name) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Collection] ->
-	    ?MODULE:from_collection(Collection);
+	    {ok, ?MODULE:from_collection(Collection)};
 	_ ->
 	    {error, not_found}
     end.
@@ -50,7 +50,7 @@ delete(Name) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, deleted}
     end.
 
 list() ->
@@ -58,17 +58,17 @@ list() ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
-	    lists:map(fun(Collection) ->
-			      ?MODULE:from_collection(Collection)
-		      end,
-		      Collections)
+	    Orgs = lists:map(fun(Collection) ->
+				     ?MODULE:from_collection(Collection)
+			     end,
+			     Collections),
+	    {ok, Orgs}
     end.
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection), ["name", "metadata"]) of
 	[Name, Metadata] ->
-	    #uce_org{name=Name,
-		       metadata=Metadata};
+	    #uce_org{name=Name, metadata=Metadata};
 	_ ->
 	    {error, bad_parameters}
     end.

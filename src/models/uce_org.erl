@@ -22,7 +22,7 @@ update(#uce_org{}=Org) ->
     case ?MODULE:get(Org#uce_org.name) of
 	{error, Reason} ->
 	    {error, Reason};
-	_ ->
+	{ok, _} ->
 	    ?DB_MODULE:update(Org)
     end.
 
@@ -33,7 +33,7 @@ delete(Name) ->
     case ?MODULE:get(Name) of
 	{error, Reason} ->
 	    {error, Reason};
-	_ ->
+	{ok, _} ->
 	    ?DB_MODULE:delete(Name)
     end.
 
@@ -44,6 +44,6 @@ exists(Name) ->
     case ?MODULE:get(Name) of
 	{error, _} ->
 	    false;
-	_ ->
+	{ok, _} ->
 	    true
     end.

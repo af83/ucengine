@@ -85,35 +85,35 @@ init() ->
 			    [string],
 			    [user]}]}].
 
-add([Org, Name], [EUid, Start, End, Metadata], _) ->
-    case uce_acl:check(EUid, "meeting", "add", [Org, ""], [{"name", Name}]) of
-	true ->
+add([Org, Name], [Uid, Start, End, Metadata], _) ->
+    case uce_acl:check(Uid, "meeting", "add", [Org, ""], [{"name", Name}]) of
+	{ok, true} ->
 	    case uce_meeting:add(#uce_meeting{id=[Org, Name],
 					      start_date=Start,
 					      end_date=End,
 					      metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, created} ->
 		    json_helpers:created()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
-update([Org, Name], [EUid, Start, End, Metadata], _) ->
-    case uce_acl:check(EUid, "meeting", "update", [Org, ""], [{"name", Name}]) of
-	true ->
+update([Org, Name], [Uid, Start, End, Metadata], _) ->
+    case uce_acl:check(Uid, "meeting", "update", [Org, ""], [{"name", Name}]) of
+	{ok, true} ->
 	    case uce_meeting:update(#uce_meeting{id=[Org, Name],
 						 start_date=Start,
 						 end_date=End,
 						 metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, updated} ->
 		    json_helpers:ok()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
@@ -121,7 +121,7 @@ list([Org, Status], [], _) ->
     case uce_meeting:list(Org, Status) of
 	{error, Reason} ->
 	    {error, Reason};
-	Meetings ->
+	{ok, Meetings} ->
 	    json_helpers:json({array, [meeting_helpers:to_json(Meeting) || Meeting <- Meetings]})
     end.
 
@@ -129,63 +129,63 @@ get(Location, [], _) ->
     case uce_meeting:get(Location) of
 	{error, Reason} ->
 	    {error, Reason};
-	Meeting ->
+	{ok, Meeting} ->
 	    json_helpers:json(meeting_helpers:to_json(Meeting))
     end.
 
-join([Org, Meeting, To], [EUid], _) ->
-    case uce_acl:check(EUid, "roster", "add", [Org, Meeting], []) of
-	true ->
+join([Org, Meeting, To], [Uid], _) ->
+    case uce_acl:check(Uid, "roster", "add", [Org, Meeting], []) of
+	{ok, true} ->
 	    case uce_meeting:join([Org, Meeting], To) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, updated} ->
 		    uce_event:add(#uce_event{type="internal.roster.add",
 					     location=[Org, Meeting],
 					     from=To}),
 		    json_helpers:ok()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
-leave([Org, Meeting, To], [EUid], _) ->
-    case uce_acl:check(EUid, "roster", "delete", [Org, Meeting], []) of
-	true ->
+leave([Org, Meeting, To], [Uid], _) ->
+    case uce_acl:check(Uid, "roster", "delete", [Org, Meeting], []) of
+	{ok, true} ->
 	    case uce_meeting:leave([Org, Meeting], To) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, updated} ->
 		    uce_event:add(#uce_event{type="internal.roster.delete",
 					     location=[Org, Meeting],
 					     from=To}),
 		    json_helpers:ok()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
-roster(Location, [EUid], _) ->
-    case uce_acl:check(EUid, "roster", "list", Location, []) of
-	true ->
+roster(Location, [Uid], _) ->
+    case uce_acl:check(Uid, "roster", "list", Location, []) of
+	{ok, true} ->
 	    case uce_meeting:roster(Location) of
 		{error, Reason} ->
 		    {error, Reason};
-		Roster ->
+		{ok, Roster} ->
 		    FullRoster =
-			lists:map(fun(MemberEUid) ->
-					  case uce_user:get(MemberEUid) of
-					      User when is_record(User, uce_user) ->
+			lists:map(fun(MemberUid) ->
+					  case uce_user:get(MemberUid) of
+					      {ok, User} ->
 						  {struct, [{uid, User#uce_user.uid},
 							    {auth, User#uce_user.auth},
 							    {metadata, {struct, User#uce_user.metadata}}]};
-					      _ ->
-						  nothing
+					      {error, _} ->
+						  []
 					  end
 				  end,
 				  Roster),
 		    json_helpers:json({array, FullRoster})
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.

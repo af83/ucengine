@@ -19,7 +19,7 @@ add(#uce_file{} = File) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, created}
     end.
 
 list(Location) ->
@@ -27,7 +27,7 @@ list(Location) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Files ->
-	    [?MODULE:from_collection(File) || File <- Files]
+	    {ok, [?MODULE:from_collection(File) || File <- Files]}
     end.
 
 get(Id) ->
@@ -35,7 +35,7 @@ get(Id) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[File] ->
-	    ?MODULE:from_collection(File);
+	    {ok, ?MODULE:from_collection(File)};
 	_ ->
 	    {error, not_found}
     end.
@@ -45,7 +45,7 @@ delete(Id) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, deleted}
     end.
 
 from_collection(Collection) ->

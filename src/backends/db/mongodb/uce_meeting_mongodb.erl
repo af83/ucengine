@@ -20,7 +20,7 @@ add(#uce_meeting{} = Meeting) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, created}
     end.
 
 delete([Org, Meeting]) ->
@@ -29,7 +29,7 @@ delete([Org, Meeting]) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, deleted}
     end.
 
 get([Org, Meeting]) ->
@@ -38,7 +38,7 @@ get([Org, Meeting]) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Record] ->
-	    ?MODULE:from_collection(Record);
+	    {ok, ?MODULE:from_collection(Record)};
 	_ ->
 	    {error, not_found}
     end.
@@ -50,7 +50,7 @@ update(#uce_meeting{id=[OrgName, MeetingName]} = Meeting) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, updated}
     end.
 
 list(Org) ->
@@ -58,10 +58,11 @@ list(Org) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
-	    lists:map(fun(Collection) ->
-			      ?MODULE:from_collection(Collection)
-		      end,
-		      Collections)
+	    Meetings = lists:map(fun(Collection) ->
+					 ?MODULE:from_collection(Collection)
+				 end,
+				 Collections),
+	    {ok, Meetings}
     end.
 
 

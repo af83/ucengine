@@ -18,7 +18,7 @@ add(#uce_acl{}=ACL) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, created}
     end.
 
 delete(Uid, Object, Action, Location, Conditions) ->
@@ -34,7 +34,7 @@ delete(Uid, Object, Action, Location, Conditions) ->
 		{'EXIT', _} ->
 		    {error, bad_parameters};
 		_ ->
-		    ok
+		    {ok, deleted}
 	    end
     end.
 
@@ -50,19 +50,21 @@ list(Uid, Object, Action) ->
 				    ?MODULE:from_collection(Collection)
 			    end,
 			    ACLCollections),
-	    AllActions = case Action of
-			     "all" ->
-				 [];
-			     _ ->
-				 ?MODULE:list(Uid, Object, "all")
-			 end,
-	    AllObjects = case Object of
-			     "all" ->
-				 [];
-			     _ ->
-				 ?MODULE:list(Uid, "all", Action)
-			 end,
-	    ACL ++ AllActions ++ AllObjects
+	    {ok, AllActions} =
+		case Action of
+		    "all" ->
+			{ok, []};
+		    _ ->
+			?MODULE:list(Uid, Object, "all")
+		end,
+	    {ok, AllObjects} =
+		case Object of
+		    "all" ->
+			{ok, []};
+		    _ ->
+			?MODULE:list(Uid, "all", Action)
+		end,
+	    {ok, ACL ++ AllActions ++ AllObjects}
     end.
 
 from_collection(Collection) ->

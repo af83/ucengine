@@ -24,7 +24,7 @@ add(#uce_meeting{} = Meeting) ->
 			       mnesia:write(Meeting)
 		       end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, created};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -34,7 +34,7 @@ delete(Id) ->
 				    mnesia:delete({uce_meeting, Id})
 			    end) of
 	{atomic, ok} ->
-	    ok;
+	    {ok, deleted};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -44,7 +44,7 @@ get(Id) ->
 				    mnesia:read(uce_meeting, Id)
 			    end) of
 	{atomic, [Record]} ->
-	    Record;
+	    {ok, Record};
 	{atomic, _} ->
 	    {error, not_found};
 	{aborted, Reason} ->
@@ -56,7 +56,7 @@ update(#uce_meeting{} = Meeting) ->
 				    mnesia:write(Meeting)
 			    end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, updated};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -64,13 +64,13 @@ update(#uce_meeting{} = Meeting) ->
 list(Org) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_meeting{id=[Org, '_'],
-								       start_date='_',
-								       end_date='_',
-								       roster='_',
-								       metadata='_'})
+								     start_date='_',
+								     end_date='_',
+								     roster='_',
+								     metadata='_'})
 			    end) of
 	{atomic, Meetings} ->
-	    Meetings;
+	    {ok, Meetings};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.

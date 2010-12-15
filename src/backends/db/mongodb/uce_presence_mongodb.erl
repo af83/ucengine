@@ -20,7 +20,7 @@ add(#uce_presence{}=Presence) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    Presence#uce_presence.sid
+	    {ok, Presence#uce_presence.sid}
     end.
 
 list(EUid) ->
@@ -28,10 +28,11 @@ list(EUid) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
-	    lists:map(fun(Collection) ->
-			      ?MODULE:from_collection(Collection)
-		      end,
-		      Collections)
+	    Presences = lists:map(fun(Collection) ->
+					  ?MODULE:from_collection(Collection)
+				  end,
+				  Collections),
+	    {ok, Presences}
     end.
 
 get(ESid) ->
@@ -39,7 +40,7 @@ get(ESid) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Collection] ->
-	    ?MODULE:from_collection(Collection);
+	    {ok, ?MODULE:from_collection(Collection)};
 	_ ->
 	    {error, not_found}
     end.
@@ -49,7 +50,7 @@ delete(Sid) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, deleted}
     end.
 
 update(#uce_presence{}=Presence) ->
@@ -59,7 +60,7 @@ update(#uce_presence{}=Presence) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, udpated}
     end.
 
 

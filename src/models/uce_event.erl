@@ -20,7 +20,7 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
 	    case ?DB_MODULE:add(Event) of
 		{error, Reason} ->
 		    {error, Reason};
-		_ ->
+		{ok, created} ->
 		    ?PUBSUB_MODULE:publish(Location, Type, From, Id),
 		    ?SEARCH_MODULE:add(Event),
 		    case catch triggers:run(Location, Type, Event) of
@@ -31,7 +31,7 @@ add(#uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
 			_ ->
 			    nothing
 		    end,
-		    Id
+		    {ok, Id}
 	    end
     end.
 
@@ -52,11 +52,11 @@ exists(Id) ->
     end.
 		    
 list(_, _, _, [], _, _, _, _) ->
-    [];
+    {ok, []};
 list(Location, Search, From, '_', Uid, Start, End, Parent) ->
     ?MODULE:list(Location, Search, From, ['_'], Uid, Start, End, Parent);
 list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
-    AllEvents = case Search of
+    {ok, AllEvents} = case Search of
 		    '_' ->
 			?DB_MODULE:list(Location, From, Type, Start, End, Parent);
 		    _ ->
@@ -73,4 +73,9 @@ list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
 					  end
 				  end,
 				  AllEvents),
-    FilteredEvents ++ ?MODULE:list(Location, Search, From, Tail, Uid, Start, End, Parent).
+    case ?MODULE:list(Location, Search, From, Tail, Uid, Start, End, Parent) of
+	{error, Reason} ->
+	    {error, Reason};
+	{ok, RemainingEvents} ->
+	    {ok, FilteredEvents ++ RemainingEvents}
+    end.

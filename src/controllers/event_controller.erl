@@ -73,13 +73,13 @@ init() ->
 
 get([_, _, Id], [Uid], _) ->
     case uce_acl:check(Uid, "event", "get", ["", ""], [{"id", Id}]) of
-	false ->
+	{ok, false} ->
 	    {error, unauthorized};
-	true ->
+	{ok, true} ->
 	    case uce_event:get(Id) of
 		{error, Reason} ->
 		    {error, Reason};
-		#uce_event{to=To} = Event ->
+		{ok, #uce_event{to=To} = Event} ->
 		    if
 			To == "all" ->
 			    json_helpers:json(event_helpers:to_json(Event));
@@ -97,7 +97,7 @@ list([Org], Match, Arg) ->
     ?MODULE:list([Org, ""], Match, Arg);
 list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
     case uce_acl:check(Uid, "event", "list", Location, [{"from", From}]) of
-	true ->
+	{ok, true} ->
 	    Types = case Type of
 			'_' ->
 			    ['_'];
@@ -113,7 +113,7 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
 	    case uce_event:list(Location, Keywords, From, Types, Uid, Start, End, Parent) of
 		{error, Reason} ->
 		    {error, Reason};
-		[] ->
+		{ok, []} ->
 		    case Async of
 			"no" ->
 			    json_helpers:json(event_helpers:to_json([]));
@@ -138,7 +138,7 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
 			_ ->
 			    {error, bad_parameters}
 		    end;
-		Events ->
+		{ok, Events} ->
 		    case helpers:paginate(event_helpers:sort(Events), Count, Page, Order) of
 			{error, Reason} ->
 			    {error, Reason};
@@ -146,7 +146,7 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
 			    json_helpers:json(event_helpers:to_json(EventPage))
 		    end
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
@@ -157,7 +157,7 @@ add([Org], [Uid, Type, To, Parent, Metadata], Arg) ->
 add(Location, [Uid, Type, To, Parent, Metadata], _) ->
     case uce_acl:check(Uid, "event", "add", Location, [{"type", Type},
 							{"to", To}]) of
-	true ->
+	{ok, true} ->
 	    case uce_event:add(#uce_event{location=Location,
 					  from=Uid,
 					  type=Type,
@@ -166,9 +166,9 @@ add(Location, [Uid, Type, To, Parent, Metadata], _) ->
 					  metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
-		Id ->
+		{ok, Id} ->
 		    json_helpers:created(Id)
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.

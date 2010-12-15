@@ -21,13 +21,13 @@ add(#uce_event{} = Event) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, created}
     end.
 
 get(Id) ->
     case emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
 	[Collection] ->
-	    ?MODULE:from_collection(Collection);
+	    {ok, ?MODULE:from_collection(Collection)};
 	_ ->
 	    {error, not_found}
     end.
@@ -72,16 +72,17 @@ list(Location, From, Type, Start, End, Parent) ->
 		       true ->
 			   []
 	       end,
-    lists:map(fun(Collection) ->
-		      ?MODULE:from_collection(Collection)
-	      end,
-	      emongo:find_all(?MONGO_POOL,"uce_event",
-			      SelectLocation ++
-				  SelectFrom ++
-				  SelectType ++
-				  SelectParent ++
-				  SelectTime,
-			      [{orderby, [{"this.datetime", asc}]}])).
+    Events = lists:map(fun(Collection) ->
+			       ?MODULE:from_collection(Collection)
+		       end,
+		       emongo:find_all(?MONGO_POOL,"uce_event",
+				       SelectLocation ++
+					   SelectFrom ++
+					   SelectType ++
+					   SelectParent ++
+					   SelectTime,
+				       [{orderby, [{"this.datetime", asc}]}])),
+    {ok, Events}.
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),

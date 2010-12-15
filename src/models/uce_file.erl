@@ -21,8 +21,8 @@ add(#uce_file{location=Location, name=Name} = File) ->
 	    case ?DB_MODULE:add(File#uce_file{id=Id}) of
 		{error, Reason} ->
 		    {error, Reason};
-		_ ->
-		    Id
+		{ok, created} ->
+		    {ok, Id}
 	    end
     end.
 
@@ -41,6 +41,6 @@ delete(Id) ->
     case ?MODULE:get(Id) of
 	{error, Reason} ->
 	    {error, Reason};
-	_ ->
+	{ok, _} ->
 	    ?DB_MODULE:delete(Id)
     end.

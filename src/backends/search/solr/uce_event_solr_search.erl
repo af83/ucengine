@@ -15,7 +15,7 @@
 add(Event) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, to_solrxml(Event)),
-    ok.
+    {ok, created}.
 
 %% Encode event in solrxml format which be used to add solr index
 to_solrxml(#uce_event{id=Id,
@@ -136,7 +136,7 @@ search(Host, [Org, Meeting], Search, From, Type, Start, End, _) ->
 
     case ibrowse:send_req(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&"), [], get) of
 	{ok, _, _, JSON} ->
-	    json_to_events(mochijson:decode(JSON));
+	    {ok, json_to_events(mochijson:decode(JSON))};
 	{error, _} ->
 	    {error, bad_parameters}
     end.
@@ -218,4 +218,4 @@ make_list_json_events([{struct, Elems}|Tail]) ->
 delete(Id) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, "<delete><query>"++ Id ++"</query></delete>"),
-    ok.
+    {ok, deleted}.

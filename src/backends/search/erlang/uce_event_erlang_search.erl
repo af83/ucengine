@@ -11,7 +11,7 @@
 		      end())).
 
 add(_) ->
-    ok.
+    {ok, created}.
 
 search_value(_, []) ->
     true;
@@ -41,6 +41,6 @@ list(Location, Search, From, Type, Start, End, Parent) ->
     case ?EVENT_DBMOD:list(Location, From, Type, Start, End, Parent) of
 	{error, Reason} ->
 	    {error, Reason};
-	Events ->
-	    search(Events, Search)
+	{ok, Events} ->
+	    {ok, search(Events, Search)}
     end.

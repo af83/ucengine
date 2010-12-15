@@ -72,15 +72,15 @@ init() ->
 
 list([], [Uid], _) ->
     case uce_acl:check(Uid, "user", "list", ["", ""], []) of
-	true ->
+	{ok, true} ->
 	    case uce_user:list() of
 		{error, Reason} ->
 		    {error, Reason};
-		Users ->
+		{ok, Users} ->
 		    JSONUsers = [ user_helpers:to_json(User) || User <- Users],
 		    json_helpers:json({array, JSONUsers})
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
@@ -88,47 +88,47 @@ add([Uid], [Auth, Credential, Metadata], _) ->
     case uce_user:add(#uce_user{uid=Uid, auth=Auth, credential=Credential, metadata=Metadata}) of
 	{error, Reason} ->
 	    {error, Reason};
-	ok ->
+	{ok, created} ->
 	    uce_event:add(#uce_event{from=Uid, type="internal.user.add"}),
 	    json_helpers:created()
     end.
 
 update([To], [Uid, Auth, Credential, Metadata], _) ->
     case uce_acl:check(Uid, "update", "user", ["", ""], [{"user", To}, {"auth", Auth}]) of
-	true ->
+	{ok, true} ->
 	    case uce_user:update(To, Auth, Credential, Metadata) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, updated} ->
 		    uce_event:add(#uce_event{from=To, type="internal.user.update"}),
 		    json_helpers:ok()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
 get([To], [Uid], _) ->
     case uce_acl:check(Uid, "get", "user", ["", ""], [{"user", To}]) of
-	true ->
+	{ok, true} ->
 	    case uce_user:get(To) of
 		{error, Reason} ->
 		    {error, Reason};
-		User ->
+		{ok, User} ->
 		    json_helpers:json(user_helpers:to_json(User))
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.
 
 delete([To], [Uid], _) ->
     case uce_acl:check(Uid, "delete", "user", ["", ""], [{"user", To}]) of
-	true ->
+	{ok, true} ->
 	    case uce_user:delete(To) of
 		{error, Reason} ->
 		    {error, Reason};
-		ok ->
+		{ok, deleted} ->
 		    json_helpers:ok()
 	    end;
-	false ->
+	{ok, false} ->
 	    {error, unauthorized}
     end.

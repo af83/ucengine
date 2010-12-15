@@ -22,7 +22,7 @@ add(#uce_acl{}=ACL) ->
 				    mnesia:write(ACL)
 			    end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, created};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -40,7 +40,7 @@ delete(EUid, Object, Action, Location, Conditions) ->
 									  conditions=Conditions})
 				    end) of
 		{atomic, _} ->
-		    ok;
+		    {ok, deleted};
 		{aborted, Reason} ->
 		    {error, Reason}
 	    end
@@ -55,21 +55,23 @@ list(EUid, Object, Action) ->
 								 conditions='_'})
 			    end) of
 	{aborted, _Reason} ->
-	    [];
+	    {ok, []};
 	{atomic, ACL} ->
-	    AllActions = case Action of
-			    "all" ->
-				[];
-			    _ ->
-				?MODULE:list(EUid, "all", Object)
-			end,
-	    AllObjects = case Object of
-			     "all" ->
-				 [];
-			     _ ->
-				 ?MODULE:list(EUid, Action, "all")
-			 end,
-	    ACL ++ AllActions ++ AllObjects
+	    {ok, AllActions} =
+		case Action of
+		    "all" ->
+			{ok, []};
+		    _ ->
+			?MODULE:list(EUid, "all", Object)
+		end,
+	    {ok, AllObjects} =
+		case Object of
+		    "all" ->
+			{ok, []};
+		    _ ->
+			?MODULE:list(EUid, Action, "all")
+		end,
+	    {ok, ACL ++ AllActions ++ AllObjects}
     end.
 
 exists(EUid, Object, Action, Location, Conditions) ->

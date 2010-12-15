@@ -29,7 +29,7 @@ update(#uce_presence{}=Presence) ->
     case ?MODULE:get(Presence#uce_presence.sid) of
 	{error, Reason} ->
 	    {error, Reason};
-	_ ->
+	{ok, _} ->
 	    ?DB_MODULE:update(Presence)
     end.
 
@@ -37,6 +37,6 @@ exists(Sid) ->
     case ?MODULE:get(Sid) of
 	{error, _} ->
 	    false;
-	_ ->
+	{ok, _} ->
 	    true
     end.

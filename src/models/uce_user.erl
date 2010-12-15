@@ -12,19 +12,14 @@ add(#uce_user{} = User) ->
 	true ->
 	    {error, conflict};
 	false ->
-	    case ?DB_MODULE:add(User) of
-		ok ->
-		    ok;
-		{error, Reason} ->
-		    {error, Reason}
-	    end
+	    ?DB_MODULE:add(User)
     end.
 
 delete(Uid) ->
     case ?MODULE:get(Uid) of
 	{error, Reason} ->
 	    {error, Reason};
-	_ ->
+	{ok, _} ->
 	    ?DB_MODULE:delete(Uid)
     end.
 
@@ -38,7 +33,7 @@ update(#uce_user{} = User) ->
     case ?MODULE:get(User#uce_user.uid) of
 	{error, Reason} ->
 	    {error, Reason};
-	_ ->
+	{ok, _} ->
 	    ?DB_MODULE:update(User)
     end.
 

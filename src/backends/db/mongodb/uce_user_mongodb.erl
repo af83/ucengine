@@ -20,7 +20,7 @@ add(#uce_user{} = User) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, created}
     end.
 
 delete(EUid) ->
@@ -28,7 +28,7 @@ delete(EUid) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, deleted}
     end.    
 
 update(#uce_user{uid=Uid} = User) ->
@@ -36,7 +36,7 @@ update(#uce_user{uid=Uid} = User) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
-	    ok
+	    {ok, updated}
     end.
 
 list() ->
@@ -44,16 +44,17 @@ list() ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
-	    lists:map(fun(Collection) ->
-			      ?MODULE:from_collection(Collection)
-		      end,
-		      Collections)
+	    Users = lists:map(fun(Collection) ->
+				      ?MODULE:from_collection(Collection)
+			      end,
+			      Collections),
+	    {ok, Users}
     end.
 
 get(EUid) ->
     case emongo:find_one(?MONGO_POOL, "uce_user", [{"uid", EUid}]) of
 	[Collection] ->
-	    ?MODULE:from_collection(Collection);
+	    {ok, ?MODULE:from_collection(Collection)};
 	_ ->
 	    {error, not_found}
     end.

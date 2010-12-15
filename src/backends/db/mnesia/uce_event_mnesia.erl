@@ -22,7 +22,7 @@ add(#uce_event{} = Event) ->
 				    mnesia:write(Event)
 			    end) of
 	{atomic, _} ->
-	    ok;
+	    {ok, created};
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
@@ -36,7 +36,7 @@ get(Id) ->
 	{atomic, []} ->
 	    {error, not_found};
 	{atomic, [Event]} ->
-	    Event
+	    {ok, Event}
     end.
 
 list(Location, From, Type, Start, End, Parent) ->
@@ -89,4 +89,4 @@ list(Location, From, Type, Start, End, Parent) ->
 		       metadata='$9'},
     Result = {{'uce_event', '$1','$2', SelectLocation,
 	       SelectFrom, '$6', SelectType, SelectParent, '$9'}},
-    mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}]).
+    {ok, mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])}.
