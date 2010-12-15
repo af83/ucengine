@@ -394,19 +394,11 @@ $.sammy("#meeting", function() {
         $("#replay-mode").hide();
 
         if (inReplay) {
-            $('#video_player').player({src: result_meeting.metadata.video,
-                                        start: result_meeting.start_date});
+            $('#video').player({src: result_meeting.metadata.video,
+                                start: result_meeting.start_date});
         } else {
-            $('#video_player').video({domain     : document.location.hostname + "/ucengine",
-                                      ucemeeting : meeting});
-
-            $('<a href="#"></a>').button({label: "Publish"}).insertBefore($("#video .block-header h2")).css("float", "right").toggle(function() {
-                $('#video_player').video("publish");
-                $(this).button('option', 'label', 'Stop publish');
-            }, function() {
-                $(this).button('option', 'label', 'Publish');
-                $('#video_player').video("receive");
-            });
+            $('#video').video({domain     : document.location.hostname + "/ucengine",
+                               ucemeeting : meeting});
         }
         widgets.push('video');
 

@@ -2,10 +2,11 @@ $.widget("uce.video", {
     _publish : false,
     // Default options
     options: {
+        title      : 'Video',
         ucemeeting : null,
+        token  : null,
         domain : "localhost",
         stream : "ucengine",
-        token : "",
         width  : 610,
         height : 415
     },
@@ -17,16 +18,30 @@ $.widget("uce.video", {
     },
     _getFlashVar: function() {
         if (this._publish)
-            return "stream="+ this.options.stream +"&server=rtmp://" + this.options.domain;
+            return "stream="+ this.options.stream +"&server=rtmp://" + this.options.domain +"&token="+ this.options.token;
         else
-            return "stream="+ this.options.stream +"&streamtype=live&server=rtmp://" + this.options.domain +"&token=" + this.options.token + "&width="+ this.options.width  +"&height="+ this.options.height;
+            return "stream="+ this.options.stream +"&streamtype=live&server=rtmp://" + this.options.domain +"&token="+ this.options.token +"&width="+ this.options.width  +"&height="+ this.options.height;
     },
     _create: function() {
+        var that = this;
         this.element.addClass('ui-widget ui-video');
+        $('<div>').addClass('ui-widget-header')
+            .appendTo(this.element)
+            .append($('<a>').attr('href', '#')
+                            .button({label: 'Publish'})
+                            .toggle(function() {
+                                that.publish();
+                                $(this).button('option', 'label', 'Stop publish');
+                            }, function() {
+                                $(this).button('option', 'label', 'Publish');
+                                that.receive();
+                            }))
+            .append($('<span>').addClass('ui-video-title').text(this.options.title));
+        this._content = $('<div>').addClass('ui-widget-content').appendTo(this.element);
         if (this.options.ucemeeting != null)
             this.options.ucemeeting.bind('video.stream.new', $.proxy(this.handleEvent, this));
         else
-            $('<embed>').attr(this._videoAttr()).appendTo(this.element);
+            this._updateEmbed();
     },
     _videoAttr: function() {
         return {wmode     : 'transparent',
@@ -43,7 +58,7 @@ $.widget("uce.video", {
     },
     _updateEmbed: function() {
         this.element.find("embed").remove();
-        $('<embed>').attr(this._videoAttr()).appendTo(this.element);
+        $('<embed>').attr(this._videoAttr()).appendTo(this._content);
     },
     publish: function() {
         this._publish = true;
@@ -59,7 +74,7 @@ $.widget("uce.video", {
         this._updateEmbed();
     },
     destroy: function() {
-        this.element.find('embed').remove();
+        this.element.children().remove();
         this.element.removeClass('ui-widget ui-video');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
