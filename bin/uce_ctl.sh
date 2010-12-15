@@ -72,4 +72,5 @@ case $1 in
     stop) stop;;
     tests) tests;;
     org) internal_cmd $@;;
+    meeting) internal_cmd $@;;
 esac

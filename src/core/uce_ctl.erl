@@ -68,6 +68,9 @@ call(Object, Action, Args) ->
     NodeStr = "ucengine@localhost",
     rpc:call(list_to_atom(NodeStr), Module, Action, Args).
 
+%%
+%% Org
+%%
 action(org, add, Args) ->
     {[Name], Metadata} = getopt(["name"], Args),
     call(org, add, [#uce_org{name=Name, metadata=Metadata}]);
@@ -84,6 +87,33 @@ action(org, update, Args) ->
 action(org, delete, Args) ->
     {[Name], _} = getopt(["name"], Args),
     call(org, update, [Name]);
+
+%%
+%% Meeting
+%%
+action(meeting, add, Args) ->
+    {[Name, Start, End], Metadata} = getopt(["name", "start", "end"], Args),
+    call(meeting, add, [#uce_meeting{id=Name, start_date=Start, end_date=End, metadata=Metadata}]);
+
+action(meeting, delete, Args) ->
+    {[Name], _} = getopt(["name"], Args),
+    call(meeting, delete, [Name]);
+
+action(meeting, get, Args) ->
+    {[Name], _} = getopt(["name"], Args),
+    call(meeting, get, [Name]);
+
+action(meeting, update, Args) ->
+    {[Name, Start, End], Metadata} = getopt(["name", "start", "end"], Args),
+    call(meeting, update, [#uce_meeting{id=Name, start_date=Start, end_date=End, metadata=Metadata}]);
+
+action(meeting, list, Args) ->
+    case getopt(["name", "status"], Args) of
+	{[Name, Status], _} ->
+	    call(meeting, list, [Name, Status]);
+	{[Name], _} ->
+	    call(meeting, list, [Name, "all"])
+    end;
 
 action(_, _, _) ->
     usage().
