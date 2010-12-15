@@ -54,8 +54,10 @@ format_field([], []) ->
     [];
 format_field([Metadata|Values], [metadata|Fields]) ->
     FormattedMetadata =
-	[io_lib:format("metadata[~p]: ~p", [Key, Value]) || {Key, Value} <- Metadata],
+	[io_lib:format("metadata[~p]: ~ts", [Key, Value]) || {Key, Value} <- Metadata],
     string:join(FormattedMetadata, "~n") ++ format_field(Values, Fields);
+format_field([Value|Values], [Field|Fields]) when is_list(Value) ->
+    io_lib:format("~p: ~ts~n", [Field, unicode:characters_to_binary(Value)]) ++ format_field(Values, Fields);
 format_field([Value|Values], [Field|Fields]) ->
     io_lib:format("~p: ~p~n", [Field, Value]) ++ format_field(Values, Fields).
 
@@ -114,6 +116,14 @@ action(meeting, list, Args) ->
 	{[Name], _} ->
 	    call(meeting, list, [Name, "all"])
     end;
+
+%%
+%% Utils
+%%
+
+action(demo, start, Args) ->
+    NodeStr = "ucengine@localhost",
+    rpc:call(list_to_atom(NodeStr), demo, start, Args);
 
 action(_, _, _) ->
     usage().
