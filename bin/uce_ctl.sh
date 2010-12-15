@@ -61,7 +61,10 @@ internal_cmd()
 	-sname uce_ctl_$$	\
 	-s uce_ctl		\
 	-nodename uce_ctl	\
-	-extra "$@"
+	-object "$1"		\
+	-action "$2"		\
+	-dummy			\
+	"$@"
 }
 
 case $1 in
@@ -73,5 +76,6 @@ case $1 in
     tests) tests;;
     org) internal_cmd $@;;
     meeting) internal_cmd $@;;
+    --help) internal_cmd $@;;
     demo) internal_cmd $@;;
 esac
