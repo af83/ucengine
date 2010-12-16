@@ -446,21 +446,21 @@ $.sammy("#meeting", function() {
                     start: function() {
                         var events = result.slice(0);
                         meeting.startReplay(start, events);
-                        $('#video_player').player("play");
+                        $('#video').player("play");
                         clearWidgets();
                     },
                     stop: function() {
                         meeting.stopReplay();
-                        $('#video_player').player("stop");
+                        $('#video').player("stop");
                     },
                     jump: function(event, ui) {
-                        $('#video_player').player("play");
+                        $('#video').player("play");
                         var current = meeting.getCurrentReplay();
                         if (ui.timecode < current) {
                             clearWidgets();
                         }
                         meeting.jumpToReplay(ui.timecode);
-                        $('#video_player').player("seek", ui.timecode);
+                        $('#video').player("seek", ui.timecode);
                     }
                 });
 		$('#results').results({ucemeeting: meeting, start: parseInt(result_meeting.start_date, 10),
@@ -474,7 +474,7 @@ $.sammy("#meeting", function() {
 
             }, false);
         } else {
-	    $('#video_player').player("play");
+	    $('#video').player("play");
             // start main loop
             loop = meeting.startLoop(0);
         }
@@ -498,9 +498,9 @@ $.sammy("#meeting", function() {
                               'width' : 318};
         }
         if (inReplay)
-            $('#video_player').player('option', videoAttrs);
+            $('#video').player('option', videoAttrs);
         else
-            $('#video_player').video('option', videoAttrs);
+            $('#video').video('option', videoAttrs);
 
         if (data == 'whiteboard') {
             $('#whiteboard_content').whiteboard('option', {widget_color: true,
