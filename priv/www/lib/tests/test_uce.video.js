@@ -20,7 +20,7 @@ test("customize with domain, stream and width/height", function() {
                        height : 200,
                        domain : 'example.com/ucengine',
                        stream : 'plop'});
-    equals(/rtmp:\/\/([\w\.]+)/.exec($("#video embed").attr('flashvars'))[1], 'example.com');
+    equals(/server=([^&]+)/.exec($("#video embed").attr('flashvars'))[1], encodeURIComponent('rtmp://example.com/ucengine'), "server param");
     equals(/stream=(\w+)/.exec($("#video embed").attr('flashvars'))[1], 'plop');
     equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 400);
     equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 200);
@@ -34,7 +34,7 @@ test("dynamic updated options", function() {
                                  "height": "150",
                                  "domain": "example.org",
                                  "stream": "plop2"});
-    equals(/rtmp:\/\/([\w\.]+)/.exec($("#video embed").attr('flashvars'))[1], 'example.org');
+    equals(/server=([^&]+)/.exec($("#video embed").attr('flashvars'))[1], encodeURIComponent('rtmp://example.org'), "server param");
     equals(/stream=(\w+)/.exec($("#video embed").attr('flashvars'))[1], 'plop2');
     equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 100);
     equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 150);
@@ -68,25 +68,9 @@ jackTest("on receive, handle video.stream.new", function() {
     $("#video").video({ucemeeting: ucemeeting,
                        "domain": "example.org"});
     equals($("#video .ui-widget-content embed").size(), 0);
-    $("#video").video("triggerUceEvent", {type: "video.stream.new",
-                                          metadata : {token : "123456",
-                                                      channel : "channel_1"}});
-    equals($("#video embed").size(), 1);
-    equals(/stream=([\w]+)/.exec($("#video .ui-widget-content embed").attr('flashvars'))[1], 'channel_1');
-    equals(/token=([\w]+)/.exec($("#video .ui-widget-content embed").attr('flashvars'))[1], '123456');
-});
-
-jackTest("on publish, handle video.stream.new", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind']);
-    $("#video").video({ucemeeting: ucemeeting,
-                       "domain": "example.org"});
-    $("#video").video("triggerUceEvent", {type: "video.stream.new",
-                                          metadata : {token : "123456",
-                                                      channel : "channel_1"}});
-    equals($("#video .ui-widget-content embed").size(), 1);
-    $("#video").video("publish");
-    equals(/stream=([\w]+)/.exec($("#video .ui-widget-content embed").attr('flashvars'))[1], 'channel_1');
-    equals(/token=([\w]+)/.exec($("#video .ui-widget-content embed").attr('flashvars'))[1], '123456');
+    $("#video").video("triggerUceEvent", Factories.createStreamNew());
+    equals($("#video").video("option", "stream"), "channel_1", "channel option should be updated");
+    equals($("#video").video("option", "token"), "123456", "token option should updated");
 });
 
 test("publish then stop a video stream", function() {
@@ -103,15 +87,13 @@ jackTest("desactivate/activate the publish button when a stream start and stop",
     var ucemeeting = jack.create("ucemeeting", ['bind']);
     ucemeeting.uid = 'john';
     $("#video").video({ucemeeting: ucemeeting});
-    $("#video").video("triggerUceEvent",{type: "video.stream.start",
-                                         metadata: {broadcaster: "root"}});
+    $("#video").video("triggerUceEvent", Factories.createStreamStart("root"));
     ok($("#video .ui-button").button("option", "disabled"), "button should be disabled");
     // test click on disabled button
     $("#video .ui-button").click();
     equals($("#video .ui-button").text(), "Publish", "label should not be updated");
     // trigger stream.stop
-    $("#video").video("triggerUceEvent",{type: "video.stream.stop",
-                                         metadata: {broadcaster: "root"}});
+    $("#video").video("triggerUceEvent", Factories.createStreamStop("root"));
     ok(!$("#video .ui-button").button("option", "disabled"), "button should be enabled");
 });
 
@@ -119,7 +101,17 @@ jackTest("doesn't desactivate the publish button when a stream started by the sa
     var ucemeeting = jack.create("ucemeeting", ['bind']);
     ucemeeting.uid = 'root';
     $("#video").video({ucemeeting: ucemeeting});
-    $("#video").video("triggerUceEvent",{type: "video.stream.start",
-                                         metadata: {broadcaster: "root"}});
+    $("#video").video("triggerUceEvent", Factories.createStreamStart("root"));
     ok(!$("#video .ui-button").button("option", "disabled"), "button should be enabled");
+});
+
+jackTest("show message when no stream is available", function() {
+    var ucemeeting = jack.create("ucemeeting", ['bind']);
+    ucemeeting.uid = 'root';
+    $("#video").video({ucemeeting: ucemeeting});
+    $("#video").video("triggerUceEvent", Factories.createStreamNew());
+    $("#video").video("triggerUceEvent", Factories.createStreamStart("root"));
+    $("#video").video("triggerUceEvent", Factories.createStreamStop("root"));
+    equals($("#video .ui-widget-content embed").size(), 0, "no embed");
+    equals($("#video .ui-widget-content p").text(), "No stream is available", "show text");
 });

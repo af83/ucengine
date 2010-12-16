@@ -17,6 +17,19 @@ var Factories = {
     },
     getDefaultMeeting: function() {
         return uce.attachPresence(Factories.createPresence()).org("myorg").meeting("mymeeting");
+    },
+    createStreamNew: function() {
+        return {type: "video.stream.new",
+                metadata : {token : "123456",
+                            channel : "channel_1"}};
+    },
+    createStreamStart: function(broadcaster) {
+        return {type: "video.stream.start",
+                metadata: {broadcaster: broadcaster}}
+    },
+    createStreamStop: function(broadcaster) {
+        return {type: "video.stream.stop",
+                metadata: {broadcaster: broadcaster}}
     }
 };
 
