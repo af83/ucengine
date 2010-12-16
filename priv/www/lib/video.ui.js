@@ -1,5 +1,11 @@
-$.widget("uce.video", {
+$.uce.widget("video", {
     _publish : false,
+    // ucengine events
+    meetingsEvents: {
+        'video.stream.new'   : 'onStreamNew',
+        'video.stream.start' : 'onStreamStarted',
+        'video.stream.stop'  : 'onStreamStopped'
+    },
     // Default options
     options: {
         title      : 'Video',
@@ -25,22 +31,26 @@ $.widget("uce.video", {
     _create: function() {
         var that = this;
         this.element.addClass('ui-widget ui-video');
+        this._button = $('<a>').attr('href', '#')
+                            .button({label: 'Publish'})
+                            .click(function(e) {
+                                e.preventDefault();
+                                if ($(this).button('option', 'disabled'))
+                                    return;
+                                if ($(this).button('option', 'label') == 'Publish') {
+                                    that.publish();
+                                    $(this).button('option', 'label', 'Stop publish');
+                                } else {
+                                    $(this).button('option', 'label', 'Publish');
+                                    that.receive();
+                                }
+                            });
         $('<div>').addClass('ui-widget-header')
             .appendTo(this.element)
-            .append($('<a>').attr('href', '#')
-                            .button({label: 'Publish'})
-                            .toggle(function() {
-                                that.publish();
-                                $(this).button('option', 'label', 'Stop publish');
-                            }, function() {
-                                $(this).button('option', 'label', 'Publish');
-                                that.receive();
-                            }))
+            .append(this._button)
             .append($('<span>').addClass('ui-video-title').text(this.options.title));
         this._content = $('<div>').addClass('ui-widget-content').appendTo(this.element);
-        if (this.options.ucemeeting != null)
-            this.options.ucemeeting.bind('video.stream.new', $.proxy(this.handleEvent, this));
-        else
+        if (this.options.ucemeeting == null)
             this._updateEmbed();
     },
     _videoAttr: function() {
@@ -68,10 +78,17 @@ $.widget("uce.video", {
         this._publish = false;
         this._updateEmbed();
     },
-    handleEvent: function(event) {
+    onStreamNew: function(event) {
         this.options.stream = event.metadata.channel;
         this.options.token = event.metadata.token;
         this._updateEmbed();
+    },
+    onStreamStarted: function(event) {
+        if (event.metadata.broadcaster != this.options.ucemeeting.uid)
+            this._button.button("disable");
+    },
+    onStreamStopped: function(event) {
+        this._button.button("enable");
     },
     destroy: function() {
         this.element.children().remove();

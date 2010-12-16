@@ -201,10 +201,12 @@ jackTest("can get meeting", function() {
 jackTest("can join meeting", function() {
     stop();
     addUceApiCall("post", "/api/0.1/meeting/myorg/all/mymeeting/roster/myuid",  {"_method" :"put", "uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
-    uce.attachPresence(Factories.createPresence()).org("myorg").meeting("mymeeting").join(function(err, r, xhr) {
+    var meeting = uce.attachPresence(Factories.createPresence()).org("myorg").meeting("mymeeting");
+    meeting.join(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.name, "mymeeting");
+        equals(meeting.uid, "myuid");
     });
 });
 

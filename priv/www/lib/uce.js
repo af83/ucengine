@@ -16,8 +16,7 @@
         });
     }
 
-    function uce_api_call(method, url, data, callback)
-    {
+    function uce_api_call(method, url, data, callback) {
         var call_back = callback || $.noop;
         url = '/api/' + VERSION + url;
         return $.ajax({
@@ -125,6 +124,7 @@
                         var handlers = [];
                         return {
 			    name: meetingname,
+                            uid: (presence || {}).uid,
                             get: function(callback) {
                                 get("/meeting/"+ orgname +"/all/"+ meetingname, {}, function(err, result, xhr) {
                                     if (!err) {
