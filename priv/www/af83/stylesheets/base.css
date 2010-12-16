@@ -135,17 +135,20 @@
 
 /* main */
 section.main { position: relative; min-height: 510px; }
-section.main article { float: right; clear: both; width: 318px; margin: 0 0 10px 0; border: 1px solid #DADADA; }
-section.main article { float: right; clear: both; width: 318px; margin: 0 0 10px 0; border: 1px solid #DADADA; }
+section.main article { float: right; clear: both; width: 318px; margin: 0 0 10px 0; }
 section.main article .block-header { position: relative; padding: 5px 10px; background: #D6D6D6; }
 section.main article .block-header h2 { font: bold 23px Helvetica; color: #424242; }
 section.main article .block-header p { position: absolute; right: 10px; top: 6px; padding: 0 4px; background: #797979; -moz-border-radius: 15px; border-radius: 15px; }
 section.main article .block-header p a { font: bold 20px/20px Arial; color: #FFF; }
 
+section.main > .ui-widget, section.main #whiteboard {
+    border: 1px solid #DADADA;
+}
+
 /* position */
 section.main #chat.focus,
 section.main #video.focus,
-section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px; border: 1px solid #DADADA; }
+section.main #whiteboard.focus { position: absolute; width: 648px; }
 
 
 /* for demo */

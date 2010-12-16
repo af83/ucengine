@@ -402,7 +402,7 @@ $.sammy("#meeting", function() {
         }
         widgets.push('video');
 
-        var chat = $('#chat_content').chat({ucemeeting: meeting});
+        var chat = $('#chat').chat({ucemeeting: meeting});
         widgets.push('chat');
         $('#whiteboard #whiteboard_content').whiteboard({ucemeeting       : meeting,
                                                          widget_transport : false,
@@ -438,7 +438,7 @@ $.sammy("#meeting", function() {
                 function clearWidgets() {
                     $('#whiteboard #whiteboard_content').whiteboard("clear");
                     $('#files').file("clear");
-                    $('#chat_content').chat("clear");
+                    $('#chat').chat("clear");
                 }
                 $("#replay").replay({
                     date_start: start,
@@ -512,9 +512,9 @@ $.sammy("#meeting", function() {
         }
 
         if (data == 'chat') {
-            $('#chat_content').chat("toggleMode", "big");
+            $('#chat').chat("toggleMode", "big");
         } else {
-            $('#chat_content').chat("toggleMode", "minus");
+            $('#chat').chat("toggleMode", "minus");
         }
     });
 
@@ -525,14 +525,14 @@ $.sammy("#meeting", function() {
         if (inReplay) {
             meeting.stopReplay();
             $("#replay").replay("destroy");
-            $('#video_player').player("destroy");
+            $('#video').player("destroy");
 
         } else {
             loop.stop();
             loop = null;
-            $('#video_player').video("destroy");
+            $('#video').video("destroy");
         }
-        $('#chat_content').chat("destroy");
+        $('#chat').chat("destroy");
         $('#whiteboard').find('#whiteboard_content').whiteboard("destroy");
         $('#files').file("destroy");
         this.unload();
