@@ -152,14 +152,6 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
   	#board p, #player p { width: 100%; height: 240px; font: normal 12px/240px Helvetica; color: #424242; text-align: center; }
 
 
-
-
-
-  	/* Video focus */
-  	#video.focus #video_player { margin: 5px; width: auto; height: 477px; border: 1px solid #A9A9A9; }
-  	#video.focus #video_player p { font: normal 12px/477px Helvetica; color: #424242; text-align: center; }
-
-
   	/* wheel */
   	#wheel { position: absolute; top: 10px; right: 320px; width: 10px; height: 100%; background: none; }
   	#wheel p { position: absolute; top: 258px; left: -25px; }
@@ -244,3 +236,14 @@ section.main #whiteboard.focus { position: absolute; width: 648px; height: 564px
 .ui-chat-minus-header h3 {background: url('../images/next.png') 270px no-repeat; }
 .ui-chat-minus li a { background: url('../images/next.png') 270px no-repeat; }
 .ui-chat-minus .block-content p.ui-chat-back { background: url('../images/back.png') 10px no-repeat; }
+
+/**
+ * Widget header
+ */
+.ui-widget .ui-widget-header { position: relative; padding: 5px 10px; background: #D6D6D6; border: 0; }
+.ui-widget .ui-widget-header > span { font: bold 23px Helvetica; color: #424242; }
+
+/**
+ * video widget
+ */
+.ui-video .ui-widget-content { min-height: 400px; }
