@@ -132,18 +132,18 @@ test("handle draw/clear events", function() {
     $('#whiteboard').whiteboard();
     ok(($('#canvas').get(0).toDataURL("image/png") ==
         emptyCanvas().toDataURL("image/png")), "should be a empty canvas");
-    $('#whiteboard').whiteboard("handleUceEvent", {wevent: '{"event":"drawBrush","args":{"startPos":{"x":-8,"y":-145.39999389648438},"curPos":{"x":0,"y":145.39999389648438},"drawColor":"rgb(0,0,0)","lineWidth":10}}'});
-    $('#whiteboard').whiteboard("handleUceEvent", {wevent: '{"event":"drawBrush","args":{"startPos":{"x":-8,"y":-145.39999389648438},"curPos":{"x":9,"y":145.39999389648438},"drawColor":"rgb(0,0,0)","lineWidth":10}}'});
+    $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard_draw_event", metadata: {wevent: '{"event":"drawBrush","args":{"startPos":{"x":-8,"y":-145.39999389648438},"curPos":{"x":0,"y":145.39999389648438},"drawColor":"rgb(0,0,0)","lineWidth":10}}'}});
+    $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard_draw_event", metadata: {wevent: '{"event":"drawBrush","args":{"startPos":{"x":-8,"y":-145.39999389648438},"curPos":{"x":9,"y":145.39999389648438},"drawColor":"rgb(0,0,0)","lineWidth":10}}'}});
     ok(!($('#canvas').get(0).toDataURL("image/png") ==
          emptyCanvas().toDataURL("image/png")), "should not be a empty canvas");
-    $('#whiteboard').whiteboard("handleUceEvent", {wevent: '{"event":"clearCanvas","args":{}}'});
+    $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard_clear_event", metadata: {wevent: '{"event":"clearCanvas","args":{}}'}});
     ok(($('#canvas').get(0).toDataURL("image/png") ==
         emptyCanvas().toDataURL("image/png")), "should be a empty canvas");
 });
 
 test("clear method", function() {
     $('#whiteboard').whiteboard();
-    $('#whiteboard').whiteboard("handleUceEvent", {wevent: '{"event":"drawBrush","args":{"startPos":{"x":-8,"y":-145.39999389648438},"curPos":{"x":0,"y":145.39999389648438},"drawColor":"rgb(0,0,0)","lineWidth":10}}'});
+    $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard_clear_event", metadata: {wevent: '{"event":"drawBrush","args":{"startPos":{"x":-8,"y":-145.39999389648438},"curPos":{"x":0,"y":145.39999389648438},"drawColor":"rgb(0,0,0)","lineWidth":10}}'}});
     ok(!($('#canvas').get(0).toDataURL("image/png") ==
          emptyCanvas().toDataURL("image/png")), "should not be a empty canvas");
     $('#whiteboard').whiteboard("clear");

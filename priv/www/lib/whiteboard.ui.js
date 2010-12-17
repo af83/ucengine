@@ -1,4 +1,4 @@
-$.widget("uce.whiteboard", {
+$.uce.widget("whiteboard", {
     options: {
         /**
          * uce meeting instance
@@ -32,6 +32,11 @@ $.widget("uce.whiteboard", {
         // show transport widget
         widget_transport    : true,
         widget_transport_id : "transportWidget",
+    },
+    // ucengine events
+    meetingsEvents : {
+        "whiteboard_draw_event"  : 'handleUceEvent',
+        "whiteboard_clear_event" : 'handleUceEvent'
     },
     _create: function() {
         this.element.addClass('ui-widget ui-whiteboard');
@@ -94,37 +99,6 @@ $.widget("uce.whiteboard", {
             $('#btn_5').click(function() {canvasPainter.setDrawAction(5)});
             this.canvasPainter = canvasPainter;
         }
-        if (this.options.ucemeeting) {
-            var that = this;
-            this.options.ucemeeting.bind("whiteboard_draw_event", function(event) {
-                that.handleUceEvent(event.metadata);
-            });
-            this.options.ucemeeting.bind("whiteboard_clear_event", function(event) {
-                that.handleUceEvent(event.metadata);
-            });
-        }
-        return;
-        // ugly inside CanvasPainter.js
-        var self = this;
-        // just for remember old code
-        $('#btn_9').click(function() {canvasAnimator.newAnimation()});
-        $('#btn_10').click(function() {saveDrawing.removeLastNode()});
-        $('#btn_11').click(function() {saveDrawing.paintDrawing()});
-        $('#btn_12').click(function() { // upload the file
-            $.ajax({
-                url: '/api/0.1/file/' + MYSESSION.user.uid + ',' + MYSESSION.sid + '/push/' +
-                    MYSESSION.org + '/' + MYMEETING.name + '/whiteboard.png',
-                type: 'POST',
-                contentType: 'base64',
-                data: canvasPainter.canvas.toDataURL('image/png').slice(22),
-                success: function() {
-                    alert('upload succeeded');
-                }
-            });
-        });
-
-        $('#btn_13').click(function() {saveDrawing.addLastRemovedNode()});
-
     },
     _handleWhiteboardEvents: function(event) {
         if (!this.options.disabled)
@@ -169,8 +143,8 @@ $.widget("uce.whiteboard", {
         this.element.find('#'+ this.options.controls_id).show();
     },
 
-    handleUceEvent: function(metadata) {
-        this.canvasPainter.handleActionEvent(JSON.parse(metadata.wevent));
+    handleUceEvent: function(event) {
+        this.canvasPainter.handleActionEvent(JSON.parse(event.metadata.wevent));
     },
 
     clear: function() {
