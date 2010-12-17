@@ -16,18 +16,9 @@
     </section>
 
     <section class="main">
-        <article id="chat">
-            <div class="block-content" id="chat_content"></div>
-        </article>
+        <article id="chat"></article>
 
-        <article id="video">
-            <div class="block-header">
-                <h2>Video</h2>
-            </div>
-            <div class="block-content">
-                <div id="video_player"></div>
-            </div>
-        </article>
+        <article id="video"></article>
 
         <article id="whiteboard">
             <div class="block-header">

@@ -159,3 +159,13 @@
 .ui-file .ui-file-list:hover ul { display: block; position: absolute; top: 21px; padding: 5px; border: 1px solid #DADADA; background: #FFF; }
 .ui-file ul li { display: block; padding: 2px 0; }
 .ui-file p.ui-file-add { position: absolute; right: 10px; top: 8px; font: bold 14px Helvetica; color: #424242; cursor: pointer; }
+
+/**
+ * video widget
+ */
+.ui-widget.ui-video .ui-widget-header .ui-button {
+    float: right;
+}
+.ui-widget.ui-video .ui-widget-content p {
+    margin: 5px;
+}

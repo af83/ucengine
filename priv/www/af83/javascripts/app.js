@@ -394,22 +394,15 @@ $.sammy("#meeting", function() {
         $("#replay-mode").hide();
 
         if (inReplay) {
-            $('#video_player').player({src: result_meeting.metadata.video,
-                                        start: result_meeting.start_date});
+            $('#video').player({src: result_meeting.metadata.video,
+                                start: result_meeting.start_date});
         } else {
-            $('#video_player').video({domain : document.location.hostname + "/ucengine",
-                                       stream : result_meeting.name});
-            $('<a href="#"></a>').button({label: "Publish"}).insertBefore($("#video .block-header h2")).css("float", "right").toggle(function() {
-                $('#video_player').video("publish");
-                $(this).button('option', 'label', 'Stop publish');
-            }, function() {
-                $(this).button('option', 'label', 'Publish');
-                $('#video_player').video("receive");
-            });
+            $('#video').video({domain     : document.location.hostname + "/ucengine",
+                               ucemeeting : meeting});
         }
         widgets.push('video');
 
-        var chat = $('#chat_content').chat({ucemeeting: meeting});
+        var chat = $('#chat').chat({ucemeeting: meeting});
         widgets.push('chat');
         $('#whiteboard #whiteboard_content').whiteboard({ucemeeting       : meeting,
                                                          widget_transport : false,
@@ -445,7 +438,7 @@ $.sammy("#meeting", function() {
                 function clearWidgets() {
                     $('#whiteboard #whiteboard_content').whiteboard("clear");
                     $('#files').file("clear");
-                    $('#chat_content').chat("clear");
+                    $('#chat').chat("clear");
                 }
                 $("#replay").replay({
                     date_start: start,
@@ -453,21 +446,21 @@ $.sammy("#meeting", function() {
                     start: function() {
                         var events = result.slice(0);
                         meeting.startReplay(start, events);
-                        $('#video_player').player("play");
+                        $('#video').player("play");
                         clearWidgets();
                     },
                     stop: function() {
                         meeting.stopReplay();
-                        $('#video_player').player("stop");
+                        $('#video').player("stop");
                     },
                     jump: function(event, ui) {
-                        $('#video_player').player("play");
+                        $('#video').player("play");
                         var current = meeting.getCurrentReplay();
                         if (ui.timecode < current) {
                             clearWidgets();
                         }
                         meeting.jumpToReplay(ui.timecode);
-                        $('#video_player').player("seek", ui.timecode);
+                        $('#video').player("seek", ui.timecode);
                     }
                 });
 		$('#results').results({ucemeeting: meeting, start: parseInt(result_meeting.start_date, 10),
@@ -481,7 +474,7 @@ $.sammy("#meeting", function() {
 
             }, false);
         } else {
-	    $('#video_player').player("play");
+	    $('#video').player("play");
             // start main loop
             loop = meeting.startLoop(0);
         }
@@ -505,9 +498,9 @@ $.sammy("#meeting", function() {
                               'width' : 318};
         }
         if (inReplay)
-            $('#video_player').player('option', videoAttrs);
+            $('#video').player('option', videoAttrs);
         else
-            $('#video_player').video('option', videoAttrs);
+            $('#video').video('option', videoAttrs);
 
         if (data == 'whiteboard') {
             $('#whiteboard_content').whiteboard('option', {widget_color: true,
@@ -519,9 +512,9 @@ $.sammy("#meeting", function() {
         }
 
         if (data == 'chat') {
-            $('#chat_content').chat("toggleMode", "big");
+            $('#chat').chat("toggleMode", "big");
         } else {
-            $('#chat_content').chat("toggleMode", "minus");
+            $('#chat').chat("toggleMode", "minus");
         }
     });
 
@@ -532,14 +525,14 @@ $.sammy("#meeting", function() {
         if (inReplay) {
             meeting.stopReplay();
             $("#replay").replay("destroy");
-            $('#video_player').player("destroy");
+            $('#video').player("destroy");
 
         } else {
             loop.stop();
             loop = null;
-            $('#video_player').video("destroy");
+            $('#video').video("destroy");
         }
-        $('#chat_content').chat("destroy");
+        $('#chat').chat("destroy");
         $('#whiteboard').find('#whiteboard_content').whiteboard("destroy");
         $('#files').file("destroy");
         this.unload();

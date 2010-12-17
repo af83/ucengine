@@ -1,6 +1,7 @@
-$.widget("uce.player", {
+ $.widget("uce.player", {
     // Default options
     options: {
+        title  : 'Video',
         start  : 0,
         src    : null,
         width  : 636,
@@ -8,10 +9,15 @@ $.widget("uce.player", {
     },
     _create: function() {
         this.element.addClass("ui-widget ui-player");
+        $('<div>').addClass('ui-widget-header')
+                  .append($('<span>').text(this.options.title))
+                  .appendTo(this.element)
         this.player = $('<video>').attr(this._videoAttr());
         $('<source>').attr(this._sourceAttr('mp4', 'avc1.42E01E, mp4a.40.2')).appendTo(this.player);
         $('<source>').attr(this._sourceAttr('webm', 'vp8, vorbis')).appendTo(this.player);
-        this.player.appendTo(this.element);
+        $('<div>').addClass('ui-widget-content')
+                  .append(this.player)
+                  .appendTo(this.element);
     },
     _videoAttr: function() {
         return {"class"   : 'ui-player-video',
