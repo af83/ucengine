@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 
 SELF=$0
 ROOT_DIR=$(dirname $SELF)
