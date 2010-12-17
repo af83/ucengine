@@ -74,8 +74,10 @@ case $1 in
     restart) stop; start;;
     stop) stop;;
     tests) tests;;
+    --help) internal_cmd $@;;
     org) internal_cmd $@;;
     meeting) internal_cmd $@;;
-    --help) internal_cmd $@;;
     demo) internal_cmd $@;;
+    time) internal_cmd $@;;
+    user) internal_cmd $@;;
 esac

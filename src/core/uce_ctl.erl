@@ -6,6 +6,8 @@
 
 -include("uce.hrl").
 
+-define(DEFAULT_NODE, 'ucengine@localhost').
+
 args_to_dictionary([]) ->
     [];
 args_to_dictionary([{Key, Value}|Tail]) when is_atom(Key) ->
@@ -32,6 +34,10 @@ start() ->
 		error ->
 		    io:format("~n"),
 		    init:stop(2);
+		{ok, nothing} ->
+		    init:stop(0);
+		{'EXIT', {{case_clause, _}, _}} ->
+		    usage(list_to_atom(Object));
 		Exception when is_list(Exception) ->
 		    io:format("Fatal: " ++ Exception ++ "~n"),
 		    init:stop(2);
@@ -136,9 +142,19 @@ display_field(json, [Value|Values], [Field|Fields]) ->
     end,
     display_field(json, Values, Fields).
 
+display_array_elems(json, [Record|Records], Fields) ->
+    display(json, Record, Fields),
+    case Records of
+	[] ->
+	    nothing;
+	_ ->
+	    io:format(",~n"),
+	    display_array_elems(json, Records, Fields)
+    end.
+    
 display(json, Records, Fields) when is_list(Records) ->
     io:format("["),
-    [display(json, Record, Fields) || Record <- Records],
+    display_array_elems(json, Records, Fields),
     io:format("]");
 display(json, Record, Fields) ->
     [_|Values] = tuple_to_list(Record),
@@ -151,8 +167,7 @@ display(erlang, Record, _) ->
     
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
-    NodeStr = "ucengine@localhost",
-    case rpc:call(list_to_atom(NodeStr), Module, Action, Args) of
+    case rpc:call(?DEFAULT_NODE, Module, Action, Args) of
 	{badrpc, Reason} ->
 	    {error, Reason};
 	Result ->
@@ -296,13 +311,75 @@ action(meeting, list, Args) ->
 	    error(Reason)
     end;
 
+%%
+%% Users
+%%
+
+action(user, add, Args) ->
+    {[[Uid], [Auth], [Credential]], Metadata} =
+	getopt(["uid", "auth", "credential"], Args),
+    case call(user, add, [#uce_user{uid=Uid,
+				    auth=Auth,
+				    credential=Credential,
+				    metadata=Metadata}]) of
+	{ok, created} ->
+	    success(created);
+	{error, Reason} ->
+	    error(Reason)
+    end;
+
+action(user, delete, Args) ->
+    {[[Uid]], _} = getopt(["uid"], Args),
+    case call(user, delete, [Uid]) of
+	{ok, deleted} ->
+	    success(deleted);
+	{error, Reason} ->
+	    error(Reason)
+    end;
+
+action(user, get, Args) ->
+    {[[Uid]], _} = getopt(["uid"], Args),
+    case call(user, get, [[Uid]]) of
+	{ok, Record} ->
+	    display(json, Record, record_info(fields, uce_user));
+	{error, Reason} ->
+	    error(Reason)
+	end;
+
+action(user, update, Args) ->
+    {[[Uid], [Auth], [Credential]], Metadata} =
+	getopt(["uid", "auth", "credential"], Args),
+    case call(user, update, [#uce_user{uid=Uid,
+				       auth=Auth,
+				       credential=Credential,
+				       metadata=Metadata}]) of
+	{ok, updated} ->
+	    success(updated);
+	{error, Reason} ->
+	    error(Reason)
+    end;
+
+action(user, list, Args) ->
+    case call(user, list, []) of
+	{ok, Records} ->
+	    display(json, Records, record_info(fields, uce_user));
+	{error, Reason} ->
+	    error(Reason)
+    end;
+
+%%
+%% Time
+%%
+
+action(time, get, _) ->
+    io:format("Server time: ~p", [utils:now()]),
+    ok;
 
 %%
 %% Utils
 %%
 action(demo, start, Args) ->
-    NodeStr = "ucengine@localhost",
-    rpc:call(list_to_atom(NodeStr), demo, start, Args);
+    rpc:call(?DEFAULT_NODE, demo, start, Args);
 
 action(Object, _, _) ->
     usage(Object).
