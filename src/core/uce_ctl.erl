@@ -152,7 +152,12 @@ display(erlang, Record, _) ->
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
     NodeStr = "ucengine@localhost",
-    rpc:call(list_to_atom(NodeStr), Module, Action, Args).
+    case rpc:call(list_to_atom(NodeStr), Module, Action, Args) of
+	{badrpc, Reason} ->
+	    {error, Reason};
+	Result ->
+	    Result
+    end.
 
 parse_date([Date, Time]) when is_list(Date) , is_list(Time) ->
     case string:tokens(Date ++ " " ++ Time, "- :") of
@@ -175,7 +180,12 @@ success(Result) ->
     ok.
 
 error(Reason) ->
-    io:format("Error: ~p", [Reason]),
+    case Reason of
+	nodedown ->
+	    io:format("Fatal: UCengine node is not running, call 'ucectl start' to start it.");
+	_ ->
+	    io:format("Error: ~p", [Reason])
+    end,
     error.
 
 %%
