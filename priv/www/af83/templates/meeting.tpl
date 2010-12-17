@@ -17,15 +17,8 @@
 
     <section class="main">
         <article id="chat"></article>
-
         <article id="video"></article>
-
-        <article id="whiteboard">
-            <div class="block-header">
-                <h2>Whiteboard</h2>
-            </div>
-            <div id="whiteboard_content" class="block-content"></div>
-        </article>
+        <article id="whiteboard"></article>
 
         <div id="wheel">
             <p><img src="images/wheel.png" /></p>

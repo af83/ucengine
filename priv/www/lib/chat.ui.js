@@ -8,8 +8,8 @@ $.widget("uce.chat", {
     _create: function() {
         this.element.addClass('ui-chat ui-widget');
 
-	var title = $('<div>').attr('class', 'block-header');
-	$('<h2>').text(this.options.title).appendTo(title);
+	var title = $('<div>').attr('class', 'ui-widget-header');
+	$('<span>').text(this.options.title).appendTo(title);
 	title.appendTo(this.element);
 
         var templateBig =

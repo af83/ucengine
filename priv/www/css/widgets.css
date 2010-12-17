@@ -102,12 +102,10 @@
 
 
 /* Chat focus */
-.ui-chat .block-header ul { display: none; }
-.ui-chat .block-header ul { display: block; }
-.ui-chat .block-header ul { position: absolute; top: 9px; right: 40px; }
-.ui-chat .block-header ul li { display: inline;}
-.ui-chat .block-header ul li a img { opacity: 0.5; width: 20px; height: 15px;}
-.ui-chat .block-header ul li a:hover img, .ui-chat .block-header ul li a.on img { opacity: 1; }
+.ui-chat .ui-widget-header ul { display: block; position: absolute; top: 9px; right: 40px; }
+.ui-chat .ui-widget-header ul li { display: inline;}
+.ui-chat .ui-widget-header ul li a img { opacity: 0.5; width: 20px; height: 15px;}
+.ui-chat .ui-widget-header ul li a:hover img, .ui-chat .ui-widget-header ul li a.on img { opacity: 1; }
 
 .ui-chat-big .column { float: left; width: 216px; height: 510px; overflow-y: auto; overflow-x: hidden; }
 .ui-chat-big .column block { clear: both; width: 216px; margin: 0; border: none; }

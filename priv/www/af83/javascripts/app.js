@@ -404,17 +404,17 @@ $.sammy("#meeting", function() {
 
         var chat = $('#chat').chat({ucemeeting: meeting});
         widgets.push('chat');
-        $('#whiteboard #whiteboard_content').whiteboard({ucemeeting       : meeting,
-                                                         widget_transport : false,
-                                                         width            : 318,
-                                                         height           : 350});
+        $('#whiteboard').whiteboard({ucemeeting       : meeting,
+                                     widget_transport : false,
+                                     width            : 318,
+                                     height           : 350});
         widgets.push('whiteboard');
         this.trigger('focus-updated', 'video');
 
         if (inReplay) {
             // disabled some widgets
             $('#files').file("option", "upload", false);
-            $('#whiteboard #whiteboard_content').whiteboard("option", {disabled: true});
+            $('#whiteboard').whiteboard("option", {disabled: true});
 
             $('#search').search({ucemeeting: meeting});
             $("#replay-mode").show();
@@ -436,7 +436,7 @@ $.sammy("#meeting", function() {
                     return;
                 }
                 function clearWidgets() {
-                    $('#whiteboard #whiteboard_content').whiteboard("clear");
+                    $('#whiteboard').whiteboard("clear");
                     $('#files').file("clear");
                     $('#chat').chat("clear");
                 }
@@ -503,12 +503,12 @@ $.sammy("#meeting", function() {
             $('#video').video('option', videoAttrs);
 
         if (data == 'whiteboard') {
-            $('#whiteboard_content').whiteboard('option', {widget_color: true,
-                                                           widget_linewidth: true}).whiteboard("showControls");
+            $('#whiteboard').whiteboard('option', {widget_color: true,
+                                                   widget_linewidth: true}).whiteboard("showControls");
 
         } else {
-            $('#whiteboard_content').whiteboard('option', {widget_color: false,
-                                                           widget_linewidth: false}).whiteboard("hideControls");
+            $('#whiteboard').whiteboard('option', {widget_color: false,
+                                                   widget_linewidth: false}).whiteboard("hideControls");
         }
 
         if (data == 'chat') {
@@ -533,7 +533,7 @@ $.sammy("#meeting", function() {
             $('#video').video("destroy");
         }
         $('#chat').chat("destroy");
-        $('#whiteboard').find('#whiteboard_content').whiteboard("destroy");
+        $('#whiteboard').whiteboard("destroy");
         $('#files').file("destroy");
         this.unload();
     };

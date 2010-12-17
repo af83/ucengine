@@ -2,14 +2,16 @@ module("uce.whiteboard", {teardown: function() {
     $('#whiteboard').whiteboard('destroy');
 }});
 
-test("create some elements", function() {
+test("create some elements, and destroy", function() {
     $('#whiteboard').whiteboard();
-    equals($('#whiteboard > canvas').size(), 2);
+    equals($('#whiteboard .ui-widget-header').text(), 'Whiteboard');
+    equals($('#whiteboard .ui-widget-content > canvas').size(), 2);
     equals($('#whiteboard #controls > *').size(), 6);
     equals($('#whiteboard #chooserWidgets > canvas').size(), 3);
     ok($('#whiteboard').hasClass('ui-widget'), 'should have class ui-widget');
     ok($('#whiteboard').hasClass('ui-whiteboard'), 'should have class ui-whiteboard');
     $('#whiteboard').whiteboard('destroy');
+    equals($('#whiteboard > *').size(), 0);
     ok(!$('#whiteboard').hasClass('ui-widget'), 'should have class ui-widget');
     ok(!$('#whiteboard').hasClass('ui-whiteboard'), 'should have class ui-whiteboard');
 });
@@ -19,8 +21,8 @@ test("create some element with custom ids", function() {
                                  canvas_id_interface: "canvas_norris",
                                  controls_id        : "mycontrols",
                                  choosers_id        : "myChooserWidgets"});
-    equals($('#whiteboard > canvas:eq(0)').attr("id"), "canvas_chuck");
-    equals($('#whiteboard > canvas:eq(1)').attr("id"), "canvas_norris");
+    equals($('#whiteboard .ui-widget-content > canvas:eq(0)').attr("id"), "canvas_chuck");
+    equals($('#whiteboard .ui-widget-content > canvas:eq(1)').attr("id"), "canvas_norris");
     equals($('#whiteboard #mycontrols > *').size(), 6);
     equals($('#whiteboard #myChooserWidgets > canvas').size(), 3);
 });
@@ -28,10 +30,10 @@ test("create some element with custom ids", function() {
 test("can set width/height of main canvas on contruct", function() {
      $('#whiteboard').whiteboard({width   : 200,
                                   height  : 150});
-    equals($('#whiteboard > canvas:eq(0)').attr("height"), 150);
-    equals($('#whiteboard > canvas:eq(0)').attr("width"), 200);
-    equals($('#whiteboard > canvas:eq(1)').attr("height"), 150);
-    equals($('#whiteboard > canvas:eq(1)').attr("width"), 200);
+    equals($('#whiteboard .ui-widget-content > canvas:eq(0)').attr("height"), 150);
+    equals($('#whiteboard .ui-widget-content > canvas:eq(0)').attr("width"), 200);
+    equals($('#whiteboard .ui-widget-content > canvas:eq(1)').attr("height"), 150);
+    equals($('#whiteboard .ui-widget-content > canvas:eq(1)').attr("width"), 200);
 });
 
 test("can customize widgets", function() {

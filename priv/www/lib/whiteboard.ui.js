@@ -4,6 +4,8 @@ $.uce.widget("whiteboard", {
          * uce meeting instance
          */
         ucemeeting          : null,
+        // widget title
+        title               : "Whiteboard",
         /**
          *
          */
@@ -40,19 +42,21 @@ $.uce.widget("whiteboard", {
     },
     _create: function() {
         this.element.addClass('ui-widget ui-whiteboard');
+        $("<div>").addClass("ui-widget-header").append($("<span>").text(this.options.title)).appendTo(this.element);
+        this._content = $("<div>").addClass("ui-widget-content").appendTo(this.element);
         $('<canvas>').attr({
             id     : this.options.canvas_id_bottom,
             width  : this.options.width,
             height : this.options.height,
-        }).appendTo(this.element);
+        }).appendTo(this._content);
         $('<canvas>').attr({
             id     : this.options.canvas_id_interface,
             width  : this.options.width,
             height : this.options.height,
-        }).appendTo(this.element);
+        }).appendTo(this._content);
         var controls = ($('<div>')).attr({
             id: this.options.controls_id
-        }).appendTo(this.element);
+        }).appendTo(this._content);
         // TODO: customize actions
         $.each(["brush", "brush2", "line", "rectangle", "circle", "clear"], function(index, value) {
                     $("<div>").addClass("ui-whiteboard-btn").attr("id", "btn_"+ index).text(value).appendTo(controls);
@@ -60,7 +64,7 @@ $.uce.widget("whiteboard", {
         var chooser = $('<div>').attr({
             id: this.options.choosers_id
         });
-        chooser.appendTo(this.element);
+        chooser.appendTo(this._content);
         if (CanvasHelper.canvasExists(this.options.canvas_id_bottom)) {
 	    var canvasPainter  = new CanvasPainter(this.options.canvas_id_bottom, this.options.canvas_id_interface, {x: 90, y: 10}, $.proxy(this._handleWhiteboardEvents, this));
 
