@@ -53,19 +53,19 @@ ebin/%.app: src/*/*/%.app
 # Usual targets
 ###############################################################################
 run: compile
-	bin/uce_ctl.sh run
+	bin/ucectl run
 
 start: compile
-	bin/uce_ctl.sh start
+	bin/ucectl start
 
 stop:
-	bin/uce_ctl.sh stop
+	bin/ucectl stop
 
 restart:
-	bin/uce_ctl.sh restart
+	bin/ucectl restart
 
 tests: compile
-	bin/uce_ctl.sh tests
+	bin/ucectl tests
 
 ###############################################################################
 # Cleanup
