@@ -26,18 +26,20 @@ start() ->
 	    case catch action(list_to_atom(Object),
 			      list_to_atom(Action),
 			      args_to_dictionary(Command)) of
-		{ok, nothing} ->
-		    nothing;
-		{ok, Result} ->
-		    io:format("Success: ~p~n", [Result]);
-		{error, Reason} ->
-		    io:format("Error: ~p~n", [Reason]);
+		ok ->
+		    io:format("~n"),
+		    init:stop(0);
+		error ->
+		    io:format("~n"),
+		    init:stop(2);
 		Exception when is_list(Exception) ->
-		    io:format("Fatal: " ++ Exception ++ "~n");
+		    io:format("Fatal: " ++ Exception ++ "~n"),
+		    init:stop(2);
 		Exception ->
-		    io:format("Fatal: ~p~n", [Exception])
+		    io:format("Fatal: ~p~n", [Exception]),
+		    init:stop(2)
 	    end;
-	A ->
+	_ ->
 	    usage()
     end,
     halt().
@@ -97,21 +99,56 @@ getopt(Keys, Args) ->
     Remaining = [{Key, string:join(Value, " ")} || {Key, Value} <- RawRemaining],
     {Values, Remaining}.
 
-format_field([], []) ->
-    [];
-format_field([Metadata|Values], [metadata|Fields]) ->
-    FormattedMetadata =
-	[io_lib:format("metadata[~p]: ~ts", [Key, Value]) || {Key, Value} <- Metadata],
-    string:join(FormattedMetadata, "~n") ++ format_field(Values, Fields);
-format_field([Value|Values], [Field|Fields]) when is_list(Value) ->
-    io_lib:format("~p: ~ts~n", [Field, unicode:characters_to_binary(Value)]) ++ format_field(Values, Fields);
-format_field([Value|Values], [Field|Fields]) ->
-    io_lib:format("~p: ~p~n", [Field, Value]) ++ format_field(Values, Fields).
+json_escape(String) when is_list(String) ->
+    re:replace(String, "\"", "\\\"", [{return, list}]);
+json_escape(Integer) when is_integer(Integer) ->
+    Integer.
 
-format(Record, Fields) ->
+display_metadata(json, []) ->
+    [];
+display_metadata(json, [{Key, Value}|Tail]) ->
+    io:format("        ~p: ~p", [json_escape(Key), json_escape(Value)]),
+    case Tail of
+	[] ->
+	    io:format("~n");
+	_ ->
+	    io:format(",~n")
+    end,
+   display_metadata(json, Tail).
+
+display_field(json, [], []) ->
+    [];
+display_field(json, [Value|Values], [Field|Fields]) ->
+    case Field of
+	metadata ->
+	    io:format("    \"metadata\": {~n"),
+	    display_metadata(json, Value),
+	    io:format("    }");
+	_ ->
+	    io:format("    ~p: ~p", [json_escape(atom_to_list(Field)),
+					     json_escape(Value)])
+    end,
+    case Fields of
+	[] ->
+	    io:format("~n");
+	_ ->
+	    io:format(",~n")
+    end,
+    display_field(json, Values, Fields).
+
+display(json, Records, Fields) when is_list(Records) ->
+    io:format("["),
+    [display(json, Record, Fields) || Record <- Records],
+    io:format("]");
+display(json, Record, Fields) ->
     [_|Values] = tuple_to_list(Record),
-    format_field(Values, Fields).
-	    
+    io:format("{~n"),
+    display_field(json, Values, Fields),
+    io:format("}");
+
+display(erlang, Record, _) ->
+    io:format("~p~n", [Record]).    
+    
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
     NodeStr = "ucengine@localhost",
@@ -133,25 +170,60 @@ parse_date([Date, Time]) when is_list(Date) , is_list(Time) ->
 	    {error, bad_date}
     end.
 
+success(Result) ->
+    io:format("Success: ~p", [Result]),
+    ok.
+
+error(Reason) ->
+    io:format("Error: ~p", [Reason]),
+    error.
+
 %%
 %% Org
 %%
 action(org, add, Args) ->
     {[[Name]], Metadata} = getopt(["name"], Args),
-    call(org, add, [#uce_org{name=Name, metadata=Metadata}]);
+    case call(org, add, [#uce_org{name=Name, metadata=Metadata}]) of
+	{ok, created} ->
+	    success(created);
+	{error, Reason} ->
+	    error(Reason)
+    end;
 
 action(org, get, Args) ->
     {[[Name]], _} = getopt(["name"], Args),
-    Response = call(org, get, [Name]),
-    format(Response, record_info(fields, uce_org));
+    case call(org, get, [Name]) of
+	{ok, Record} ->
+	    display(json, Record, record_info(fields, uce_org));
+	{error, Reason} ->
+	    error(Reason)
+    end;
 
 action(org, update, Args) ->
     {[[Name]], Metadata} = getopt(["name"], Args),
-    call(org, update, [#uce_org{name=Name, metadata=Metadata}]);
+    case call(org, update, [#uce_org{name=Name, metadata=Metadata}]) of
+	{ok, updated} ->
+	    success(updated);
+	{error, Reason} ->
+	    error(Reason)
+    end;
 
 action(org, delete, Args) ->
     {[[Name]], _} = getopt(["name"], Args),
-    call(org, update, [Name]);
+    case call(org, delete, [Name]) of
+	{ok, deleted} ->
+	    success(deleted);
+	{error, Reason} ->
+	   error(Reason)
+    end;
+
+action(org, list, _Args) ->
+    case call(org, list, []) of
+	{ok, Records} ->
+	    display(json, Records, record_info(fields, uce_org));
+	{error, Reason} ->
+	    error(Reason)
+    end;
 
 %%
 %% Meeting
@@ -159,34 +231,61 @@ action(org, delete, Args) ->
 action(meeting, add, Args) ->
     {[[Name], [Org], Start, End], Metadata} =
 	getopt(["name", "org", "start", "end"], Args),
-    call(meeting, add, [#uce_meeting{id=[Org, Name],
-				     start_date=parse_date(Start),
-				     end_date=parse_date(End),
-				     metadata=Metadata}]);
+    case call(meeting, add, [#uce_meeting{id=[Org, Name],
+					  start_date=parse_date(Start),
+					  end_date=parse_date(End),
+					  metadata=Metadata}]) of
+	{ok, created} ->
+	    success(created);
+	{error, Reason} ->
+	    error(Reason)
+    end;
 
 action(meeting, delete, Args) ->
     {[[Name], [Org]], _} = getopt(["name", "org"], Args),
-    call(meeting, delete, [{Org, Name}]);
+    case call(meeting, delete, [[Org, Name]]) of
+	{ok, deleted} ->
+	    success(deleted);
+	{error, Reason} ->
+	    error(Reason)
+    end;
 
 action(meeting, get, Args) ->
     {[[Name], [Org]], _} = getopt(["name", "org"], Args),
-    call(meeting, get, [{Org, Name}]);
+    case call(meeting, get, [[Org, Name]]) of
+	{ok, Record} ->
+	    display(json, Record, record_info(fields, uce_meeting));
+	{error, Reason} ->
+	    error(Reason)
+	end;
 
 action(meeting, update, Args) ->
     {[[Name], [Org], Start, End], Metadata} =
 	getopt(["name", "org", "start", "end"], Args),
-    call(meeting, update, [#uce_meeting{id=[Org, Name],
-					start_date=parse_date(Start),
-					end_date=parse_date(End),
-					metadata=Metadata}]);
+    case call(meeting, update, [#uce_meeting{id=[Org, Name],
+					     start_date=parse_date(Start),
+					     end_date=parse_date(End),
+					     metadata=Metadata}]) of
+	{ok, updated} ->
+	    success(updated);
+	{error, Reason} ->
+	    error(Reason)
+    end;
 
 action(meeting, list, Args) ->
-    case getopt([name, status], Args) of
-	{[[Name], [Status]], _} ->
-	    call(meeting, list, [Name, Status]);
-	{[[Name]], _} ->
-	    call(meeting, list, [Name, "all"])
+    Res = case getopt(["org", "status"], Args) of
+	      {[[Org], [Status]], _} ->
+		  call(meeting, list, [Org, Status]);
+	      {[[Org], none], _} ->
+		  call(meeting, list, [Org, "all"])
+	  end,
+    case Res of
+	{ok, Records} ->
+	    display(json, Records, record_info(fields, uce_meeting));
+	{error, Reason} ->
+	    error(Reason)
     end;
+
 
 %%
 %% Utils
