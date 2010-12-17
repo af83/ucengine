@@ -62,8 +62,8 @@ usage(Object) ->
     if
 	Object == none ; Object == org ->
 	    io:format("Organisations:~n"),
-	    io:format("\torg add --name <name> [--<metadata key> <metadata value>]~n"),
-	    io:format("\torg update --name <name> [--<metadata key> <metadata value>]~n"),
+	    io:format("\torg add --name <name> [--<metadata> <value>]~n"),
+	    io:format("\torg update --name <name> [--<metadata> <value>]~n"),
 	    io:format("\torg get --name <name>~n"),
 	    io:format("\torg delete --name <name>~n"),
 	    io:format("\torg list~n~n");
@@ -73,11 +73,22 @@ usage(Object) ->
     if
 	Object == none ; Object == meeting ->
 	    io:format("Meetings:~n"),
-	    io:format("\tmeeting add --org <org> --name <name> --start <date> --end <date> [--<metadata key> <metadata value>]~n"),
-	    io:format("\tmeeting update --org <org> --name <name> --start <date> --end <date> [--<metadata key> <metadata value>]~n"),
+	    io:format("\tmeeting add --org <org> --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
+	    io:format("\tmeeting update --org <org> --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
 	    io:format("\tmeeting get --org <org> --name <name>~n"),
 	    io:format("\tmeeting delete --org <org> --name <name>~n"),
 	    io:format("\tmeeting list --org <org> [--status <status>]~n~n");
+	true ->
+	    nothing
+    end,
+    if
+	Object == none ; Object == user ->
+	    io:format("Users:~n"),
+	    io:format("\tuser add --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
+	    io:format("\tuser update --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
+	    io:format("\tuser get --uid <uid>~n"),
+	    io:format("\tuser delete --uid <uid>~n"),
+	    io:format("\tuser list~n");
 	true ->
 	    nothing
     end,
@@ -359,7 +370,7 @@ action(user, update, Args) ->
 	    error(Reason)
     end;
 
-action(user, list, Args) ->
+action(user, list, _) ->
     case call(user, list, []) of
 	{ok, Records} ->
 	    display(json, Records, record_info(fields, uce_user));
