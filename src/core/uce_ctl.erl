@@ -219,6 +219,16 @@ parse_date(Datetime) when is_list(Datetime) ->
 parse_date(none) ->
     none.
 
+timestamp_to_iso(Militimestamp) when is_integer(Militimestamp) ->
+    Epoch = calendar:datetime_to_gregorian_seconds({{1970,1,1}, {0,0,0}}),
+    Timestamp = Epoch + (Militimestamp div 1000),
+    {{Year, Month, Day}, {Hours, Minutes, Seconds}} =
+        calendar:gregorian_seconds_to_datetime(Timestamp),
+    Date = io_lib:format("~p-~p-~p ~p:~p:~p"
+                        , [Year, Month, Day, Hours, Minutes, Seconds]),
+    lists:flatten(Date).
+
+
 success(Result) ->
     io:format("Success: ~p", [Result]),
     ok.
