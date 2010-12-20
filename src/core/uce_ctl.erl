@@ -131,7 +131,10 @@ getopt(Keys, Args, Defaults) ->
 json_escape(String) when is_list(String) ->
     re:replace(String, "\"", "\\\"", [{return, list}]);
 json_escape(Integer) when is_integer(Integer) ->
-    Integer.
+    Integer;
+json_escape(Atom) when is_atom(Atom)->
+    String = atom_to_list(Atom),
+    json_escape(String).
 
 display_metadata(json, []) ->
     [];
