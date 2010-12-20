@@ -51,10 +51,10 @@ $.uce.widget("video", {
         this._button = $('<a>').attr('href', '#')
                                .button({label: 'Publish'})
                                .click($.proxy(this._onClickButton, this));
-        $('<div>').addClass('ui-widget-header')
+        $('<div>').addClass('ui-widget-header ui-corner-all ui-helper-clearfix')
             .appendTo(this.element)
-            .append(this._button)
-            .append($('<span>').addClass('ui-video-title').text(this.options.title));
+            .append($('<span>').addClass('ui-video-title').text(this.options.title))
+            .append(this._button);
         this._content = $('<div>').addClass('ui-widget-content').appendTo(this.element);
         if (this.options.ucemeeting == null) {
             this._showReceive = true;

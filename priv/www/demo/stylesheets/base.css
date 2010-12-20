@@ -244,4 +244,9 @@ section.main #whiteboard.focus { position: absolute; width: 648px; }
 /**
  * video widget
  */
+.ui-video .ui-widget-header .ui-button { font-size: 1em !important; }
 .ui-video .ui-widget-content { min-height: 400px; }
+
+
+/* we don't want round corner */
+.ui-widget .ui-corner-all { border-radius: 0; -webkit-border-radius: 0;-moz-border-radius: 0;-o-border-radius: 0; }

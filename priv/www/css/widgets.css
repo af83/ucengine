@@ -101,11 +101,15 @@
 }
 
 
-/* Chat focus */
-.ui-chat .ui-widget-header ul { display: block; position: absolute; top: 9px; right: 40px; }
-.ui-chat .ui-widget-header ul li { display: inline;}
-.ui-chat .ui-widget-header ul li a img { opacity: 0.5; width: 20px; height: 15px;}
-.ui-chat .ui-widget-header ul li a:hover img, .ui-chat .ui-widget-header ul li a.on img { opacity: 1; }
+/* Chat widget */
+.ui-chat .ui-chat-title { float: left; margin: 0.1em 16px 0.2em 0; }
+.ui-chat .ui-chat-header-languages { margin: -10px 0 0 0; position: absolute; top: 50%; right: 0.3em; }
+.ui-chat .ui-chat-header-languages li { display: block; float: left;}
+.ui-chat .ui-chat-flag { background-repeat: no-repeat; width: 18px; height: 12px; }
+.ui-chat .ui-chat-flag span {display: none; }
+.ui-chat .ui-chat-flag-fr { background-image: url(img/flag/fr.png); }
+.ui-chat .ui-chat-flag-en { background-image: url(img/flag/en.png); }
+.ui-chat .ui-chat-flag-it { background-image: url(img/flag/it.png); }
 
 .ui-chat-big .column { float: left; width: 216px; height: 510px; overflow-y: auto; overflow-x: hidden; }
 .ui-chat-big .column block { clear: both; width: 216px; margin: 0; border: none; }
@@ -161,9 +165,13 @@
 /**
  * video widget
  */
-.ui-widget.ui-video .ui-widget-header .ui-button {
-    float: right;
-}
-.ui-widget.ui-video .ui-widget-content p {
+.ui-video .ui-video-title { float: left; margin: 0.1em 16px 0.2em 0; }
+.ui-video .ui-widget-header .ui-button { margin: -17px 0 0 0; position: absolute; top: 50%; right: 0.3em; font-size: 0.8em; }
+.ui-video .ui-widget-content p {
     margin: 5px;
+}
+
+.ui-video .ui-widget-header, .ui-chat .ui-widget-header {
+    padding: 0.5em 1em 0.3em;
+    position: relative;
 }

@@ -8,8 +8,8 @@ $.widget("uce.chat", {
     _create: function() {
         this.element.addClass('ui-chat ui-widget');
 
-	var title = $('<div>').attr('class', 'ui-widget-header');
-	$('<span>').text(this.options.title).appendTo(title);
+	var title = $('<div>').attr('class', 'ui-widget-header ui-corner-all ui-helper-clearfix');
+	$('<span>').addClass('ui-chat-title').text(this.options.title).appendTo(title);
 	title.appendTo(this.element);
 
         var templateBig =
@@ -61,15 +61,15 @@ $.widget("uce.chat", {
 	$.tmpl(templateMinus, {}).appendTo(this.element);
 
 	/* display flags in the header */
-	var languages = $('<ul>');
+	var languages = $('<ul>').addClass('ui-chat-header-languages');
 
 	/* create message block for each language */
 	var that = this;
 	$.each(this.options.langs, function(i, lang) {
+            var li = $('<li>').addClass('ui-chat-flag ui-chat-flag-'+ lang).append($('<span>').text(lang));
+            languages.append(li);
 
-	    var flag = $('<img>').attr({'src': 'images/flag/' + lang + '.png', 'alt': lang});
-	    flag.appendTo($('<a>').attr({'href': '#', 'class': 'on'})).appendTo(languages);
-	    flag.click(function(e) {
+	    li.click(function(e) {
 		e.preventDefault();
 		that._showChat('chat:' + lang, "Chatroom (" + lang + ")");
 	    });
