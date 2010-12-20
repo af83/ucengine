@@ -199,8 +199,10 @@ call(Object, Action, Args) ->
 	    Result
     end.
 
-parse_date([Date, Time]) when is_list(Date) , is_list(Time) ->
-    case string:tokens(Date ++ " " ++ Time, "- :") of
+parse_date([Date, Time]) when is_list(Date), is_list(Time) ->
+    parse_date(Date ++ " " ++ Time);
+parse_date(Datetime) when is_list(Datetime) ->
+    case string:tokens(Datetime, "- :") of
 	[Year, Month, Day, Hours, Minutes, Seconds] ->
 	    DateTime = {{list_to_integer(Year),
 			 list_to_integer(Month),
@@ -213,7 +215,9 @@ parse_date([Date, Time]) when is_list(Date) , is_list(Time) ->
 	    (calendar:datetime_to_gregorian_seconds(DateTime) - Epoch) * 1000;
 	_ ->
 	    {error, bad_date}
-    end.
+    end;
+parse_date(none) ->
+    none.
 
 success(Result) ->
     io:format("Success: ~p", [Result]),
