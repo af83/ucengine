@@ -310,34 +310,45 @@ action(org, list, _Args) ->
 %% Meeting
 %%
 action(meeting, add, Args) ->
-    {[[Name], [Org], Start, End], Metadata} =
-	getopt(["name", "org", "start", "end"], Args),
-    case call(meeting, add, [#uce_meeting{id=[Org, Name],
-					  start_date=parse_date(Start),
-					  end_date=parse_date(End),
-					  metadata=Metadata}]) of
-	{ok, created} ->
-	    success(created);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["name", "org", "start", "end"], Args) of
+        {[[Name], [Org], Start, End], Metadata} ->
+            case call(meeting, add, [#uce_meeting{id=[Org, Name],
+                              start_date=parse_date(Start),
+                              end_date=parse_date(End),
+                              metadata=Metadata}]) of
+            {ok, created} ->
+                success(created);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[none, none, none, none], _Metadata} ->
+            error(missing_parameter)
     end;
 
 action(meeting, delete, Args) ->
-    {[[Name], [Org]], _} = getopt(["name", "org"], Args),
-    case call(meeting, delete, [[Org, Name]]) of
-	{ok, deleted} ->
-	    success(deleted);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["name", "org"], Args) of
+        {[[Name], [Org]], _} ->
+            case call(meeting, delete, [[Org, Name]]) of
+            {ok, deleted} ->
+                success(deleted);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[none, none], _} ->
+            error(missing_parameter)
     end;
 
 action(meeting, get, Args) ->
-    {[[Name], [Org]], _} = getopt(["name", "org"], Args),
-    case call(meeting, get, [[Org, Name]]) of
-	{ok, Record} ->
-	    display(json, Record, record_info(fields, uce_meeting));
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["name", "org"], Args) of
+        {[[Name], [Org]], _} ->
+            case call(meeting, get, [[Org, Name]]) of
+            {ok, Record} ->
+                display(json, Record, record_info(fields, uce_meeting));
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[none, none], _} ->
+            error(missing_parameter)
     end;
 
 action(meeting, update, Args) ->
@@ -358,7 +369,9 @@ action(meeting, list, Args) ->
 	      {[[Org], [Status]], _} ->
 		  call(meeting, list, [Org, Status]);
 	      {[[Org], none], _} ->
-		  call(meeting, list, [Org, "all"])
+		  call(meeting, list, [Org, "all"]);
+	      {[none, none], _} ->
+            {error, missing_parameter}
 	  end,
     case Res of
 	{ok, Records} ->
