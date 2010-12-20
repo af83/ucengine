@@ -166,16 +166,19 @@ display_array_elems(json, [Record|Records], Fields) ->
 display(json, Records, Fields) when is_list(Records) ->
     io:format("["),
     display_array_elems(json, Records, Fields),
-    io:format("]");
+    io:format("]"),
+    ok;
 display(json, Record, Fields) ->
     [_|Values] = tuple_to_list(Record),
     io:format("{~n"),
     display_field(json, Values, Fields),
-    io:format("}");
+    io:format("}"),
+    ok;
 
 display(erlang, Record, _) ->
-    io:format("~p~n", [Record]).    
-    
+    io:format("~p~n", [Record]),
+    ok.
+
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
     case rpc:call(?DEFAULT_NODE, Module, Action, Args) of
