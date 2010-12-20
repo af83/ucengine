@@ -14,13 +14,14 @@ start() ->
 
 run() ->
     Modules = [event_tests,
-	       acl_tests,
-	       meeting_tests,
-	       org_tests,
-	       presence_tests,
-	       user_tests,
-	       time_tests,
-	       file_tests] ++
+               acl_tests,
+               meeting_tests,
+               org_tests,
+               presence_tests,
+               user_tests,
+               time_tests,
+               file_tests,
+               ctl_tests] ++
 	case config:get(search_engine) of
 	    solr ->
 		[solr_tests];

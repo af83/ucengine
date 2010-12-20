@@ -2,7 +2,7 @@
 
 -author('victor.goya@af83.com').
 
--export([start/0, stop/0, getopt/2]).
+-export([start/0, stop/0, getopt/2, action/3, success/1, error/1]).
 
 -include("uce.hrl").
 
