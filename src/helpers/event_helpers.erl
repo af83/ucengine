@@ -131,9 +131,9 @@ feed(Path, Params) ->
 					       case uce_meeting:get(Location) of
 						   {error, Reason} ->
 						       throw([Reason, Location]);
-						   Meeting ->
+						   {ok, Meeting} ->
 						       Start = Meeting#uce_meeting.start_date,
-                               [Datetime] = utils:get(Params, ["datetime"], [Start + list_to_integer(Offset)]),
+						       [Datetime] = utils:get(Params, ["datetime"], [Start + list_to_integer(Offset)]),
 						       Event#uce_event{ id=Id
                                                 , datetime=Datetime
                                                 , location=Location

@@ -59,9 +59,9 @@ start() ->
 
     case utils:get(config:get(admin), [uid, auth]) of
 	[Uid, Auth] ->
-	    Sid = uce_presence:add(#uce_presence{uid=Uid, 
-						 auth=Auth,
-						 metadata=[]}),
+	    {ok, Sid} = uce_presence:add(#uce_presence{uid=Uid, 
+						       auth=Auth,
+						       metadata=[]}),
 	    io:format("Admin: ~p/~p~n", [Uid, Sid]);
 	Reason ->
 	    io:format("No admin account (~p)~n", [Reason])
