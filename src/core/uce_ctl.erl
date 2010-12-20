@@ -88,7 +88,16 @@ usage(Object) ->
 	    io:format("\tuser update --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
 	    io:format("\tuser get --uid <uid>~n"),
 	    io:format("\tuser delete --uid <uid>~n"),
-	    io:format("\tuser list~n");
+	    io:format("\tuser list~n~n");
+	true ->
+	    nothing
+    end,
+    if
+	Object == none ; Object == acl ->
+	    io:format("ACL:~n"),
+	    io:format("\tacl add --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting> --<condition> <value>]~n"),
+	    io:format("\tacl delete --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting> --<condition> <value>]~n"),
+	    io:format("\tacl check --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting> --<condition> <value>]~n~n");
 	true ->
 	    nothing
     end,
@@ -357,6 +366,30 @@ action(acl, add, Args) ->
 				  conditions=Conditions}]) of
 	{ok, created} ->
 	    success(created);
+	{error, Reason} ->
+	    error(Reason)
+    end;
+
+action(acl, delete, Args) ->
+    {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
+	getopt(["uid", "org", "meeting", "object", "action"], Args,
+	       [none, "", "", none, none]),
+    case call(acl, delete, [Uid, Object, Action, [Org, Meeting], Conditions]) of
+	{ok, deleted} ->
+	    success(deleted);
+	{error, Reason} ->
+	    error(Reason)
+    end;
+
+action(acl, check, Args) ->
+    {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
+	getopt(["uid", "org", "meeting", "object", "action"], Args,
+	       [none, "", "", none, none]),
+    case call(acl, check, [Uid, Object, Action, [Org, Meeting], Conditions]) of
+	{ok, true} ->
+	    success(true);
+	{ok, false} ->
+	    success(false);
 	{error, Reason} ->
 	    error(Reason)
     end;
