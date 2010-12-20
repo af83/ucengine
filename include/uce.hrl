@@ -47,8 +47,8 @@
 	  id,
 	  %% start_date and end_date format : {{Year, Month, Day}, {Hours, Minutes, Seconds}}
 	  %% or timestamp
-	  start_date = null,
-	  end_date = null,
+	  start_date = none,
+	  end_date = none,
 	  roster = [],
 	  %% [{"description",Desc}, {"language",Lang}, ... ]
 	  metadata = []
