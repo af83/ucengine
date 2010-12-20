@@ -29,7 +29,7 @@ function sammyapp() {
             var that = this;
             // trick for tests
             if (window.location.pathname.match(/tests.html$/))
-                tpl = 'af83/'+ tpl;
+                tpl = 'demo/'+ tpl;
             this.render(tpl, c, function(data) {
                 that.swap(data);
                 (callback || $.noop)();
