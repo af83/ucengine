@@ -95,9 +95,9 @@ usage(Object) ->
     if
 	Object == none ; Object == acl ->
 	    io:format("ACL:~n"),
-	    io:format("\tacl add --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting> --<condition> <value>]~n"),
-	    io:format("\tacl delete --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting> --<condition> <value>]~n"),
-	    io:format("\tacl check --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting> --<condition> <value>]~n~n");
+	    io:format("\tacl add --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting>] [--condition <value>]~n"),
+	    io:format("\tacl delete --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting>] [--condition <value>]~n"),
+	    io:format("\tacl check --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting>] [--condition <value>]~n~n");
 	true ->
 	    nothing
     end,
