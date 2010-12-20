@@ -1,9 +1,18 @@
-$.widget("uce.chat", {
+$.uce.widget("chat", {
     options: {
         ucemeeting: null,
 	title: "Conversations",
 	lang: "fr",
 	langs: ["fr", "en", "it"]
+    },
+    // ucengine events
+    meetingsEvents: {
+        "twitter.hashtag.add"    : "_handleHashTag",
+        "twitter.tweet.new"      : "_handleTweet",
+        "internal.roster.add"    : "_handleJoin",
+        "internal.roster.delete" : "_handleLeave",
+        "chat.translation.new"   : "_handleMessage",
+        "chat.message.new"       : "_handleMessage"
     },
     _create: function() {
         this.element.addClass('ui-chat ui-widget');
@@ -115,26 +124,6 @@ $.widget("uce.chat", {
             this._hashtags = {};
 	    this._roster = [];
 	    this._messages = 0;
-            this.options.ucemeeting.bind("twitter.hashtag.add", function(event) {
-                that._handleHashTag(event);
-            });
-            this.options.ucemeeting.bind("twitter.tweet.new", function(event) {
-                that._handleTweet(event);
-            });
-
-	    this.options.ucemeeting.bind("internal.roster.add", function(event) {
-		that._handleJoin(event);
-	    });
-	    this.options.ucemeeting.bind("internal.roster.delete", function(event) {
-		that._handleLeave(event);
-	    });
-	    this.options.ucemeeting.bind("chat.translation.new", function(event) {
-		that._handleMessage(event);
-	    });
-	    this.options.ucemeeting.bind("chat.message.new", function(event) {
-		that._handleMessage(event);
-	    });
-
             this.element.find('.block.tweets form').bind('submit', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
