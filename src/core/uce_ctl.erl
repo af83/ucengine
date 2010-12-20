@@ -221,39 +221,55 @@ error(Reason) ->
 %% Org
 %%
 action(org, add, Args) ->
-    {[[Name]], Metadata} = getopt(["name"], Args),
-    case call(org, add, [#uce_org{name=Name, metadata=Metadata}]) of
-	{ok, created} ->
-	    success(created);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["name"], Args) of
+        {[[Name]], Metadata} ->
+            case call(org, add, [#uce_org{name=Name, metadata=Metadata}]) of
+            {ok, created} ->
+                success(created);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[none], _Metadata} ->
+            error(missing_parameter)
     end;
 
 action(org, get, Args) ->
-    {[[Name]], _} = getopt(["name"], Args),
-    case call(org, get, [Name]) of
-	{ok, Record} ->
-	    display(json, Record, record_info(fields, uce_org));
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["name"], Args) of
+        {[[Name]], _} ->
+            case call(org, get, [Name]) of
+            {ok, Record} ->
+                display(json, Record, record_info(fields, uce_org));
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[none], _} ->
+            error(missing_parameter)
     end;
 
 action(org, update, Args) ->
-    {[[Name]], Metadata} = getopt(["name"], Args),
-    case call(org, update, [#uce_org{name=Name, metadata=Metadata}]) of
-	{ok, updated} ->
-	    success(updated);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["name"], Args) of
+        {[[Name]], Metadata} ->
+            case call(org, update, [#uce_org{name=Name, metadata=Metadata}]) of
+            {ok, updated} ->
+                success(updated);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[none], _Metadata} ->
+            error(missing_parameter)
     end;
 
 action(org, delete, Args) ->
-    {[[Name]], _} = getopt(["name"], Args),
-    case call(org, delete, [Name]) of
-	{ok, deleted} ->
-	    success(deleted);
-	{error, Reason} ->
-	   error(Reason)
+    case getopt(["name"], Args) of
+        {[[Name]], _} ->
+            case call(org, delete, [Name]) of
+            {ok, deleted} ->
+                success(deleted);
+            {error, Reason} ->
+               error(Reason)
+            end;
+        {[none], _} ->
+            error(missing_parameter)
     end;
 
 action(org, list, _Args) ->
