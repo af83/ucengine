@@ -2,7 +2,7 @@
 
 -author('victor.goya@af83.com').
 
--export([start/0, stop/0, getopt/2, action/3, success/1, error/1]).
+-export([start/0, stop/0, action/3, success/1, error/1]).
 
 -include("uce.hrl").
 
@@ -97,18 +97,20 @@ usage(Object) ->
     io:format("UCengine (c) AF83 - http://ucengine.org~n"),
     {ok, nothing}.
 
-getvalues([], _) ->
+getvalues([], _, _) ->
     [];
-getvalues([Key|Keys], Args) ->
+getvalues([Key|Keys], Args, [Default|Defaults]) ->
     case lists:keyfind(Key, 1, Args) of
 	{_, ArgValue} ->
 	    [ArgValue];
 	false ->
-	    [none]
-    end ++ getvalues(Keys, Args).
+	    [Default]
+    end ++ getvalues(Keys, Args, Defaults).
 
 getopt(Keys, Args) ->
-    Values = getvalues(Keys, Args),
+    getopt(Keys, Args, array:to_list(array:new(length(Keys), {default, none}))).
+getopt(Keys, Args, Defaults) ->
+    Values = getvalues(Keys, Args, Defaults),
     RawRemaining = lists:filter(fun({ArgKey, _}) ->
 					lists:member(ArgKey, Keys) == false
 				end,
@@ -312,7 +314,7 @@ action(meeting, get, Args) ->
 	    display(json, Record, record_info(fields, uce_meeting));
 	{error, Reason} ->
 	    error(Reason)
-	end;
+    end;
 
 action(meeting, update, Args) ->
     {[[Name], [Org], Start, End], Metadata} =
@@ -337,6 +339,24 @@ action(meeting, list, Args) ->
     case Res of
 	{ok, Records} ->
 	    display(json, Records, record_info(fields, uce_meeting));
+	{error, Reason} ->
+	    error(Reason)
+    end;
+
+%%
+%% ACL
+%%
+action(acl, add, Args) ->
+    {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
+	getopt(["uid", "org", "meeting", "object", "action"], Args,
+	       [none, "", "", none, none]),
+    case call(acl, add, [#uce_acl{uid=Uid,
+				  location=[Org, Meeting],
+				  object=Object,
+				  action=Action,
+				  conditions=Conditions}]) of
+	{ok, created} ->
+	    success(created);
 	{error, Reason} ->
 	    error(Reason)
     end;
