@@ -389,7 +389,7 @@ action(meeting, list, Args) ->
 action(acl, add, Args) ->
     {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
 	getopt(["uid", "org", "meeting", "object", "action"], Args,
-	       [none, "", "", none, none]),
+	       [none, [""], [""], none, none]),
     case call(acl, add, [#uce_acl{uid=Uid,
 				  location=[Org, Meeting],
 				  object=Object,
@@ -404,7 +404,7 @@ action(acl, add, Args) ->
 action(acl, delete, Args) ->
     {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
 	getopt(["uid", "org", "meeting", "object", "action"], Args,
-	       [none, "", "", none, none]),
+	       [none, [""], [""], none, none]),
     case call(acl, delete, [Uid, Object, Action, [Org, Meeting], Conditions]) of
 	{ok, deleted} ->
 	    success(deleted);
@@ -415,7 +415,7 @@ action(acl, delete, Args) ->
 action(acl, check, Args) ->
     {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
 	getopt(["uid", "org", "meeting", "object", "action"], Args,
-	       [none, "", "", none, none]),
+	       [none, [""], [""], none, none]),
     case call(acl, check, [Uid, Object, Action, [Org, Meeting], Conditions]) of
 	{ok, true} ->
 	    success(true);
