@@ -432,35 +432,47 @@ action(acl, check, Args) ->
 %%
 
 action(user, add, Args) ->
-    {[[Uid], [Auth], [Credential]], Metadata} =
-	getopt(["uid", "auth", "credential"], Args),
-    case call(user, add, [#uce_user{uid=Uid,
-				    auth=Auth,
-				    credential=Credential,
-				    metadata=Metadata}]) of
-	{ok, created} ->
-	    success(created);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["uid", "auth", "credential"], Args) of
+        {[[Uid], [Auth], [Credential]], Metadata} ->
+            case call(user, add, [#uce_user{uid=Uid,
+                            auth=Auth,
+                            credential=Credential,
+                            metadata=Metadata}]) of
+            {ok, created} ->
+                success(created);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[_Uid, _Auth, _Credential], _Metadata} ->
+            error(missing_parameter)
     end;
 
 action(user, delete, Args) ->
-    {[[Uid]], _} = getopt(["uid"], Args),
-    case call(user, delete, [Uid]) of
-	{ok, deleted} ->
-	    success(deleted);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["uid"], Args) of
+        {[[Uid]], _} ->
+            case call(user, delete, [Uid]) of
+            {ok, deleted} ->
+                success(deleted);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[none], _} ->
+            error(missing_parameter)
     end;
 
+
 action(user, get, Args) ->
-    {[[Uid]], _} = getopt(["uid"], Args),
-    case call(user, get, [Uid]) of
-	{ok, Record} ->
-	    display(json, Record, record_info(fields, uce_user));
-	{error, Reason} ->
-	    error(Reason)
-	end;
+    case getopt(["uid"], Args, [none]) of
+        {[[Uid]], _} ->
+            case call(user, get, [Uid]) of
+            {ok, Record} ->
+                display(json, Record, record_info(fields, uce_user));
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[none], _} ->
+            error(missing_parameter)
+    end;
 
 action(user, update, Args) ->
     {[[Uid], [Auth], [Credential]], Metadata} =
