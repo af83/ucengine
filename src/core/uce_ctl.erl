@@ -316,13 +316,13 @@ action(meeting, add, Args) ->
     case getopt(["name", "org", "start", "end"], Args) of
         {[[Name], [Org], Start, End], Metadata} ->
             case call(meeting, add, [#uce_meeting{id=[Org, Name],
-                              start_date=parse_date(Start),
-                              end_date=parse_date(End),
-                              metadata=Metadata}]) of
-            {ok, created} ->
-                success(created);
-            {error, Reason} ->
-                error(Reason)
+						  start_date=parse_date(Start),
+						  end_date=parse_date(End),
+						  metadata=Metadata}]) of
+		{ok, created} ->
+		    success(created);
+		{error, Reason} ->
+		    error(Reason)
             end;
         {[none, none, none, none], _Metadata} ->
             error(missing_parameter)
@@ -332,10 +332,10 @@ action(meeting, delete, Args) ->
     case getopt(["name", "org"], Args) of
         {[[Name], [Org]], _} ->
             case call(meeting, delete, [[Org, Name]]) of
-            {ok, deleted} ->
-                success(deleted);
-            {error, Reason} ->
-                error(Reason)
+		{ok, deleted} ->
+		    success(deleted);
+		{error, Reason} ->
+		    error(Reason)
             end;
         {[none, none], _} ->
             error(missing_parameter)
@@ -453,7 +453,7 @@ action(user, delete, Args) ->
 
 action(user, get, Args) ->
     {[[Uid]], _} = getopt(["uid"], Args),
-    case call(user, get, [[Uid]]) of
+    case call(user, get, [Uid]) of
 	{ok, Record} ->
 	    display(json, Record, record_info(fields, uce_user));
 	{error, Reason} ->
