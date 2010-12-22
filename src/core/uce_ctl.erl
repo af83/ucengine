@@ -223,7 +223,7 @@ parse_date(Datetime) when is_list(Datetime) ->
 	    {error, bad_date}
     end;
 parse_date(none) ->
-    none.
+    0.
 
 timestamp_to_iso(Militimestamp) when is_integer(Militimestamp) ->
     Epoch = calendar:datetime_to_gregorian_seconds({{1970,1,1}, {0,0,0}}),

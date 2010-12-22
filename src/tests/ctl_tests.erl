@@ -124,10 +124,12 @@ test_org_list() ->
 %%
 
 test_meeting_add() ->
-    {error, not_found} = uce_meeting:get("newmeeting"),
+    {error, not_found} = uce_meeting:get(["testorg", "newmeeting"]),
     Params = [{"org", ["testorg"]}, {"name", ["newmeeting"]}, {"description", [""]}],
     ok = uce_ctl:action(meeting, add, Params),
-    Expected = {ok, #uce_meeting{id=["testorg", "newmeeting"], metadata=[{"description", ""}]}},
+    Expected = {ok, #uce_meeting{id=["testorg", "newmeeting"],
+                                 start_date=0, end_date=0,
+                                 metadata=[{"description", ""}]}},
     Expected = uce_meeting:get(["testorg", "newmeeting"]).
 test_meeting_add_missing_parameter() ->
     error = uce_ctl:action(meeting, add, []).
