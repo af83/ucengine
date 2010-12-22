@@ -34,12 +34,10 @@ get(Id) ->
 
 list(Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
-			 ["", ""] ->
+			 [""] ->
 			     [];
-			 [Org, ""] ->
-			     [{"org", Org}];
-			 [Org, Meeting] ->
-			     [{"org", Org}, {"meeting", Meeting}]
+			 [Meeting] ->
+			     [{"meeting", Meeting}]
 		     end,
     SelectFrom = if
 		       From  == '_' ->
@@ -86,13 +84,13 @@ list(Location, From, Type, Start, End, Parent) ->
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		  ["id", "org", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
-	[Id, Org, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
+		  ["id", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
+	[Id, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
 	    #uce_event{id=Id,
 		       datetime=Datetime,
 		       from=From,
 		       to=To,
-		       location=[Org, Meeting],
+		       location=[Meeting],
 		       type=Type,
 		       parent=Parent,
 		       metadata=Metadata};
@@ -101,7 +99,7 @@ from_collection(Collection) ->
     end.
 
 to_collection(#uce_event{id=Id,
-			 location=[Org, Meeting],
+			 location=[Meeting],
 			 from=From,
 			 to=To,
 			 metadata=Metadata,
@@ -109,7 +107,6 @@ to_collection(#uce_event{id=Id,
 			 type=Type,
 			 parent=Parent}) ->
     [{"id", Id},
-     {"org", Org},
      {"meeting", Meeting},
      {"from", From},
      {"to", To},

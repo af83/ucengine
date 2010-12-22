@@ -39,19 +39,12 @@ init([]) ->
 
 publish(Location, Type, From, Id) ->
     case Location of
-	["", ""] ->
+	[""] ->
 	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, Location, '_', From, Id});
-	[_, ""] ->
+	[_] ->
 	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
-	    gen_server:call(?MODULE, {publish, ["", ""], Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, ["", ""], '_', From, Id});
-	[Org, _] ->
-	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
-	    gen_server:call(?MODULE, {publish, [Org, ""], Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, [Org, ""], '_', From, Id}),
 	    gen_server:call(?MODULE, {publish, ["", ""], Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, ["", ""], '_', From, Id})
     end.
@@ -62,8 +55,8 @@ subscribe(Pid, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
 unsubscribe(Pid) ->
     gen_server:cast(?MODULE, {unsubscribe, Pid}).
 
-params_to_queue([Org, Meeting], Type) ->
-    QueueLocation = yaws_api:url_encode(Org) ++ "," ++ yaws_api:url_encode(Meeting),
+params_to_queue([Meeting], Type) ->
+    QueueLocation = yaws_api:url_encode(Meeting),
     QueueType = case Type of
 		    '_' ->
 			[];
