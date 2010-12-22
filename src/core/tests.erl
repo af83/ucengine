@@ -22,7 +22,7 @@ run() ->
                time_tests,
                file_tests,
                ctl_tests] ++
-	case config:get(search_engine) of
+	case config:get(search) of
 	    solr ->
 		[solr_tests];
 	    _ ->
