@@ -7,7 +7,7 @@
 init() ->
     [#uce_route{module="Files",
 		method='GET',
-		regexp="/file/([^/]+)/([^/]+)",
+		regexp="/file/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -21,7 +21,7 @@ init() ->
      
      #uce_route{module="Files",
 		method='GET',
-		regexp="/file/([^/]+)/([^/]+)/([^/]+)",
+		regexp="/file/([^/]+)/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -35,7 +35,7 @@ init() ->
      
      #uce_route{module="Files",
 		method='PUT',
-		regexp="/file/([^/]+)/([^/]+)",
+		regexp="/file/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -49,7 +49,7 @@ init() ->
      
      #uce_route{module="Files",
 		method='DELETE',
-		regexp="/file/([^/]+)/([^/]+)/([^/]+)",
+		regexp="/file/([^/]+)/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -107,8 +107,8 @@ sanitize_file_name([H|T]) ->
 sanitize_file_name([]) ->
     [].
 
-get([Org, Meeting, Id], [EUid], _) ->
-    case uce_acl:check(EUid, "file", "get", [Org, Meeting], [{"id", Id}]) of
+get([Meeting, Id], [EUid], _) ->
+    case uce_acl:check(EUid, "file", "get", [Meeting], [{"id", Id}]) of
 	{ok, true} ->
 	    case uce_file:get(Id) of
 		{error, Reason} ->
@@ -131,8 +131,8 @@ get([Org, Meeting, Id], [EUid], _) ->
 	    {error, unauthorized}
     end.
 
-delete([Org, Meeting, Id], [EUid], _) ->
-    case uce_acl:check(EUid, "file", "delete", [Org, Meeting], [{"id", Id}]) of
+delete([Meeting, Id], [EUid], _) ->
+    case uce_acl:check(EUid, "file", "delete", [Meeting], [{"id", Id}]) of
 	{ok, true} ->
 	    case uce_file:delete(Id) of
 		{error, Reason} ->

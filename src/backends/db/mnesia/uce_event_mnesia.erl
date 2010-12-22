@@ -41,12 +41,10 @@ get(Id) ->
 
 list(Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
-			 ["", ""] ->
-			     ['$3', '$4'];
-			 [Org, ""] ->
-			     [Org, '$4'];
-			 [Org, Meeting] ->
-			     [Org, Meeting]
+			 [""] ->
+			     ['$4'];
+			 [Meeting] ->
+			     [Meeting]
 		     end,
     SelectFrom = if
 		     From == '_' ->

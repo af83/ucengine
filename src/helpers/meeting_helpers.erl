@@ -6,13 +6,12 @@
 
 -export([to_json/1]).
 
-to_json(#uce_meeting{id=[Org, Meeting],
+to_json(#uce_meeting{id=[Meeting],
 		       start_date=StartDate,
 		       end_date=EndDate,
 		       roster=Roster,
 		       metadata=Metadata}) ->
-    {struct, [{org, Org},
-	      {name, Meeting},
+    {struct, [{name, Meeting},
 	      {start_date, StartDate},
 	      {end_date, case EndDate of
 			     ?NEVER_ENDING_MEETING ->

@@ -30,7 +30,7 @@ init() ->
 			    [user]}]}].
 
 add([Uid], [Credential, Metadata], _) ->
-    case uce_acl:check(Uid, "presence", "add", ["", ""], []) of
+    case uce_acl:check(Uid, "presence", "add", [""], []) of
 	{ok, true} ->
 	    case uce_user:get(Uid) of
 		{error, Reason} ->
@@ -44,7 +44,7 @@ add([Uid], [Credential, Metadata], _) ->
 				{error, Reason} ->
 				    {error, Reason};
 				{ok, Sid} ->
-				    uce_event:add(#uce_event{location=["", ""],
+				    uce_event:add(#uce_event{location=[""],
 							     from=Uid,
 							     type="internal.presence.add",
 							     metadata=Metadata}),
@@ -61,13 +61,13 @@ add([Uid], [Credential, Metadata], _) ->
     end.
 
 delete([ToUid, ToSid], [Uid], _) ->
-    case uce_acl:check(Uid, "presence", "delete", ["", ""], [{"user", ToUid}]) of
+    case uce_acl:check(Uid, "presence", "delete", [""], [{"user", ToUid}]) of
 	{ok, true} ->
 	    case uce_presence:delete(ToSid) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, deleted} ->
-		    uce_event:add(#uce_event{location=["", ""],
+		    uce_event:add(#uce_event{location=[""],
 					     from=Uid,
 					     type="internal.presence.delete"}),
 		    json_helpers:json(ok)

@@ -71,7 +71,7 @@ init() ->
 			    [user]}]}].
 
 list([], [Uid], _) ->
-    case uce_acl:check(Uid, "user", "list", ["", ""], []) of
+    case uce_acl:check(Uid, "user", "list", [""], []) of
 	{ok, true} ->
 	    case uce_user:list() of
 		{error, Reason} ->
@@ -94,7 +94,7 @@ add([Uid], [Auth, Credential, Metadata], _) ->
     end.
 
 update([To], [Uid, Auth, Credential, Metadata], _) ->
-    case uce_acl:check(Uid, "user", "update", ["", ""], [{"user", To}, {"auth", Auth}]) of
+    case uce_acl:check(Uid, "user", "update", [""], [{"user", To}, {"auth", Auth}]) of
 	{ok, true} ->
 	    case uce_user:update(To, Auth, Credential, Metadata) of
 		{error, Reason} ->
@@ -108,7 +108,7 @@ update([To], [Uid, Auth, Credential, Metadata], _) ->
     end.
 
 get([To], [Uid], _) ->
-    case uce_acl:check(Uid, "user", "get", ["", ""], [{"user", To}]) of
+    case uce_acl:check(Uid, "user", "get", [""], [{"user", To}]) of
 	{ok, true} ->
 	    case uce_user:get(To) of
 		{error, Reason} ->
@@ -121,7 +121,7 @@ get([To], [Uid], _) ->
     end.
 
 delete([To], [Uid], _) ->
-    case uce_acl:check(Uid, "user", "delete", ["", ""], [{"user", To}]) of
+    case uce_acl:check(Uid, "user", "delete", [""], [{"user", To}]) of
 	{ok, true} ->
 	    case uce_user:delete(To) of
 		{error, Reason} ->

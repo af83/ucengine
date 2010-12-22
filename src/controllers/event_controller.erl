@@ -8,8 +8,8 @@
 init() ->
     [#uce_route{module="Events",
 		method='GET',
-		regexp="/event/([^/]+)/([^/]+)/([^/]+)",
-		types=[any, any, event],
+		regexp="/event/([^/]+)/([^/]+)/?",
+		types=[any, event],
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -23,8 +23,8 @@ init() ->
 
      #uce_route{module="Events",
 		method='GET',
-		regexp="/event/?([^/]+)?/?([^/]+)?/?",
-		types=[org, meeting],
+		regexp="/event/?([^/]+)?/?",
+		types=[meeting],
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -58,8 +58,8 @@ init() ->
      
      #uce_route{module="Events",
 		method='PUT',
-		regexp="/event/?([^/]+)?/?([^/]+)?/?",
-		types=[org, meeting],
+		regexp="/event/?([^/]+)?/?",
+		types=[meeting],
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -71,30 +71,28 @@ init() ->
 			    [string, string, string, string, dictionary],
 			    [user, any, user, event, any]}]}].
 
-get([_, _, Id], [Uid], _) ->
-    case uce_acl:check(Uid, "event", "get", ["", ""], [{"id", Id}]) of
-	{ok, false} ->
-	    {error, unauthorized};
-	{ok, true} ->
-	    case uce_event:get(Id) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, #uce_event{to=To} = Event} ->
-		    if
-			To == "all" ->
-			    json_helpers:json(event_helpers:to_json(Event));
-			To == Uid ->
-			    json_helpers:json(event_helpers:to_json(Event));
-			true ->
-			    {error, unauthorized}
-		    end
-	    end
+get([_, Id], [Uid], _) ->
+    case uce_acl:check(Uid, "event", "get", [""], [{"id", Id}]) of
+        {ok, false} ->
+            {error, unauthorized};
+        {ok, true} ->
+            case uce_event:get(Id) of
+                {error, Reason} ->
+                    {error, Reason};
+                {ok, #uce_event{to=To} = Event} ->
+                    if
+                        To == "all" ->
+                            json_helpers:json(event_helpers:to_json(Event));
+                        To == Uid ->
+                            json_helpers:json(event_helpers:to_json(Event));
+                        true ->
+                            {error, unauthorized}
+                    end
+            end
     end.
 
 list([], Match, Arg) ->
-    ?MODULE:list(["", ""], Match, Arg);
-list([Org], Match, Arg) ->
-    ?MODULE:list([Org, ""], Match, Arg);
+    ?MODULE:list([""], Match, Arg);
 list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
     case uce_acl:check(Uid, "event", "list", Location, [{"from", From}]) of
 	{ok, true} ->
@@ -151,12 +149,10 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
     end.
 
 add([], [Uid, Type, To, Parent, Metadata], Arg) ->
-    ?MODULE:add(["", ""], [Uid, Type, To, Parent, Metadata], Arg);
-add([Org], [Uid, Type, To, Parent, Metadata], Arg) ->
-    ?MODULE:add([Org, ""], [Uid, Type, To, Parent, Metadata], Arg);
+    add([""], [Uid, Type, To, Parent, Metadata], Arg);
 add(Location, [Uid, Type, To, Parent, Metadata], _) ->
     case uce_acl:check(Uid, "event", "add", Location, [{"type", Type},
-							{"to", To}]) of
+                                                       {"to", To}]) of
 	{ok, true} ->
 	    case uce_event:add(#uce_event{location=Location,
 					  from=Uid,

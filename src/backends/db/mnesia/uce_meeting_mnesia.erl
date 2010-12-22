@@ -1,3 +1,4 @@
+
 -module(uce_meeting_mnesia).
 
 -author('victor.goya@af83.com').
@@ -9,7 +10,7 @@
 	 delete/1,
 	 get/1,
 	 update/1,
-	 list/1]).
+	 list/0]).
 
 -include("uce.hrl").
 
@@ -61,9 +62,9 @@ update(#uce_meeting{} = Meeting) ->
 	    {error, Reason}
     end.
 
-list(Org) ->
+list() ->
     case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_meeting{id=[Org, '_'],
+				    mnesia:match_object(#uce_meeting{id=['_'],
 								     start_date='_',
 								     end_date='_',
 								     roster='_',

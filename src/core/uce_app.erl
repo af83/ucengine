@@ -168,7 +168,6 @@ setup_controllers() ->
 		   event_controller,
 		   file_controller,
 		   acl_controller,
-		   org_controller,
 		   time_controller,
 		   doc_controller]).
 

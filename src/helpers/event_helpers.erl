@@ -27,12 +27,10 @@ to_xml(#uce_event{id=Id,
 		  parent=Parent,
 		  datetime=Datetime}) ->
     XMLLocation = case Location of
-		      ["", ""] ->
+		      [""] ->
 			  [];
-		      [Org, ""] ->
-			  [{org, Org}];
-		      [Org, Meeting] ->
-			  [{org, Org}, {meeting, Meeting}]
+		      [Meeting] ->
+			  [{meeting, Meeting}]
 		      end,
     XMLParent = case Parent of
 		    "" ->
@@ -63,12 +61,10 @@ to_json(#uce_event{id=Id,
 		   parent=Parent,
 		   metadata=Metadata}) ->
     JSONLocation = case Location of
-		       ["", ""] ->
+		       [""] ->
 			   [];
-		       [Org, ""] ->
-			   [{"org", Org}];
-		       [Org, Meeting] ->
-			   [{"org", Org}, {"meeting", Meeting}]
+		       [Meeting] ->
+			   [{"meeting", Meeting}]
 		   end,
     JSONParent = case Parent of
 		     "" ->
@@ -90,14 +86,14 @@ to_json(Events)
     {array, [?MODULE:to_json(Event) || Event <- Events]}.
 
 from_json({struct, Event}) ->
-    case utils:get(Event, ["id", "datetime", "from", "org", "meeting", "type", "parent", "metadata"]) of 
+    case utils:get(Event, ["id", "datetime", "from", "meeting", "type", "parent", "metadata"]) of
 	{error, Reason} ->
 	    {error, Reason};
-	[Id, Datetime, From, Org, Meeting, Type, Parent, {struct, Metadata}] ->
+	[Id, Datetime, From, Meeting, Type, Parent, {struct, Metadata}] ->
 	    #uce_event{id=Id,
 		       datetime=Datetime,
 		       from=From,
-		       location=[Org, Meeting],
+		       location=[Meeting],
 		       type=Type,
 		       parent=Parent,
 		       metadata=Metadata}

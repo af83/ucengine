@@ -26,13 +26,10 @@ to_solrxml(#uce_event{id=Id,
 		      metadata=Metadata}) ->
     LocationElement =
 	case Location of
-	    ["", ""] ->
+	    [""] ->
 		[];
-	    [Org, ""] ->
-		[{field, [{name,"org"}], [Org]}];
-	    [Org, Meeting] ->
-		[{field, [{name,"org"}], [Org]},
-		 {field, [{name,"meeting"}], [Meeting]}]
+	    [Meeting] ->
+		[{field, [{name,"meeting"}], [Meeting]}]
 	end,
 
     MetadataFlattenElement =
@@ -72,15 +69,7 @@ list(Location, Search, From, Type, Start, End, Parent) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     search(Host, Location, Search, From, Type, Start, End, Parent).
 
-search(Host, [Org, Meeting], Search, From, Type, Start, End, _) ->
-    OrgSelector =
-	if
-	    Org /= '_' ->
-		[{"org", Org}];
-	    true ->
-		[]
-	end,
-
+search(Host, [Meeting], Search, From, Type, Start, End, _) ->
     MeetingSelector =
 	if
 	    Meeting /= '_' ->
@@ -125,8 +114,7 @@ search(Host, [Org, Meeting], Search, From, Type, Start, End, _) ->
 		[]
 	end,
 
-    Query = [{"q", params_to_query(OrgSelector ++
-				       MeetingSelector ++
+    Query = [{"q", params_to_query(MeetingSelector ++
 				       FromSelector ++
 				       TypeSelector ++
 				       SearchSelector)}],
@@ -152,7 +140,6 @@ make_list_json_events([{struct, Elems}|Tail]) ->
     case utils:get(Elems,
 		   ["id",
 		    "datetime",
-		    "org",
 		    "meeting",
 		    "from",
 		    "to",
@@ -178,7 +165,6 @@ make_list_json_events([{struct, Elems}|Tail]) ->
 
 	[{array, [Id]},
 	 {array, [Datetime]},
-	 {array, [Org]},
 	 {array, [Meeting]},
 	 {array, [From]},
 	 {array, [To]},
@@ -207,7 +193,7 @@ make_list_json_events([{struct, Elems}|Tail]) ->
 				 FlatMetadata),
 	    [#uce_event{id=Id,
 			datetime=list_to_integer(Datetime),
-			location=[Org, Meeting],
+			location=[Meeting],
 			from=From,
 			to=To,
 			type=Type,

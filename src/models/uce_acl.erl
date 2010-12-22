@@ -39,16 +39,11 @@ check(Uid, Object, Action, Location, Conditions) ->
 	    end
     end.
 
-filter_location(ACL, [RequiredOrg, RequiredMeeting]) ->
-    lists:filter(fun(#uce_acl{location=[Org, Meeting]}) ->
+filter_location(ACL, [RequiredMeeting]) ->
+    lists:filter(fun(#uce_acl{location=[Meeting]}) ->
 			 if
-			     Org == RequiredOrg,
 			     Meeting == RequiredMeeting ->
 				 true;
-			     Org == RequiredOrg,
-			     Meeting == "" ->
-				 true;
-			     Org == "",
 			     Meeting == "" ->
 				 true;
 			     true ->

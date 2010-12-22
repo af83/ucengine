@@ -75,7 +75,6 @@ case $1 in
     stop) stop;;
     tests) tests;;
     --help) internal_cmd $@;;
-    org) internal_cmd $@;;
     meeting) internal_cmd $@;;
     demo) internal_cmd $@;;
     time) internal_cmd $@;;

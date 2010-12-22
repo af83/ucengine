@@ -31,21 +31,14 @@ init([]) ->
 
 publish(Location, Type, From, Id) ->
     case Location of
-	["", ""] ->
+	[""] ->
 	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, Location, '_', From, Id});
-	[_, ""] ->
+	[_] ->
 	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
 	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
-	    gen_server:call(?MODULE, {publish, ["", ""], Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, ["", ""], '_', From, Id});
-	[Org, _] ->
-	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
-	    gen_server:call(?MODULE, {publish, [Org, ""], Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, [Org, ""], '_', From, Id}),
-	    gen_server:call(?MODULE, {publish, ["", ""], Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, ["", ""], '_', From, Id})
+	    gen_server:call(?MODULE, {publish, [""], Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, [""], '_', From, Id})
     end.
 
 subscribe(Pid, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
@@ -84,7 +77,7 @@ get_subscribers(Location, Type, From) ->
 			 Subscribers)
     end.
 
-handle_call({publish, Location, Type, From, Message}, _From, {}) ->
+handle_call({publish, Location, Type, From, Message}, _From, State) ->
     Return = case get_subscribers(Location, Type, From) of
 		 {error, Reason} ->
 		     {error, Reason};
@@ -93,9 +86,9 @@ handle_call({publish, Location, Type, From, Message}, _From, {}) ->
 		      || Subscriber <- Subscribers],
 		     ok
 	     end,
-    {reply, Return, {}}.
+    {reply, Return, State}.
 
-handle_cast({subscribe, Location, Uid, Search, Type, From, Pid}, {}) ->
+handle_cast({subscribe, Location, Uid, Search, Type, From, Pid}, State) ->
     mnesia:transaction(fun() ->
 			       mnesia:write(#uce_mnesia_pubsub{pid=Pid,
 							       location=Location,
@@ -104,12 +97,12 @@ handle_cast({subscribe, Location, Uid, Search, Type, From, Pid}, {}) ->
 							       type=Type, 
 							       from=From})
 		       end),
-    {noreply, {}};
-handle_cast({unsubscribe, Pid}, {}) ->
+    {noreply, State};
+handle_cast({unsubscribe, Pid}, State) ->
     mnesia:transaction(fun() ->
 			       mnesia:delete({uce_mnesia_pubsub, Pid})
 		       end),
-    {noreply, {}}.
+    {noreply, State}.
 
 code_change(_,State,_) ->
     {ok, State}.

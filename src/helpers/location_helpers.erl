@@ -8,17 +8,10 @@
 
 exists(Location) ->
     case Location of
-	["", ""] ->
+	[""] ->
 	    true;
-	[Org, ""] ->
-	    case uce_org:get(Org) of
-		{error, _} ->
-		    false;
-		_ ->
-		    true
-	    end;	    
-	[Org, Meeting] ->
-	    case uce_meeting:get([Org, Meeting]) of
+	[Meeting] ->
+	    case uce_meeting:get([Meeting]) of
 		{error, _} ->
 		    false;
 		_ ->
