@@ -6,12 +6,7 @@
 
 
 start() ->
-    uce_org:add(#uce_org{name="af83",
-			     metadata=[{"description", "af83média specializes in digital communication. Our mission is to design and manage online content and communities."},
-				       {"logo", "af83.png"},
-				       {"htags", "af83"}]}),
-    
-    uce_meeting:add(#uce_meeting{id=["af83", "demo"],
+    uce_meeting:add(#uce_meeting{id=["demo"],
 				     metadata=[{"description", "UCEngine demo meetup"},
 					       {"video", "http://localhost/dev/ucengine/test"}],
 				     start_date=utils:now(),
@@ -72,8 +67,8 @@ start() ->
 feed([]) ->
     ok;
 feed([Path|Paths]) ->
-    ["config", "samples", Org, Meeting, _File] = re:split(Path, "/", [{return, list}]),
-    event_helpers:feed(Path, [{"location", [Org, Meeting]}]),
+    ["config", "samples", Meeting, _File] = re:split(Path, "/", [{return, list}]),
+    event_helpers:feed(Path, [{"location", [Meeting]}]),
     feed(Paths).
 
 feed() ->
