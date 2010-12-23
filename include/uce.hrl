@@ -100,9 +100,6 @@
 -define(PORT, config:get(port)).
 -define(BASE_URL, "http://" ++ ?HOST ++ ":" ++ integer_to_list(?PORT) ++ "/api/" ++ config:get(version)).
 
--define(CONFIG_PATH, "uce.cfg").
--define(LOG_PATH, "uce.log").
-
 -define(SESSION_TIMEOUT, (config:get(presence_timeout) * 1000)).
 
 -define(DEBUG(Format, Args),
@@ -123,10 +120,6 @@
 -define(UCE_SCHEMA_LOCATION, "uce_schema_v1.xsd").
 -define(UCE_XMLNS, "http://ucengine.org").
 
--define(DB_TYPE, db_type).
-
 -define(DEFAULT_TIME_INTERVAL, 600000).
 
 -define(NEVER_ENDING_MEETING, 0).
-
--define(SEARCH_ENGINE, config:get(search_engine)).
