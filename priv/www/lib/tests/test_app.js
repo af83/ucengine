@@ -9,15 +9,15 @@ module('app', {
                                                     "htags":"af83"}}}
         });
         $.mockjax({
-            url: '/api/0.1/meeting/af83/opened',
-            responseText: {"result":[{"org":"af83","name":"demo","start_date":1287493374119,"end_date":"never","roster":["root"],"metadata":{"description":"UCengine demo meetup"}},{"org":"af83","name":"demo2","start_date":1287493374120,"end_date":"never","roster":[],"metadata":{"description":"Meeting R&D"}}]}
+            url: '/api/0.2/meeting/opened',
+            responseText: {"result":[{"name":"demo","start_date":1287493374119,"end_date":"never","roster":["root"],"metadata":{"description":"UCengine demo meetup"}},{"name":"demo2","start_date":1287493374120,"end_date":"never","roster":[],"metadata":{"description":"Meeting R&D"}}]}
         });
         $.mockjax({
-            url : '/api/0.1/meeting/af83/closed',
-            responseText: {"result":[{"org":"af83","name":"agoroom","start_date":1287493374120,"end_date":"1287493374120","roster":["root"],"metadata":{"description":"Meeting agoroom"}}]}
+            url : '/api/0.2/meeting/closed',
+            responseText: {"result":[{"name":"agoroom","start_date":1287493374120,"end_date":"1287493374120","roster":["root"],"metadata":{"description":"Meeting agoroom"}}]}
         });
         $.mockjax({
-            url: '/api/0.1/meeting/af83/upcoming',
+            url: '/api/0.2/meeting/upcoming',
             responseText: {"result":[]}
         });
     },

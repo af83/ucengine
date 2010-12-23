@@ -4,7 +4,7 @@
  * (c) 2010 af83
  */
 (function(g) {
-    var VERSION = "0.1";
+    var VERSION = "0.2";
 
     function getCollection(url, params, callback) {
         get(url, params, function(err, result, xhr) {
@@ -73,9 +73,9 @@
                 /**
                  * Create user presence
                  */
-                create: function(credential, org, uid, nickname, callback)
+                create: function(credential, uid, nickname, callback)
                 {
-                    var params = {"metadata" : {"nickname": nickname, "org": org}};
+                    var params = {"metadata" : {"nickname": nickname}};
                     if (credential) {
                         params.credential = credential;
                     }
@@ -92,7 +92,7 @@
                 /**
                  * Close user presence
                  */
-                close: function(org, callback) {
+                close: function(callback) {
                     del("/presence/" + presence.uid +"/"+ presence.sid, presence, callback);
                     return this;
                 }
@@ -103,11 +103,14 @@
             attachPresence : function(presence) {
                 return new Uce(presence);
             },
-            org : function(orgname) {
+
+            meeting : function(meetingname) {
+                var handlers = [];
                 return {
-		    name: orgname,
+		    name: meetingname,
+                    uid: (presence || {}).uid,
                     get: function(callback) {
-                        get("/org/"+ orgname, {}, function(err, result, xhr) {
+                        get("/meeting/all/"+ meetingname, {}, function(err, result, xhr) {
                             if (!err) {
                                 callback(err, result.result, xhr);
                             } else {
@@ -116,265 +119,238 @@
                         });
                         return this;
                     },
-                    create: function(callback) {
-                        put("/org/"+ orgname, presence, callback);
+                    join: function(callback) {
+                        put("/meeting/all/" + meetingname + "/roster/" + presence.uid,
+	                    presence,
+                            callback);
                         return this;
                     },
-                    meeting : function(meetingname) {
-                        var handlers = [];
-                        return {
-			    name: meetingname,
-                            uid: (presence || {}).uid,
-                            get: function(callback) {
-                                get("/meeting/"+ orgname +"/all/"+ meetingname, {}, function(err, result, xhr) {
-                                    if (!err) {
-                                        callback(err, result.result, xhr);
-                                    } else {
-                                        callback(err, result, xhr);
-                                    }
-                                });
-                                return this;
-                            },
-                            join: function(callback) {
-                                put("/meeting/" + orgname + "/all/" + meetingname + "/roster/" + presence.uid,
-	                            presence,
-                                    callback);
-                                return this;
-                            },
-                            leave: function(callback) {
-                                del("/meeting/" + orgname + "/all/" + meetingname + "/roster/" + presence.uid, presence, callback);
-                                return this;
-                            },
-			    getRoster: function(callback) {
-				
-				get("/meeting/" + orgname + "/all/" + meetingname + "/roster",
-				    presence,
-				    function (err, result, xhr) {
-					if (!callback) {
-					    return;
-					}
-					var roster = result.result;
-					callback(err, roster, xhr);
-				    });
-			    },
-                            /**
-                             * Push event
-                             */
-                            push: function(type, metadata, callback) {
-                                put("/event/" + orgname + "/" + meetingname,
-	                            $.extend({}, presence, {type: type, metadata: metadata}),
-                                    callback);
-                                return this;
-                            },
-                            /**
-                             * Get file upload url for this meeting
-                             */
-                            getFileUploadUrl: function() {
-                                return "/api/"+ VERSION +"/file/"+orgname+"/"+meetingname+"?uid="+presence.uid+"&sid="+presence.sid+"&_method=put"
-                            },
-                            /**
-                             * Get file download url
-                             * @param String filename
-                             */
-                            getFileDownloadUrl: function(filename) {
-                                return "/api/"+ VERSION +"/file/"+orgname+"/"+meetingname+"/"+ filename +"?uid="+presence.uid+"&sid="+presence.sid;
-                            },
-                            /**
-                             * @param Object params
-                             *    search
-                             *    start you can use uce.time() (mandatory)
-                             *    type
-                             *    from
-                             * @param Function callback
-                             * @param Boolean one_shot
-                             * @return Object with a stop() method
-                             */
-                            waitEvents: function(params, callback, one_shot) {
-                                function startLongPolling(p, callback) {
-                                    var getParams = $.extend({}, presence, {"_async": "lp"}, p);
-                                    return get("/event/" + orgname + "/" + meetingname,
-	                                       getParams,
-                                               callback);
-                                }
-                                var longPolling = {
-                                    aborted : false,
-                                    _start : function(p, callback) {
-                                        var that = this;
-                                        this.xhr = startLongPolling(p, function(err, result, xhr) {
-                                            try {
-                                                var events = result.result;
-                                                $.each(events, function(index, event) {
-                                                    callback(err, event, xhr);
-                                                });
-                                                if (events.length > 0) {
-                                                    p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
-                                                }
-                                            } catch (e) {
-                                                // do nothing
-                                            }
-                                            if (that.aborted === false && one_shot !== true) {
-                                                that._start(p, callback);
-                                            }
-                                        });
-                                    },
-                                    stop: function() {
-                                        this.aborted = true;
-                                        this.xhr.abort();
-                                    }
-                                };
-                                longPolling._start(params, callback);
-                                return longPolling;
-                            },
-                            /**
-                             * @param Object params
-                             *    search
-                             *    start
-                             *    end
-                             *    type
-                             *    from
-                             *    count
-                             *    page
-                             *    order
-                             * @param Function callback
-                             * @param Boolen onEachEvent
-                             */
-                            getEvents: function(params, callback, onEachEvent) {
+                    leave: function(callback) {
+                        del("/meeting/all/" + meetingname + "/roster/" + presence.uid, presence, callback);
+                        return this;
+                    },
+		    getRoster: function(callback) {
+
+			get("/meeting/all/" + meetingname + "/roster",
+			    presence,
+			    function (err, result, xhr) {
+				if (!callback) {
+				    return;
+				}
+				var roster = result.result;
+				callback(err, roster, xhr);
+			    });
+		    },
+                    /**
+                     * Push event
+                     */
+                    push: function(type, metadata, callback) {
+                        put("/event/" + meetingname,
+	                    $.extend({}, presence, {type: type, metadata: metadata}),
+                            callback);
+                        return this;
+                    },
+                    /**
+                     * Get file upload url for this meeting
+                     */
+                    getFileUploadUrl: function() {
+                        return "/api/"+ VERSION +"/file/"+meetingname+"?uid="+presence.uid+"&sid="+presence.sid+"&_method=put"
+                    },
+                    /**
+                     * Get file download url
+                     * @param String filename
+                     */
+                    getFileDownloadUrl: function(filename) {
+                        return "/api/"+ VERSION +"/file/"+meetingname+"/"+ filename +"?uid="+presence.uid+"&sid="+presence.sid;
+                    },
+                    /**
+                     * @param Object params
+                     *    search
+                     *    start you can use uce.time() (mandatory)
+                     *    type
+                     *    from
+                     * @param Function callback
+                     * @param Boolean one_shot
+                     * @return Object with a stop() method
+                     */
+                    waitEvents: function(params, callback, one_shot) {
+                        function startLongPolling(p, callback) {
+                            var getParams = $.extend({}, presence, {"_async": "lp"}, p);
+                            return get("/event/" + meetingname,
+	                               getParams,
+                                       callback);
+                        }
+                        var longPolling = {
+                            aborted : false,
+                            _start : function(p, callback) {
                                 var that = this;
-                                params = $.extend({}, presence, params);
-                                get("/event/" + orgname + "/" + meetingname,
-                                    params,
-                                    function(err, result, xhr) {
-                                        if (!callback) {
-                                            return;
-                                        }
+                                this.xhr = startLongPolling(p, function(err, result, xhr) {
+                                    try {
                                         var events = result.result;
-                                        if (!onEachEvent) {
-                                            callback(err, events, xhr)
-                                        } else {
-                                            $.each(events, function(index, event) {
-                                                callback(err, event, xhr);
-                                            });
+                                        $.each(events, function(index, event) {
+                                            callback(err, event, xhr);
+                                        });
+                                        if (events.length > 0) {
+                                            p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
                                         }
-                                    });
-                                return this;
-                            },
-                            /**
-                             * Trigger event on the internal queue
-                             * @param Object event
-                             *  - type
-                             */
-                            trigger: function(event) {
-                                 $.each(handlers, function(i, item) {
-                                    if (!item.type) {
-                                        item.callback(event);
-                                    } else {
-                                        if (item.type == event.type)
-                                            item.callback(event);
+                                    } catch (e) {
+                                        // do nothing
+                                    }
+                                    if (that.aborted === false && one_shot !== true) {
+                                        that._start(p, callback);
                                     }
                                 });
                             },
-
-                            /**
-                             * Start main loop event
-                             * @param Integer start
-                             */
-                            startLoop: function(start) {
-                                var that = this;
-                                return this.waitEvents({start: start}, function(err, result, xhr) {
-                                    that.trigger(result);
-                                });
-                            },
-
-                            /**
-                             * Start replay loop event
-                             * @param Integer start offset
-                             * @param Array events
-                             */
-                            startReplay: function(start, events, index) {
-                                this._replay_current_time = start;
-                                if (!index) {
-                                    this._replay_events = events;
-                                    index = 0;
-                                }
-                                var next = null;
-                                while (next = events[index]) {
-                                    if (next && start > next.datetime) {
-                                        this.trigger(next);
-                                        index++;
-                                    } else {
-                                        break;
-                                    }
-                                }
-                                if (next) {
-                                    this._replay_next_index = index;
-                                    var that = this;
-                                    var offset = 100; // each 100 milisecond
-                                    this._replay_temporized = setTimeout(function() {
-                                        that.startReplay(start + offset, events, index);
-                                    }, offset);
-                                }
-                            },
-
-                            getCurrentReplay: function() {
-                                return this._replay_current_time;
-                            },
-
-                            /**
-                             * Jump to a specific datetime
-                             */
-                            jumpToReplay: function(datetime) {
-                                this.stopReplay();
-                                if (datetime > this._replay_current_time) {
-                                    this.startReplay(datetime, this._replay_events, this._replay_next_index);
-                                } else {
-                                    this.startReplay(datetime, this._replay_events);
-                                }
-                            },
-
-                            stopReplay: function() {
-                                clearTimeout(this._replay_temporized);
-                            },
-
-                            /**
-                             * Bind event handler
-                             * use it with startLoop
-                             * [@param String type]
-                             * @param Function callback
-                             */
-                            bind: function(type, callback) {
-                                if (!callback) {
-                                    callback  = type;
-                                    type = null;
-                                }
-                                handlers.push({type: type,
-                                               callback: callback});
-                                return this;
+                            stop: function() {
+                                this.aborted = true;
+                                this.xhr.abort();
                             }
                         };
+                        longPolling._start(params, callback);
+                        return longPolling;
                     },
-                    meetings : {
-                        opened: function(callback) {
-                            return this._getCollection("opened", callback);
-                        },
-                        closed: function(callback) {
-                            return this._getCollection("closed", callback);
-                        },
-                        upcoming: function(callback) {
-                            return this._getCollection("upcoming", callback);
-                        },
-                        all: function(callback) {
-                            return this._getCollection("all", callback);
-                        },
-                        _getCollection: function(type, callback) {
-                            getCollection("/meeting/"+ orgname +"/"+ type, {}, callback);
-                            return this;
+                    /**
+                     * @param Object params
+                     *    search
+                     *    start
+                     *    end
+                     *    type
+                     *    from
+                     *    count
+                     *    page
+                     *    order
+                     * @param Function callback
+                     * @param Boolen onEachEvent
+                     */
+                    getEvents: function(params, callback, onEachEvent) {
+                        var that = this;
+                        params = $.extend({}, presence, params);
+                        get("/event/" + meetingname,
+                            params,
+                            function(err, result, xhr) {
+                                if (!callback) {
+                                    return;
+                                }
+                                var events = result.result;
+                                if (!onEachEvent) {
+                                    callback(err, events, xhr)
+                                } else {
+                                    $.each(events, function(index, event) {
+                                        callback(err, event, xhr);
+                                    });
+                                }
+                            });
+                        return this;
+                    },
+                    /**
+                     * Trigger event on the internal queue
+                     * @param Object event
+                     *  - type
+                     */
+                    trigger: function(event) {
+                        $.each(handlers, function(i, item) {
+                            if (!item.type) {
+                                item.callback(event);
+                            } else {
+                                if (item.type == event.type)
+                                    item.callback(event);
+                            }
+                        });
+                    },
+
+                    /**
+                     * Start main loop event
+                     * @param Integer start
+                     */
+                    startLoop: function(start) {
+                        var that = this;
+                        return this.waitEvents({start: start}, function(err, result, xhr) {
+                            that.trigger(result);
+                        });
+                    },
+
+                    /**
+                     * Start replay loop event
+                     * @param Integer start offset
+                     * @param Array events
+                     */
+                    startReplay: function(start, events, index) {
+                        this._replay_current_time = start;
+                        if (!index) {
+                            this._replay_events = events;
+                            index = 0;
                         }
+                        var next = null;
+                        while (next = events[index]) {
+                            if (next && start > next.datetime) {
+                                this.trigger(next);
+                                index++;
+                            } else {
+                                break;
+                            }
+                        }
+                        if (next) {
+                            this._replay_next_index = index;
+                            var that = this;
+                            var offset = 100; // each 100 milisecond
+                            this._replay_temporized = setTimeout(function() {
+                                that.startReplay(start + offset, events, index);
+                            }, offset);
+                        }
+                    },
+
+                    getCurrentReplay: function() {
+                        return this._replay_current_time;
+                    },
+
+                    /**
+                     * Jump to a specific datetime
+                     */
+                    jumpToReplay: function(datetime) {
+                        this.stopReplay();
+                        if (datetime > this._replay_current_time) {
+                            this.startReplay(datetime, this._replay_events, this._replay_next_index);
+                        } else {
+                            this.startReplay(datetime, this._replay_events);
+                        }
+                    },
+
+                    stopReplay: function() {
+                        clearTimeout(this._replay_temporized);
+                    },
+
+                    /**
+                     * Bind event handler
+                     * use it with startLoop
+                     * [@param String type]
+                     * @param Function callback
+                     */
+                    bind: function(type, callback) {
+                        if (!callback) {
+                            callback  = type;
+                            type = null;
+                        }
+                        handlers.push({type: type,
+                                       callback: callback});
+                        return this;
                     }
                 };
             },
-            orgs : {
-                get: function(callback) {
-                    getCollection("/org/", presence, callback);
+            meetings : {
+                opened: function(callback) {
+                    return this._getCollection("opened", callback);
+                },
+                closed: function(callback) {
+                    return this._getCollection("closed", callback);
+                },
+                upcoming: function(callback) {
+                    return this._getCollection("upcoming", callback);
+                },
+                all: function(callback) {
+                    return this._getCollection("all", callback);
+                },
+                _getCollection: function(type, callback) {
+                    getCollection("/meeting/"+ type, {}, callback);
                     return this;
                 }
             },
