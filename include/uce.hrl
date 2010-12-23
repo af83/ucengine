@@ -63,6 +63,8 @@
 	  location = ["", ""],
 	  % path
 	  uri = [],
+	  % mime type
+	  mime = "text/plain",
 	  % name as send by the browser
 	  metadata = []
 	 }).
