@@ -87,7 +87,7 @@ end
 Daemons.run_proc('twitter') do
   begin
     UCEngine.new("localhost", 5280, UCEngine::DEBUG).connect("twitter",
-                                                             :token => "da39a3ee5e6b4b0d3255bfef95601890afd80709") do |uce|
+                                                             :credential => "da39a3ee5e6b4b0d3255bfef95601890afd80709") do |uce|
       
       twitter = UCEngineTwitterStream.new("encre_af83", "3ncr3_4f8E") do |location, tweet, hashtag|
         puts "Publish: " + tweet['text']
