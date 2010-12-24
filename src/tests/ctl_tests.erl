@@ -10,6 +10,7 @@ ctl_org_test_() ->
       , fun(_Testers) ->
         [ ?_test(test_org_add())
         , ?_test(test_org_add_missing_parameter())
+        % TODO: Test the conflict case
         , ?_test(test_org_get())
         , ?_test(test_org_get_missing_parameter())
         , ?_test(test_org_get_not_found())
@@ -31,6 +32,7 @@ ctl_meeting_test_() ->
       , fun(_Testers) ->
         [ ?_test(test_meeting_add())
         , ?_test(test_meeting_add_missing_parameter())
+        % TODO: Test the conflict case
         , ?_test(test_meeting_get())
         , ?_test(test_meeting_get_missing_parameter())
         , ?_test(test_meeting_get_not_found())
@@ -54,6 +56,7 @@ ctl_user_test_() ->
       , fun(_Testers) ->
         [ ?_test(test_user_add())
         , ?_test(test_user_add_missing_parameter())
+        % TODO: Test the conflict case
         , ?_test(test_user_get())
         , ?_test(test_user_get_missing_parameter())
         , ?_test(test_user_get_not_found())
@@ -75,6 +78,7 @@ ctl_acl_test_() ->
       , fun(_Testers) ->
         [ ?_test(test_acl_add())
         , ?_test(test_acl_add_missing_parameter())
+        % TODO: Test the conflict case
         , ?_test(test_acl_check())
         , ?_test(test_acl_check_missing_parameter())
         , ?_test(test_acl_delete())
@@ -181,10 +185,10 @@ test_meeting_update() ->
                                 }},
     Expected = uce_meeting:get(["testorg", "testmeeting"]).
 test_meeting_update_missing_parameter() ->
-    error = uce_ctl:action(org, update, []).
+    error = uce_ctl:action(meeting, update, []).
 test_meeting_update_not_found() ->
     Params = [{"org", ["testorg"]}, {"name", ["org that doesnt exists"]}],
-    error = uce_ctl:action(org, update, Params).
+    error = uce_ctl:action(meeting, update, Params).
 
 test_meeting_delete() ->
     {ok, #uce_meeting{ id=["testorg", "testmeeting"]
@@ -261,7 +265,7 @@ test_user_update() ->
                    credential="pwd"}} =
         uce_user:get("anonymous.user@af83.com").
 test_user_update_missing_parameter() ->
-    error = uce_ctl:action(org, update, []).
+    error = uce_ctl:action(user, update, []).
 test_user_update_not_found() ->
     Params = [ {"uid", ["nobody@af83.com"]}
              , {"auth", ["password"]}
