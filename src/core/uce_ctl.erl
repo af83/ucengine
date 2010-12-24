@@ -389,42 +389,53 @@ action(meeting, list, Args) ->
 %% ACL
 %%
 action(acl, add, Args) ->
-    {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
-	getopt(["uid", "org", "meeting", "object", "action"], Args,
-	       [none, [""], [""], none, none]),
-    case call(acl, add, [#uce_acl{uid=Uid,
-				  location=[Org, Meeting],
-				  object=Object,
-				  action=Action,
-				  conditions=Conditions}]) of
-	{ok, created} ->
-	    success(created);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["uid", "org", "meeting", "object", "action"],
+                Args,
+                [none, [""], [""], none, none]) of
+        {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} ->
+            case call(acl, add, [#uce_acl{uid=Uid,
+                          location=[Org, Meeting],
+                          object=Object,
+                          action=Action,
+                          conditions=Conditions}]) of
+            {ok, created} ->
+                success(created);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[_Uid, _Org, _Meeting, _Object, _Action], _Conditions} ->
+            error(missing_parameter)
     end;
 
 action(acl, delete, Args) ->
-    {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
-	getopt(["uid", "org", "meeting", "object", "action"], Args,
-	       [none, [""], [""], none, none]),
-    case call(acl, delete, [Uid, Object, Action, [Org, Meeting], Conditions]) of
-	{ok, deleted} ->
-	    success(deleted);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["uid", "org", "meeting", "object", "action"],
+                Args, [none, [""], [""], none, none]) of
+        {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} ->
+            case call(acl, delete, [Uid, Object, Action, [Org, Meeting], Conditions]) of
+            {ok, deleted} ->
+                success(deleted);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[_Uid, _Org, _Meeting, _Object, _Action], _Conditions} ->
+            error(missing_parameter)
     end;
 
 action(acl, check, Args) ->
-    {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} =
-	getopt(["uid", "org", "meeting", "object", "action"], Args,
-	       [none, [""], [""], none, none]),
-    case call(acl, check, [Uid, Object, Action, [Org, Meeting], Conditions]) of
-	{ok, true} ->
-	    success(true);
-	{ok, false} ->
-	    success(false);
-	{error, Reason} ->
-	    error(Reason)
+	case getopt(["uid", "org", "meeting", "object", "action"],
+                Args,
+                [none, [""], [""], none, none]) of
+        {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} ->
+            case call(acl, check, [Uid, Object, Action, [Org, Meeting], Conditions]) of
+            {ok, true} ->
+                success(true);
+            {ok, false} ->
+                success(false);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[_Uid, _Org, _Meeting, _Object, _Action], _Conditions} ->
+            error(missing_parameter)
     end;
 
 %%
