@@ -101,7 +101,7 @@ jackTest("can open a new presence", function() {
 jackTest("can close a presence", function() {
     stop();
     addUceApiCall("post", "/api/0.2/presence/myuid/mysid", { "_method": "delete", "uid": "myuid", "sid": "mysid"}, 200, '');
-    uce.attachPresence(Factories.createPresence()).presence.close("af83", function(err, r, xhr) {
+    uce.attachPresence(Factories.createPresence()).presence.close(function(err, r, xhr) {
         start();
         equals(err, null);
     });
