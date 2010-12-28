@@ -17,18 +17,18 @@ solr_test_() ->
     }.
 
 test_add() ->
-    ok = uce_event_solr_search:add(#uce_event{id=utils:random(),
-					      datetime=utils:now(),
-					      location=["testorg", "testmeeting"],
-					      from="chuck_norris",
-					      type="test_solr_event",
-					      metadata=[{"text","This is a test event."}]}).
+    {ok, created} = uce_event_solr_search:add(#uce_event{id=utils:random(),
+							 datetime=utils:now(),
+							 location=["testorg", "testmeeting"],
+							 from="chuck_norris",
+							 type="test_solr_event",
+							 metadata=[{"text","This is a test event."}]}).
 
 test_search() ->
     ok = case uce_event_solr_search:list(['_', '_'], ["This is"], '_', '_', 0, infinity, '_') of
 	     {error, Reason} ->
 		 {error, Reason};
-	     Results when is_list(Results) ->
+	     {ok, Results} when is_list(Results) ->
 		 ok
 	 end.
 
