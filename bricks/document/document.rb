@@ -20,9 +20,26 @@ Daemons.run_proc('translation') do
             content = uce.download([event['org'], event['meeting']], event['metadata']['id'])
             file = Tempfile.new(["content-", ".pdf"])
             file.write(content)
+            images = Hash.new
+            i = 0
             Magick::ImageList.new(file.path).each do |image|
-              
-            end          
+              begin
+                tmp_image = Tempfile.new(["content-", ".jpg"])
+                image.write(tmp_image.path)
+                result = uce.upload([event['org'], event['meeting']], tmp_image)
+                tmp_image.close!
+                images[i] = result['result']
+                i += 1
+              rescue => error
+                puts "Fatal error: #{error}"                
+              end
+            end
+            uce.publish(:location => [event['org'], event['meeting']],
+                        :parent => event['id'],
+                        :from => 'document',
+                        :type => 'document.conversion.done',
+                        :metadata => images)
+            file.close!
           end
         end
       end
