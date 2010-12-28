@@ -14,7 +14,7 @@ listen(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
 		  case uce_event:list(Location, Search, From, Types, Uid, Start, End, Parent) of
 		      {error, Reason} ->
 			  {error, Reason};
-		      Events ->
+		      {ok, Events} ->
 			  JSONEvent = mochijson:encode({struct,
 							[{result,
 							  event_helpers:to_json(Events)}]}),
