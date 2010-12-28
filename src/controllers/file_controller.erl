@@ -71,11 +71,18 @@ add(Location, [EUid, Name, Uri, Metadata], _) ->
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, Id} ->
-		    uce_event:add(#uce_event{location=Location,
-					     from=EUid,
-					     type="internal.file.add",
-					     metadata=[{"id", Id}]}),
-		    file_helpers:upload(Id)
+		    % XXX: shall the model returns this precious record of her ?
+		    case uce_file:get(Id) of
+			{ok, #uce_file{} = File} ->
+			    uce_event:add(#uce_event{location=Location,
+						     from=EUid,
+						     type="internal.file.add",
+						     metadata=[{"id", File#uce_file.id},
+							       {"mime", File#uce_file.mime}]}),
+			    file_helpers:upload(File#uce_file.id);
+			{error, Reason} ->
+			    {error, Reason}
+		    end
 	    end;
 	{ok, false} ->
 	    {error, unauthorized}

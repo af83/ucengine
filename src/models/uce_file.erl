@@ -12,13 +12,15 @@ add(#uce_file{location=Location, name=Name} = File) ->
 	false ->
 	    {error, not_found};
 	true ->
-	    Id = case re:run(Name, "([^/]+)\\.([^/]+)$ ?", [{capture, all, list}]) of
-		     {match, [_, BareName, Extension]} ->
-			 BareName ++ "_" ++ utils:random() ++ "." ++ Extension;
-		     _ ->
-			 Name ++ "_" ++ utils:random()
-		 end,
-	    case ?DB_MODULE:add(File#uce_file{id=Id}) of
+	    {Id, Mime} =
+		case re:run(Name, "([^/]+)\\.([^/]+)$ ?", [{capture, all, list}]) of
+		    {match, [_, BareName, Extension]} ->
+			{BareName ++ "_" ++ utils:random() ++ "." ++ Extension,
+			 yaws_api:mime_type(Name)};
+		    _ ->
+			{Name ++ "_" ++ utils:random(), "text/plain"}
+		end,
+	    case ?DB_MODULE:add(File#uce_file{id=Id, mime=Mime}) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, created} ->

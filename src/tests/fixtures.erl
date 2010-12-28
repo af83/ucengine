@@ -76,7 +76,8 @@ teardown_users() ->
     uce_user:delete("participant.user@af83.com"),
     uce_acl:delete("participant.user@af83.com", "add", "presence", [], []),
     uce_acl:delete("participant.user@af83.com", "delete", "presence", [""], [{"user", "participant.user@af83.com"}]),
-
+    uce_acl:delete("participant.user@af83.com", "user", "add", [""], []),
+    
     uce_user:delete("anonymous.user@af83.com"),
     uce_acl:delete("anonymous.user@af83.com", "add", "presence", [], []),
     uce_acl:delete("anonymous.user@af83.com", "delete", "presence", [""], [{"user", "anonymous.user@af83.com"}]),

@@ -4,6 +4,7 @@ if [ "$1" = "local" ]
 then
 	    cap -f Capfile.ucengine ucengine_local deploy:setup;
 	    cap -f Capfile.ucengine ucengine_local deploy;
+
 	    cap -f Capfile.erlyvideo erlyvideo_local deploy:setup;
 	    cap -f Capfile.erlyvideo erlyvideo_local deploy;
 fi
@@ -12,8 +13,13 @@ if [ "$1" = "test" ]
 then
 	    cap -f Capfile.ucengine ucengine_test deploy:setup;
 	    cap -f Capfile.ucengine ucengine_test deploy;
+
 	    cap -f Capfile.erlyvideo erlyvideo_test deploy:setup;
 	    cap -f Capfile.erlyvideo erlyvideo_test deploy;
+
+	    cap -f Capfile.bricks -s brick=translation brick_test deploy:setup;
 	    cap -f Capfile.bricks -s brick=translation brick_test deploy
+
+	    cap -f Capfile.bricks -s brick=twitter brick_test deploy:setup;
 	    cap -f Capfile.bricks -s brick=twitter brick_test deploy
 fi

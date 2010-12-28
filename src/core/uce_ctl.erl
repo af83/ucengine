@@ -286,15 +286,15 @@ action(meeting, update, Args) ->
     case getopt(["name", "start", "end"], Args) of
         {[[Name], Start, End], Metadata} ->
             case call(meeting, update, [#uce_meeting{id=[Name],
-                                                     start_date=parse_date(Start),
-                                                     end_date=parse_date(End),
-                                                     metadata=Metadata}]) of
-                {ok, updated} ->
-                    success(updated);
-                {error, Reason} ->
-                    error(Reason)
-                end;
-        {[none,none,none],[]} ->
+                                 start_date=parse_date(Start),
+                                 end_date=parse_date(End),
+                                 metadata=Metadata}]) of
+            {ok, updated} ->
+                success(updated);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[_Name, _Start, _End], _Metadata} ->
             error(missing_parameter)
     end;
 
@@ -316,42 +316,53 @@ action(meeting, list, Args) ->
 %% ACL
 %%
 action(acl, add, Args) ->
-    {[[Uid], [Meeting], [Object], [Action]], Conditions} =
-	getopt(["uid", "meeting", "object", "action"], Args,
-	       [none, [""], [""], none, none]),
-    case call(acl, add, [#uce_acl{uid=Uid,
-				  location=[Meeting],
-				  object=Object,
-				  action=Action,
-				  conditions=Conditions}]) of
-	{ok, created} ->
-	    success(created);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["uid", "meeting", "object", "action"],
+                Args,
+                [none, [""], none, none]) of
+        {[[Uid], [Meeting], [Object], [Action]], Conditions} ->
+            case call(acl, add, [#uce_acl{uid=Uid,
+                          location=[Meeting],
+                          object=Object,
+                          action=Action,
+                          conditions=Conditions}]) of
+            {ok, created} ->
+                success(created);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[_Uid, _Meeting, _Object, _Action], _Conditions} ->
+            error(missing_parameter)
     end;
 
 action(acl, delete, Args) ->
-    {[[Uid], [Meeting], [Object], [Action]], Conditions} =
-	getopt(["uid", "meeting", "object", "action"], Args,
-	       [none, [""], [""], none, none]),
-    case call(acl, delete, [Uid, Object, Action, [Meeting], Conditions]) of
-	{ok, deleted} ->
-	    success(deleted);
-	{error, Reason} ->
-	    error(Reason)
+    case getopt(["uid", "meeting", "object", "action"],
+                Args, [none, [""], none, none]) of
+        {[[Uid], [Meeting], [Object], [Action]], Conditions} ->
+            case call(acl, delete, [Uid, Object, Action, [Meeting], Conditions]) of
+            {ok, deleted} ->
+                success(deleted);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[_Uid, _Meeting, _Object, _Action], _Conditions} ->
+            error(missing_parameter)
     end;
 
 action(acl, check, Args) ->
-    {[[Uid], [Meeting], [Object], [Action]], Conditions} =
-	getopt(["uid", "meeting", "object", "action"], Args,
-	       [none, [""], [""], none, none]),
-    case call(acl, check, [Uid, Object, Action, [Meeting], Conditions]) of
-	{ok, true} ->
-	    success(true);
-	{ok, false} ->
-	    success(false);
-	{error, Reason} ->
-	    error(Reason)
+	case getopt(["uid", "meeting", "object", "action"],
+                Args,
+                [none, [""], none, none]) of
+        {[[Uid], [Meeting], [Object], [Action]], Conditions} ->
+            case call(acl, check, [Uid, Object, Action, [Meeting], Conditions]) of
+            {ok, true} ->
+                success(true);
+            {ok, false} ->
+                success(false);
+            {error, Reason} ->
+                error(Reason)
+            end;
+        {[_Uid, _Meeting, _Object, _Action], _Conditions} ->
+            error(missing_parameter)
     end;
 
 %%
@@ -413,8 +424,8 @@ action(user, update, Args) ->
                 {error, Reason} ->
                     error(Reason)
             end;
-        {[none,none,none],[]} ->
-             error(missing_parameter)
+        {[_Uid, _Auth, _Credential], _Metadata} ->
+            error(missing_parameter)
     end;
 
 action(user, list, _) ->
