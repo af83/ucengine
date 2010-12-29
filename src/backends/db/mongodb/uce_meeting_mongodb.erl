@@ -5,18 +5,16 @@
 -behaviour(gen_uce_meeting).
 
 -export([add/1,
-	 delete/1,
-	 get/1,
-	 update/1,
-	 list/0,
-	 to_collection/1,
-	 from_collection/1]).
+         delete/1,
+         get/1,
+         update/1,
+         list/0]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(#uce_meeting{} = Meeting) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_meeting", ?MODULE:to_collection(Meeting)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_meeting", to_collection(Meeting)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -37,7 +35,7 @@ get([Meeting]) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Record] ->
-	    {ok, ?MODULE:from_collection(Record)};
+	    {ok, from_collection(Record)};
 	_ ->
 	    {error, not_found}
     end.
@@ -58,7 +56,7 @@ list() ->
 	    {error, bad_parameters};
 	Collections ->
 	    Meetings = lists:map(fun(Collection) ->
-					 ?MODULE:from_collection(Collection)
+					 from_collection(Collection)
 				 end,
 				 Collections),
 	    {ok, Meetings}

@@ -4,20 +4,15 @@
 
 -behaviour(gen_uce_event).
 
--export([
-	 add/1,
+-export([add/1,
 	 get/1,
-	 list/6,
-	 from_collection/1,
-	 to_collection/1
-	 ]).
+	 list/6]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(#uce_event{} = Event) ->
-    ?MODULE:to_collection(Event),
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_event", ?MODULE:to_collection(Event)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_event", to_collection(Event)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -27,7 +22,7 @@ add(#uce_event{} = Event) ->
 get(Id) ->
     case emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
 	[Collection] ->
-	    {ok, ?MODULE:from_collection(Collection)};
+	    {ok, from_collection(Collection)};
 	_ ->
 	    {error, not_found}
     end.
@@ -71,7 +66,7 @@ list(Location, From, Type, Start, End, Parent) ->
 			   []
 	       end,
     Events = lists:map(fun(Collection) ->
-			       ?MODULE:from_collection(Collection)
+			       from_collection(Collection)
 		       end,
 		       emongo:find_all(?MONGO_POOL,"uce_event",
 				       SelectLocation ++

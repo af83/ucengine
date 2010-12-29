@@ -6,15 +6,13 @@
 
 -export([add/1,
 	 delete/5,
-	 list/3,
-	 from_collection/1,
-	 to_collection/1]).
+	 list/3]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(#uce_acl{}=ACL) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_acl", ?MODULE:to_collection(ACL)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_acl", to_collection(ACL)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -47,7 +45,7 @@ list(Uid, Object, Action) ->
 	    {error, bad_parameters};
 	ACLCollections ->
 	    ACL = lists:map(fun(Collection) ->
-				    ?MODULE:from_collection(Collection)
+				    from_collection(Collection)
 			    end,
 			    ACLCollections),
 	    {ok, AllActions} =
@@ -55,14 +53,14 @@ list(Uid, Object, Action) ->
 		    "all" ->
 			{ok, []};
 		    _ ->
-			?MODULE:list(Uid, Object, "all")
+			list(Uid, Object, "all")
 		end,
 	    {ok, AllObjects} =
 		case Object of
 		    "all" ->
 			{ok, []};
 		    _ ->
-			?MODULE:list(Uid, "all", Action)
+			list(Uid, "all", Action)
 		end,
 	    {ok, ACL ++ AllActions ++ AllObjects}
     end.
