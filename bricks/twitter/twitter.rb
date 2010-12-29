@@ -90,7 +90,7 @@ UCEngine.run('twitter') do
   begin
     uce = UCEngine.new(config['host'], config['port'], config['debug'])
     uce.connect(config['uid'], :credential => config['credential']) do |uce|
-      twitter = UCEngineTwitterStream.new("encre_af83", "3ncr3_4f8E") do |location, tweet, hashtag|
+      twitter = UCEngineTwitterStream.new(config['twitter_username'], config['twitter_password']) do |location, tweet, hashtag|
         puts "Publish: " + tweet['text']
         uce.publish(:location => location,
                     :type => 'twitter.tweet.new',
