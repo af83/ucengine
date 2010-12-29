@@ -31,7 +31,7 @@ delete(Uid, Object, Action, Location, Conditions) ->
 check(Uid, Object, Action) ->
     check(Uid, Object, Action, [""]).
 check(Uid, Object, Action, Location) ->
-    check(Uid, Object, Action, [""], []).
+    check(Uid, Object, Action, Location, []).
 check(Uid, Object, Action, Location, Conditions) ->
     case ?DB_MODULE:list(Uid, Object, Action) of
 	{error, Reason} ->
