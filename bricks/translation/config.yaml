@@ -1,0 +1,5 @@
+host: "localhost"
+port: 5280
+debug: 0
+uid: "translation"
+credential: "d713ab03c0280f82709f865ffa2240a38c26f09b"
