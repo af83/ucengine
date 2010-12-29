@@ -119,7 +119,7 @@ setup_acl() ->
 
 setup_db() ->
     DBBackend = list_to_atom(atom_to_list(config:get(db)) ++ "_db"),
-    DBBackend:init(config:get(config:get(db))).    
+    DBBackend:init(config:get(config:get(db))).
 
 setup_bricks() ->
     lists:map(fun({Name, Token}) ->
@@ -137,7 +137,7 @@ setup_bricks() ->
 					   object="all",
 					   conditions=[]})
 	      end,
-	      config:get(bricks)).    
+	      config:get(bricks)).
 
 setup_root() ->
     case utils:get(config:get(admin),
@@ -152,11 +152,11 @@ setup_root() ->
 
 	    uce_acl:add(#uce_acl{uid=Uid,
 				 action="all",
-				 object="all", 
+				 object="all",
 				 conditions=[]});
 	_ ->
 	    ?ERROR_MSG("Invalid or inexistent admin account~n", [])
-    end.    
+    end.
 
 setup_controllers() ->
     lists:foreach(fun(Controller) ->
@@ -175,7 +175,7 @@ setup_controllers() ->
                    ]).
 
 setup_server() ->
-    yaws:start_embedded(config:get(root), 
+    yaws:start_embedded(config:get(root),
 			[{servername, "ucengine"},
 			 {listen, {0,0,0,0}},
 			 {port, config:get(port)},
