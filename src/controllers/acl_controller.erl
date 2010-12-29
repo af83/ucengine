@@ -61,7 +61,7 @@ init() ->
 
 
 check([To, Object, Action], Params, Arg) ->
-    ?MODULE:check([To, Object, Action, ""], Params, Arg);
+    check([To, Object, Action, ""], Params, Arg);
 check([To, Object, Action, Meeting], [EUid, Conditions], _) ->
     case uce_acl:check(EUid, "acl", "check", [Meeting], [{"user", To},
                                                          {"action", Action},
@@ -81,7 +81,7 @@ check([To, Object, Action, Meeting], [EUid, Conditions], _) ->
     end.
 
 add([To, Object, Action], Params, Arg) ->
-    ?MODULE:add([To, Object, Action, ""], Params, Arg);
+    add([To, Object, Action, ""], Params, Arg);
 add([To, Object, Action, Meeting], [EUid, Conditions], _) ->
     case uce_acl:check(EUid, "acl", "add", [Meeting], [{"user", To},
                                                        {"action", Action},
@@ -103,7 +103,7 @@ add([To, Object, Action, Meeting], [EUid, Conditions], _) ->
     end.
 
 delete([To, Object, Action], Params, Arg) ->
-    ?MODULE:delete([To, Object, Action, "", ""], Params, Arg);
+    delete([To, Object, Action, "", ""], Params, Arg);
 delete([To, Object, Action, Meeting], [EUid, Conditions], _) ->
     case uce_acl:check(EUid, "acl", "delete", [Meeting], [{"user", To},
                                                           {"action", Action},
