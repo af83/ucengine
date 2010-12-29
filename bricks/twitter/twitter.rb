@@ -84,11 +84,12 @@ class UCEngineTwitterStream
 end
 
 
-Daemons.run_proc('twitter') do
+config = UCEngine.load_config
+
+UCEngine.run('twitter') do
   begin
-    UCEngine.new("localhost", 5280, UCEngine::DEBUG).connect("twitter",
-                                                             :credential => "da39a3ee5e6b4b0d3255bfef95601890afd80709") do |uce|
-      
+    uce = UCEngine.new(config['host'], config['port'], config['debug'])
+    uce.connect(config['uid'], :credential => config['credential']) do |uce|
       twitter = UCEngineTwitterStream.new("encre_af83", "3ncr3_4f8E") do |location, tweet, hashtag|
         puts "Publish: " + tweet['text']
         uce.publish(:location => location,

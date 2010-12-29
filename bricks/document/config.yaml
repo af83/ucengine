@@ -1,0 +1,5 @@
+host: "localhost"
+port: 5280
+debug: 0
+uid: "document"
+credential: "4efb7c6f7edf5c6392e1b107dde0621140fca97f"
