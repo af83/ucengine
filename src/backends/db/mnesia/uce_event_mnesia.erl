@@ -4,10 +4,11 @@
 
 -behaviour(gen_uce_event).
 
--export([init/0,
-	 add/1,
-	 get/1,
-	 list/6]).
+-export([init/0, drop/0]).
+
+-export([add/1,
+         get/1,
+         list/6]).
 
 -include("uce.hrl").
 
@@ -88,3 +89,6 @@ list(Location, From, Type, Start, End, Parent) ->
     Result = {{'uce_event', '$1','$2', SelectLocation,
 	       SelectFrom, '$6', SelectType, SelectParent, '$9'}},
     {ok, mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])}.
+
+drop() ->
+    mnesia:clear_table(uce_event).

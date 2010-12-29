@@ -3,17 +3,23 @@
 -author('victor.goya@af83.com').
 
 -export([init/1,
-	 terminate/0]).
+         drop/0,
+         terminate/0]).
 
 -include("uce.hrl").
 
+call_mnesia_modules(Fun) ->
+    lists:foreach(fun(Module) ->
+                          apply(list_to_atom(atom_to_list(Module) ++ "_mnesia"), Fun, [])
+                  end,
+                  [uce_acl, uce_user, uce_meeting, uce_file, uce_event, uce_presence, uce_infos]).
+
 init(_) ->
-    uce_acl_mnesia:init(),
-    uce_user_mnesia:init(),
-    uce_meeting_mnesia:init(),
-    uce_file_mnesia:init(),
-    uce_event_mnesia:init(),
-    uce_presence_mnesia:init(),
+    call_mnesia_modules(init),
+    ok.
+
+drop() ->
+    call_mnesia_modules(drop),
     ok.
 
 terminate() ->

@@ -30,7 +30,7 @@ init() ->
 			    [user]}]}].
 
 add([Uid], [Credential, Metadata], _) ->
-    case uce_acl:check(Uid, "presence", "add", [""], []) of
+    case uce_acl:check(Uid, "presence", "add") of
 	{ok, true} ->
 	    case uce_user:get(Uid) of
 		{error, Reason} ->

@@ -2,8 +2,9 @@
 
 -author('victor.goya@af83.com').
 
--export([init/0,
-	 add/1,
+-export([init/0, drop/0]).
+
+-export([add/1,
 	 delete/1,
 	 update/1,
 	 list/0,
@@ -61,3 +62,6 @@ get(EUid) ->
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
+
+drop() ->
+    mnesia:clear_table(uce_user).

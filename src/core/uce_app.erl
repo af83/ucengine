@@ -162,14 +162,17 @@ setup_controllers() ->
     lists:foreach(fun(Controller) ->
 			  [routes:set(Route) || Route <- Controller:init()]
 		  end,
+                  %% TODO: make this more generic
 		  [user_controller,
-		   presence_controller,
-		   meeting_controller,
-		   event_controller,
-		   file_controller,
-		   acl_controller,
-		   time_controller,
-		   doc_controller]).
+                   presence_controller,
+                   meeting_controller,
+                   event_controller,
+                   file_controller,
+                   acl_controller,
+                   time_controller,
+                   doc_controller,
+                   infos_controller
+                   ]).
 
 setup_server() ->
     yaws:start_embedded(config:get(root), 

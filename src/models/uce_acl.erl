@@ -3,9 +3,11 @@
 -author('victor.goya@af83.com').
 
 -export([add/1,
-	 delete/5,
-	 check/5,
-	 trigger/2]).
+         delete/5,
+         check/3,
+         check/4,
+         check/5,
+         trigger/2]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
@@ -26,6 +28,10 @@ add(#uce_acl{uid=Uid, location=Location} = ACL) ->
 delete(Uid, Object, Action, Location, Conditions) ->
     ?DB_MODULE:delete(Uid, Object, Action, Location, Conditions).
 
+check(Uid, Object, Action) ->
+    check(Uid, Object, Action, [""]).
+check(Uid, Object, Action, Location) ->
+    check(Uid, Object, Action, [""], []).
 check(Uid, Object, Action, Location, Conditions) ->
     case ?DB_MODULE:list(Uid, Object, Action) of
 	{error, Reason} ->

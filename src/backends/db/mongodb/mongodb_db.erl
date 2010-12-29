@@ -3,7 +3,8 @@
 -author('victor.goya@af83.com').
 
 -export([init/1,
-	 terminate/0]).
+         drop/0,
+         terminate/0]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -19,6 +20,9 @@ init({Pool, MongoPoolInfos}) ->
 	_ ->
 	    {error, bad_configuration}
     end.
+
+drop() ->
+    emongo:drop_database(?MONGO_POOL).
 
 terminate() ->
     ok.

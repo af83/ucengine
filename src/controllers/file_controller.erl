@@ -62,7 +62,7 @@ init() ->
 			    [user]}]}].
 
 add(Location, [EUid, Name, Uri, Metadata], _) ->
-    case uce_acl:check(EUid, "file", "add", Location, []) of
+    case uce_acl:check(EUid, "file", "add", Location) of
 	{ok, true} ->
 	    case uce_file:add(#uce_file{location=Location,
 					name=Name,
@@ -89,7 +89,7 @@ add(Location, [EUid, Name, Uri, Metadata], _) ->
     end.
 
 list(Location, [EUid], _) ->
-    case uce_acl:check(EUid, "file", "list", Location, []) of
+    case uce_acl:check(EUid, "file", "list", Location) of
 	{ok, true} ->
 	    case uce_file:list(Location) of
 		{error, Reason} ->

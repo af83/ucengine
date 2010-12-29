@@ -134,7 +134,7 @@ get(Location, [], _) ->
     end.
 
 join([Meeting, To], [Uid], _) ->
-    case uce_acl:check(Uid, "roster", "add", [Meeting], []) of
+    case uce_acl:check(Uid, "roster", "add", [Meeting]) of
 	{ok, true} ->
 	    case uce_meeting:join([Meeting], To) of
 		{error, Reason} ->
@@ -150,7 +150,7 @@ join([Meeting, To], [Uid], _) ->
     end.
 
 leave([Meeting, To], [Uid], _) ->
-    case uce_acl:check(Uid, "roster", "delete", [Meeting], []) of
+    case uce_acl:check(Uid, "roster", "delete", [Meeting]) of
 	{ok, true} ->
 	    case uce_meeting:leave([Meeting], To) of
 		{error, Reason} ->
@@ -166,7 +166,7 @@ leave([Meeting, To], [Uid], _) ->
     end.
 
 roster(Location, [Uid], _) ->
-    case uce_acl:check(Uid, "roster", "list", Location, []) of
+    case uce_acl:check(Uid, "roster", "list", Location) of
 	{ok, true} ->
 	    case uce_meeting:roster(Location) of
 		{error, Reason} ->

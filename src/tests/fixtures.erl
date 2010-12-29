@@ -10,15 +10,12 @@ setup() ->
     setup_events(),
     setup_testers().
 
-teardown(Testers) ->
-    teardown_meetings(),
-    teardown_testers(Testers),
-    teardown_users(),
+teardown(_Testers) ->
+    apply(list_to_atom(atom_to_list(config:get(db)) ++ "_db"), drop, []),
     teardown_solr(),
     ok.
 
 setup_meetings() ->
-    teardown_meetings(),
     Now = utils:now(),
     uce_meeting:add(#uce_meeting{id=["testmeeting"],
                                  metadata=[{"description", "Meeting"}],
@@ -38,17 +35,7 @@ setup_meetings() ->
                                  end_date=?NEVER_ENDING_MEETING}),
     ok.
 
-teardown_meetings() ->
-    uce_meeting:delete(["newmeeting"]),
-    uce_meeting:delete(["testmeeting"]),
-    uce_meeting:delete(["closedmeeting"]),
-    uce_meeting:delete(["upcomingmeeting"]),
-    uce_meeting:delete(["testmeeting"]),
-    ok.
-
 setup_users() ->
-    teardown_users(),
-
     uce_user:add(#uce_user{uid="participant.user@af83.com",
 			   auth="password",
 			   credential="pwd"}),
@@ -71,18 +58,6 @@ setup_users() ->
 
     uce_user:add(#uce_user{uid="token.user@af83.com", auth="token", credential="4444"}),
 
-    ok.
-teardown_users() ->
-    uce_user:delete("participant.user@af83.com"),
-    uce_acl:delete("participant.user@af83.com", "add", "presence", [], []),
-    uce_acl:delete("participant.user@af83.com", "delete", "presence", [""], [{"user", "participant.user@af83.com"}]),
-    uce_acl:delete("participant.user@af83.com", "user", "add", [""], []),
-    
-    uce_user:delete("anonymous.user@af83.com"),
-    uce_acl:delete("anonymous.user@af83.com", "add", "presence", [], []),
-    uce_acl:delete("anonymous.user@af83.com", "delete", "presence", [""], [{"user", "anonymous.user@af83.com"}]),
-
-    uce_user:delete("test.user@af83.com"),
     ok.
 
 setup_events() ->
@@ -137,15 +112,6 @@ setup_testers() ->
 						   auth="password",
 						   metadata=[]}),
     [{RootUid, RootSid}, {UglyUid, UglySid}].
-
-teardown_testers([{RootUid, RootSid}, {UglyUid, UglySid}]) ->
-    uce_user:delete(RootUid),
-    uce_acl:delete(RootUid, "all", "all", [""], []),
-    uce_presence:delete(RootSid),
-
-    uce_user:delete(UglyUid),
-    uce_presence:delete(UglySid),
-    ok.
 
 teardown_solr() ->
     uce_event_solr_search:delete("*:*"),

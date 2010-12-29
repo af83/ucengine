@@ -71,7 +71,7 @@ init() ->
 			    [user]}]}].
 
 list([], [Uid], _) ->
-    case uce_acl:check(Uid, "user", "list", [""], []) of
+    case uce_acl:check(Uid, "user", "list") of
 	{ok, true} ->
 	    case uce_user:list() of
 		{error, Reason} ->
