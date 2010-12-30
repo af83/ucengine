@@ -8,11 +8,11 @@ event_test_() ->
       , fun fixtures:setup/0
       , fun fixtures:teardown/1
       , fun(Testers) ->
-		[?_test(test_get()),
+                [?_test(test_get()),
                 ?_test(test_update(Testers)),
                 ?_test(test_update_unauthorized(Testers))
                 ]
-	end}.
+        end}.
 
 -include("mongodb.hrl").
 
@@ -21,13 +21,13 @@ test_get() ->
 
 test_update([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
+              {"sid", RootSid},
               {"metadata[description]", "UC Engine"}],
     {struct, [{"result", "ok"}]} = tests_utils:post("/infos", Params),
     {struct, [{"result", {struct, [{"description", "UC Engine"}]}}]} = tests_utils:get("/infos", []).
 
 test_update_unauthorized([_, {UglyUid, UglySid}]) ->
     Params = [{"uid", UglyUid},
-	      {"sid", UglySid},
+              {"sid", UglySid},
               {"metadata[description]", "UC Engine"}],
     {struct, [{"error", "unauthorized"}]} = tests_utils:post("/infos", Params).
