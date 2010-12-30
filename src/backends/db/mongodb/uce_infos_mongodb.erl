@@ -17,9 +17,14 @@ get() ->
     end.
 
 update(Metadata) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_infos", [{"metadata", Metadata}]) of
-        {'EXIT', _} ->
-            {error, bad_parameters};
-        _ ->
-            {ok, updated}
+    case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"id", "default"}]) of
+        [Infos] ->
+            emongo:update_sync(?MONGO_POOL, "uce_infos", [{"id", "default"}], [{"metadata", Metadata}], false);
+        [] ->
+            case catch emongo:insert_sync(?MONGO_POOL, "uce_infos", [{"id", "default"}, {"metadata", Metadata}]) of
+                {'EXIT', _} ->
+                    {error, bad_parameters};
+                _ ->
+                    {ok, updated}
+            end
     end.

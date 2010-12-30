@@ -1,4 +1,3 @@
-
 -module(uce_meeting_mnesia).
 
 -author('victor.goya@af83.com').

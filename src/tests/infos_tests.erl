@@ -24,7 +24,12 @@ test_update([{RootUid, RootSid}, _]) ->
               {"sid", RootSid},
               {"metadata[description]", "UC Engine"}],
     {struct, [{"result", "ok"}]} = tests_utils:post("/infos", Params),
-    {struct, [{"result", {struct, [{"description", "UC Engine"}]}}]} = tests_utils:get("/infos", []).
+    {struct, [{"result", {struct, [{"description", "UC Engine"}]}}]} = tests_utils:get("/infos", []),
+    Params2 = [{"uid", RootUid},
+               {"sid", RootSid},
+               {"metadata[description]", "UC Engine2"}],
+    {struct, [{"result", "ok"}]} = tests_utils:post("/infos", Params2),
+    {struct, [{"result", {struct, [{"description", "UC Engine2"}]}}]} = tests_utils:get("/infos", []).
 
 test_update_unauthorized([_, {UglyUid, UglySid}]) ->
     Params = [{"uid", UglyUid},
