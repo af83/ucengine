@@ -12,9 +12,9 @@
 
 init() ->
     catch mnesia:create_table(uce_infos,
-			      [{disc_copies, [node()]},
-			       {type, bag},
-			       {attributes, record_info(fields, uce_infos)}]).
+                              [{disc_copies, [node()]},
+                               {type, bag},
+                               {attributes, record_info(fields, uce_infos)}]).
 
 get() ->
     case mnesia:transaction(fun() ->
@@ -30,12 +30,12 @@ get() ->
 
 update(Metadata) ->
     case mnesia:transaction(fun() ->
-				    mnesia:write(#uce_infos{metadata = Metadata})
-			    end) of
-	{atomic, _} ->
-	    {ok, updated};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:write(#uce_infos{metadata = Metadata})
+                            end) of
+        {atomic, _} ->
+            {ok, updated};
+        {aborted, Reason} ->
+            {error, Reason}
     end.
 
 drop() ->
