@@ -10,9 +10,9 @@ LOG_DIR=tmp
 
 if [ -z "$2" ]
 then
-    NODE=$2
-else
     NODE="localhost"
+else
+    NODE=$2
 fi
 
 NAME=-name
