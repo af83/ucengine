@@ -4,6 +4,8 @@
 
 -include("uce.hrl").
 
+-include_lib("kernel/include/file.hrl").
+
 init() ->
     [#uce_route{module="Files",
 		method='GET',
@@ -74,11 +76,14 @@ add(Location, [EUid, Name, Uri, Metadata], _) ->
 		    % XXX: shall the model returns this precious record of her ?
 		    case uce_file:get(Id) of
 			{ok, #uce_file{} = File} ->
+                {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
 			    uce_event:add(#uce_event{location=Location,
 						     from=EUid,
 						     type="internal.file.add",
-						     metadata=[{"id", File#uce_file.id},
-							       {"mime", File#uce_file.mime}]}),
+						     metadata=[ {"id", File#uce_file.id},
+                                        {"name", File#uce_file.name},
+                                        {"size", FileInfo#file_info.size},
+							            {"mime", File#uce_file.mime}]}),
 			    file_helpers:upload(File#uce_file.id);
 			{error, Reason} ->
 			    {error, Reason}
@@ -101,18 +106,12 @@ list(Location, [EUid], _) ->
 	    {error, unauthorized}
     end.
 
-% from YAWS
-sanitize_file_name(".." ++ T) ->
-    sanitize_file_name([$.|T]);
-sanitize_file_name([H|T]) ->
-    case lists:member(H,  " &;'`{}!\\?<>\"()$ ?") of
-        true ->
-            sanitize_file_name(T);
-        false ->
-            [H|sanitize_file_name(T)]
-    end;
-sanitize_file_name([]) ->
-    [].
+%%
+%% @doc Get real path from encoded uri of record uce_file
+%% @spec (Uri::list) -> list
+%%
+get_path(Uri) ->
+    re:replace(Uri, "file\:\/", config:get(datas), [{return, list}]).
 
 get([Org, Meeting, Id], [EUid], _) ->
     case uce_acl:check(EUid, "file", "get", [Org, Meeting], [{"id", Id}]) of
@@ -121,18 +120,13 @@ get([Org, Meeting, Id], [EUid], _) ->
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, File} ->
-		    case re:run(File#uce_file.uri, "^([^/]+)://(.+)", [{capture, all, list}]) of
-			{match, [_, "file", UnsafePath]} ->
-			    Path = config:get(datas) ++ "/" ++ sanitize_file_name(UnsafePath),
-			    case file:read_file(Path) of
-				{error, Reason} ->
-				    {error, Reason};
-				{ok, Content} ->
-				    file_helpers:download(File#uce_file.id, Content)
-			    end;
-			_ ->
-			    {error, not_implemented}
-		    end
+		    Path = get_path(File#uce_file.uri),
+			case file:read_file(Path) of
+			{error, Reason} ->
+		        {error, Reason};
+			{ok, Content} ->
+				file_helpers:download(File#uce_file.id, Content)
+			end
 	    end;
 	{ok, false} ->
 	    {error, unauthorized}
