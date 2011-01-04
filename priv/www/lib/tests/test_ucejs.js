@@ -6,10 +6,20 @@ module('ucejs', {
 
 var Factories = {
     createFileEvent: function(params) {
-        var p = $.extend({}, {id : 'norris.pdf'}, params);
+        var metadata = $.extend({}, {id   : 'norris.pdf',
+                                     name : 'norris.pdf'}, params);
         return {
             type: "internal.file.add",
-            metadata: {id : p.id}
+            metadata: metadata
+        };
+    },
+    createConversionDoneEvent: function(params) {
+        return {
+            type: "document.conversion.done",
+            parent: params.parent,
+            metadata: {
+                pages: params.pages
+            }
         };
     },
     createPresence: function() {
