@@ -10,14 +10,16 @@
 
 start() ->
     application:start(crypto),
-    mnesia:create_schema([node()]),
+    mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
     application:start(inets),
     ibrowse:start(),
     application:start(uce).
 
 start(_, _) ->
-    case catch config:start_link("etc/uce.cfg") of
+    Arguments = init:get_arguments(),
+    [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),
+    case catch config:start_link(ConfigurationPath) of
 	{'EXIT', ReasonConfig} ->
 	    throw({'EXIT', io_lib:format("Could not setup config: ~p", [ReasonConfig])});
 	{error, ReasonConfig} ->

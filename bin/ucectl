@@ -8,9 +8,12 @@ ERL=erl
 MNESIA_DIR=tmp
 LOG_DIR=tmp
 
-NODE=ucengine
-HOST=localhost
-ERLANG_NODE=$NODE@$HOST
+if [ -z "$2" ]
+then
+    NODE=$2
+else
+    NODE="localhost"
+fi
 
 NAME=-name
 
@@ -27,18 +30,18 @@ export ERL_LIBS=deps:/usr/lib/yaws/
 
 run()
 {
-    $ERL $NAME $ERLANG_NODE $ERL_ARGS $ERL_COMMANDS
+    $ERL $NAME $NODE $ERL_ARGS $ERL_COMMANDS -- "$@"
 }
 
 start()
 {
-    $ERL $NAME $ERLANG_NODE $ERL_ARGS -detached $ERL_COMMANDS
+    $ERL $NAME $NODE $ERL_ARGS -detached $ERL_COMMANDS -- "$@"
     echo Started
 }
 
 debug()
 {
-    $ERL -sname ucengine-dbg -hidden -remsh $ERLANG_NODE
+    $ERL -sname ucengine-dbg -hidden -remsh $NODE -- "$@"
 }
 
 stop()
@@ -49,7 +52,7 @@ stop()
 
 tests()
 {
-    $ERL $NAME $ERLANG_NODE $ERL_ARGS -noshell -eval 'tests:start().'
+    $ERL $NAME $NODE $ERL_ARGS -noshell -eval 'tests:start().'
 }
 
 internal_cmd()
@@ -68,10 +71,10 @@ internal_cmd()
 }
 
 case $1 in
-    run) run;;
-    start) start;;
-    debug) debug;;
-    restart) stop; start;;
+    run) run $@;;
+    start) start $@;;
+    debug) debug $@;;
+    restart) stop; start $@;;
     stop) stop;;
     tests) tests;;
     --help) internal_cmd $@;;
