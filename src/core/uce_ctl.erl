@@ -9,6 +9,16 @@
 
 -define(DEFAULT_NODE, list_to_atom("ucengine@" ++ net_adm:localhost())).
 
+default_node() ->
+    NodeDomain =
+	case re:run(atom_to_list(node()), "@(.*)", [{capture, all, list}]) of
+	    {match, [_, Domain]} ->
+		Domain;
+	    _ ->
+		"localhost"
+	end,
+    list_to_atom("ucengine@" ++ NodeDomain).
+
 args_to_dictionary([]) ->
     [];
 args_to_dictionary([{Key, Value}|Tail]) when is_atom(Key) ->
@@ -198,7 +208,7 @@ display(erlang, Record, _) ->
 
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
-    case rpc:call(?DEFAULT_NODE, Module, Action, Args) of
+    case rpc:call(default_node(), Module, Action, Args) of
 	{badrpc, Reason} ->
 	    {error, Reason};
 	Result ->
@@ -524,7 +534,7 @@ action(time, get, _) ->
 %% Utils
 %%
 action(demo, start, Args) ->
-    rpc:call(?DEFAULT_NODE, demo, start, Args);
+    rpc:call(default_node(), demo, start, Args);
 
 action(Object, _, _) ->
     usage(Object).
