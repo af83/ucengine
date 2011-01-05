@@ -10,7 +10,7 @@ LOG_DIR=tmp
 
 if [ -z "$2" ]
 then
-    NODE="localhost"
+    NODE="ucengine"
 else
     NODE=$2
 fi
@@ -61,9 +61,8 @@ internal_cmd()
 	-pa "ebin/"		\
 	-hidden			\
 	-noinput		\
-	-sname uce_ctl_$$	\
+	-name uce_ctl_$$	\
 	-s uce_ctl		\
-	-nodename uce_ctl	\
 	-object "$1"		\
 	-action "$2"		\
 	-dummy			\

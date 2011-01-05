@@ -7,7 +7,7 @@
 
 -include("uce.hrl").
 
--define(DEFAULT_NODE, 'ucengine@localhost').
+-define(DEFAULT_NODE, list_to_atom("ucengine@" ++ net_adm:localhost())).
 
 args_to_dictionary([]) ->
     [];
