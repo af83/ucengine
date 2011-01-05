@@ -106,6 +106,8 @@ getvalues([Key|Keys], Args, [Default|Defaults]) ->
 	    [Default]
     end ++ getvalues(Keys, Args, Defaults).
 
+getopt([], Args) ->
+    {[], [{Key, string:join(Value, " ")} || {Key, Value} <- Args]};
 getopt(Keys, Args) ->
     getopt(Keys, Args, array:to_list(array:new(length(Keys), {default, none}))).
 getopt(Keys, Args, Defaults) ->
@@ -168,7 +170,7 @@ display_array_elems(json, [Record|Records], Fields) ->
 	    io:format(",~n"),
 	    display_array_elems(json, Records, Fields)
     end.
-    
+
 display(json, Records, Fields) when is_list(Records) ->
     io:format("["),
     display_array_elems(json, Records, Fields),
@@ -179,9 +181,9 @@ display(json, Record, Fields) ->
     io:format("{~n"),
     display_field(json, Values, Fields),
     io:format("}"),
-    ok;
+    ok.
 
-display(erlang, Record, _) ->
+display(erlang, Record) ->
     io:format("~p~n", [Record]),
     ok.
 
@@ -443,6 +445,30 @@ action(user, list, _) ->
 action(time, get, _) ->
     io:format("Server time: ~p", [utils:now()]),
     ok;
+
+%%
+%% Info
+%%
+action(infos, get, _Args) ->
+    case call(infos, get, []) of
+        {ok, Infos} ->
+            display(erlang, Infos);
+        {error, Reason} ->
+                error(Reason)
+    end;
+
+action(infos, update, Args) ->
+    case getopt([], Args) of
+        {[], Metadata} ->
+            case call(infos, update, [Metadata]) of
+                {ok, updated} ->
+                    success(updated);
+                {error, Reason} ->
+                    error(Reason)
+            end;
+        _ ->
+            error(missing_parameter)
+    end;
 
 %%
 %% Utils

@@ -66,6 +66,17 @@ ctl_acl_test_() ->
       end
     }.
 
+ctl_infos_test_() ->
+    { setup
+      , fun fixtures:setup/0
+      , fun fixtures:teardown/1
+      , fun(_Tester) ->
+                [ ?_test(test_infos_get())
+                ,  ?_test(test_infos_update())
+                ]
+        end
+    }.
+
 %%
 %% Meeting
 %%
@@ -276,3 +287,17 @@ test_acl_delete_not_found() ->
              , {"object", ["presence"]}
              ],
     error = uce_ctl:action(acl, delete, Params).
+
+
+%%
+%% Infos
+%%
+
+test_infos_get() ->
+    ok = uce_ctl:action(infos, get, []).
+
+test_infos_update() ->
+    {ok, []} = uce_infos:get(),
+    Params = [{"description", ["Informations"]}],
+    ok = uce_ctl:action(infos, update, Params),
+    {ok, [{"description", "Informations"}]} = uce_infos:get().
