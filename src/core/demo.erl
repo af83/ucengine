@@ -6,6 +6,10 @@
 
 
 start() ->
+    uce_infos:update([{"description", "af83media specializes in digital communication. Our mission is to design and manage online content and communities."},
+                   {"logo", "af83.png"},
+                   {"htags", "af83"}]),
+
     uce_meeting:add(#uce_meeting{id=["demo"],
 				     metadata=[{"description", "UCEngine demo meetup"},
 					       {"video", "http://localhost/dev/ucengine/test"}],

@@ -9,6 +9,7 @@ function sammyapp() {
         presence: null,
         user: null
     };
+    var infos = null;
 
     this.setTitle(function(title) {
         return [title, " - UCengine"].join('');
@@ -36,26 +37,27 @@ function sammyapp() {
         }
     });
     /**
-     * Is org af83 loaded before anything else ?
+     * Is infos loaded before anything else ?
      */
     function isLoaded(callback) {
-//        if (!org) {
-//            uce.org("af83").get(function(err, result, xhr) {
-//                if (err) {
-//                    return;
-//                }
-//                $("#logoPartner").html('<img src="images/' + result.metadata.logo +'" style="vertical-align: middle;" />');
-//                callback();
-//            });
-//        } else {
+        if (!infos) {
+            uce.infos.get(function(err, result, xhr) {
+                if (err) {
+                    return;
+                }
+                $("#logoPartner").html('<img src="images/' + result.logo +'" style="vertical-align: middle;" />');
+                infos = result;
+                callback();
+            });
+        } else {
             callback();
-//        }
+        }
     }
     this.around(selectMenu);
     this.around(isLoaded);
     function build_home(callback) {
         var c = {welcome         : 'Welcome To UCengine by af83',
-                 description     : "",
+                 description     : infos.description,
                  not_connected   : (presence.presence == null),
                  format: function() {
                      return function(text, render) {
