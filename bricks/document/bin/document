@@ -13,7 +13,7 @@ UCEngine.run('document') do
   begin
     uce = UCEngine.new(config['host'], config['port'], config['debug'])
       uce.connect(config['uid'], :credential => config['credential']) do |uce|
-      uce.subscribe(["af83", "demo"], :type => "internal.file.add", :start => uce.time) do |event|
+      uce.subscribe([], :type => "internal.file.add", :start => uce.time) do |event|
         if event['metadata']['mime'] == 'application/pdf'
           Thread.new do
             content = uce.download([event['org'], event['meeting']], event['metadata']['id'])
