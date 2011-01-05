@@ -64,7 +64,7 @@ test_upload_small([{RootUid, RootSid}, _]) ->
 			 {"metadata", Metadata}]}]}}]} = tests_utils:get("/event/testorg/testmeeting", ParamsGet),
     {struct, [{"id", _},
               {"name", "small"}, 
-              {"size", 28}, 
+              {"size", "28"}, 
               {"mime", "text/plain"}]} = Metadata.
 
 test_upload_big([{RootUid, RootSid}, _]) ->

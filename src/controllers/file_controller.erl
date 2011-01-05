@@ -81,9 +81,9 @@ add(Location, [EUid, Name, Uri, Metadata], _) ->
 						     from=EUid,
 						     type="internal.file.add",
 						     metadata=[ {"id", File#uce_file.id},
-                                        {"name", File#uce_file.name},
-                                        {"size", FileInfo#file_info.size},
-							            {"mime", File#uce_file.mime}]}),
+								{"name", File#uce_file.name},
+								{"size", integer_to_list(FileInfo#file_info.size)},
+								{"mime", File#uce_file.mime}]}),
 			    file_helpers:upload(File#uce_file.id);
 			{error, Reason} ->
 			    {error, Reason}
