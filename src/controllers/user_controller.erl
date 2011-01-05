@@ -7,7 +7,7 @@
 init() ->
     [#uce_route{module="Users",
 		method='GET',
-		regexp="/user/",
+		regexp="/user",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
