@@ -119,8 +119,8 @@ jackTest("can get current domain informations", function() {
 
 jackTest("can update current domain informations", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/infos/", {"uid": "myuid", "sid": "mysid", "metadata[pouet]": "pouet"}, 200, '{"result" : "ok"}');
-    uce.infos.post({pouet: "pouet"}, function(err, r, xhr) {
+    addUceApiCall("post", "/api/0.2/infos/", {"uid": "myuid", "sid": "mysid", "metadata": {"pouet" : "pouet"}}, 200, '{"result" : "ok"}');
+    uce.attachPresence(Factories.createPresence()).infos.post({pouet: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
         same({result: "ok"}, r);
