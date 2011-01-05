@@ -12,7 +12,7 @@ UCEngine.run('translation') do
     languages = ["fr", "en", "it"]
     uce = UCEngine.new(config['host'], config['port'], config['debug'])
     uce.connect(config['uid'], :credential => config['credential']) do |uce|
-      uce.subscribe(["af83", "demo"], :type => "chat.message.new", :start => uce.time) do |event|
+      uce.subscribe([], :type => "chat.message.new", :start => uce.time) do |event|
         if event['metadata']['lang'] and event['metadata']['text']
           languages.each do |language|
             next if language == event['metadata']['lang']
