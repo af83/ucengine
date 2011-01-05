@@ -7,16 +7,37 @@ $.uce.widget("file_sharing", {
     // ucengine events
     meetingsEvents: {
 	    'internal.file.add'        : '_handleFileAddEvent',
-	    'document.conversion.done' : '_handleFileDocumentEvent'
+	    'document.conversion.done' : '_handleFileDocumentEvent',
+        'document.share.start'     : '_handleShareStartEvent',
+        'document.share.goto'      : '_handleShareGotoEvent',
+        'document.share.stop'      : '_handleShareStopEvent'
     },
  
     _create: function() {
         this.element.addClass('ui-widget ui-filesharing');
-        $('<ul>').attr('class', 'ui-filesharing-list').appendTo(this.element);
+        var all = $('<div>').attr('class', 'ui-filesharing-all');
+        var preview = $('<div>').attr('class', 'ui-filesharing-preview');
+        // init preview content
+        $('<div>').attr('class', 'ui-filesharing-preview-title').appendTo(preview);
+        var toolbox = $('<div>').attr('class', 'ui-filesharing-preview-toolbox');
+        $('<span>').attr('class', 'ui-filesharing-preview-toolbox-up').appendTo(toolbox);
+        $('<span>').attr('class', 'ui-filesharing-preview-toolbox-down').appendTo(toolbox);
+        $('<span>').attr('class', 'ui-filesharing-preview-toolbox-currentpage').appendTo(toolbox);
+        $('<span>').attr('class', 'ui-filesharing-preview-toolbox-separator').text('/').appendTo(toolbox);
+        $('<span>').attr('class', 'ui-filesharing-preview-toolbox-totalpages').appendTo(toolbox);
+        $('<span>').attr('class', 'ui-filesharing-preview-toolbox-closebutton').appendTo(toolbox);
+        toolbox.appendTo(preview);
+        $('<div>').attr('class', 'ui-filesharing-preview-page').appendTo(preview);
+        //
+        all.appendTo(this.element);
+        preview.appendTo(this.element);
+        this.viewAll();
+        $('<ul>').attr('class', 'ui-filesharing-list').appendTo(all);
         this._listFiles = [];
+        this._shared = null;
         if (this.options.ucemeeting) {
             if (this.options.upload) {
-                var upload = ($('<div>')).append($('<p>').attr('class', 'ui-filesharing-add').append($('<a>').attr('href', '#').text('Upload new file'))).appendTo(this.element);
+                var upload = ($('<div>')).append($('<p>').attr('class', 'ui-filesharing-add').append($('<a>').attr('href', '#').text('Upload new file'))).appendTo(all);
                 new AjaxUpload(upload.find('a'), {
 	            action: this.options.ucemeeting.getFileUploadUrl(),
 	            name: 'content',
@@ -32,6 +53,16 @@ $.uce.widget("file_sharing", {
         this.element.find('.ui-filesharing-new').text(this._nbNewFiles);
         this._listFiles = [];
         this._refreshListFiles();
+    },
+
+    viewAll: function() {
+        this.element.find('.ui-filesharing-all').show();
+        this.element.find('.ui-filesharing-preview').hide();
+    },
+
+    viewPreview: function() {
+        this.element.find('.ui-filesharing-all').hide();
+        this.element.find('.ui-filesharing-preview').show();
     },
 
     _setOption: function(key, value) {
@@ -81,6 +112,28 @@ $.uce.widget("file_sharing", {
             }      
         );
         this.element.find('.ui-filesharing-list').empty().append(ul);	
+    },
+
+    _handleShareStartEvent: function(event) {
+        this._shared = {
+                        master : event.from,
+                        page   : 0,
+                        file   : event.metadata.id
+                        };
+        var file = null;
+        $(this._listFiles).each(
+            function(i, item) {
+                if ( this._shared.file == item.id ) {
+                    file = item;
+                    break;
+                }
+            }      
+        );
+        var preview = this.element.find('.ui-filesharing-preview');
+        this.element.find('.ui-filesharing-preview-title').text(file.name);
+        this.element.find('.ui-filesharing-preview-toolbox-currentpage').text(this._shared.page + 1);
+        this.element.find('.ui-filesharing-preview-toolbox-totalpages').text(file.pages.length);
+        this.viewPreview();
     },
 
     destroy: function() {

@@ -22,6 +22,14 @@ var Factories = {
             }
         };
     },
+    createDocumentShareStartEvent: function(params) {
+        return {
+            type: "document.share.start",
+            metadata: {
+                id: params.id
+            }
+        };
+    },
     createPresence: function() {
         return {"uid": "myuid", "sid": "mysid"};
     },
