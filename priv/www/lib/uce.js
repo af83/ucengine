@@ -39,6 +39,10 @@
         return uce_api_call("get", url, data, callback);
     }
 
+     function post(url, data, callback) {
+        return uce_api_call("post", url, data, callback);
+    }
+
     function put(url, data, callback) {
         data = $.extend({"_method": "put"}, data);
         return uce_api_call("post", url, data, callback);
@@ -102,6 +106,38 @@
              */
             attachPresence : function(presence) {
                 return new Uce(presence);
+            },
+
+            /**
+             * Domain infos
+             */
+            infos: {
+                /**
+                 * Get infos
+                 */
+                get: function(callback) {
+                    get("/infos/", {}, function(err, result, xhr) {
+                        if (!err) {
+                            callback(err, result.result, xhr);
+                        } else {
+                            callback(err, result, xhr);
+                        }
+                    });
+                    return this;
+                },
+                /**
+                 * Update infos
+                 */
+                post: function(metadata, callback) {
+                    post("/infos/", $.extend({}, presence, {metadata: metadata}), function(err, result, xhr) {
+                        if (!err) {
+                            callback(err, result, xhr);
+                        } else {
+                            callback(err, result, xhr);
+                        }
+                    });
+                    return this;
+                }
             },
 
             meeting : function(meetingname) {

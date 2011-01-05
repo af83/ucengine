@@ -107,6 +107,26 @@ jackTest("can close a presence", function() {
     });
 });
 
+jackTest("can get current domain informations", function() {
+    stop();
+    addUceApiCall("get", "/api/0.2/infos/", {}, 200, '{"result" : {"name": "myuser", "plop": "plip"}}');
+    uce.infos.get(function(err, r, xhr) {
+        start();
+        equals(err, null);
+        same({name: 'myuser', plop: 'plip'}, r);
+    });
+});
+
+jackTest("can update current domain informations", function() {
+    stop();
+    addUceApiCall("post", "/api/0.2/infos/", {"uid": "myuid", "sid": "mysid", "metadata[pouet]": "pouet"}, 200, '{"result" : "ok"}');
+    uce.infos.post({pouet: "pouet"}, function(err, r, xhr) {
+        start();
+        equals(err, null);
+        same({result: "ok"}, r);
+    });
+});
+
 jackTest("can list users", function() {
     stop();
     addUceApiCall("get", "/api/0.2/user/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myuser"}, {}]}');
