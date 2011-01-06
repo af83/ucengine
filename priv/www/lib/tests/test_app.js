@@ -2,11 +2,10 @@ module('app', {
     setup: function() {
         this.app = $.sammy('#sammy_anchor', sammyapp);
         $.mockjax({
-            url : '/api/0.1/org/af83',
-            responseText: {"result": {"name"     :"af83",
-                                      "metadata" : {"description":"af83m\u00e9dia specializes in digital communication. Our mission is to design and manage online content and communities.",
-                                                    "logo":"af83.png",
-                                                    "htags":"af83"}}}
+            url : '/api/0.1/infos',
+            responseText: {"result": {"description":"af83m\u00e9dia specializes in digital communication. Our mission is to design and manage online content and communities.",
+                                      "logo":"af83.png",
+                                      "htags":"af83"}}
         });
         $.mockjax({
             url: '/api/0.2/meeting/opened',
