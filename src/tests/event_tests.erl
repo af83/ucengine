@@ -3,9 +3,46 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+setup_events() ->
+    uce_event:add(#uce_event{ type="test_event_1",
+			      location=["testmeeting"],
+			      from="participant.user@af83.com"}),
+    timer:sleep(10),
+    uce_event:add(#uce_event{ type="test_event_2",
+			      location=["testmeeting"],
+			      from="user_2"
+			    }),
+    timer:sleep(10),
+    uce_event:add(#uce_event{ type="test_event_3",
+			      location=["testmeeting"],
+			      from="user_3",
+			      metadata=[{"description", "test"}]
+			    }),
+
+    uce_event:add(#uce_event{ type="test_event_1",
+			      location=["testmeeting"],
+			      from="participant.user@af83.com"
+			    }),
+    timer:sleep(10),
+    uce_event:add(#uce_event{ type="test_event_2",
+			      location=["testmeeting"],
+			      from="participant.user@af83.com"
+			    }),
+    timer:sleep(10),
+    uce_event:add(#uce_event{ type="test_event_3",
+			      location=["testmeeting"],
+			      from="participant.user@af83.com",
+			      metadata=[{"description", "test"}]
+			    }),
+    ok.
+
 event_test_() ->
     { setup
-      , fun fixtures:setup/0
+      , fun() ->
+                Testers = fixtures:setup(),
+                setup_events(),
+                Testers
+        end
       , fun fixtures:teardown/1
       , fun(Testers) ->
 		[?_test(test_push(Testers)),

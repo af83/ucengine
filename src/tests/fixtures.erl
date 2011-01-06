@@ -7,7 +7,6 @@
 setup() ->
     setup_meetings(),
     setup_users(),
-    setup_events(),
     setup_testers().
 
 teardown(_Testers) ->
@@ -58,39 +57,6 @@ setup_users() ->
 
     uce_user:add(#uce_user{uid="token.user@af83.com", auth="token", credential="4444"}),
 
-    ok.
-
-setup_events() ->
-    uce_event:add(#uce_event{ type="test_event_1",
-			      location=["testmeeting"],
-			      from="participant.user@af83.com"}),
-    timer:sleep(10),
-    uce_event:add(#uce_event{ type="test_event_2",
-			      location=["testmeeting"],
-			      from="user_2"
-			    }),
-    timer:sleep(10),
-    uce_event:add(#uce_event{ type="test_event_3",
-			      location=["testmeeting"],
-			      from="user_3",
-			      metadata=[{"description", "test"}]
-			    }),
-
-    uce_event:add(#uce_event{ type="test_event_1",
-			      location=["testmeeting"],
-			      from="participant.user@af83.com"
-			    }),
-    timer:sleep(10),
-    uce_event:add(#uce_event{ type="test_event_2",
-			      location=["testmeeting"],
-			      from="participant.user@af83.com"
-			    }),
-    timer:sleep(10),
-    uce_event:add(#uce_event{ type="test_event_3",
-			      location=["testmeeting"],
-			      from="participant.user@af83.com",
-			      metadata=[{"description", "test"}]
-			    }),
     ok.
 
 setup_testers() ->
