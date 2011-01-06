@@ -69,12 +69,12 @@ event_test_() ->
 test_push([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
-	      {"type", "test_event_1"},
+	      {"type", "test_push_1"},
 	      {"metadata[description]", "pushed_event"}],
     {struct, [{"result", Id}]} =
 	tests_utils:put("/event/testmeeting", Params),
     {struct, [{"result",
-	       {struct, [{"type", "test_event_1"},
+	       {struct, [{"type", "test_push_1"},
 			 {"datetime", _},
 			 {"id", Id},
 			 {"meeting", "testmeeting"},
@@ -85,12 +85,12 @@ test_push([{RootUid, RootSid}, _]) ->
 test_push_without_meeting([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
-	      {"type", "test_event_1"},
+	      {"type", "test_push_1"},
 	      {"metadata[description]", "pushed_event"}],
     {struct, [{"result", Id}]} =
 	tests_utils:put("/event/", Params),
     {struct, [{"result",
-	       {struct, [{"type", "test_event_1"},
+	       {struct, [{"type", "test_push_1"},
 			 {"datetime", _},
 			 {"id", Id},
 			 {"from", RootUid},
@@ -100,21 +100,21 @@ test_push_without_meeting([{RootUid, RootSid}, _]) ->
 test_push_with_parent([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
-	      {"type", "test_event_1"},
+	      {"type", "test_push_1"},
 	      {"metadata[description]", "pushed_event"}],
     {struct, [{"result", ParentId}]} =
 	tests_utils:put("/event/testmeeting", Params),
 
     ParamsChild = [{"uid", RootUid},
 		   {"sid", RootSid},
-		   {"type", "test_event_1"},
+		   {"type", "test_push_1"},
 		   {"parent", ParentId},
 		   {"metadata[description]", "pushed_event"}],
     {struct, [{"result", ChildId}]} =
 	tests_utils:put("/event/testmeeting", ParamsChild),
 
     {struct, [{"result",
-	       {struct, [{"type", "test_event_1"},
+	       {struct, [{"type", "test_push_1"},
 			 {"datetime", _},
 			 {"id", ChildId},
 			 {"meeting", "testmeeting"},
@@ -126,13 +126,13 @@ test_push_with_parent([{RootUid, RootSid}, _]) ->
 test_push_to_me([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
-	      {"type", "test_event_1"},
+	      {"type", "test_push_1"},
 	      {"to", RootUid},
 	      {"metadata[description]", "pushed_event"}],
     {struct, [{"result", Id}]} =
 	tests_utils:put("/event/testmeeting", Params),
     {struct, [{"result",
-	       {struct, [{"type", "test_event_1"},
+	       {struct, [{"type", "test_push_1"},
 			 {"datetime", _},
 			 {"id", Id},
 			 {"meeting", "testmeeting"},
@@ -143,7 +143,7 @@ test_push_to_me([{RootUid, RootSid}, _]) ->
 test_push_to_other([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
-	      {"type", "test_event_to_other"},
+	      {"type", "test_push_to_other"},
 	      {"to", "participant.user@af83.com"},
 	      {"metadata[description]", "pushed_event"}],
     {struct, [{"result", Id}]} =
@@ -152,7 +152,7 @@ test_push_to_other([{RootUid, RootSid}, _]) ->
 	tests_utils:get("/event/testmeeting/" ++ Id, Params),
         ParamsGetStart = [{"uid", RootUid},
 			  {"sid", RootSid},
-			  {"type", "test_event_to_other"}],
+			  {"type", "test_push_to_other"}],
     {struct, [{"result", {array, []}}]} =
 	tests_utils:get("/event/testmeeting/", ParamsGetStart).
 
@@ -166,7 +166,7 @@ test_push_missing_type([{RootUid, RootSid}, _]) ->
 test_push_not_found_meeting([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
-	      {"type", "test_event_1"},
+	      {"type", "test_push_1"},
 	      {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
 	tests_utils:put("/event/unexistentmeeting", Params).
@@ -174,7 +174,7 @@ test_push_not_found_meeting([{RootUid, RootSid}, _]) ->
 test_push_not_found_parent([{RootUid, RootSid}, _]) ->
     ParamsChild = [{"uid", RootUid},
 		   {"sid", RootSid},
-		   {"type", "test_event_1"},
+		   {"type", "test_push_1"},
 		   {"parent", "unexistent_id"},
 		   {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
@@ -183,7 +183,7 @@ test_push_not_found_parent([{RootUid, RootSid}, _]) ->
 test_push_not_found_to([{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
-	      {"type", "test_event_1"},
+	      {"type", "test_push_1"},
 	      {"to", "unexistent_user"},
 	      {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
