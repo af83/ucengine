@@ -138,18 +138,11 @@ make_list_json_events([]) ->
     [];
 make_list_json_events([{struct, Elems}|Tail]) ->
     case utils:get(Elems,
-		   ["id",
-		    "datetime",
-		    "meeting",
-		    "from",
-		    "to",
-		    "type",
-		    "parent"],
+		   ["id", "datetime", "meeting","from", "to", "type", "parent"],
 		   [none,
-		    none,
-		    {array, [""]},
-		    {array, [""]},
-		    none,
+                    none,
+                    {array, [""]},
+                    none,
 		    {array, ["all"]},
 		    none,
 		    {array, [""]}]) of
