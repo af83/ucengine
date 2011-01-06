@@ -3,3 +3,4 @@ tmp/*
 ucengine.access
 *.log
 datas/*
+deps/*
