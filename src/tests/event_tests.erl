@@ -18,22 +18,6 @@ setup_events() ->
 			      from="user_3",
 			      metadata=[{"description", "test"}]
 			    }),
-
-    uce_event:add(#uce_event{ type="test_event_1",
-			      location=["testmeeting"],
-			      from="participant.user@af83.com"
-			    }),
-    timer:sleep(10),
-    uce_event:add(#uce_event{ type="test_event_2",
-			      location=["testmeeting"],
-			      from="participant.user@af83.com"
-			    }),
-    timer:sleep(10),
-    uce_event:add(#uce_event{ type="test_event_3",
-			      location=["testmeeting"],
-			      from="participant.user@af83.com",
-			      metadata=[{"description", "test"}]
-			    }),
     ok.
 
 event_test_() ->
