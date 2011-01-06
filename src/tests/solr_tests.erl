@@ -25,10 +25,10 @@ test_add() ->
 							 metadata=[{"text","This is a test event."}]}).
 
 test_search() ->
-    ok = case uce_event_solr_search:list(['_'], ["This is"], '_', '_', 0, infinity, '_') of
+    ok = case uce_event_solr_search:list(['_'], ["This"], '_', '_', 0, infinity, '_') of
 	     {error, Reason} ->
 		 {error, Reason};
-	     {ok, Results} when is_list(Results) ->
+	     {ok, [_]} ->
 		 ok
 	 end.
 
