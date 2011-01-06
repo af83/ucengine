@@ -11,20 +11,26 @@ var Factories = {
         var metadata = $.extend({}, {id   : 'norris.pdf',
                                      name : 'norris.pdf'}, params);
 	var eventId = params['eventId'] || "upload_event_id";
+	var from = params['from'] || "test_user";
 
         return {
 	    id: eventId,
+	    from: from,
             type: "internal.file.add",
             metadata: metadata
         };
     },
     createConversionDoneEvent: function(params) {
+	var metadata = {};
+	
+	$(params.pages).each(function(index, page) {
+	    metadata[index] = page;
+	});
+
         return {
             type: "document.conversion.done",
             parent: params.parent,
-            metadata: {
-                pages: params.pages
-            }
+            metadata: metadata
         };
     },
     createDocumentShareStartEvent: function(params) {

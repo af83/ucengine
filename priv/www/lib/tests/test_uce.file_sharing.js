@@ -47,11 +47,12 @@ test("handle conversion done event", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl']);
     $('#files_shared').file_sharing({ucemeeting: ucemeeting});
     $([Factories.createFileEvent({eventId: "id_upload_event"}),
-       Factories.createConversionDoneEvent({parent: 'id_upload_event', metadata: {"0": ""}}),
-       Factories.createFileEvent()]).each(function(i, item) {
+       Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: {"0": "page_1.jpg"}}),
+       Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"})]).each(function(i, item) {
 	   $('#files_shared').file_sharing('triggerUceEvent', item);
     });
     equals($('#files_shared').find('ul > li:eq(0)').text(), 'norris.pdf (preview)');
+    equals($('#files_shared').find('ul > li:eq(1)').text(), '');
 });
 
 test("can hide upload button", function() {

@@ -75,6 +75,9 @@ $.uce.widget("file_sharing", {
     },
 
     _handleFileAddEvent: function(event) {
+	if (event.from == "document") {
+	    return;
+	}
         this._listFiles.push({  eventId: event.id,
 				from: event.from,
 				id: event.metadata.id, 
