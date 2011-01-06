@@ -33,9 +33,32 @@ var Factories = {
             metadata: metadata
         };
     },
+
     createDocumentShareStartEvent: function(params) {
+	var from = params['from'] || "chuck";
         return {
             type: "document.share.start",
+	    from: from,
+            metadata: {
+                id: params.id
+            }
+        };
+    },
+    createDocumentShareGotoEvent: function(params) {
+	var from = params['from'] || "chuck";
+        return {
+            type: "document.share.goto",
+	    from: from,
+            metadata: {
+		page: params.page
+            }
+        };
+    },
+    createDocumentShareStopEvent: function(params) {
+	var from = params['from'] || "chuck";
+        return {
+            type: "document.share.stop",
+	    from: from,
             metadata: {
                 id: params.id
             }
