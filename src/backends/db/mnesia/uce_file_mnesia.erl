@@ -4,7 +4,9 @@
 
 -behaviour(gen_uce_file).
 
--export([init/0, add/1, list/1, get/1, delete/1]).
+-export([init/0, drop/0]).
+
+-export([add/1, list/1, get/1, delete/1]).
 
 -include("uce.hrl").
 
@@ -59,3 +61,6 @@ delete(Id) ->
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
+
+drop() ->
+    mnesia:clear_table(uce_file).

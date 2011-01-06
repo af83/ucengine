@@ -4,8 +4,9 @@
 
 -behaviour(gen_uce_acl).
 
--export([init/0,
-	 add/1,
+-export([init/0, drop/0]).
+
+-export([add/1,
 	 delete/5,
 	 list/3]).
 
@@ -89,3 +90,6 @@ exists(EUid, Object, Action, Location, Conditions) ->
 	{aborted, _} ->
 	    false
     end.
+
+drop() ->
+    mnesia:clear_table(uce_acl).

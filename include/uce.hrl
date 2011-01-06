@@ -3,8 +3,8 @@
 	  id = none,
 	  % date (ms from epoch)
 	  datetime = none,
-	  %% location = [Org,Meeting]
-	  location = ["", ""],
+	  %% location = [Meeting]
+	  location = [""],
 	  %% From: uid|brick
 	  from,
 	  %% To : string
@@ -19,8 +19,8 @@
 -record(uce_trigger, {
 	  %% Event type
 	  type,
-	  %% [org, meeting]
-	  location = ["", ""],
+	  %% [meeting]
+	  location = [""],
 	  %% action : {Action, Params}
 	  action}).
 
@@ -37,13 +37,8 @@
 	  %% MetaData : list
 	  metadata = []}).
 
--record(uce_org, {
-	  %% name
-	  name,
-	  metadata = []}).
-
 -record(uce_meeting, {
-	  %% uce meeting id {org_name, meeting_name})
+	  %% uce meeting id {meeting_name})
 	  id,
 	  %% start_date and end_date format : {{Year, Month, Day}, {Hours, Minutes, Seconds}}
 	  %% or timestamp
@@ -59,8 +54,8 @@
 	  id,
 	  % name
 	  name,
-	  % [org, meeting]
-	  location = ["", ""],
+	  % [meeting]
+	  location = [""],
 	  % path
 	  uri = [],
 	  % mime type
@@ -79,7 +74,7 @@
 	  uid,
 	  action,
 	  object,
-	  location=["", ""],
+	  location=[""],
 	  conditions=[]}).
 
 -record(uce_route, {

@@ -9,7 +9,7 @@
 init() ->
     [#uce_route{module="Files",
 		method='GET',
-		regexp="/file/([^/]+)/([^/]+)",
+		regexp="/file/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -23,7 +23,7 @@ init() ->
      
      #uce_route{module="Files",
 		method='GET',
-		regexp="/file/([^/]+)/([^/]+)/([^/]+)",
+		regexp="/file/([^/]+)/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -37,7 +37,7 @@ init() ->
      
      #uce_route{module="Files",
 		method='PUT',
-		regexp="/file/([^/]+)/([^/]+)",
+		regexp="/file/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -51,7 +51,7 @@ init() ->
      
      #uce_route{module="Files",
 		method='DELETE',
-		regexp="/file/([^/]+)/([^/]+)/([^/]+)",
+		regexp="/file/([^/]+)/([^/]+)",
 		callbacks=[{presence_controller, check,
 			    ["uid", "sid"],
 			    [required, required],
@@ -64,7 +64,7 @@ init() ->
 			    [user]}]}].
 
 add(Location, [EUid, Name, Uri, Metadata], _) ->
-    case uce_acl:check(EUid, "file", "add", Location, []) of
+    case uce_acl:check(EUid, "file", "add", Location) of
 	{ok, true} ->
 	    case uce_file:add(#uce_file{location=Location,
 					name=Name,
@@ -94,7 +94,7 @@ add(Location, [EUid, Name, Uri, Metadata], _) ->
     end.
 
 list(Location, [EUid], _) ->
-    case uce_acl:check(EUid, "file", "list", Location, []) of
+    case uce_acl:check(EUid, "file", "list", Location) of
 	{ok, true} ->
 	    case uce_file:list(Location) of
 		{error, Reason} ->
@@ -113,8 +113,8 @@ list(Location, [EUid], _) ->
 get_path(Uri) ->
     re:replace(Uri, "file\:\/", config:get(datas), [{return, list}]).
 
-get([Org, Meeting, Id], [EUid], _) ->
-    case uce_acl:check(EUid, "file", "get", [Org, Meeting], [{"id", Id}]) of
+get([Meeting, Id], [EUid], _) ->
+    case uce_acl:check(EUid, "file", "get", [Meeting], [{"id", Id}]) of
 	{ok, true} ->
 	    case uce_file:get(Id) of
 		{error, Reason} ->
@@ -132,8 +132,8 @@ get([Org, Meeting, Id], [EUid], _) ->
 	    {error, unauthorized}
     end.
 
-delete([Org, Meeting, Id], [EUid], _) ->
-    case uce_acl:check(EUid, "file", "delete", [Org, Meeting], [{"id", Id}]) of
+delete([Meeting, Id], [EUid], _) ->
+    case uce_acl:check(EUid, "file", "delete", [Meeting], [{"id", Id}]) of
 	{ok, true} ->
 	    case uce_file:delete(Id) of
 		{error, Reason} ->

@@ -4,20 +4,15 @@
 
 -behaviour(gen_uce_event).
 
--export([
-	 add/1,
+-export([add/1,
 	 get/1,
-	 list/6,
-	 from_collection/1,
-	 to_collection/1
-	 ]).
+	 list/6]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(#uce_event{} = Event) ->
-    ?MODULE:to_collection(Event),
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_event", ?MODULE:to_collection(Event)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_event", to_collection(Event)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -27,19 +22,17 @@ add(#uce_event{} = Event) ->
 get(Id) ->
     case emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
 	[Collection] ->
-	    {ok, ?MODULE:from_collection(Collection)};
+	    {ok, from_collection(Collection)};
 	_ ->
 	    {error, not_found}
     end.
 
 list(Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
-			 ["", ""] ->
+			 [""] ->
 			     [];
-			 [Org, ""] ->
-			     [{"org", Org}];
-			 [Org, Meeting] ->
-			     [{"org", Org}, {"meeting", Meeting}]
+			 [Meeting] ->
+			     [{"meeting", Meeting}]
 		     end,
     SelectFrom = if
 		       From  == '_' ->
@@ -73,7 +66,7 @@ list(Location, From, Type, Start, End, Parent) ->
 			   []
 	       end,
     Events = lists:map(fun(Collection) ->
-			       ?MODULE:from_collection(Collection)
+			       from_collection(Collection)
 		       end,
 		       emongo:find_all(?MONGO_POOL,"uce_event",
 				       SelectLocation ++
@@ -86,13 +79,13 @@ list(Location, From, Type, Start, End, Parent) ->
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		  ["id", "org", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
-	[Id, Org, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
+		  ["id", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
+	[Id, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
 	    #uce_event{id=Id,
 		       datetime=Datetime,
 		       from=From,
 		       to=To,
-		       location=[Org, Meeting],
+		       location=[Meeting],
 		       type=Type,
 		       parent=Parent,
 		       metadata=Metadata};
@@ -101,7 +94,7 @@ from_collection(Collection) ->
     end.
 
 to_collection(#uce_event{id=Id,
-			 location=[Org, Meeting],
+			 location=[Meeting],
 			 from=From,
 			 to=To,
 			 metadata=Metadata,
@@ -109,7 +102,6 @@ to_collection(#uce_event{id=Id,
 			 type=Type,
 			 parent=Parent}) ->
     [{"id", Id},
-     {"org", Org},
      {"meeting", Meeting},
      {"from", From},
      {"to", To},

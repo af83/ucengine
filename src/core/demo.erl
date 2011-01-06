@@ -6,43 +6,42 @@
 
 
 start() ->
-    uce_org:add(#uce_org{name="af83",
-			     metadata=[{"description", "af83média specializes in digital communication. Our mission is to design and manage online content and communities."},
-				       {"logo", "af83.png"},
-				       {"htags", "af83"}]}),
-    
-    uce_meeting:add(#uce_meeting{id=["af83", "demo"],
+    uce_infos:update([{"description", "af83media specializes in digital communication. Our mission is to design and manage online content and communities."},
+                   {"logo", "af83.png"},
+                   {"htags", "af83"}]),
+
+    uce_meeting:add(#uce_meeting{id=["demo"],
 				     metadata=[{"description", "UCEngine demo meetup"},
 					       {"video", "http://localhost/dev/ucengine/test"}],
 				     start_date=utils:now(),
 				     end_date=?NEVER_ENDING_MEETING}),
     uce_event:add(#uce_event{type="twitter.hashtag.add",
-			     location=["af83", "demo"],
+			     location=["demo"],
 			     from="ucengine",
 			     metadata=[{"hashtag", "#TED"}]}),
     uce_event:add(#uce_event{type="twitter.hashtag.add",
-			     location=["af83", "demo"],
+			     location=["demo"],
 			     from="ucengine",
 			     metadata=[{"hashtag", "#sinek"}]}),
     uce_event:add(#uce_event{type="twitter.hashtag.add",
-			     location=["af83", "demo"],
+			     location=["demo"],
 			     from="ucengine",
 			     metadata=[{"hashtag", "#simonsinek"}]}),
     uce_event:add(#uce_event{type="twitter.hashtag.add",
-			     location=["af83", "demo"],
+			     location=["demo"],
 			     from="ucengine",
 			     metadata=[{"hashtag", "#ucengine"}]}),
     uce_event:add(#uce_event{type="twitter.hashtag.add",
-			     location=["af83", "demo"],
+			     location=["demo"],
 			     from="ucengine",
 			     metadata=[{"hashtag", "#ucengine"}]}),
 
-    uce_meeting:add(#uce_meeting{id=["af83", "demo2"],
+    uce_meeting:add(#uce_meeting{id=["demo2"],
 				     metadata=[{"description", "Meeting R&D"},
 					       {"video", "/test"}],
 				     start_date=utils:now(),
 				     end_date=?NEVER_ENDING_MEETING}),
-    uce_meeting:add(#uce_meeting{id=["af83", "agoroom"],
+    uce_meeting:add(#uce_meeting{id=["agoroom"],
 				     metadata=[{"description", "Meeting agoroom"},
 					       {"video", "http://localhost/dev/ucengine/test"}],
 				     start_date=1287738533649,
@@ -72,11 +71,11 @@ start() ->
 feed([]) ->
     ok;
 feed([Path|Paths]) ->
-    ["config", "samples", Org, Meeting, _File] = re:split(Path, "/", [{return, list}]),
-    event_helpers:feed(Path, [{"location", [Org, Meeting]}]),
+    ["config", "samples", Meeting, _File] = re:split(Path, "/", [{return, list}]),
+    event_helpers:feed(Path, [{"location", [Meeting]}]),
     feed(Paths).
 
 feed() ->
-    Paths = filelib:wildcard("config/samples/*/*/*.json"),
+    Paths = filelib:wildcard("config/samples/*/*.json"),
     feed(Paths).
 

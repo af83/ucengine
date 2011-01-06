@@ -8,15 +8,13 @@
 	 list/1,
 	 get/1,
 	 delete/1,
-	 update/1,
-	 from_collection/1,
-	 to_collection/1]).
+	 update/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(#uce_presence{}=Presence) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_presence", ?MODULE:to_collection(Presence)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_presence", to_collection(Presence)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -29,7 +27,7 @@ list(EUid) ->
 	    {error, bad_parameters};
 	Collections ->
 	    Presences = lists:map(fun(Collection) ->
-					  ?MODULE:from_collection(Collection)
+					  from_collection(Collection)
 				  end,
 				  Collections),
 	    {ok, Presences}
@@ -40,7 +38,7 @@ get(ESid) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Collection] ->
-	    {ok, ?MODULE:from_collection(Collection)};
+	    {ok, from_collection(Collection)};
 	_ ->
 	    {error, not_found}
     end.
@@ -54,9 +52,9 @@ delete(Sid) ->
     end.
 
 update(#uce_presence{}=Presence) ->
-    case catch emongo:update(?MONGO_POOL, "uce_presence",
-			     [{"sid", Presence#uce_presence.sid}],
-			     ?MODULE:to_collection(Presence)) of
+    case catch emongo:update_sync(?MONGO_POOL, "uce_presence",
+                                  [{"sid", Presence#uce_presence.sid}],
+                                  to_collection(Presence)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->

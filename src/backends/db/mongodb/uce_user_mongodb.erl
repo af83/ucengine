@@ -8,15 +8,13 @@
 	 delete/1,
 	 update/1,
 	 list/0,
-	 get/1,
-	 from_collection/1,
-	 to_collection/1]).
+	 get/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(#uce_user{} = User) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_user", ?MODULE:to_collection(User)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_user", to_collection(User)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -32,7 +30,7 @@ delete(EUid) ->
     end.    
 
 update(#uce_user{uid=Uid} = User) ->
-    case catch emongo:update(?MONGO_POOL, "uce_user", [{"uid", Uid}], ?MODULE:to_collection(User)) of
+    case catch emongo:update(?MONGO_POOL, "uce_user", [{"uid", Uid}], to_collection(User)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -45,7 +43,7 @@ list() ->
 	    {error, bad_parameters};
 	Collections ->
 	    Users = lists:map(fun(Collection) ->
-				      ?MODULE:from_collection(Collection)
+				      from_collection(Collection)
 			      end,
 			      Collections),
 	    {ok, Users}
@@ -54,7 +52,7 @@ list() ->
 get(EUid) ->
     case emongo:find_one(?MONGO_POOL, "uce_user", [{"uid", EUid}]) of
 	[Collection] ->
-	    {ok, ?MODULE:from_collection(Collection)};
+	    {ok, from_collection(Collection)};
 	_ ->
 	    {error, not_found}
     end.

@@ -4,12 +4,13 @@
 
 -behaviour(gen_uce_meeting).
 
--export([init/0,
-	 add/1,
+-export([init/0, drop/0]).
+
+-export([add/1,
 	 delete/1,
 	 get/1,
 	 update/1,
-	 list/1]).
+	 list/0]).
 
 -include("uce.hrl").
 
@@ -61,9 +62,9 @@ update(#uce_meeting{} = Meeting) ->
 	    {error, Reason}
     end.
 
-list(Org) ->
+list() ->
     case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_meeting{id=[Org, '_'],
+				    mnesia:match_object(#uce_meeting{id=['_'],
 								     start_date='_',
 								     end_date='_',
 								     roster='_',
@@ -74,3 +75,6 @@ list(Org) ->
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
+
+drop() ->
+    mnesia:clear_table(uce_meeting).

@@ -4,8 +4,9 @@
 
 -behaviour(gen_uce_presence).
 
--export([init/0,
-	 add/1,
+-export([init/0, drop/0]).
+
+-export([add/1,
 	 list/1,
 	 get/1,
 	 delete/1,
@@ -77,3 +78,6 @@ update(#uce_presence{}=Presence) ->
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
+
+drop() ->
+    mnesia:clear_table(uce_presence).

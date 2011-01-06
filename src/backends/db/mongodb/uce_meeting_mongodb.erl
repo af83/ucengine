@@ -5,74 +5,70 @@
 -behaviour(gen_uce_meeting).
 
 -export([add/1,
-	 delete/1,
-	 get/1,
-	 update/1,
-	 list/1,
-	 to_collection/1,
-	 from_collection/1]).
+         delete/1,
+         get/1,
+         update/1,
+         list/0]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(#uce_meeting{} = Meeting) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_meeting", ?MODULE:to_collection(Meeting)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_meeting", to_collection(Meeting)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
 	    {ok, created}
     end.
 
-delete([Org, Meeting]) ->
-    case emongo:delete(?MONGO_POOL, "uce_meeting", [{"org", Org},
-						    {"meeting", Meeting}]) of
+delete([Meeting]) ->
+    case emongo:delete(?MONGO_POOL, "uce_meeting", [{"meeting", Meeting}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
 	    {ok, deleted}
     end.
 
-get([Org, Meeting]) ->
+get([Meeting]) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_meeting",
-                               [{"org", Org}, {"meeting", Meeting}]) of
+                               [{"meeting", Meeting}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Record] ->
-	    {ok, ?MODULE:from_collection(Record)};
+	    {ok, from_collection(Record)};
 	_ ->
 	    {error, not_found}
     end.
 
-update(#uce_meeting{id=[OrgName, MeetingName]} = Meeting) ->
+update(#uce_meeting{id=[MeetingName]} = Meeting) ->
     case catch emongo:update_sync(?MONGO_POOL, "uce_meeting",
-                                  [{"org", OrgName}, {"meeting", MeetingName}],
-                                  ?MODULE:to_collection(Meeting)) of
+                                  [{"meeting", MeetingName}],
+                                  to_collection(Meeting), false) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
 	    {ok, updated}
     end.
 
-list(Org) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_meeting", [{"org", Org}]) of
+list() ->
+    case catch emongo:find_all(?MONGO_POOL, "uce_meeting", []) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Collections ->
 	    Meetings = lists:map(fun(Collection) ->
-					 ?MODULE:from_collection(Collection)
+					 from_collection(Collection)
 				 end,
 				 Collections),
 	    {ok, Meetings}
     end.
 
 
-to_collection(#uce_meeting{id=[OrgName, MeetingName],
+to_collection(#uce_meeting{id=[MeetingName],
 			     start_date=Start,
 			     end_date=End,
 			     roster=Roster,
 			     metadata=Metadata}) ->
-    [{"org", OrgName},
-     {"meeting", MeetingName},
+    [{"meeting", MeetingName},
      {"start_date", integer_to_list(Start)},
      {"end_date", integer_to_list(End)},
      {"roster", Roster},
@@ -80,9 +76,9 @@ to_collection(#uce_meeting{id=[OrgName, MeetingName],
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		   ["org", "meeting", "start_date", "end_date", "roster", "metadata"]) of
-	[Org, Meeting, Start, End, Roster, Metadata] ->
-	    #uce_meeting{id=[Org, Meeting],
+		   ["meeting", "start_date", "end_date", "roster", "metadata"]) of
+	[Meeting, Start, End, Roster, Metadata] ->
+	    #uce_meeting{id=[Meeting],
 			   start_date=list_to_integer(Start),
 			   end_date=list_to_integer(End),
 			   roster=Roster,

@@ -9,7 +9,7 @@ function sammyapp() {
         presence: null,
         user: null
     };
-    var org = null;
+    var infos = null;
 
     this.setTitle(function(title) {
         return [title, " - UCengine"].join('');
@@ -37,16 +37,16 @@ function sammyapp() {
         }
     });
     /**
-     * Is org af83 loaded before anything else ?
+     * Is infos loaded before anything else ?
      */
     function isLoaded(callback) {
-        if (!org) {
-            uce.org("af83").get(function(err, result, xhr) {
+        if (!infos) {
+            uce.infos.get(function(err, result, xhr) {
                 if (err) {
                     return;
                 }
-                $("#logoPartner").html('<img src="images/' + result.metadata.logo +'" style="vertical-align: middle;" />');
-                org = result;
+                $("#logoPartner").html('<img src="images/' + result.logo +'" style="vertical-align: middle;" />');
+                infos = result;
                 callback();
             });
         } else {
@@ -56,8 +56,8 @@ function sammyapp() {
     this.around(selectMenu);
     this.around(isLoaded);
     function build_home(callback) {
-        var c = {welcome         : 'Welcome To UCengine by '+ org.name,
-                 description     : org.metadata.description,
+        var c = {welcome         : 'Welcome To UCengine by af83',
+                 description     : infos.description,
                  not_connected   : (presence.presence == null),
                  format: function() {
                      return function(text, render) {
@@ -71,7 +71,7 @@ function sammyapp() {
         var waiter = uce.getWaiter(3, function() {
             callback(c);
         });
-        uce.org("af83").meetings.opened(function(err, result, xhr) {
+        uce.meetings.opened(function(err, result, xhr) {
             if (err) {
                 return;
             }
@@ -105,7 +105,7 @@ function sammyapp() {
             return false;
         }
         var that = this;
-        uce.presence.create(password, "af83", uid, nickname, function(err, result, xhr) {
+        uce.presence.create(password, uid, nickname, function(err, result, xhr) {
             if (err) {
                 return;
             }
@@ -115,13 +115,13 @@ function sammyapp() {
     });
     this.get('#/user/logout', function() {
         var that = this;
-        presence.presence.presence.close("af83", function () {
+        presence.presence.presence.close(function () {
             that.trigger('disconnect');
             that.redirect('#/');
         });
     });
     this.get('#/meeting/:name/quit', function(context) {
-        presence.presence.org("af83").meeting(this.params['name']).leave(function(err) {
+        presence.presence.meeting(this.params['name']).leave(function(err) {
             if (err) {
                 return;
             }
@@ -134,7 +134,7 @@ function sammyapp() {
             return this.redirect('#/');
         }
         this.title('Meeting');
-        var meeting = presence.presence.org("af83").meeting(this.params['name']);
+        var meeting = presence.presence.meeting(this.params['name']);
         meeting.join(function(err, result, xhr) {})
             .get(function(err, result, xhr) {
 	        var c = {meeting_name  : result.name,
@@ -194,7 +194,7 @@ function sammyapp() {
     });
     this.get('#/admin', function(context) {
         this.title('Admin');
-        var c = {users: [], orgs: []};
+        var c = {users: []};
         var waiter = uce.getWaiter(2, function() {
             context.loadPage('templates/admin.tpl', c);
         });
@@ -203,148 +203,52 @@ function sammyapp() {
             if (err) throw err;
             c.users = users;
         });
-        presence.presence.orgs.get(function(err, orgs) {
-            waiter();
-            if (err) throw err;
-            c.orgs = orgs;
-        });
     });
 
-    this.post('#/admin/org', function(context) {
-        var org = presence.presence.org(this.params['name']);
-        org.create(function(err, result) {
-            context.app.runRoute('get', context.app.getLocation());
-        });
-    });
-
-    this.get('#/admin/org/:org', function(context) {
-        var orgname = this.params['org'];
-        var org = presence.presence.org(orgname);
-        org.meetings.all(function(err, result) {
-            if (err) return;
-            var c = {org: orgname,
-                     meetings: result};
-            context.loadPage('templates/org.tpl', c);
-        });
-    });
-
-    this.post('#/admin/org/:org/meeting', function() {
+    this.post('#/admin/meeting', function() {
         var meeting = new EncreMeeting(this.params['name'],
                                        this.params['start'],
                                        this.params['end'],
                                        {description: this.params['description']});
         var that = this;
-        meeting.create(presence.presence, this.params['org'],
+        meeting.create(presence.presence,
                        function() { that.app.runRoute('get', that.app.getLocation()); },
                        function() {});
     });
 
-    this.get('#/admin/org/:org/meeting/:meeting', function(context) {
-        var meeting = presence.presence.org(this.params['org']).meeting(this.params['meeting']);
+    this.get('#/admin/meeting/:meeting', function(context) {
+        var meeting = presence.presence.meeting(this.params['meeting']);
         meeting.get(function(err, meeting) {
             context.loadPage("templates/meeting.tpl", meeting);
         });
     });
 
-    this.del('#/admin/org/:org/meeting/:meeting', function() {
-        var org = new EncreOrg(this.params['org'], []);
-        var that = this;
+    this.del('#/admin/meeting/:meeting', function() {
 
-        org.getMeeting(presence.presence, this.params['meeting'],
-                       function(result) {
-                           var meeting = new EncreMeeting(result.name,
-                                                          result.start,
-                                                          result.end,
-                                                          result.metadata);
-                           time(function(now) {
-                               meeting.setup(presence.presence, meeting.start_date, now, meeting.metadata,
-                                             function() {
-                                                 loadPage(that, "templates/meeting.tpl", meeting);
-                                             });
-                           });
-                       });
     });
 
     this.del("#/admin/user/:user/acl/:action/:object/", function(e) {
-        var that = this;
 
-        var user = new EncreUser(this.params['user']);
-
-        user.deleteACL(presence.presence, this.params['action'],
-                       this.params['object'],
-                       null,
-                       function() {
-                           that.redirect("#/admin/user/" + that.params['user']);
-                       });
     });
+
     this.del("#/admin/user/:user/acl/:action/:object/:domain", function(e) {
-        var that = this;
 
-        var user = new EncreUser(this.params['user']);
-
-        user.deleteACL(presence.presence, this.params['action'],
-                       this.params['object'],
-                       "/" + this.params['domain'],
-                       function() {
-                           that.redirect("#/admin/user/" + that.params['user']);
-                       });
     });
 
     this.del('#/admin/user/:user', function(e) {
-        var that = this;
-        var user = new EncreUser(this.params['user']);
 
-        user.del(presence.presence,
-                 function() {
-                     that.redirect("#/admin/");
-                 },
-                 function() {});
     });
 
     this.post('#/admin/user/:user', function(e) {
-        var that = this;
-        var user = new EncreUser(this.params['user'],
-                                 "password",
-                                 this.params['password'],
-                                 {nickname: this.params['nickname']});
 
-        user.update(presence.presence,
-                    function() {
-                        that.app.runRoute('get', that.app.getLocation());
-                    },
-                    function() {});
     });
 
     this.post('#/admin/user', function(e) {
-        var that = this;
-        var user = new EncreUser(this.params['name'],
-                                 "password",
-                                 this.params['password'],
-                                 {nickname: this.params['nickname']});
 
-        user.create(
-            function() {
-                that.app.runRoute('get', that.app.getLocation());
-            },
-            function() {});
     });
 
     this.get('#/admin/user/:user', function(e) {
-        var that = this;
-        presence.presence.getUser(this.params['user'],
-                                function(result) {
-                                    var user = new EncreUser(result.uid,
-                                                             result.auth,
-                                                             result.credential,
-                                                             result.metadata);
-                                    user.listACLs(presence.presence, null, null, null, function(acls) {
-                                        result["acls"] = acls;
-                                        loadPage(that, 'templates/user.tpl', result);
-                                    });
-                                },
-                                function(result) {
-                                    that.log(result);
-                                });
+
     });
 
     this.get('#/about', function() {

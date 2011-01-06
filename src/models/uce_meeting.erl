@@ -2,7 +2,7 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1, delete/1, update/1, get/1, list/2, join/2, leave/2, roster/1, exists/1]).
+-export([add/1, delete/1, update/1, get/1, list/1, join/2, leave/2, roster/1, exists/1]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
@@ -12,13 +12,8 @@ add(#uce_meeting{} = Meeting) ->
 	true ->
 	    {error, conflict};
 	false ->
-	    [Org, _] = Meeting#uce_meeting.id,
-	    case uce_org:exists(Org) of
-		false ->
-		    {error, not_found};
-		true ->
-		    ?DB_MODULE:add(Meeting)
-	    end
+	    [_] = Meeting#uce_meeting.id,
+            ?DB_MODULE:add(Meeting)
     end.
 
 delete(Id) ->
@@ -41,52 +36,47 @@ update(#uce_meeting{} = Meeting) ->
 	    ?DB_MODULE:update(Meeting)
     end.
 
-list(Org, Status) ->
-    case uce_org:exists(Org) of
-	false ->
-	    {error, not_found};
-	true ->
-	    Now = utils:now(),
-	    case ?DB_MODULE:list(Org) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, Meetings} ->
-		    if
-			Status == "all"; Status=="upcoming"; Status=="opened"; Status=="closed" ->
-			    FilteredMeetings =
-				lists:filter(fun(#uce_meeting{start_date=Start, end_date=End}) ->
-						     case Status of
-							 "all" ->
-							     true;
-							 "upcoming" ->
-							     Now < Start;
-							 "opened" ->
-							     case Now >= Start of
-								 true ->
-								     if					     
-									 End == ?NEVER_ENDING_MEETING -> true;
-									 Now =< End -> true;
-									 true -> false
-								     end;
-								 false ->
-								     false
-							     end;
-							 "closed" ->
-							     if
-								 End == ?NEVER_ENDING_MEETING -> false;
-								 Now >= End -> true;
-								 true -> false
-							     end;
-							 _ ->
-							     false
-						     end
-					     end,
-					     Meetings),
-			    {ok, FilteredMeetings};
-			true ->
-			    {error, bad_parameters}
-		    end
-	    end
+list(Status) ->
+    Now = utils:now(),
+    case ?DB_MODULE:list() of
+        {error, Reason} ->
+            {error, Reason};
+        {ok, Meetings} ->
+            if
+                Status == "all"; Status=="upcoming"; Status=="opened"; Status=="closed" ->
+                    FilteredMeetings =
+                        lists:filter(fun(#uce_meeting{start_date=Start, end_date=End}) ->
+                                             case Status of
+                                                 "all" ->
+                                                     true;
+                                                 "upcoming" ->
+                                                     Now < Start;
+                                                 "opened" ->
+                                                     case Now >= Start of
+                                                         true ->
+                                                             if
+                                                                 End == ?NEVER_ENDING_MEETING -> true;
+                                                                 Now =< End -> true;
+                                                                 true -> false
+                                                             end;
+                                                         false ->
+                                                             false
+                                                     end;
+                                                 "closed" ->
+                                                     if
+                                                         End == ?NEVER_ENDING_MEETING -> false;
+                                                         Now >= End -> true;
+                                                         true -> false
+                                                     end;
+                                                 _ ->
+                                                     false
+                                             end
+                                     end,
+                                     Meetings),
+                    {ok, FilteredMeetings};
+                true ->
+                    {error, bad_parameters}
+            end
     end.
 
 exists(Id) ->
@@ -114,7 +104,7 @@ join(Id, Uid) when is_list(Uid) ->
 			    {ok, updated}
 		    end
 	    end
-    end.	
+    end.
 
 leave(Id, Uid) when is_list(Uid) ->
     case uce_user:exists(Uid) of

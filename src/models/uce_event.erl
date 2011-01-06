@@ -57,10 +57,10 @@ list(Location, Search, From, '_', Uid, Start, End, Parent) ->
     ?MODULE:list(Location, Search, From, ['_'], Uid, Start, End, Parent);
 list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
     {ok, AllEvents} = case Search of
-		    '_' ->
-			?DB_MODULE:list(Location, From, Type, Start, End, Parent);
-		    _ ->
-			?SEARCH_MODULE:list(Location, Search, From, Type, Start, End, Parent)
+                          '_' ->
+                              ?DB_MODULE:list(Location, From, Type, Start, End, Parent);
+                          _ ->
+                              ?SEARCH_MODULE:list(Location, Search, From, Type, Start, End, Parent)
 		end,
     FilteredEvents = lists:filter(fun(#uce_event{to=To}) ->
 					  if

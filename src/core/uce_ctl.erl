@@ -71,24 +71,13 @@ usage(Object) ->
     io:format("ucectl <object> <action> [--<parameter> <value>]~n~n"),
 
     if
-	Object == none ; Object == org ->
-	    io:format("Organisations:~n"),
-	    io:format("\torg add --name <name> [--<metadata> <value>]~n"),
-	    io:format("\torg update --name <name> [--<metadata> <value>]~n"),
-	    io:format("\torg get --name <name>~n"),
-	    io:format("\torg delete --name <name>~n"),
-	    io:format("\torg list~n~n");
-	true ->
-	    nothing
-    end,
-    if
 	Object == none ; Object == meeting ->
 	    io:format("Meetings:~n"),
-	    io:format("\tmeeting add --org <org> --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
-	    io:format("\tmeeting update --org <org> --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
-	    io:format("\tmeeting get --org <org> --name <name>~n"),
-	    io:format("\tmeeting delete --org <org> --name <name>~n"),
-	    io:format("\tmeeting list --org <org> [--status <status>]~n~n");
+	    io:format("\tmeeting add --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
+	    io:format("\tmeeting update --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
+	    io:format("\tmeeting get --name <name>~n"),
+	    io:format("\tmeeting delete --name <name>~n"),
+	    io:format("\tmeeting list [--status <status>]~n~n");
 	true ->
 	    nothing
     end,
@@ -106,9 +95,9 @@ usage(Object) ->
     if
 	Object == none ; Object == acl ->
 	    io:format("ACL:~n"),
-	    io:format("\tacl add --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting>] [--condition <value>]~n"),
-	    io:format("\tacl delete --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting>] [--condition <value>]~n"),
-	    io:format("\tacl check --uid <uid> --object <object> --action <action> [--org <org> --meeting <meeting>] [--condition <value>]~n~n");
+	    io:format("\tacl add --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n"),
+	    io:format("\tacl delete --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n"),
+	    io:format("\tacl check --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n~n");
 	true ->
 	    nothing
     end,
@@ -127,6 +116,8 @@ getvalues([Key|Keys], Args, [Default|Defaults]) ->
 	    [Default]
     end ++ getvalues(Keys, Args, Defaults).
 
+getopt([], Args) ->
+    {[], [{Key, string:join(Value, " ")} || {Key, Value} <- Args]};
 getopt(Keys, Args) ->
     getopt(Keys, Args, array:to_list(array:new(length(Keys), {default, none}))).
 getopt(Keys, Args, Defaults) ->
@@ -189,7 +180,7 @@ display_array_elems(json, [Record|Records], Fields) ->
 	    io:format(",~n"),
 	    display_array_elems(json, Records, Fields)
     end.
-    
+
 display(json, Records, Fields) when is_list(Records) ->
     io:format("["),
     display_array_elems(json, Records, Fields),
@@ -200,9 +191,9 @@ display(json, Record, Fields) ->
     io:format("{~n"),
     display_field(json, Values, Fields),
     io:format("}"),
-    ok;
+    ok.
 
-display(erlang, Record, _) ->
+display(erlang, Record) ->
     io:format("~p~n", [Record]),
     ok.
 
@@ -259,75 +250,12 @@ error(Reason) ->
     error.
 
 %%
-%% Org
-%%
-action(org, add, Args) ->
-    case getopt(["name"], Args) of
-        {[[Name]], Metadata} ->
-            case call(org, add, [#uce_org{name=Name, metadata=Metadata}]) of
-            {ok, created} ->
-                success(created);
-            {error, Reason} ->
-                error(Reason)
-            end;
-        {[none], _Metadata} ->
-            error(missing_parameter)
-    end;
-
-action(org, get, Args) ->
-    case getopt(["name"], Args) of
-        {[[Name]], _} ->
-            case call(org, get, [Name]) of
-            {ok, Record} ->
-                display(json, Record, record_info(fields, uce_org));
-            {error, Reason} ->
-                error(Reason)
-            end;
-        {[none], _} ->
-            error(missing_parameter)
-    end;
-
-action(org, update, Args) ->
-    case getopt(["name"], Args) of
-        {[[Name]], Metadata} ->
-            case call(org, update, [#uce_org{name=Name, metadata=Metadata}]) of
-            {ok, updated} ->
-                success(updated);
-            {error, Reason} ->
-                error(Reason)
-            end;
-        {[none], _Metadata} ->
-            error(missing_parameter)
-    end;
-
-action(org, delete, Args) ->
-    case getopt(["name"], Args) of
-        {[[Name]], _} ->
-            case call(org, delete, [Name]) of
-            {ok, deleted} ->
-                success(deleted);
-            {error, Reason} ->
-               error(Reason)
-            end;
-        {[none], _} ->
-            error(missing_parameter)
-    end;
-
-action(org, list, _Args) ->
-    case call(org, list, []) of
-	{ok, Records} ->
-	    display(json, Records, record_info(fields, uce_org));
-	{error, Reason} ->
-	    error(Reason)
-    end;
-
-%%
 %% Meeting
 %%
 action(meeting, add, Args) ->
-    case getopt(["name", "org", "start", "end"], Args) of
-        {[[Name], [Org], Start, End], Metadata} ->
-            case call(meeting, add, [#uce_meeting{id=[Org, Name],
+    case getopt(["name", "start", "end"], Args) of
+        {[[Name], Start, End], Metadata} ->
+            case call(meeting, add, [#uce_meeting{id=[Name],
 						  start_date=parse_date(Start),
 						  end_date=parse_date(End),
 						  metadata=Metadata}]) of
@@ -336,40 +264,40 @@ action(meeting, add, Args) ->
 		{error, Reason} ->
 		    error(Reason)
             end;
-        {[none, none, none, none], _Metadata} ->
+        {[none, none, none], _Metadata} ->
             error(missing_parameter)
     end;
 
 action(meeting, delete, Args) ->
-    case getopt(["name", "org"], Args) of
-        {[[Name], [Org]], _} ->
-            case call(meeting, delete, [[Org, Name]]) of
+    case getopt(["name"], Args) of
+        {[[Name]], _} ->
+            case call(meeting, delete, [[Name]]) of
 		{ok, deleted} ->
 		    success(deleted);
 		{error, Reason} ->
 		    error(Reason)
             end;
-        {[none, none], _} ->
+        {[none], _} ->
             error(missing_parameter)
     end;
 
 action(meeting, get, Args) ->
-    case getopt(["name", "org"], Args) of
-        {[[Name], [Org]], _} ->
-            case call(meeting, get, [[Org, Name]]) of
+    case getopt(["name"], Args) of
+        {[[Name]], _} ->
+            case call(meeting, get, [[Name]]) of
             {ok, Record} ->
                 display(json, Record, record_info(fields, uce_meeting));
             {error, Reason} ->
                 error(Reason)
             end;
-        {[none, none], _} ->
+        {[none], _} ->
             error(missing_parameter)
     end;
 
 action(meeting, update, Args) ->
-    case getopt(["name", "org", "start", "end"], Args) of
-        {[[Name], [Org], Start, End], Metadata} ->
-            case call(meeting, update, [#uce_meeting{id=[Org, Name],
+    case getopt(["name", "start", "end"], Args) of
+        {[[Name], Start, End], Metadata} ->
+            case call(meeting, update, [#uce_meeting{id=[Name],
                                  start_date=parse_date(Start),
                                  end_date=parse_date(End),
                                  metadata=Metadata}]) of
@@ -378,17 +306,15 @@ action(meeting, update, Args) ->
             {error, Reason} ->
                 error(Reason)
             end;
-        {[_Name, _Org, _Start, _End], _Metadata} ->
+        {[_Name, _Start, _End], _Metadata} ->
             error(missing_parameter)
     end;
 
 action(meeting, list, Args) ->
-    Res = case getopt(["org", "status"], Args) of
-	      {[[Org], [Status]], _} ->
-		  call(meeting, list, [Org, Status]);
-	      {[[Org], none], _} ->
-		  call(meeting, list, [Org, "all"]);
-	      {[none, none], _} ->
+    Res = case getopt(["status"], Args) of
+	      {[[Status]], _} ->
+		  call(meeting, list, [Status]);
+	      {[none], _} ->
             {error, missing_parameter}
 	  end,
     case Res of
@@ -402,12 +328,12 @@ action(meeting, list, Args) ->
 %% ACL
 %%
 action(acl, add, Args) ->
-    case getopt(["uid", "org", "meeting", "object", "action"],
+    case getopt(["uid", "meeting", "object", "action"],
                 Args,
-                [none, [""], [""], none, none]) of
-        {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} ->
+                [none, [""], none, none]) of
+        {[[Uid], [Meeting], [Object], [Action]], Conditions} ->
             case call(acl, add, [#uce_acl{uid=Uid,
-                          location=[Org, Meeting],
+                          location=[Meeting],
                           object=Object,
                           action=Action,
                           conditions=Conditions}]) of
@@ -416,30 +342,30 @@ action(acl, add, Args) ->
             {error, Reason} ->
                 error(Reason)
             end;
-        {[_Uid, _Org, _Meeting, _Object, _Action], _Conditions} ->
+        {[_Uid, _Meeting, _Object, _Action], _Conditions} ->
             error(missing_parameter)
     end;
 
 action(acl, delete, Args) ->
-    case getopt(["uid", "org", "meeting", "object", "action"],
-                Args, [none, [""], [""], none, none]) of
-        {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} ->
-            case call(acl, delete, [Uid, Object, Action, [Org, Meeting], Conditions]) of
+    case getopt(["uid", "meeting", "object", "action"],
+                Args, [none, [""], none, none]) of
+        {[[Uid], [Meeting], [Object], [Action]], Conditions} ->
+            case call(acl, delete, [Uid, Object, Action, [Meeting], Conditions]) of
             {ok, deleted} ->
                 success(deleted);
             {error, Reason} ->
                 error(Reason)
             end;
-        {[_Uid, _Org, _Meeting, _Object, _Action], _Conditions} ->
+        {[_Uid, _Meeting, _Object, _Action], _Conditions} ->
             error(missing_parameter)
     end;
 
 action(acl, check, Args) ->
-	case getopt(["uid", "org", "meeting", "object", "action"],
+	case getopt(["uid", "meeting", "object", "action"],
                 Args,
-                [none, [""], [""], none, none]) of
-        {[[Uid], [Org], [Meeting], [Object], [Action]], Conditions} ->
-            case call(acl, check, [Uid, Object, Action, [Org, Meeting], Conditions]) of
+                [none, [""], none, none]) of
+        {[[Uid], [Meeting], [Object], [Action]], Conditions} ->
+            case call(acl, check, [Uid, Object, Action, [Meeting], Conditions]) of
             {ok, true} ->
                 success(true);
             {ok, false} ->
@@ -447,7 +373,7 @@ action(acl, check, Args) ->
             {error, Reason} ->
                 error(Reason)
             end;
-        {[_Uid, _Org, _Meeting, _Object, _Action], _Conditions} ->
+        {[_Uid, _Meeting, _Object, _Action], _Conditions} ->
             error(missing_parameter)
     end;
 
@@ -502,13 +428,13 @@ action(user, update, Args) ->
     case getopt(["uid", "auth", "credential"], Args) of
         {[[Uid], [Auth], [Credential]], Metadata} ->
             case call(user, update, [#uce_user{uid=Uid,
-                               auth=Auth,
-                               credential=Credential,
-                               metadata=Metadata}]) of
-            {ok, updated} ->
-                success(updated);
-            {error, Reason} ->
-                error(Reason)
+                                               auth=Auth,
+                                               credential=Credential,
+                                               metadata=Metadata}]) of
+                {ok, updated} ->
+                    success(updated);
+                {error, Reason} ->
+                    error(Reason)
             end;
         {[_Uid, _Auth, _Credential], _Metadata} ->
             error(missing_parameter)
@@ -529,6 +455,30 @@ action(user, list, _) ->
 action(time, get, _) ->
     io:format("Server time: ~p", [utils:now()]),
     ok;
+
+%%
+%% Info
+%%
+action(infos, get, _Args) ->
+    case call(infos, get, []) of
+        {ok, Infos} ->
+            display(erlang, Infos);
+        {error, Reason} ->
+                error(Reason)
+    end;
+
+action(infos, update, Args) ->
+    case getopt([], Args) of
+        {[], Metadata} ->
+            case call(infos, update, [Metadata]) of
+                {ok, updated} ->
+                    success(updated);
+                {error, Reason} ->
+                    error(Reason)
+            end;
+        _ ->
+            error(missing_parameter)
+    end;
 
 %%
 %% Utils

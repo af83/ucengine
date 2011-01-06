@@ -7,15 +7,13 @@
 -export([add/1,
 	 list/1,
 	 get/1,
-	 delete/1,
-	 from_collection/1,
-	 to_collection/1]).
+	 delete/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(#uce_file{} = File) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_file", ?MODULE:to_collection(File)) of
+    case catch emongo:insert_sync(?MONGO_POOL, "uce_file", to_collection(File)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	_ ->
@@ -27,7 +25,7 @@ list(Location) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	Files ->
-	    {ok, [?MODULE:from_collection(File) || File <- Files]}
+	    {ok, [from_collection(File) || File <- Files]}
     end.
 
 get(Id) ->
@@ -35,7 +33,7 @@ get(Id) ->
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[File] ->
-	    {ok, ?MODULE:from_collection(File)};
+	    {ok, from_collection(File)};
 	_ ->
 	    {error, not_found}
     end.

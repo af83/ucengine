@@ -3,8 +3,8 @@
     "authority": "af83",
     "meta": {},
 
-    "base_url": "http://localhost:5280/api/0.1/",
-    "version": "0.1",
+    "base_url": "http://localhost:5280/api/0.2/",
+    "version": "0.2",
 
     "formats": ["json"]
 
@@ -37,17 +37,17 @@
         },
 
         "auth": {
-            "path": "/presence/:org/:uid",
+            "path": "/presence/:uid",
             "method": "PUT",
-            "required_params": ["org", "uid", "auth", "_credential"],
+            "required_params": ["uid", "auth", "_credential"],
             "optional_params": ["metadata"],
             "expected_status": [200, 400, 403]
         },
 
         "logout": {
-            "path": "/presence/:org/:uid/:sid",
+            "path": "/presence/:uid/:sid",
             "method": "DELETE",
-            "required_params": ["org", "uid", "sid"],
+            "required_params": ["uid", "sid"],
             "expected_status": [200, 400, 401, 404],
             "authentication": true
         },
@@ -63,21 +63,10 @@
             "authentication": true
         },
 
-        "getOrgEvents": {
-            "path": "/event/:org/",
-            "method": "GET",
-            "required_params": ["uid", "sid", "org"],
-            "optional_params": ["type", "start", "end", "from",
-                                "count", "page", "order", "search",
-                                "parent", "_async"],
-            "expected_status": [200, 401, 404],
-            "authentication": true
-        },
-
         "getMeetingEvents": {
-            "path": "/event/:org/:meeting",
+            "path": "/event/:meeting",
             "method": "GET",
-            "required_params": ["uid", "sid", "org", "meeting"],
+            "required_params": ["uid", "sid", "meeting"],
             "optional_params": ["type", "start", "end", "from",
                                 "count", "page", "order", "search",
                                 "parent", "_async"],
@@ -93,18 +82,10 @@
             "authentication": true
         },
 
-        "pushOrgEvent": {
-            "path": "/event/:org",
-            "method": "PUT",
-            "required_params": ["uid", "sid", "_type", "org"],
-            "expected_status": [201, 400, 401, 404],
-            "authentication": true
-        },
-
         "pushMeetingEvent": {
-            "path": "/event/:org/:meeting",
+            "path": "/event/:meeting",
             "method": "PUT",
-            "required_params": ["uid", "sid", "_type", "org", "meeting"],
+            "required_params": ["uid", "sid", "_type", "meeting"],
             "expected_status": [201, 400, 401, 404],
             "authentication": true
         }

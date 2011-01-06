@@ -8,10 +8,8 @@
 
 to_json(#uce_file{id=Id, name=Name, location=Location, uri=Uri, metadata=Metadata}) ->
     JSONLocation = case Location of
-		       [Org, Meeting] ->
-			   [{org, Org}, {meeting, Meeting}];
-		       [Org] ->
-			   [{org, Org}];
+		       [Meeting] ->
+			   [{meeting, Meeting}];
 		       [] ->
 			   []
 		   end,
