@@ -75,7 +75,9 @@ $.uce.widget("file_sharing", {
     },
 
     _handleFileAddEvent: function(event) {
-        this._listFiles.push({  id: event.metadata.id, 
+        this._listFiles.push({  eventId: event.id,
+				from: event.from,
+				id: event.metadata.id, 
                                 size: event.metadata.size,
                                 name: event.metadata.name,
                                 pages: [] });
@@ -84,10 +86,10 @@ $.uce.widget("file_sharing", {
 
     _handleFileDocumentEvent: function(event) {
         $(this._listFiles).each(
-            function(i, item) {
-                if (item.id == event.parent) {
-                    $(event.metadata.pages).each(function(i, value) {
-                        item.pages.push(value);
+            function(index, file) {
+                if (file.eventId == event.parent) {
+                    $(event.metadata).each(function(i, value) {
+                        file.pages.push(value);
                     });
                 }
             }
@@ -100,7 +102,7 @@ $.uce.widget("file_sharing", {
         var ucemeeting = this.options.ucemeeting;
         $(this._listFiles).each(
             function(i, item) {
-                var id   = item.id;
+                var id = item.id;
                 var li = $('<li>').text(item.name);
                 if (item.pages.length != 0) {
                     var sharelink = $('<a>');

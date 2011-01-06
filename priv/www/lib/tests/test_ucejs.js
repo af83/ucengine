@@ -6,9 +6,14 @@ module('ucejs', {
 
 var Factories = {
     createFileEvent: function(params) {
+	params = params || {}
+
         var metadata = $.extend({}, {id   : 'norris.pdf',
                                      name : 'norris.pdf'}, params);
+	var eventId = params['eventId'] || "upload_event_id";
+
         return {
+	    id: eventId,
             type: "internal.file.add",
             metadata: metadata
         };
