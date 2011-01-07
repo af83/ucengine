@@ -20,15 +20,13 @@ UCEngine.run('document') do
             file = Tempfile.new(["content-", ".pdf"])
             file.write(content)
             images = Hash.new
-            i = 0
-            Magick::ImageList.new(file.path).each do |image|
+            Magick::ImageList.new(file.path).each_with_index do |image, i|
               begin
                 tmp_image = Tempfile.new(["content-", ".jpg"])
                 image.write(tmp_image.path)
                 result = uce.upload(event['meeting'], tmp_image)
                 tmp_image.close!
                 images[i] = result['result']
-                i += 1
               rescue => error
                 puts "Fatal error: #{error}"                
               end
