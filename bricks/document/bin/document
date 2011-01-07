@@ -3,41 +3,13 @@
 require 'rubygems'
 require 'tempfile'
 
-require 'RMagick'
-
 require 'ucengine'
 
-config = UCEngine.load_config
+lib_dir = File.join(File.dirname(__FILE__), '..', 'lib')
+$:.unshift(File.expand_path(lib_dir))
+require 'ucengine_document'
 
-module UCEngineDocument
-  def handle_upload_event(uce, event)
-    if event['metadata']['mime'] == 'application/pdf'
-      Thread.new do
-        content = uce.download(event['meeting'], event['metadata']['id'])
-        file = Tempfile.new(["content-", ".pdf"])
-        file.write(content)
-        images = Hash.new
-        Magick::ImageList.new(file.path).each_with_index do |image, i|
-          begin
-            tmp_image = Tempfile.new(["content-", ".jpg"])
-            image.write(tmp_image.path)
-            result = uce.upload(event['meeting'], tmp_image)
-            tmp_image.close!
-            images[i] = result['result']
-          rescue => error
-            puts "Fatal error: #{error}"
-          end
-        end
-        uce.publish(:location => [event['meeting']],
-                    :parent => event['id'],
-                    :from => 'document',
-                    :type => 'document.conversion.done',
-                    :metadata => images)
-        file.close!
-      end
-    end
-  end
-end
+config = UCEngine.load_config
 
 UCEngine.run('document') do
   include UCEngineDocument
@@ -45,7 +17,10 @@ UCEngine.run('document') do
     uce = UCEngine.new(config['host'], config['port'], config['debug'])
       uce.connect(config['uid'], :credential => config['credential']) do |uce|
       uce.subscribe([], :type => "internal.file.add", :start => uce.time) do |event|
-        handle_upload_event(uce, event)
+        # TODO: use a thread pool
+        Thread.new do
+          handle_upload_event(uce, event)
+        end
       end
     end
   rescue => error
