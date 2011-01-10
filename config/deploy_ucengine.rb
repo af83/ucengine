@@ -33,6 +33,8 @@ namespace :deploy do
   desc "Start the ucengine server"
   task :start do
     run "make start -C #{current_path}"
+    sleep 2
+    run "cd #{current_path} && bin/ucectl demo start"
   end
   desc "Stop the ucengine server"
   task :stop do
