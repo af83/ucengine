@@ -295,6 +295,9 @@ $.sammy("#meeting", function() {
         inReplay = new Date(parseInt(result_meeting.end_date, 10)) < new Date().getTime();
 
         $('#files').file({ucemeeting: meeting});
+	$('#file_sharing').file_sharing({ucemeeting: meeting});
+	widgets.push('file_sharing');
+
         $("#replay-mode").hide();
 
         if (inReplay) {
@@ -343,6 +346,7 @@ $.sammy("#meeting", function() {
                     $('#whiteboard').whiteboard("clear");
                     $('#files').file("clear");
                     $('#chat').chat("clear");
+		    $('#file_sharing').file_sharing("clear");
                 }
                 $("#replay").replay({
                     date_start: start,
@@ -392,6 +396,7 @@ $.sammy("#meeting", function() {
         }
     });
     this.bind("focus-updated", function(e, data) {
+	console.log(data);
         $('.focus').removeClass('focus');
         $('#'+data).addClass('focus');
         if (data == 'video') {
@@ -439,6 +444,7 @@ $.sammy("#meeting", function() {
         $('#chat').chat("destroy");
         $('#whiteboard').whiteboard("destroy");
         $('#files').file("destroy");
+	$('#file_sharing').file_sharing("destroy");
         this.unload();
     };
 });

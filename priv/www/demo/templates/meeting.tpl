@@ -19,6 +19,7 @@
         <article id="chat"></article>
         <article id="video"></article>
         <article id="whiteboard"></article>
+        <article id="file_sharing"></article>
 
         <div id="wheel">
             <p><img src="images/wheel.png" /></p>
