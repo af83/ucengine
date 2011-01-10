@@ -1,8 +1,13 @@
-$.widget("uce.file", {
+$.uce.widget("file", {
     options: {
         ucemeeting : null,
         upload     : true
     },
+
+    meetingsEvents: {
+	'internal.file.add' : '_handleFileEvent'
+    },
+
     _create: function() {
         this._nbFiles    = 0;
         this._nbNewFiles = 0;
@@ -22,10 +27,6 @@ $.widget("uce.file", {
 	            }
                 });
             }
-            var that = this;
-            this.options.ucemeeting.bind("internal.file.add", function(event) {
-                that._handleFileEvent(event);
-            });
         }
         var that = this;
         list.bind('mouseover', function() {
@@ -52,6 +53,10 @@ $.widget("uce.file", {
     },
 
     _handleFileEvent: function(event) {
+	// TODO: Do it better than hardcoding the brick's name
+	if (event.from == 'document')
+	    return;
+
         this._nbFilesP.text('Files ('+ ++this._nbFiles +')');
         this.element.find('.ui-file-new').text(++this._nbNewFiles);
         var id   = event.metadata.id;
