@@ -26,7 +26,7 @@ namespace :deploy do
 
   desc "Stop the brick"
   task :stop do
-#    run "#{current_path}/#{$BRICK}.rb stop"
+    run "#{current_path}/#{$BRICK}.rb stop"
   end
 
   desc "Restart the brick"

@@ -22,4 +22,7 @@ then
 
 	    cap -f Capfile.bricks -s brick=twitter brick_test deploy:setup;
 	    cap -f Capfile.bricks -s brick=twitter brick_test deploy
+
+	    cap -f Capfile.bricks -s brick=document brick_test deploy:setup;
+	    cap -f Capfile.bricks -s brick=document brick_test deploy
 fi
