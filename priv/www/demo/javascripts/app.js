@@ -396,7 +396,6 @@ $.sammy("#meeting", function() {
         }
     });
     this.bind("focus-updated", function(e, data) {
-	console.log(data);
         $('.focus').removeClass('focus');
         $('#'+data).addClass('focus');
         if (data == 'video') {
