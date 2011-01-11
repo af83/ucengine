@@ -13,7 +13,6 @@ task :brick_test do
   set :application, "encre-test.af83.com"
   set :application_type, "development"
   set :deploy_to, "/var/www/encre/bricks/#{brick}"
-  set :config_file, "test.cfg"
   server "#{user}@#{application}", :app, :web, :db, :primary => true
   set :default_environment, {"RUBYLIB" => "/var/www/encre/lib/", "GEM_PATH" => "/var/www/encre/gem"}
 end
@@ -21,17 +20,17 @@ end
 namespace :deploy do
   desc "Start the brick"
   task :start do
-    run "#{current_path}/#{$BRICK}.rb start"
+    run "cd #{current_path} && bin/#{$BRICK} start"
   end
 
   desc "Stop the brick"
   task :stop do
-    run "#{current_path}/#{$BRICK}.rb stop"
+#    run "cd #{current_path} && bin/#{$BRICK} stop"
   end
 
   desc "Restart the brick"
   task :restart, :roles => :app, :except => { :no_release => true } do
-    run "#{current_path}/#{$BRICK}.rb restart"
+    run "cd #{current_path} && bin/#{$BRICK} restart"
   end
 end
 
