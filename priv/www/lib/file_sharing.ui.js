@@ -162,7 +162,7 @@ $.uce.widget("file_sharing", {
                 if (file.id == event.parent) {
                     for (var key in event.metadata) {
                         var value = event.metadata[key]; 
-                        file.pages.push(value);
+                      file.pages[key] = value;
                     };
                 }
             }
@@ -206,7 +206,7 @@ $.uce.widget("file_sharing", {
             .text(this._shared.page + 1);
         this.element.find('.ui-selector-total')
             .text(this._shared.file.pages.length);
-        var pageImg = this.element.find('.ui-filesharing-preview-page img')
+        var pageImg = this.element.find('.ui-filesharing-preview-page img');
         var src = this.options.ucemeeting
             .getFileDownloadUrl(this._shared.file.pages[this._shared.page]);
         pageImg.attr('src', src);
