@@ -175,3 +175,39 @@
     padding: 0.5em 1em 0.3em;
     position: relative;
 }
+
+/* File sharing widget */
+.ui-widget .ui-filesharing-all ul {
+    list-style-type: none;
+}
+
+.ui-widget .ui-filesharing-all ul li {
+    list-style-type: none;
+    padding: 8px;
+    margin-left: 3em;
+}
+
+.ui-widget .ui-filesharing-all ul li:nth-child(odd) {
+    background-color: #FFFFFF;
+}
+
+.ui-widget .ui-filesharing-all ul li:nth-child(even) {
+    background-color: #EAEAEA;
+}
+
+.ui-widget .ui-filesharing-all ul li.mime.pdf {
+    list-style-image: url("/demo/images/mime/pdf.png");
+}
+.ui-widget .ui-filesharing-all ul li.mime.default {
+    list-style-image: url("/demo/images/mime/default.png");
+}
+
+.ui-widget .ui-filesharing-add {
+    float: right;
+    margin: 1.2em;
+}
+
+.ui-widget .ui-filesharing-preview-page img {
+    width: 100%;
+    margin-top: 1em;
+}
