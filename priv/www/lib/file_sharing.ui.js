@@ -22,10 +22,10 @@ $.uce.widget("file_sharing", {
         var preview = $('<div>').attr('class', 'ui-filesharing-preview');
         // init preview content
         $('<div>').attr('class', 'ui-filesharing-preview-title').appendTo(preview);
-        var toolbar = $('<div>').attr('class', 'ui-corner-all ui-filesharing-preview-toolbar');
+        var toolbar = $('<div>').attr('class', 'ui-corner-all ui-preview-toolbar');
 
         var previous = $('<span>')
-            .attr('class', 'ui-filesharing-preview-toolbar-previous')
+            .attr('class', 'ui-filesharing ui-toolbar-button ui-button-previous')
             .attr('href', '#')
             .button({
                 text: false,
@@ -35,7 +35,7 @@ $.uce.widget("file_sharing", {
             });
 
         var next = $('<span>')
-            .attr('class', 'ui-filesharing-preview-toolbar-next')
+            .attr('class', 'ui-filesharing ui-toolbar-button ui-button-next')
             .attr('href', '#')
             .button({
                 text: false,
@@ -44,8 +44,20 @@ $.uce.widget("file_sharing", {
                 }
             });
 
+        previous.appendTo(toolbar);
+        next.appendTo(toolbar);
+
+	var pageSelector = $('<span>').attr('class', 'ui-filesharing ui-toolbar-selector');
+        $('<span>').attr('class', 'ui-filesharing ui-selector-current')
+            .appendTo(pageSelector);
+        $('<span>').attr('class', 'ui-filesharing ui-selector-separator').text('/')
+	    .appendTo(pageSelector);
+        $('<span>').attr('class', 'ui-filesharing ui-selector-total')
+	    .appendTo(pageSelector);
+	pageSelector.appendTo(toolbar);
+
         var stop = $('<span>')
-            .attr('class', 'ui-filesharing-preview-toolbar-stop')
+            .attr('class', 'ui-filesharing ui-toolbar-button ui-button-stop')
             .attr('href', '#')
             .button({
                 text: false,
@@ -54,15 +66,8 @@ $.uce.widget("file_sharing", {
                 }
             });
 
-        previous.appendTo(toolbar);
-        next.appendTo(toolbar);
         stop.appendTo(toolbar);
 
-        $('<span>').attr('class', 'ui-filesharing-preview-toolbar-currentpage')
-                         .appendTo(toolbar);
-        $('<span>').attr('class', 'ui-filesharing-preview-toolbar-separator').text('/').appendTo(toolbar);
-        $('<span>').attr('class', 'ui-filesharing-preview-toolbar-totalpages').appendTo(toolbar);
-        $('<span>').attr('class', 'ui-filesharing-preview-toolbar-closebutton').appendTo(toolbar);
         toolbar.appendTo(preview);
         var pageContainer = $('<div>').attr('class', 'ui-filesharing-preview-page').appendTo(preview);
         $('<img>').appendTo(pageContainer);
@@ -173,17 +178,20 @@ $.uce.widget("file_sharing", {
             function(index, file) {
                 var id = file.metadata.id;
                 var mime = (file.metadata.mime == "application/pdf") ? "pdf" : "default";
-                var li = $('<li>').attr('class', 'mime ' + mime).text(file.metadata.name);
+                var filename = $('<p>').text(file.metadata.name);
                 if (file.pages.length != 0) {
                     var sharelink = $('<a>');
                     sharelink.attr('href', '#');
+		    sharelink.attr('class', 'ui-filesharing ui-preview-link');
                     sharelink.text(' (preview)');
                     sharelink.bind('click', function() {
                         that.options.ucemeeting.push("document.share.start", {id: file.metadata.id});
                         return false;
                     });
-                    li.append(sharelink);                
+                    filename.append(sharelink);                
                 }
+		var fileowner = $('<p>').attr('class', 'ui-file-owner').text("From: " + file.from);
+		var li = $('<li>').attr('class', 'mime ' + mime).append(filename).append(fileowner);
                 ul = ul.add(li);
             }      
         );
@@ -194,11 +202,9 @@ $.uce.widget("file_sharing", {
         var preview = this.element.find('.ui-filesharing-preview');
         this.element.find('.ui-filesharing-preview-title')
             .text(this._shared.file.name);
-        this.element.find('.ui-filesharing-preview-toolbar-currentpage')
+        this.element.find('.ui-selector-current')
             .text(this._shared.page + 1);
-        this.element.find('.ui-filesharing-preview-toolbar-totalpages')
-            .text(this._shared.file.pages.length);
-        this.element.find('.ui-filesharing-preview-toolbar-totalpages')
+        this.element.find('.ui-selector-total')
             .text(this._shared.file.pages.length);
         var pageImg = this.element.find('.ui-filesharing-preview-page img')
         var src = this.options.ucemeeting

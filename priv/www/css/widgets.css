@@ -159,7 +159,7 @@
 .ui-file .ui-file-list p.ui-file-new { position: absolute; width: 15px; height: 15px; top: -5px; left: 132px; padding: 0; background: red; border: 1px solid red; -moz-border-radius: 8px; border-radius: 8px; text-align: center; font: bold 12px/15px Helvetica; color: #FFF; }
 .ui-file ul { display: none; z-index: 3000; }
 .ui-file .ui-file-list:hover ul { display: block; position: absolute; top: 21px; padding: 5px; border: 1px solid #DADADA; background: #FFF; }
-.ui-file ul li { display: block; padding: 2px 0; }
+.ui-file .ui-file-list ul li { display: block; padding: 2px 0; }
 .ui-file p.ui-file-add { position: absolute; right: 10px; top: 8px; font: bold 14px Helvetica; color: #424242; cursor: pointer; }
 
 /**
@@ -192,7 +192,7 @@
 }
 
 .ui-widget .ui-filesharing-all ul li:nth-child(even) {
-    background-color: #EAEAEA;
+    background-color: #EBEBEB;
 }
 
 .ui-widget .ui-filesharing-all ul li.mime.pdf {
@@ -210,4 +210,44 @@
 .ui-widget .ui-filesharing-preview-page img {
     width: 100%;
     margin-top: 1em;
+}
+
+.ui-filesharing .ui-preview-link {
+    font-weight: bold;
+    float: right;
+}
+
+.ui-filesharing .ui-file-owner {
+    color: #666666;
+}
+
+.ui-filesharing .ui-preview-toolbar {
+    padding: 6px;
+    background-color: #EBEBEB;
+}
+
+.ui-filesharing .ui-preview-toolbar .ui-toolbar-button {
+    background-color: #EBEBEB;
+    width: 2em;
+    height: 2em;
+    float: left;
+}
+
+.ui-filesharing .ui-preview-toolbar .ui-toolbar-button.ui-button-stop {
+    float: right;
+}
+
+.ui-filesharing .ui-toolbar-selector {
+    margin-left: 16px;
+    background-color: #FFF;
+    position: relative;
+    display: inline-block;
+    text-align: center;
+    width: 5em;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #A9A9A9;
+    height: 2em;
+    vertical-align: middle;
+    line-height: 2em;
 }

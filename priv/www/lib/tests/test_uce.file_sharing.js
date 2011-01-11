@@ -12,7 +12,7 @@ test("create basic structure", function() {
     equals($('#files_shared').find('.ui-filesharing-all').children().size(), 2);
     equals($('#files_shared > div .ui-filesharing-add').size(), 1);
     equals($('#files_shared').find('.ui-filesharing-preview').children().size(), 3);
-    equals($('#files_shared').find('.ui-filesharing-preview-toolbar').children().size(), 7);
+    equals($('#files_shared').find('.ui-preview-toolbar').children().size(), 4);
     equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'block');
     equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
 });
@@ -30,7 +30,7 @@ jackTest("handle new file upload", function() {
     $('#files_shared').file_sharing({ucemeeting: ucemeeting}).file_sharing('triggerUceEvent', Factories.createFileEvent({id : 'norris_pop_12.pdf',
                                                                                                                          name : 'norris_pop.pdf'}));
     equals($('#files_shared ul > li').size(), 1);
-    equals($('#files_shared ul > li:eq(0)').text(), 'norris_pop.pdf');
+    equals($('#files_shared ul > li:eq(0)').text(), 'norris_pop.pdfFrom: test_user');
 });
 
 jackTest("handle 2 files upload", function() {
@@ -41,8 +41,8 @@ jackTest("handle 2 files upload", function() {
         $('#files_shared').file_sharing('triggerUceEvent', item);
     });
     equals($('#files_shared').find('ul > li').size(), 2);
-    equals($('#files_shared').find('ul > li:eq(0)').text(), 'norris.pdf');
-    equals($('#files_shared').find('ul > li:eq(1)').text(), 'lee.pdf');
+    equals($('#files_shared').find('ul > li:eq(0)').text(), 'norris.pdfFrom: test_user');
+    equals($('#files_shared').find('ul > li:eq(1)').text(), 'lee.pdfFrom: test_user');
 });
 
 test("handle conversion done event", function() {
@@ -53,7 +53,7 @@ test("handle conversion done event", function() {
        Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"})]).each(function(i, item) {
 	   $('#files_shared').file_sharing('triggerUceEvent', item);
     });
-    equals($('#files_shared').find('ul > li:eq(0)').text(), 'norris.pdf (preview)');
+    equals($('#files_shared').find('ul > li:eq(0)').text(), 'norris.pdf (preview)From: test_user');
     equals($('#files_shared').find('ul > li:eq(1)').text(), '');
 });
 
@@ -145,8 +145,8 @@ jackTest("handle new document share start", function() {
     $('#files_shared').file_sharing('triggerUceEvent', Factories.createDocumentShareStartEvent({id : 'norris.pdf'}));
     equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'none');
     equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'block');
-    equals($("#files_shared").find(".ui-filesharing-preview-toolbar-currentpage").text(), "1");
-    equals($("#files_shared").find(".ui-filesharing-preview-toolbar-totalpages").text(), "2");
+    equals($("#files_shared").find(".ui-filesharing .ui-selector-current").text(), "1");
+    equals($("#files_shared").find(".ui-filesharing .ui-selector-total").text(), "2");
     equals($("#files_shared").find(".ui-filesharing-preview-page").children().size(), 1);
     equals($("#files_shared .ui-filesharing-preview-page img").attr('src'), "toto");
 });
@@ -172,9 +172,9 @@ jackTest("when a 'document.share.goto' event is received, go to the right page",
 	   $('#files_shared').file_sharing('triggerUceEvent', event);
     });
 
-    equals($("#files_shared").find(".ui-filesharing-preview-toolbar-currentpage")
+    equals($("#files_shared").find(".ui-filesharing .ui-selector-current")
 	   .text(), "2", "Current page");
-    equals($("#files_shared").find(".ui-filesharing-preview-toolbar-totalpages")
+    equals($("#files_shared").find(".ui-filesharing .ui-selector-total")
 	   .text(), "2", "Total number of pages");
     equals($("#files_shared").find(".ui-filesharing-preview-page")
 	   .children().size(), 1, "There is one image");
@@ -203,9 +203,9 @@ jackTest("check the from field when a 'document.share.goto' event is received", 
 	   $('#files_shared').file_sharing('triggerUceEvent', event);
     });
 
-    equals($("#files_shared").find(".ui-filesharing-preview-toolbar-currentpage")
+    equals($("#files_shared").find(".ui-filesharing-preview .ui-selector-current")
 	   .text(), "1", "Current page");
-    equals($("#files_shared").find(".ui-filesharing-preview-toolbar-totalpages")
+    equals($("#files_shared").find(".ui-filesharing-preview .ui-selector-total")
 	   .text(), "2", "Total number of pages");
     equals($("#files_shared").find(".ui-filesharing-preview-page")
 	   .children().size(), 1, "There is one image");
@@ -236,7 +236,7 @@ jackTest("when click on next, go to the right page", function() {
 	    equals(metadata.page, 1);
 	});
 
-    $('#files_shared .ui-filesharing-preview-toolbar-next').click();
+    $('#files_shared .ui-button-next').click();
 });
 
 jackTest("when click on previous, go to the right page", function() {
@@ -263,7 +263,7 @@ jackTest("when click on previous, go to the right page", function() {
 	    equals(metadata.page, 0);
 	});
 
-    $('#files_shared .ui-filesharing-preview-toolbar-previous').click();
+    $('#files_shared .ui-button-previous').click();
 });
 
 jackTest("when click on stop, send a 'document.share.stop' event", function() {
@@ -288,7 +288,7 @@ jackTest("when click on stop, send a 'document.share.stop' event", function() {
 	    equals(type, "document.share.stop");
 	});
 
-    $('#files_shared .ui-filesharing-preview-toolbar-stop').click();
+    $('#files_shared .ui-button-stop').click();
 });
 
 jackTest("when a 'document.share.stop' event is received, stop the file sharing", function() {
