@@ -101,16 +101,3 @@
 }
 
 
-/**
- * video widget
- */
-.ui-video .ui-video-title { float: left; margin: 0.1em 16px 0.2em 0; }
-.ui-video .ui-widget-header .ui-button { margin: -17px 0 0 0; position: absolute; top: 50%; right: 0.3em; font-size: 0.8em; }
-.ui-video .ui-widget-content p {
-    margin: 5px;
-}
-
-.ui-video .ui-widget-header, .ui-chat .ui-widget-header {
-    padding: 0.5em 1em 0.3em;
-    position: relative;
-}

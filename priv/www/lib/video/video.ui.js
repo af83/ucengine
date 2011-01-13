@@ -34,9 +34,9 @@ $.uce.widget("video", {
     },
     _getFlashSrc: function() {
         if (this._publish)
-            return '/publish_video.swf';
+            return '/lib/video/publish_video.swf';
         else
-            return '/receive_video.swf';
+            return '/lib/video/receive_video.swf';
     },
     _getFlashVar: function() {
         return $.param({stream     : this.options.stream,
