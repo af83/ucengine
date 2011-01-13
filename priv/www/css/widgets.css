@@ -34,29 +34,3 @@
     border: 1px solid #424242;
     background-color: #DADADA;
 }
-
-/**
- * activity widget
- */
-.ui-activity {
-    float: left;
-    clear: both;
-    width: 100%;
-    overflow: auto;
-    background: none repeat scroll 0 0 #FFF;
-}
-
-.ui-activity svg {
-    padding: 8px;
-}
-
-.ui-activity svg path {
-    stroke: #818181;
-    fill: #DADADA;
-}
-
-.ui-activity svg text {
-    fill: #000000;
-}
-
-
