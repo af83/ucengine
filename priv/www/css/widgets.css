@@ -36,22 +36,6 @@
 }
 
 /**
- * search widget
- */
-.ui-search input[type="text"] {
-    width: 200px;
-    padding: 2px 2px;
-    border: 1px solid #DADADA;
-    font: normal 13px Helvetica;
-    color: #424242;
-}
-.ui-search input[type="submit"] {
-    background: #FFF;
-    margin: 2px;
-    border: 1px solid #DADADA;
-}
-
-/**
  * results widget
  */
 .ui-results {
