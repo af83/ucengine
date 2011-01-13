@@ -16,29 +16,10 @@ unexpected_error() ->
      {content, "application/json", lists:flatten(Content)}].
 
 error(Reason) ->
-    Code = case Reason of
-						% 400 Bad Request
-	       bad_parameters -> 400;
-	       missing_parameters -> 400;
-						% 401 Unauthorized
-	       unauthorized -> 401;
-						% 403 Forbidden
-	       bad_credentials -> 403;
-						% 404 Not Found
-	       not_found -> 404;
-						% 409 Conflict
-	       conflict -> 409;
-						% 500 Internal Server Error
-	       unexpected_error -> 500;
-						% 501 Not Implemented
-	       not_implemented -> 501;
-						% Default error
-	       _ -> 500
-	   end,
-    case Code of
+    case http_helpers:error_to_code(Reason) of
 	500 ->
 	    ?MODULE:unexpected_error();
-	_ ->
+	Code ->
 	    Content = mochijson:encode({struct, [{error, Reason}]}),
 	    [{status, Code},
 	     {content, "application/json", lists:flatten(Content)}]
