@@ -45,7 +45,7 @@ test("dynamic updated options", function() {
 test("publish video", function() {
     $("#video").video();
     $("#video").video("publish");
-    equals($("#video .ui-widget-content embed").attr('src'), '/publish_video.swf');
+    equals($("#video .ui-widget-content embed").attr('src'), '/lib/video/publish_video.swf');
 });
 
 test("publish video and set option", function() {
@@ -53,14 +53,14 @@ test("publish video and set option", function() {
     $("#video").video("publish");
     $("#video").video("option", "width", "100");
     equals($("#video embed").attr('width'), 100);
-    equals($("#video .ui-widget-content embed").attr('src'), '/publish_video.swf');
+    equals($("#video .ui-widget-content embed").attr('src'), '/lib/video/publish_video.swf');
 });
 
 test("receive video", function() {
     $("#video").video();
     $("#video").video("publish");
     $("#video").video("receive");
-    equals($("#video .ui-widget-content embed").attr('src'), '/receive_video.swf');
+    equals($("#video .ui-widget-content embed").attr('src'), '/lib/video/receive_video.swf');
 });
 
 jackTest("on receive, handle video.stream.new", function() {
@@ -77,10 +77,10 @@ test("publish then stop a video stream", function() {
     $("#video").video();
     $("#video .ui-button").click();
     equals($("#video .ui-button").text(), "Stop publish", "label has changed");
-    equals($("#video .ui-widget-content embed").attr('src'), '/publish_video.swf', 'src is publish_video.swf');
+    equals($("#video .ui-widget-content embed").attr('src'), '/lib/video/publish_video.swf', 'src is publish_video.swf');
     $("#video .ui-button").click();
     equals($("#video .ui-button").text(), "Publish", "label has changed");
-    equals($("#video .ui-widget-content embed").attr('src'), '/receive_video.swf', 'src is receive_video.swf');
+    equals($("#video .ui-widget-content embed").attr('src'), '/lib/video/receive_video.swf', 'src is receive_video.swf');
 });
 
 jackTest("desactivate/activate the publish button when a stream start and stop", function () {
