@@ -2,7 +2,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, delete/1, update/1, exists/1]).
+-export([add/1, get/1, delete/1, update/1, exists/1, all/0]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
@@ -16,6 +16,9 @@ add(#uce_presence{}=Presence) ->
 
 get(Sid) ->
     ?DB_MODULE:get(Sid).
+
+all() ->
+    ?DB_MODULE:all().
 
 delete(Sid) ->
     case ?MODULE:exists(Sid) of
@@ -40,3 +43,4 @@ exists(Sid) ->
 	{ok, _} ->
 	    true
     end.
+
