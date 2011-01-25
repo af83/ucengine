@@ -8,8 +8,7 @@
 	 list/1,
 	 get/1,
 	 delete/1,
-	 update/1,
-         all/0]).
+	 update/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -32,18 +31,6 @@ list(EUid) ->
 				  end,
 				  Collections),
 	    {ok, Presences}
-    end.
-
-all() ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_presence", []) of
-        {'EXIT', _} ->
-            {error, bad_parameters};
-        Collections ->
-            Presences = lists:map(fun(Collection) ->
-                                          from_collection(Collection)
-                                  end,
-                                  Collections),
-            {ok, Presences}
     end.
 
 get(ESid) ->

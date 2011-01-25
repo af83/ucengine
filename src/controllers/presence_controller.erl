@@ -1,6 +1,6 @@
 -module(presence_controller).
 
--export([init/0, delete/3, add/3, check/3, timeout/0]).
+-export([init/0, delete/3, add/3, check/3]).
 
 -include("uce.hrl").
 -include("uce_auth.hrl").
@@ -88,27 +88,3 @@ check(_, [Uid, Sid], _) ->
 		    {error, unauthorized}
 	    end
     end.
-
-timeout() ->
-    case uce_presence:all() of
-        {ok, Presences} ->
-            delete_expired_presence(Presences);
-        _ ->
-            nothing
-    end.
-
-delete_expired_presence([#uce_presence{sid=Sid, uid=Uid, last_activity=Last, auth=Auth}=HdPresence | TlPresences]) ->
-    ?DEBUG("Timeout: ~p~n", [?SESSION_TIMEOUT]),
-    Timeout = Last + ?SESSION_TIMEOUT,
-    Now = utils:now(),
-    if
-        Now >= Timeout , Auth == "password", Uid /= "root" ->
-            event_controller:add([], [Uid, ?PRESENCE_EXPIRED_EVENT, [], [], []], []),
-            uce_presence:delete(Sid);
-        true ->
-            nothing
-    end,
-    delete_expired_presence(TlPresences);
-delete_expired_presence([]) ->
-    ok.
-
