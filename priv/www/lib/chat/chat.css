@@ -1,40 +1,108 @@
+.ui-chat-minus-header h3 {
+    background: url('images/next.png') 270px no-repeat;
+}
+
+.ui-chat-minus li a {
+    background: url('images/next.png') 270px no-repeat;
+}
+.ui-chat-minus .block-content p.ui-chat-back {
+    background: url('images/back.png') 10px no-repeat;
+}
+
+#content section.large .block.chat  {
+}
+
+#content section.large .block.chat .block-content {
+    padding: 5px 10px 10px 10px;
+}
+#content section.large .block.chat .block-content ul {
+    margin: 0;
+}
+#content section.large .block.chat .block-content ul li {
+    display: block;
+    padding: 5px 0;
+    border-bottom: 1px solid #AAA;
+}
+#content section.large .block.chat .block-content p {
+    margin: 0;
+    font: normal 13px Helvetica;
+    color: #424242;
+}
+
+#content section.large .block.tweets .block-header {
+    padding: 10px 10px 0 10px;
+    background: none;
+}
+#content section.large .block.tweets .block-header p {
+    font: bold 14px Helvetica;
+    color: #222;
+}
+#content section.large .block.tweets .block-header p img {
+    vertical-align: top;
+    margin: 0 5px 0 0;
+}
+#content section.large .block.tweets .block-content {
+    padding: 5px 10px 10px 10px;
+}
+#content section.large .block.tweets .block-content ul {
+    margin: 0;
+}
+#content section.large .block.tweets .block-content ul li {
+    display: block;
+    padding: 5px 0;
+    border-bottom: 1px solid #AAA;
+}
+#content section.large .block.tweets .block-content p {
+    margin: 0;
+    font: normal 13px Helvetica;
+    color: #424242;
+}
+#content section.large .block.tweets .block-footer {
+    margin: 0;
+    padding: 0 10px 5px 10px;
+}
+#content section.large .block.tweets .block-footer ul li {
+    display: inline-block;
+    width: 49%;
+}
+#content section.large .block.tweets .block-footer ul li.join {
+    text-align: right;}
+#content section.large .block.tweets .block-footer ul li a {
+    font: normal 13px/24px Helvetica;
+    color: #424242;
+    text-decoration: underline;
+}
+#content section.large .block.tweets .block-footer ul li a img {
+    vertical-align: top;
+}
+
 .ui-chat .ui-chat-title { 
     float: left; 
     margin: 0.1em 16px 0.2em 0;
 }
 
-.ui-chat .ui-chat-header-languages {
-    margin: -10px 0 0 0;
-    position: absolute; 
-    top: 50%;
-    right: 0.3em;
-}
-
-.ui-chat .ui-chat-header-languages li {
-    display: block;
-    float: left;
-}
-
 .ui-chat .ui-chat-flag {
-    background-repeat: no-repeat;
+    background: none;
+    border: none;
+}
+
+.ui-chat .ui-chat-flag .ui-icon {
+    margin-top: -4px;
+    margin-left: -9px;
     width: 18px;
     height: 12px;
 }
 
-.ui-chat .ui-chat-flag span {
-    display: none;
+.ui-chat .ui-icon.ui-chat-flag-fr {
+    background-image: url(images/flags/fr.png);
 }
 
-.ui-chat .ui-chat-flag-fr {
-    background-image: url(../images/flag/fr.png);
+.ui-chat .ui-icon.ui-chat-flag-en {
+    background-image: url(images/flags/en.png);
 }
 
-.ui-chat .ui-chat-flag-en {
-    background-image: url(../images/flag/en.png);
-}
-
-.ui-chat .ui-chat-flag-it {
-    background-image: url(../images/flag/it.png);
+.ui-chat .ui-icon.ui-chat-flag-it {
+    background-image: url(images/flags/it.png);
 }
 
 .ui-chat-big .column {
@@ -209,19 +277,23 @@
     list-style-type: none;
     border-bottom: 1px solid #D7D7D7;
 }
+
 .ui-chat-minus li a {
     display: block;
     padding: 5px 50px 5px 10px;
     font: bold 14px Helvetica;
     color: #424242;
 }
+
 .ui-chat-minus .messages li {
     position: relative;
     list-style-type: none;
     border: none;
     padding-left: 8px;
     padding-top: 6px;
-    padding-bottom: 3px;}
+    padding-bottom: 3px;
+}
+
 .ui-chat-minus .block-content p.ui-chat-back {
     display: block;
     padding: 5px 10px 5px 50px;

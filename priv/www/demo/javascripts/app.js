@@ -24,6 +24,7 @@ function sammyapp() {
         $("nav .page ul:first  li a[href='"+ href +"']").parent().addClass('on');
         callback();
     };
+
     this.helpers({
         loadPage : function(tpl, c, callback) {
             var that = this;
@@ -36,6 +37,7 @@ function sammyapp() {
             });
         }
     });
+
     /**
      * Is infos loaded before anything else ?
      */
@@ -53,6 +55,7 @@ function sammyapp() {
             callback();
         }
     }
+
     this.around(selectMenu);
     this.around(isLoaded);
     function build_home(callback) {
@@ -90,7 +93,8 @@ function sammyapp() {
             c.upcomingmeetings = result;
             waiter();
         });
-    }
+    };
+
     this.get('#/', function(context) {
         this.title('Home');
         build_home(function(c) {
@@ -283,9 +287,13 @@ $.sammy("#meeting", function() {
     this.use('NestedParams');
 
     var meeting = null;
-    var widgets = [];
     var loop = null;
     var inReplay = false;
+
+    function fold(element) {
+	element.find('.ui-button-toggle')
+	    .button('option', 'icons', {primary: "ui-icon-triangle-1-e"});
+    };
 
     this.bind('connect-meeting', function(e, data) {
         meeting = data[0];
@@ -294,30 +302,124 @@ $.sammy("#meeting", function() {
 
         inReplay = new Date(parseInt(result_meeting.end_date, 10)) < new Date().getTime();
 
-        $('#files').file({ucemeeting: meeting});
-	$('#file_sharing').file_sharing({ucemeeting: meeting});
-	widgets.push('file_sharing');
+	function addWidget(id, widgetName, options) {
+            var fold = $('<span>')
+		.attr('class', 'ui-toolbar-button ui-button-fold')
+		.button({
+                    text: false,
+                    icons: {primary: "ui-icon-triangle-1-s"}
+		})
+		.toggle(
+		    function() {
+			widget.addClass('folded');
+			$(this).button('option', 'icons', {primary: "ui-icon-triangle-1-e"});
+			widget.find('.ui-widget-content').hide();
+		    },
+		    function() {
+			widget.removeClass('folded');
+			$(this).button('option', 'icons', {primary: "ui-icon-triangle-1-s"});
+			widget.find('.ui-widget-content').show();
+		    });
 
-        $("#replay-mode").hide();
+	    var widget = $(id);
+
+	    function expand() {
+		widget.detach();
+		widget.prependTo('#expanded');
+		widget.addClass('expanded');
+		$(this).button('option', 'icons', {primary: "ui-icon-circle-minus"});
+		widget[widgetName]('expand');
+		$(this).unbind('click');
+		$(this).bind('click', reduce);
+	    };
+
+	    function reduce() {
+		widget.detach();
+		widget.prependTo('#reduced');
+		widget.removeClass('expanded');
+		$(this).button('option', 'icons', {primary: "ui-icon-circle-plus"});
+		widget[widgetName]('reduce');
+		$(this).unbind('click');
+		$(this).bind('click', expand);
+	    }
+
+            var toggle = $('<span>')
+		.attr('class', 'ui-toolbar-button ui-button-toggle')
+		.button({
+		    text: false,
+		    icons: {primary: "ui-icon-circle-plus"}
+		})
+		.click(expand);
+
+	    options['buttons'] = {left: [fold], right: [toggle]};
+	    widget[widgetName](options);
+
+	    widget.bind('received', function(event, container) {
+		if (container == 'reduced') {
+		    widget.removeClass('expanded');
+		    toggle.button('option', 'icons', {primary: "ui-icon-circle-plus"});
+		    widget[widgetName]('reduce');
+		    toggle.unbind('click');
+		    toggle.bind('click', expand);
+		} else {
+		    widget.addClass('expanded');
+		    toggle.button('option', 'icons', {primary: "ui-icon-circle-minus"});
+		    widget[widgetName]('expand');
+		    toggle.unbind('click');
+		    toggle.bind('click', reduce);
+		}		    
+	    });
+
+	    if (options.mode == "expanded") {
+		toggle.click();
+	    } else {
+		widget[widgetName]('reduce');
+	    }
+	};
+
+	$('#reduced').sortable({connectWith: '.slots',
+				handle: '.ui-widget-header',
+				placeholder: 'highlight',
+				receive: function(event, widget) {
+				    $(widget.item).trigger('received', ['reduced']);
+				}});
+	$('#expanded').sortable({connectWith: '.slots',
+				 handle: '.ui-widget-header',
+				 placeholder: 'highlight',
+				 receive: function(event, widget) {
+				     $(widget.item).trigger('received', ['expanded']);
+				 }});
+	$('#reduced, #expanded').disableSelection();
+
+	addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
+						  mode: 'reduced',
+						  dock: '#filesharing-dock'});
 
         if (inReplay) {
-            $('#video').player({src: result_meeting.metadata.video,
-                                start: result_meeting.start_date});
+	    addWidget("#video", 'player', {src: result_meeting.metadata.video,
+					   start: result_meeting.start_date,
+					   dock: '#video-dock',
+					   mode: 'expanded'});
         } else {
-            $('#video').video({domain     : document.location.hostname + "/ucengine",
-                               ucemeeting : meeting});
+	    addWidget("#video", 'video', {domain: document.location.hostname + "/ucengine",
+					  ucemeeting : meeting,
+					  dock: '#video-dock',
+					  mode: 'expanded'});
         }
-        widgets.push('video');
 
-        var chat = $('#chat').chat({ucemeeting: meeting});
-        widgets.push('chat');
-        $('#whiteboard').whiteboard({ucemeeting       : meeting,
-                                     widget_transport : false,
-                                     width            : 318,
-                                     height           : 350});
-        widgets.push('whiteboard');
-        this.trigger('focus-updated', 'video');
+	addWidget("#chat", 'chat', {ucemeeting: meeting,
+				    title: "Conversations",
+				    dock: '#chat-dock',
+				    mode: 'reduced'});
 
+	addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
+						widget_transport : false,
+						dock		 : '#whiteboard-dock',
+						width		 : 574,
+						mode		 : 'reduced'});
+
+        $("#replay-mode").hide();
+	
         if (inReplay) {
             // disabled some widgets
             $('#files').file("option", "upload", false);
@@ -346,7 +448,7 @@ $.sammy("#meeting", function() {
                     $('#whiteboard').whiteboard("clear");
                     $('#files').file("clear");
                     $('#chat').chat("clear");
-		    $('#file_sharing').file_sharing("clear");
+		    $('#filesharing').filesharing("clear");
                 }
                 $("#replay").replay({
                     date_start: start,
@@ -388,44 +490,6 @@ $.sammy("#meeting", function() {
         }
     });
 
-    var initFocus = 0;
-    this.bind("click", function(e) {
-        if (e.target == this.$element().find("#wheel img").get(0)) {
-            initFocus = (initFocus + 1) % widgets.length;
-            this.trigger('focus-updated', widgets[initFocus]);
-        }
-    });
-    this.bind("focus-updated", function(e, data) {
-        $('.focus').removeClass('focus');
-        $('#'+data).addClass('focus');
-        if (data == 'video') {
-            var videoAttrs = {'height': 475,
-                              'width' : 630};
-        } else {
-            var videoAttrs = {'height': 240,
-                              'width' : 318};
-        }
-        if (inReplay)
-            $('#video').player('option', videoAttrs);
-        else
-            $('#video').video('option', videoAttrs);
-
-        if (data == 'whiteboard') {
-            $('#whiteboard').whiteboard('option', {widget_color: true,
-                                                   widget_linewidth: true}).whiteboard("showControls");
-
-        } else {
-            $('#whiteboard').whiteboard('option', {widget_color: false,
-                                                   widget_linewidth: false}).whiteboard("hideControls");
-        }
-
-        if (data == 'chat') {
-            $('#chat').chat("toggleMode", "big");
-        } else {
-            $('#chat').chat("toggleMode", "minus");
-        }
-    });
-
     this.get('#/meeting/:name', function(context) {});
 
     this.notFound = function() {
@@ -443,7 +507,7 @@ $.sammy("#meeting", function() {
         $('#chat').chat("destroy");
         $('#whiteboard').whiteboard("destroy");
         $('#files').file("destroy");
-	$('#file_sharing').file_sharing("destroy");
+	$('#filesharing').filesharing("destroy");
         this.unload();
     };
 });

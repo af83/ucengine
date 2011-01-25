@@ -3,7 +3,8 @@ $.uce.widget("chat", {
         ucemeeting: null,
         title: "Conversations",
         lang: "fr",
-        langs: ["fr", "en", "it"]
+        langs: ["fr", "en", "it"],
+	mode: 'reduced'
     },
     // ucengine events
     meetingsEvents: {
@@ -15,11 +16,26 @@ $.uce.widget("chat", {
         "chat.message.new"       : "_handleMessage"
     },
     _create: function() {
+        var that = this;
+
+	/* create dock */
+	if (this.options.dock) {
+	    var dock = $('<a>')
+		.attr('class', 'ui-dock-button')
+		.attr('href', '#')
+		.button({
+		    text: false,
+		    icons: {primary: "ui-icon-comment"}
+		}).click(function() {
+		    $(window).scrollTop(that.element.offset().top);
+		    return false;
+		});
+	    dock.appendTo(this.options.dock);
+	}
+
         this.element.addClass('ui-chat ui-widget');
 
-        var title = $('<div>').attr('class', 'ui-widget-header ui-corner-all ui-helper-clearfix');
-        $('<span>').addClass('ui-chat-title').text(this.options.title).appendTo(title);
-        title.appendTo(this.element);
+	var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
 
         var templateBig =
          '<div class="ui-chat-big">' +
@@ -51,7 +67,7 @@ $.uce.widget("chat", {
                '<div class="block msg" />' +
             '</div>' +
          '</div>';
-        $.tmpl(templateBig, {}).appendTo(this.element);
+        $.tmpl(templateBig, {}).appendTo(content);
 
         var templateMinus =
             '<div class="ui-chat-minus">' +
@@ -67,21 +83,25 @@ $.uce.widget("chat", {
                   '</div>' +
                '</div>' +
             '</div>';
-        $.tmpl(templateMinus, {}).appendTo(this.element);
-
-        /* display flags in the header */
-        var languages = $('<ul>').addClass('ui-chat-header-languages');
+        $.tmpl(templateMinus, {}).appendTo(content);
+	
+	var flags = $('<span>')
+	    .attr('class', 'ui-chat-flags');
 
         /* create message block for each language */
-        var that = this;
         $.each(this.options.langs, function(i, lang) {
-            var li = $('<li>').addClass('ui-chat-flag ui-chat-flag-'+ lang).append($('<span>').text(lang));
-            languages.append(li);
+            var flag = $('<span>')
+		.attr('class', 'ui-chat-flag')
+		.button({
+		    text: false,
+		    icons: {primary: 'ui-chat-flag-' + lang}
+		})
+		.click(function(e) {
+                    e.preventDefault();
+                    that._showChat('chat:' + lang, "Chatroom (" + lang + ")");
+		});
+	    flag.appendTo(flags);
 
-            li.click(function(e) {
-                e.preventDefault();
-                that._showChat('chat:' + lang, "Chatroom (" + lang + ")");
-            });
             that._addChat('chat:' + lang);
 
             /* create form to send messages */
@@ -99,7 +119,10 @@ $.uce.widget("chat", {
                 that.options.ucemeeting.push("chat.message.new", {text: val, lang: lang});
             });
         });
-        languages.appendTo(title);
+
+	var rightButtons = [flags].concat(this.options.buttons.right);
+	this._addHeader(this.options.title, {left: this.options.buttons.left,
+					     right: rightButtons});
 
         this._addChat('hashtag:all');
 
@@ -119,7 +142,6 @@ $.uce.widget("chat", {
             e.preventDefault();
             that._showChat('chat:' + that.options.lang, "Chatroom (" + that.options.lang + ")");
         });
-        this.toggleMode('minus');
         if (this.options.ucemeeting) {
             this._hashtags = {};
             this._roster = [];
@@ -140,31 +162,41 @@ $.uce.widget("chat", {
     clear: function() {
         this._hashtags = {};
         this._messages = 0;
+
         $.each(this.element.find('.tweets ul').children(), function(i, li) {
             $(li).remove();
         });
         $.each(this.element.find('.tweets dl').children(), function(i, dt) {
             $(dt).remove();
         });
-        this.toggleMode(this.element.data('mode'));
+
+	if (this.options.mode == "reduced") {
+            this.reduce();
+	} else if (this.options.mode == "expanded") {
+	    this.expand();
+	}
     },
 
     /**
-     *
+     *  Modes
      */
-    toggleMode: function(mode) {
-        this.element.data('mode', mode);
-        if (mode == "minus") {
-            this.element.find('.ui-chat-big').hide();
-            this.element.find('.ui-chat-minus').show();
-            this._showChat("main");
-        } else {
-            this.element.find('.ui-chat-big').show();
-            this.element.find('.ui-chat-minus').hide();
-            this._showChat("chat:" + this.options.lang);
-        }
+    reduce: function() {
+        this.options.mode = 'reduced';
+
+        this.element.find('.ui-chat-big').hide();
+	this.element.find('.ui-chat-flags').hide();
+        this.element.find('.ui-chat-minus').show();
+        this._showChat("main");	
     },
 
+    expand: function() {
+        this.options.mode = 'expanded';
+
+        this.element.find('.ui-chat-big').show();
+	this.element.find('.ui-chat-flags').show();
+        this.element.find('.ui-chat-minus').hide();
+        this._showChat("chat:" + this.options.lang);
+    },
 
     /**
      * Event callbacks
@@ -265,7 +297,7 @@ $.uce.widget("chat", {
     },
 
     _showChat: function(name, title) {
-        if (this.element.data('mode') == 'big') {
+        if (this.options.mode == 'expanded') {
             this.element.find('.ui-chat-big .block.msg .block-content').hide();
             this.element.find('.ui-chat-big .block.msg .block-content[name="' + name + '"]').show();
         } else {

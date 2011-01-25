@@ -6,137 +6,251 @@ $.uce.widget("whiteboard", {
         ucemeeting          : null,
         // widget title
         title               : "Whiteboard",
-        /**
-         *
-         */
         disabled            : false,
-        /**
-         * width of the main canvas
-         */
-        width               : 400,
-        /**
-         * height of the main canvas
-         */
-        height              : 400,
-        /**
-         * id of canvas
-         */
-        canvas_id_bottom    : "canvas",
-        canvas_id_interface : "canvasInterface",
-        controls_id         : "controls",
-        choosers_id         : "chooserWidgets",
-        // show color widget
-        widget_color        : true,
-        widget_color_id     : "colorChooser",
-        // show linewidth widget
-        widget_linewidth    : true,
-        widget_linewidth_id : "lineWidthChooser",
-        // show transport widget
-        widget_transport    : true,
-        widget_transport_id : "transportWidget",
+	colors              : [],
+	width		    : null,
+	height              : null,
+	ratio		    : 0.8
     },
     // ucengine events
     meetingsEvents : {
-        "whiteboard_draw_event"  : 'handleUceEvent',
-        "whiteboard_clear_event" : 'handleUceEvent'
+	"whiteboard.shape.draw"    : 'handleUceEvent',
+        "whiteboard.drawing.clear" : 'handleUceEvent'
     },
     _create: function() {
-        this.element.addClass('ui-widget ui-whiteboard');
-        $("<div>").addClass("ui-widget-header").append($("<span>").text(this.options.title)).appendTo(this.element);
-        this._content = $("<div>").addClass("ui-widget-content").appendTo(this.element);
-        $('<canvas>').attr({
-            id     : this.options.canvas_id_bottom,
-            width  : this.options.width,
-            height : this.options.height,
-        }).appendTo(this._content);
-        $('<canvas>').attr({
-            id     : this.options.canvas_id_interface,
-            width  : this.options.width,
-            height : this.options.height,
-        }).appendTo(this._content);
-        var controls = ($('<div>')).attr({
-            id: this.options.controls_id
-        }).appendTo(this._content);
-        // TODO: customize actions
-        $.each(["brush", "brush2", "line", "rectangle", "circle", "clear"], function(index, value) {
-                    $("<div>").addClass("ui-whiteboard-btn").attr("id", "btn_"+ index).text(value).appendTo(controls);
-                });
-        var chooser = $('<div>').attr({
-            id: this.options.choosers_id
-        });
-        chooser.appendTo(this._content);
-        if (CanvasHelper.canvasExists(this.options.canvas_id_bottom)) {
-	    var canvasPainter  = new CanvasPainter(this.options.canvas_id_bottom, this.options.canvas_id_interface, {x: 90, y: 10}, $.proxy(this._handleWhiteboardEvents, this));
+	/* create dock */
+        var that = this;
 
-	    var saveDrawing    = new CPDrawing(canvasPainter);
-	    var canvasAnimator = new CPAnimator(canvasPainter);
-	    //init widgets
-            if (this.options.widget_color) {
-                $("<canvas>").attr("id", this.options.widget_color_id).appendTo(chooser);
-	        var colorWidget    = new ColorWidget(this.options.widget_color_id, {x: 500, y: 10});
-	        colorWidget.addWidgetListener(function() {
-		    canvasPainter.setColor(colorWidget.colorString);
-	        });
-            }
-            if (this.options.widget_linewidth) {
-                $("<canvas>").attr("id", this.options.widget_linewidth_id).appendTo(chooser);
-	        var lineWidthWidget = new LineWidthWidget(this.options.widget_linewidth_id, 10, {x: 500, y: 120});
-	        canvasPainter.setLineWidth(10);
-	        lineWidthWidget.addWidgetListener(function() {
-		    canvasPainter.setLineWidth(lineWidthWidget.lineWidth);
-	        });
-            }
-             if (this.options.widget_transport) {
-                $("<canvas>").attr("id", this.options.widget_transport_id).appendTo(chooser);
-	         var transportWidget = new TransportWidget(this.options.widget_transport_id, {x: 500, y: 190}, canvasAnimator);
-             }
-            var that = this;
-            $('#'+ this.options.controls_id +' .ui-whiteboard-btn').click(function() {
-                $('#'+ that.options.controls_id +' .ui-whiteboard-btn.ui-state-active').removeClass('ui-state-active');
-                $(this).addClass("ui-state-active");
-            });
-            $('#btn_0').click(function() {canvasPainter.setDrawAction(0)});
-            $('#btn_1').click(function() {canvasPainter.setDrawAction(1)});
-            $('#btn_2').click(function() {canvasPainter.setDrawAction(2)});
-            $('#btn_3').click(function() {canvasPainter.setDrawAction(3)});
-            $('#btn_4').click(function() {canvasPainter.setDrawAction(4)});
-            $('#btn_5').click(function() {canvasPainter.setDrawAction(5)});
-            this.canvasPainter = canvasPainter;
-        }
+	// Default colors
+	this.options.colors = [this._randomColor(), this._randomColor(), '#ffffff', '#000000'];
+
+	if (this.options.dock) {
+	    var dock = $('<a>')
+		.attr('class', 'ui-dock-button')
+		.attr('href', '#')
+		.button({
+		    text: false,
+		    icons: {primary: "ui-icon-image"}
+		}).click(function() {
+		    $(window).scrollTop(that.element.offset().top);
+		    return false;
+		});
+		dock.appendTo(this.options.dock);
+	}
+
+        this.element.addClass('ui-widget ui-whiteboard');
+	this._addHeader(this.options.title, this.options.buttons);
+
+        this._content = $("<div>").addClass("ui-widget-content").appendTo(this.element);
+
+	/* create toolbar */
+	this.tool = "pencil";
+	this.color = "#000000";
+
+        var toolbar = $('<div>').attr('class', 'ui-whiteboard-toolbar');
+
+        var brush = $('<span>')
+	    .attr('class', 'ui-whiteboard ui-toolbar-button ui-button-left')
+	    .button({
+                text: false,
+                icons: {
+		    primary: "ui-icon-pencil"
+                }
+	    }).click(function() {
+		that._changeTool('pencil');
+	    });
+	brush.appendTo(toolbar);
+
+        var rectangle = $('<span>')
+	    .attr('class', 'ui-whiteboard ui-toolbar-button ui-button-left')
+	    .button({
+                text: false,
+                icons: {
+		    primary: "ui-whiteboard-icon-rectangle"
+                }
+	    }).click(function() {
+		that._changeTool('rectangle');
+	    });
+	rectangle.appendTo(toolbar);
+
+        var circle = $('<span>')
+	    .attr('class', 'ui-whiteboard ui-toolbar-button ui-button-left')
+	    .button({
+                text: false,
+                icons: {
+		    primary: "ui-whiteboard-icon-circle"
+                }
+	    }).click(function() {
+		that._changeTool('circle');
+	    });
+	circle.appendTo(toolbar);
+
+        var clear = $('<span>')
+	    .attr('class', 'ui-whiteboard ui-toolbar-button ui-button-right')
+	    .button({
+                text: false,
+                icons: {
+		    primary: "ui-icon-trash"
+                }
+	    }).click(function() {
+		that._clear();
+	    });
+	clear.appendTo(toolbar);
+
+	$.each(this.options.colors, function(index, hex) {
+	    var color = $('<span>')
+		.attr('class', 'ui-whiteboard ui-toolbar-button ui-button-right ui-button-color')
+		.button()
+		.click(function() {
+		    that.color = hex;
+		})
+		.css('background-color', hex);
+
+	    color.appendTo(toolbar);
+	});
+
+	toolbar.appendTo(this._content);
+
+	var canvasId = this.element.attr('id') + "-canvas";
+	this.canvas = $('<canvas>')
+	    .attr('id', canvasId)
+	    .bind('mousedown', function(event) {
+		Whiteboard.setStrokeStyle(that.color);
+
+		that.canvas.unbind("mouseup");
+		that.canvas.unbind("mouseout");
+
+		if (that.tool == "pencil") {
+		    var x1 = that._getX(event);
+		    var y1 = that._getY(event);
+		    that.canvas.bind("mousemove", function(event) {
+			var x2 = that._getX(event);
+			var y2 = that._getY(event);
+			that._draw(x1, y1, x2, y2);
+			x1 = x2;
+			y1 = y2;
+		    });
+		    that.canvas.bind("mouseup", function(event) {
+			that._endDraw();
+		    });
+		    that.canvas.bind("mouseout", function(event) {
+			that._endDraw();
+		    });
+		};
+
+		if (that.tool == "rectangle") {
+		    var x1 = that._getX(event);
+		    var y1 = that._getY(event);
+		    Whiteboard.beginShape(x1, y1);
+		    that.canvas.bind("mousemove", function(event) {
+			var x2 = that._getX(event);
+			var y2 = that._getY(event);
+			Whiteboard.drawRectangle(x2, y2);
+			that.canvas.unbind('mouseup');
+			that.canvas.bind("mouseup", function(event) {
+			    that._draw(x1, y1, x2, y2);
+			    that._endDraw();   
+			});
+		    })
+		};    
+		if (that.tool == "circle") {
+		    var x1 = that._getX(event);
+		    var y1 = that._getY(event);
+		    Whiteboard.beginShape(x1, y1);
+		    that.canvas.bind("mousemove", function(event) {
+			var x2 = that._getX(event);
+			var y2 = that._getY(event);
+			Whiteboard.drawOval(x2, y2);
+			that.canvas.unbind('mouseup');
+			that.canvas.bind("mouseup", function(event) {
+			    that._draw(x1, y1, x2, y2);
+			    that._endDraw();   
+			});
+		    });
+		};
+	});
+
+	$('<div>')
+	    .attr('class', 'ui-whiteboard-drawing')
+	    .append(this.canvas)
+            .appendTo(this._content);
+
+	Whiteboard.init(canvasId);
+
+	if (!this.options.width && !this.options.height) {
+	    this.options.width = this.canvas.width();
+	}
+	if (!this.options.width && this.options.height) {
+	    this.options.width = this.options.height / this.options.ratio;
+	}
+	if (this.options.height) {
+	    this.options.ratio = this.options.height / this.options.width;
+	}
+
+	this.canvas.attr('height', this.options.width * this.options.ratio);
     },
-    _handleWhiteboardEvents: function(event) {
-        if (!this.options.disabled)
-        {
-            var type = "whiteboard_draw_event";
-	    //Mandatory optimization for whiteboard loading
-	    if (event.event == "clearCanvas") {
-	        type = "whiteboard_clear_event";
-	    }
-            this.options.ucemeeting.push(type, {"wevent": JSON.stringify(event)});
-        }
+
+    _getX: function(event) {
+	var clientX = event.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+	var cssx = (clientX - this.canvas.offset().left);
+        var xrel = Whiteboard.getRelative().width;
+        var canvasx = cssx * xrel;
+        return parseInt(canvasx);
     },
+
+    _getY: function(event) {
+	var clientY = event.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+	var cssy = (clientY - this.canvas.offset().top);
+        var yrel = Whiteboard.getRelative().height;
+        var canvasy = cssy * yrel;
+        return parseInt(canvasy);
+    },
+
+    _clear: function() {
+	this.options.ucemeeting.push("whiteboard.drawing.clear", {});
+    },
+
+    _draw: function(x1, y1, x2, y2) {
+	this.options.ucemeeting.push("whiteboard.shape.draw",
+				     {"tool": this.tool,
+				      "color": this.color,
+				      "x1": x1,
+				      "y1": y1,
+				      "x2": x2,
+				      "y2": y2});
+    },
+
+    _endDraw: function(event) {
+	this.canvas.unbind("mousemove");
+	this.canvas.unbind("mouseup");
+	this.canvas.unbind("mouseout");
+    },
+
+    _changeTool: function(tool) {
+	this.tool = tool;
+    },
+
+    _randomColor: function() {
+	var rint = Math.round(0xffffff * Math.random());
+	var color = ('#0' + rint.toString(16)).replace(/^#0([0-9a-f]{6})$/i, '#$1');
+	return color;
+    },
+
     _setOption: function(key, value) {
         $.Widget.prototype._setOption.apply(this, arguments);
-        switch (key) {
-        case 'widget_color':
-            if (value)
-                this.element.find('#'+ this.options.widget_color_id).show();
-            else
-                this.element.find('#'+ this.options.widget_color_id).hide();
-            break;
-        case 'widget_linewidth':
-            if (value)
-                this.element.find('#'+ this.options.widget_linewidth_id).show();
-            else
-                this.element.find('#'+ this.options.widget_linewidth_id).hide();
-            break;
-        case 'widget_transport':
-            if (value)
-                this.element.find('#'+ this.options.widget_transport_id).show();
-            else
-                this.element.find('#'+ this.options.widget_transport_id).hide();
-            break;
-        }
+    },
+
+    reduce: function() {
+	this._resize();
+    },
+
+    expand: function() {
+	this._resize();
+    },
+
+    _resize: function() {
+	var width = this.canvas.width();
+	this.canvas.css('height', width * this.options.ratio);
     },
 
     hideControls: function() {
@@ -148,11 +262,35 @@ $.uce.widget("whiteboard", {
     },
 
     handleUceEvent: function(event) {
-        this.canvasPainter.handleActionEvent(JSON.parse(event.metadata.wevent));
-    },
+	var x1 = parseInt(event.metadata.x1);
+	var y1 = parseInt(event.metadata.y1);
+	var x2 = parseInt(event.metadata.x2);
+	var y2 = parseInt(event.metadata.y2);
 
-    clear: function() {
-        this.canvasPainter.clearCanvas();
+	Whiteboard.setStrokeStyle(event.metadata.color);
+
+	if (event.type == "whiteboard.shape.draw") {
+	    switch (event.metadata.tool) {
+	    case "pencil":
+		Whiteboard.beginPencilDraw(x1, y1);
+		Whiteboard.pencilDraw(x2, y2);
+		break;
+	    case "rectangle":
+		Whiteboard.beginShape(x1, y1);
+		Whiteboard.drawRectangle(x2, y2);
+		break;
+	    case "circle":
+		Whiteboard.beginShape(x1, y1);
+		Whiteboard.drawOval(x2, y2);
+		break;
+	    }
+	}
+	if (event.type == "whiteboard.drawing.clear") {
+	    var canvas = this.canvas[0];
+	    var context = canvas.getContext('2d');
+	    context.clearRect(0, 0, canvas.width, canvas.height);
+	    this._endDraw();
+	}
     },
 
     destroy: function() {

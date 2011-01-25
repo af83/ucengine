@@ -86,7 +86,7 @@ test("handle default minus mode", function() {
 });
 
 test("toggle to big mode", function() {
-    $('#chat').chat().chat("toggleMode", "big");
+    $('#chat').chat().chat("expand");
     equals($("#chat .ui-chat-big").css('display'), 'block');
     equals($("#chat .ui-chat-minus").css('display'), 'none');
 });
@@ -177,7 +177,7 @@ test("handle tweets events", function() {
     equals($("#chat .ui-chat-big .block.tweets dl dt:last").text(), '#norris (1)');
 });
 
-test("can show all tweets in minus mode", function() {
+test("can show all tweets in reduced mode", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#norris'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
@@ -190,13 +190,13 @@ test("can show all tweets in minus mode", function() {
     equals($("#chat .ui-chat-minus .block-content[name='hashtag:all'] ul").children().size(), 2);
 });
 
-test("can show all tweets in big mode", function() {
+test("can show all tweets in expanded mode", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#norris'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat").chat("toggleMode", "big");
+    $("#chat").chat("expand");
     $("#chat .ui-chat-big .block.tweets .block-header h3").click();
     equals($("#chat .ui-chat-big .block.msg .block-content[name='hashtag:all']").children().size(), 1);
 });

@@ -47,14 +47,30 @@ $.uce.widget("video", {
                         height     : this.options.height});
     },
     _create: function() {
+	var that = this;
+
+		/* create dock */
+	if (this.options.dock) {
+	    var dock = $('<a>')
+		.attr('class', 'ui-dock-button')
+		.attr('href', '#')
+		.button({
+		    text: false,
+		    icons: {primary: "ui-icon-person"}
+		}).click(function() {
+		    $(window).scrollTop(that.element.offset().top);
+		    return false;
+		});
+		dock.appendTo(this.options.dock);
+	}
+
         this.element.addClass('ui-widget ui-video');
         this._button = $('<a>').attr('href', '#')
                                .button({label: 'Publish'})
                                .click($.proxy(this._onClickButton, this));
-        $('<div>').addClass('ui-widget-header ui-corner-all ui-helper-clearfix')
-            .appendTo(this.element)
-            .append($('<span>').addClass('ui-video-title').text(this.options.title))
-            .append(this._button);
+	var rightButtons = [this._button].concat(this.options.buttons.right);
+	this._addHeader(this.options.title, {left: this.options.buttons.left,
+					     right: rightButtons});
         this._content = $('<div>').addClass('ui-widget-content').appendTo(this.element);
         if (this.options.ucemeeting == null) {
             this._showReceive = true;

@@ -1,8 +1,9 @@
-$.uce.widget("file_sharing", {
+$.uce.widget("filesharing", {
     options: {
         ucemeeting : null,
         upload     : true,
-        title      : "File sharing"
+        title      : "File sharing",
+	mode	   : "expanded"
     },
    
     // ucengine events
@@ -15,9 +16,27 @@ $.uce.widget("file_sharing", {
     },
  
     _create: function() {
-        this.element.addClass('ui-widget ui-filesharing');
-        $("<div>").addClass("ui-widget-header").append($("<span>").text(this.options.title)).appendTo(this.element);
         var that = this;
+
+	/* create dock */
+	if (this.options.dock) {
+	    var dock = $('<a>')
+		.attr('class', 'ui-dock-button')
+		.attr('href', '#')
+		.button({
+		    text: false,
+		    icons: {primary: "ui-icon-document"}
+		}).click(function() {
+		    $(window).scrollTop(that.element.offset().top);
+		    return false;
+		});
+		dock.appendTo(this.options.dock);
+	}
+
+
+        this.element.addClass('ui-widget ui-filesharing');
+	this._addHeader(this.options.title, this.options.buttons);
+
         var all = $('<div>').attr('class', 'ui-filesharing-all');
         var preview = $('<div>').attr('class', 'ui-filesharing-preview');
         // init preview content
@@ -97,9 +116,9 @@ $.uce.widget("file_sharing", {
             return false;
         });
 
-        //
-        all.appendTo(this.element);
-        preview.appendTo(this.element);
+	var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
+        all.appendTo(content);
+        preview.appendTo(content);
         this.viewAll();
         $('<ul>').attr('class', 'ui-filesharing-list').appendTo(all);
         this._listFiles = [];
@@ -145,6 +164,17 @@ $.uce.widget("file_sharing", {
             this.element.find('.ui-filesharing-add').toggle();
             break;
         }
+    },
+
+    /**
+     *  Modes
+     */
+    reduce: function() {
+	this.options.mode = "reduced";
+    },
+
+    expand: function() {
+	this.options.mode = "expanded";
     },
 
     _handleFileAddEvent: function(event) {

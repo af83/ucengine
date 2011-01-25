@@ -9,14 +9,6 @@
     margin-left: 3em;
 }
 
-.ui-widget .ui-filesharing-all ul li:nth-child(odd) {
-    background-color: #FFFFFF;
-}
-
-.ui-widget .ui-filesharing-all ul li:nth-child(even) {
-    background-color: #EBEBEB;
-}
-
 .ui-widget .ui-filesharing-all ul li.mime.pdf {
     list-style-image: url("/demo/images/mime/pdf.png");
 }
@@ -25,7 +17,7 @@
 }
 
 .ui-widget .ui-filesharing-add {
-    float: right;
+    text-align: right;
     margin: 1.2em;
 }
 
@@ -46,12 +38,13 @@
 .ui-filesharing .ui-preview-toolbar {
     padding: 6px;
     background-color: #EBEBEB;
+    height: 24px;
 }
 
 .ui-filesharing .ui-preview-toolbar .ui-toolbar-button {
     background-color: #EBEBEB;
-    width: 2em;
-    height: 2em;
+    width: 24px;
+    height: 24px;
     float: left;
 }
 
@@ -69,7 +62,7 @@
     border-style: solid;
     border-width: 1px;
     border-color: #A9A9A9;
-    height: 2em;
+    height: 24px;
     vertical-align: middle;
     line-height: 2em;
 }
