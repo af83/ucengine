@@ -3,13 +3,12 @@
 require 'rubygems'
 require 'twitterstream'
 require 'set'
-require 'daemons'
 
 require 'ucengine'
 
 class UCEngineTwitterStream
   def initialize(login, password, &callback)
-    @stream = TwitterStream.new(login, password)
+    @stream = TwitterStream.new(:username => login, :password => password)
     @hashtags = Hash.new
     @callback = callback
     connect
