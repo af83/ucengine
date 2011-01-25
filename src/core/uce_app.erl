@@ -179,7 +179,6 @@ setup_controllers() ->
                    file_controller,
                    acl_controller,
                    time_controller,
-                   doc_controller,
                    infos_controller
                    ]).
 
