@@ -187,6 +187,7 @@ $.uce.widget("whiteboard", {
 	    this.options.ratio = this.options.height / this.options.width;
 	}
 
+	this.canvas.attr('width', this.options.width);
 	this.canvas.attr('height', this.options.width * this.options.ratio);
     },
 
@@ -207,17 +208,21 @@ $.uce.widget("whiteboard", {
     },
 
     _clear: function() {
-	this.options.ucemeeting.push("whiteboard.drawing.clear", {});
+	if (this.options.disabled == false) {
+	    this.options.ucemeeting.push("whiteboard.drawing.clear", {});
+	}
     },
 
     _draw: function(x1, y1, x2, y2) {
-	this.options.ucemeeting.push("whiteboard.shape.draw",
-				     {"tool": this.tool,
-				      "color": this.color,
-				      "x1": x1,
-				      "y1": y1,
-				      "x2": x2,
-				      "y2": y2});
+	if (this.options.disabled == false) {
+	    this.options.ucemeeting.push("whiteboard.shape.draw",
+					 {"tool": this.tool,
+					  "color": this.color,
+					  "x1": x1,
+					  "y1": y1,
+					  "x2": x2,
+					  "y2": y2});
+	}
     },
 
     _endDraw: function(event) {
@@ -248,17 +253,24 @@ $.uce.widget("whiteboard", {
 	this._resize();
     },
 
+    clear: function() {
+	var canvas = this.canvas[0];
+	var context = canvas.getContext('2d');
+	context.clearRect(0, 0, canvas.width, canvas.height);
+	this._endDraw();	
+    },
+
     _resize: function() {
 	var width = this.canvas.width();
 	this.canvas.css('height', width * this.options.ratio);
     },
 
     hideControls: function() {
-        this.element.find('#'+ this.options.controls_id).hide();
+        this.element.find('.ui-whiteboard-toolbar').hide();
     },
 
     showControls: function() {
-        this.element.find('#'+ this.options.controls_id).show();
+        this.element.find('.ui-whiteboard-toolbar').show();
     },
 
     handleUceEvent: function(event) {
