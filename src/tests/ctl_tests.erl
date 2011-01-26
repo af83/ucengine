@@ -105,7 +105,7 @@ test_meeting_update() ->
     {ok, #uce_meeting{ id=["testmeeting"]
                      , start_date=Start
                      , end_date=End
-                     , metadata=[{"description", Description}]
+                     , metadata=[{"description", _Description}]
                      }} = uce_meeting:get(["testmeeting"]),
     StartDate = uce_ctl:timestamp_to_iso(Start),
     EndDate = uce_ctl:timestamp_to_iso(End),
@@ -140,7 +140,7 @@ test_meeting_delete_missing_parameter() ->
     error = uce_ctl:action(meeting, delete, []).
 test_meeting_delete_not_found() ->
     Params = [{"name", ["meeting that doesn't exists"]}],
-    error = uce_ctl:action(meeting, delete, []).
+    error = uce_ctl:action(meeting, delete, Params).
 
 test_meeting_list() ->
     Params = [{"status", ["all"]}],
@@ -148,7 +148,6 @@ test_meeting_list() ->
 test_meeting_list_missing_parameter() ->
     error = uce_ctl:action(meeting, list, []).
 test_meeting_list_not_found() ->
-    Params = [{"status", ["all"]}],
     error = uce_ctl:action(meeting, list, []).
 
 %%

@@ -18,7 +18,7 @@ get() ->
 
 update(Metadata) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"id", "default"}]) of
-        [Infos] ->
+        [_Infos] ->
             emongo:update_sync(?MONGO_POOL, "uce_infos", [{"id", "default"}], [{"metadata", Metadata}], false);
         [] ->
             case catch emongo:insert_sync(?MONGO_POOL, "uce_infos", [{"id", "default"}, {"metadata", Metadata}]) of

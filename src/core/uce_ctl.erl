@@ -169,7 +169,7 @@ display_field(json, [Value|Values], [Field|Fields]) ->
     end,
     display_field(json, Values, Fields).
 
-display_array_elems(json, [], Fields) ->
+display_array_elems(json, [], _Fields) ->
     nothing;
 display_array_elems(json, [Record|Records], Fields) ->
     display(json, Record, Fields),
