@@ -413,7 +413,6 @@ $.sammy("#meeting", function() {
 				    mode: 'reduced'});
 
 	addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
-						widget_transport : false,
 						dock		 : '#whiteboard-dock',
 						width		 : 574,
 						mode		 : 'reduced'});
