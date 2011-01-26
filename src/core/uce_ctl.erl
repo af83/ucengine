@@ -7,8 +7,6 @@
 
 -include("uce.hrl").
 
--define(DEFAULT_NODE, list_to_atom("ucengine@" ++ net_adm:localhost())).
-
 default_node() ->
     NodeDomain =
 	case re:run(atom_to_list(node()), "@(.*)", [{capture, all, list}]) of
