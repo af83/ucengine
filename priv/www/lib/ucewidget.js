@@ -36,22 +36,26 @@
 		    .attr('class', 'ui-widget-header ui-corner-all ui-helper-clearfix');
 		header.prependTo(this.element);
 
-		var left = $('<span>').attr('class', 'ui-widget-header-left');
-		left.appendTo(header);
-		$.each(buttons.left, function(index, elem) {
-		    elem.appendTo(left);
-		});
+		if (buttons && buttons.left) {
+		    var left = $('<span>').attr('class', 'ui-widget-header-left');
+		    left.appendTo(header);
+		    $.each(buttons.left, function(index, elem) {
+			elem.appendTo(left);
+		    });
+		}
 
 		$('<span>')
 		    .addClass('ui-widget-header-title')
 		    .text(title)
 		    .appendTo(header);
 
-		var right = $('<span>').attr('class', 'ui-widget-header-right');
-		right.appendTo(header);
-		$.each(buttons.right, function(index, elem) {
-		    elem.appendTo(right);
-		});
+		if (buttons && buttons.right) {
+		    var right = $('<span>').attr('class', 'ui-widget-header-right');
+		    right.appendTo(header);
+		    $.each(buttons.right, function(index, elem) {
+			elem.appendTo(right);
+		    });
+		}
 	    },
         }
         $.widget("uce." + name, $.extend(true, base, ucewidget), prototype);
