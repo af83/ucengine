@@ -34,6 +34,8 @@
 	  last_activity = undefined,
 	  % resource
 	  resource,
+          %% list meetings joined by user
+	  meetings = [],
 	  %% MetaData : list
 	  metadata = []}).
 
@@ -118,3 +120,5 @@
 -define(DEFAULT_TIME_INTERVAL, 600000).
 
 -define(NEVER_ENDING_MEETING, 0).
+
+-define(PRESENCE_EXPIRED_EVENT, "internal.presence.expired").

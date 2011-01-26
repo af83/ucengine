@@ -1,6 +1,6 @@
 -module(presence_controller).
 
--export([init/0, delete/3, add/3, check/3]).
+-export([init/0, delete/3, add/3, check/3, timeout/0, clean/0]).
 
 -include("uce.hrl").
 -include("uce_auth.hrl").
@@ -18,7 +18,7 @@ init() ->
      #uce_route{module="Presence",
 		method='DELETE',
 		regexp="/presence/([^/]+)/([^/]+)",
-		callbacks=[{presence_controller, check,
+		callbacks=[{?MODULE, check,
 			    ["uid", "sid"],
 			    [required, required],
 			    [string, string],
@@ -63,13 +63,17 @@ add([Uid], [Credential, Metadata], _) ->
 delete([ToUid, ToSid], [Uid], _) ->
     case uce_acl:check(Uid, "presence", "delete", [""], [{"user", ToUid}]) of
 	{ok, true} ->
+            {ok, Presence} = uce_presence:get(ToSid),
+	    F = fun(M) ->
+                    uce_event:add(#uce_event{location=[M], from=ToUid, type="internal.roster.delete"}),
+                    uce_meeting:leave([M], ToUid)
+                end, 
+	    [ F(Meeting) || Meeting <- Presence#uce_presence.meetings ],
 	    case uce_presence:delete(ToSid) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, deleted} ->
-		    uce_event:add(#uce_event{location=[""],
-					     from=Uid,
-					     type="internal.presence.delete"}),
+                    uce_event:add(#uce_event{location=[], from=ToUid, type="internal.presence.delete"}),
 		    json_helpers:json(ok)
 	    end;
 	{ok, false} ->
@@ -88,3 +92,33 @@ check(_, [Uid, Sid], _) ->
 		    {error, unauthorized}
 	    end
     end.
+
+clean() ->
+    presence_controller:timeout(),
+    timer:sleep(?DEFAULT_TIME_INTERVAL),
+    ?MODULE:clean().
+
+timeout() ->
+    case uce_presence:all() of
+        {ok, Presences} ->
+            delete_expired_presence(Presences);
+        _ ->
+            nothing
+    end.
+
+delete_expired_presence([#uce_presence{sid=Sid, uid=Uid, last_activity=Last, auth=Auth, meetings=Meetings} | TlPresences]) ->
+    ?DEBUG("Timeout: ~p~n", [?SESSION_TIMEOUT]),
+    Timeout = Last + ?SESSION_TIMEOUT,
+    Now = utils:now(),
+    if
+        Now >= Timeout , Auth == "password", Uid /= "root" ->
+            [ event_controller:add([Meeting], [Uid, "internal.roster.delete", [], [], []], []) || Meeting <- Meetings ],
+            event_controller:add([], [Uid, ?PRESENCE_EXPIRED_EVENT, [], [], []], []),
+            uce_presence:delete(Sid);
+        true ->
+            nothing
+    end,
+    delete_expired_presence(TlPresences);
+delete_expired_presence([]) ->
+    ok.
+

@@ -7,11 +7,12 @@ $.uce.widget("file_sharing", {
    
     // ucengine events
     meetingsEvents: {
-        'internal.file.add'        : '_handleFileAddEvent',
-        'document.conversion.done' : '_handleFileDocumentEvent',
-        'document.share.start'     : '_handleShareStartEvent',
-        'document.share.goto'      : '_handleShareGotoEvent',
-        'document.share.stop'      : '_handleShareStopEvent'
+        'internal.file.add'           : '_handleFileAddEvent',
+        'document.conversion.done'    : '_handleFileDocumentEvent',
+        'document.share.start'        : '_handleShareStartEvent',
+        'document.share.goto'         : '_handleShareGotoEvent',
+        'document.share.stop'         : '_handleShareStopEvent',
+        'internal.roster.delete'      : '_handleShareStopEvent'
     },
  
     _create: function() {

@@ -8,6 +8,12 @@
 -include("uce.hrl").
 -include_lib("yaws/include/yaws.hrl").
 
+
+clean() ->
+    presence_controller:timeout(),
+    timer:sleep(?DEFAULT_TIME_INTERVAL),
+    clean().
+
 start() ->
     application:start(crypto),
     mnesia:create_schema([node()|nodes()]),
@@ -104,6 +110,7 @@ setup() ->
 	_ ->
 	    nothing
     end,
+    spawn(clean()),
     ok.
 
 stop(State) ->

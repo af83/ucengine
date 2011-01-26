@@ -52,10 +52,10 @@ init() ->
 			    [string, string],
 			    [user, presence]},
 			   {?MODULE, join,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]},
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string],
+			    [user, presence]}]},
      
      #uce_route{module="Roster",
 		method='DELETE',
@@ -66,17 +66,17 @@ init() ->
 			    [string, string],
 			    [user, presence]},
 			   {?MODULE, leave,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]},
+			    ["uid", "sid"],
+			    [required, required],
+			    [string, string],
+			    [user, presence]}]},
      
      #uce_route{module="Roster",
 		method='GET',
 		regexp="/meeting/all/([^/]+)/roster",
 		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
+			    ["uid"],
+			    [required],
 			    [string, string],
 			    [user, presence]},
 			   {?MODULE, roster,
@@ -133,13 +133,14 @@ get(Location, [], _) ->
 	    json_helpers:json(meeting_helpers:to_json(Meeting))
     end.
 
-join([Meeting, To], [Uid], _) ->
+join([Meeting, To], [Uid, Sid], _) ->
     case uce_acl:check(Uid, "roster", "add", [Meeting]) of
 	{ok, true} ->
 	    case uce_meeting:join([Meeting], To) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, updated} ->
+                    uce_presence:joinMeeting(Sid, Meeting),	
 		    uce_event:add(#uce_event{type="internal.roster.add",
 					     location=[Meeting],
 					     from=To}),
@@ -149,13 +150,14 @@ join([Meeting, To], [Uid], _) ->
 	    {error, unauthorized}
     end.
 
-leave([Meeting, To], [Uid], _) ->
+leave([Meeting, To], [Uid, Sid], _) ->
     case uce_acl:check(Uid, "roster", "delete", [Meeting]) of
 	{ok, true} ->
 	    case uce_meeting:leave([Meeting], To) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, updated} ->
+                    uce_presence:leaveMeeting(Sid, Meeting),	
 		    uce_event:add(#uce_event{type="internal.roster.delete",
 					     location=[Meeting],
 					     from=To}),
