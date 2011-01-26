@@ -150,6 +150,7 @@ join([Meeting, To], [Uid, Sid], _) ->
 	    {error, unauthorized}
     end.
 
+%% TODO : Incomplete Sid must be ToSid
 leave([Meeting, To], [Uid, Sid], _) ->
     case uce_acl:check(Uid, "roster", "delete", [Meeting]) of
 	{ok, true} ->
