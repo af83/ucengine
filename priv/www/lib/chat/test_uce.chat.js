@@ -128,7 +128,8 @@ module("uce.chat", {
             }
         };
         $('#chat').chat({
-            ucemeeting: ucemeeting
+            ucemeeting: ucemeeting,
+	    dock: '#chat-dock'
         });
     },
     teardown: function() {
@@ -282,6 +283,11 @@ test("test messages", function() {
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
     equals($("#chat .ui-chat-big .block-content[name='chat:fr'] ul").children().size(), 1);
     equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 1);
+});
+
+test("test message notification", function() {
+    this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
+    equals($("#chat-dock .ui-chat-dock-notification").text(), "1");
 });
 
 test("test automatic update messages", function() {

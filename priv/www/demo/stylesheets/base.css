@@ -478,6 +478,7 @@ section#expanded article.highlight {
 
 #dock li {
     list-style-type: none;
+    min-height: 37px;
 }
 
 #dock .ui-state-default.ui-button-icon-only {

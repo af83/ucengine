@@ -18,21 +18,6 @@ $.uce.widget("chat", {
     _create: function() {
         var that = this;
 
-	/* create dock */
-	if (this.options.dock) {
-	    var dock = $('<a>')
-		.attr('class', 'ui-dock-button')
-		.attr('href', '#')
-		.button({
-		    text: false,
-		    icons: {primary: "ui-icon-comment"}
-		}).click(function() {
-		    $(window).scrollTop(that.element.offset().top);
-		    return false;
-		});
-	    dock.appendTo(this.options.dock);
-	}
-
         this.element.addClass('ui-chat ui-widget');
 
 	var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
@@ -157,6 +142,36 @@ $.uce.widget("chat", {
 
             this._showChat(this.options.lang);
         }
+
+	/* create dock */
+	if (this.options.dock) {
+	    this._dock = dock = $('<a>')
+		.attr('class', 'ui-dock-button')
+		.attr('href', '#')
+		.button({
+		    text: false,
+		    icons: {primary: "ui-icon-comment"}
+		}).click(function() {
+		    $(window).scrollTop(that.element.offset().top);
+		    return false;
+		});
+	    this._dock.appendTo(this.options.dock);
+
+	    this._startCount = new Date().getTime();
+	    this._newCount = 0;
+
+	    this._new = $('<div>')
+		.attr('class', 'ui-chat-dock-notification')
+		.text(this._newCount)
+		.appendTo(this._dock);
+
+	    content.bind('mouseover', function() {
+		that._newCount = 0;
+		that._updateNotifications();
+	    });
+
+	}
+
     },
 
     clear: function() {
@@ -234,6 +249,12 @@ $.uce.widget("chat", {
                 .text('Chatroom');
             this.element.find('.ui-chat-minus .ui-chat-minus-header.chat h3')
                 .text('Chatroom ('+ this._messages +')');
+	    if (this.options.dock &&
+		event.from != this.options.ucemeeting.uid &&
+		event.datetime > this._startCount) {
+		this._newCount++;
+		this._updateNotifications();
+	    }
         }
     },
 
@@ -343,6 +364,15 @@ $.uce.widget("chat", {
             var dt = $('<dt>').text(this._roster[i]);
             dt.appendTo(this.element.find('.ui-chat-big .block.chat dl'));
         }
+    },
+
+    _updateNotifications: function() {
+	this._new.text(this._newCount);
+	if (this._newCount == 0) {
+	    this._new.hide();
+	} else {
+	    this._new.show();
+	}
     },
 
     _addMessage: function(name, from, text) {

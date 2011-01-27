@@ -302,3 +302,18 @@
     margin-bottom: 4px;
     border-bottom: 1px solid #D7D7D7;
 }
+
+.ui-chat-dock-notification {
+    width: 10px;
+    height: 10px;
+    padding: 0;
+    left: 37px;
+    background: red;
+    border: 1px solid red;
+    -moz-border-radius: 8px;
+    border-radius: 8px;
+    text-align: center;
+    font: bold 7px/10px Helvetica;
+    color: #FFF;
+    margin: -9px 0 0 19px;
+}
