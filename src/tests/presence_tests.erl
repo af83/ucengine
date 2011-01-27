@@ -85,7 +85,7 @@ test_presence_close_not_foundsid() ->
 	tests_utils:delete("/presence/" ++ Uid ++ "/unexistentsid", ParamsDelete).
 
 test_presence_timeout() ->
-    uce_presence:add({uce_presence,"testsid","test","password",1,undefined,[]}),
+    uce_presence:add({uce_presence, "testsid", "test", "password", 1, undefined, [], []}),
     {ok, Initial} = uce_presence:all(),
     presence_controller:timeout(),
     {ok, Final} = uce_presence:all(),

@@ -63,17 +63,20 @@ add([Uid], [Credential, Metadata], _) ->
 delete([ToUid, ToSid], [Uid], _) ->
     case uce_acl:check(Uid, "presence", "delete", [""], [{"user", ToUid}]) of
 	{ok, true} ->
-            {ok, Presence} = uce_presence:get(ToSid),
 	    F = fun(M) ->
-                    uce_event:add(#uce_event{location=[M], from=ToUid, type="internal.roster.delete"}),
-                    uce_meeting:leave([M], ToUid)
-                end, 
-	    [ F(Meeting) || Meeting <- Presence#uce_presence.meetings ],
+		   uce_event:add(#uce_event{location=[M], from=ToUid, type="internal.roster.delete"}),
+		   uce_meeting:leave([M], ToUid)
+	        end, 
+            case uce_presence:get(ToSid) of
+                {ok, Presence} ->
+	             [ F(Meeting) || Meeting <- Presence#uce_presence.meetings ];
+                 _ -> nothing
+            end,
 	    case uce_presence:delete(ToSid) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, deleted} ->
-                    uce_event:add(#uce_event{location=[], from=ToUid, type="internal.presence.delete"}),
+                    uce_event:add(#uce_event{location=[""], from=ToUid, type="internal.presence.delete"}),
 		    json_helpers:json(ok)
 	    end;
 	{ok, false} ->
@@ -94,7 +97,7 @@ check(_, [Uid, Sid], _) ->
     end.
 
 clean() ->
-    presence_controller:timeout(),
+    ?MODULE:timeout(),
     timer:sleep(?DEFAULT_TIME_INTERVAL),
     ?MODULE:clean().
 
