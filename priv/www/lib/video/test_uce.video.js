@@ -4,7 +4,7 @@ module("uce.video", {teardown: function() {
 
 test("create basic html, and destroy", function() {
     $("#video").video();
-    equals($("#video .ui-widget-header .ui-video-title").text(), 'Video', 'the widget has a title');
+    equals($("#video .ui-widget-header .ui-widget-header-title").text(), 'Video', 'the widget has a title');
     equals($("#video .ui-widget-header .ui-button").size(), 1, 'the widget has a publish button');
     equals($("#video .ui-widget-content embed").size(), 1, 'has embed');
     ok($("#video").hasClass('ui-widget'), 'has class ui-widget');

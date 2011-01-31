@@ -26,6 +26,7 @@ $.uce.widget("video", {
         stream : "ucengine",
         width  : 610,
         height : 415,
+        buttons: {left: [], right: []}
     },
     labels : {
         "button.publish"     : "Publish",
