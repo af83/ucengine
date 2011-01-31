@@ -20,10 +20,10 @@
         var call_back = callback || $.noop;
         url = '/api/' + VERSION + url;
         return $.ajax({
-	    type     : method,
+            type     : method,
             dataType : "json",
-	    url      : url,
-	    data     : data,
+            url      : url,
+            data     : data,
             complete : function(xhr, textStatus) {
                 var response = jQuery.parseJSON(xhr.responseText);
                 if (xhr.status >= 400) {
@@ -143,7 +143,7 @@
             meeting : function(meetingname) {
                 var handlers = [];
                 return {
-		    name: meetingname,
+                    name: meetingname,
                     uid: (presence || {}).uid,
                     get: function(callback) {
                         get("/meeting/all/"+ meetingname, {}, function(err, result, xhr) {
@@ -157,7 +157,7 @@
                     },
                     join: function(callback) {
                         put("/meeting/all/" + meetingname + "/roster/" + presence.uid,
-	                    presence,
+                            presence,
                             callback);
                         return this;
                     },
@@ -165,24 +165,24 @@
                         del("/meeting/all/" + meetingname + "/roster/" + presence.uid, presence, callback);
                         return this;
                     },
-		    getRoster: function(callback) {
+                    getRoster: function(callback) {
 
-			get("/meeting/all/" + meetingname + "/roster",
-			    presence,
-			    function (err, result, xhr) {
-				if (!callback) {
-				    return;
-				}
-				var roster = result.result;
-				callback(err, roster, xhr);
-			    });
-		    },
+                        get("/meeting/all/" + meetingname + "/roster",
+                            presence,
+                            function (err, result, xhr) {
+                                if (!callback) {
+                                    return;
+                                }
+                                var roster = result.result;
+                                callback(err, roster, xhr);
+                            });
+                    },
                     /**
                      * Push event
                      */
                     push: function(type, metadata, callback) {
                         put("/event/" + meetingname,
-	                    $.extend({}, presence, {type: type, metadata: metadata}),
+                            $.extend({}, presence, {type: type, metadata: metadata}),
                             callback);
                         return this;
                     },
@@ -213,7 +213,7 @@
                         function startLongPolling(p, callback) {
                             var getParams = $.extend({}, presence, {"_async": "lp"}, p);
                             return get("/event/" + meetingname,
-	                               getParams,
+                                       getParams,
                                        callback);
                         }
                         var longPolling = {
