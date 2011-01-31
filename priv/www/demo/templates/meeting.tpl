@@ -9,14 +9,14 @@
 
   <div id="widgets">
     <section id="infos">
-      <div class="block info">
+      <article class="block info">
 	<div class="block-content">
           <p><strong>Meeting's name :</strong> <span>{{meeting_name}}</span></p>
-          <!--<p><strong><span>{{meeting_users}}</span> connected users</strong></p>-->
           <p><strong>Description :</strong><span>{{meeting_desc}}</span></p>
           <p class="quit"><a href="#/meeting/{{meeting_name}}/quit">Quit the meeting</a></p>
 	</div>
-      </div>
+      </article>
+      <article id="timer" />
     </section>
     
     <section id="expanded" class="slots">

@@ -1,0 +1,30 @@
+/**
+ * Timer widget
+ */
+.ui-timer {
+}
+
+.ui-timer .ui-widget-content {
+    text-align: center;
+    border: none;
+    background: #FFF;
+}
+
+.ui-timer .ui-widget-content {
+    line-height: 45px;
+}
+
+.ui-timer .ui-widget-content span {
+    display: inline-block;
+    line-height: 100%;
+    vertical-align: middle;
+}
+
+.ui-timer .ui-timer-state {
+    font-weight: bold;
+}
+
+.ui-timer .ui-timer-value {
+    font-style: monospace;
+    margin-left: 10px;
+}

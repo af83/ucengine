@@ -82,6 +82,13 @@ var Factories = {
     createStreamStop: function(broadcaster) {
         return {type: "video.stream.stop",
                 metadata: {broadcaster: broadcaster}}
+    },
+    createMeeting: function(start, end) {
+	return {name: "ucemeeting",
+		start_date: start,
+		end_date: end,
+		roster: ["chuck", "bruce"],
+		metadata: {description: "test_description"}};
     }
 };
 

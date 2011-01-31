@@ -347,13 +347,11 @@ footer p {
 /* meeting */
 #content section .block.info {
     position: relative;
-    width: 628px;
     margin: 0 10px 0 0;
-    padding: 10px;
     vertical-align: top;
 }
 #content section .block.info .block-content {
-    padding: 0;
+    padding: 10px;
 }
 #content section .block.info .block-content p {
     margin: 0;
@@ -415,14 +413,26 @@ footer p {
 }
 
 #widgets {
-    width: 928;
+    width: 928px;
     margin-left: 48px;
 }
 
 /* meeting infos */
-#infos {
+section#infos {
+    width: 928px;
+}
+
+section#infos article {
     float: left;
-    width: 648px;
+    min-height: 52px;
+}
+
+section#infos article#timer {
+    width: 254px;
+}
+
+section#infos article.block.info {
+    width: 660px;
 }
 
 /* reduced */
