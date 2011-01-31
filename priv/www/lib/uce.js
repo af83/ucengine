@@ -296,11 +296,11 @@
 
                     /**
                      * Start main loop event
-                     * @param Integer start
+                     * [@param Integer start]
                      */
                     startLoop: function(start) {
                         var that = this;
-                        return this.waitEvents({start: start}, function(err, result, xhr) {
+                        return this.waitEvents({start: start || 0}, function(err, result, xhr) {
                             that.trigger(result);
                         });
                     },

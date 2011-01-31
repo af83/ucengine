@@ -6,26 +6,26 @@ module('ucejs', {
 
 var Factories = {
     createFileEvent: function(params) {
-	params = params || {}
+        params = params || {}
 
         var metadata = $.extend({}, {id   : 'norris.pdf',
                                      name : 'norris.pdf'}, params);
-	var eventId = params['eventId'] || "upload_event_id";
-	var from = params['from'] || "test_user";
+        var eventId = params['eventId'] || "upload_event_id";
+        var from = params['from'] || "test_user";
 
         return {
-	    id: eventId,
-	    from: from,
+            id: eventId,
+            from: from,
             type: "internal.file.add",
             metadata: metadata
         };
     },
     createConversionDoneEvent: function(params) {
-	var metadata = {};
-	
-	$(params.pages).each(function(index, page) {
-	    metadata[index] = page;
-	});
+        var metadata = {};
+
+        $(params.pages).each(function(index, page) {
+            metadata[index] = page;
+        });
 
         return {
             type: "document.conversion.done",
@@ -35,30 +35,30 @@ var Factories = {
     },
 
     createDocumentShareStartEvent: function(params) {
-	var from = params['from'] || "chuck";
+        var from = params['from'] || "chuck";
         return {
             type: "document.share.start",
-	    from: from,
+            from: from,
             metadata: {
                 id: params.id
             }
         };
     },
     createDocumentShareGotoEvent: function(params) {
-	var from = params['from'] || "chuck";
+        var from = params['from'] || "chuck";
         return {
             type: "document.share.goto",
-	    from: from,
+            from: from,
             metadata: {
-		page: params.page
+                page: params.page
             }
         };
     },
     createDocumentShareStopEvent: function(params) {
-	var from = params['from'] || "chuck";
+        var from = params['from'] || "chuck";
         return {
             type: "document.share.stop",
-	    from: from,
+            from: from,
             metadata: {
                 id: params.id
             }
@@ -142,12 +142,12 @@ jackTest("can open a new presence", function() {
     stop();
     addUceApiCall("post", "/api/0.2/presence/uid", { "_method": "put", "metadata": {"nickname": "nickname"}}, 200, '{"result": "sid"}');
     uce.presence.create("", "uid", "nickname",
-                         function(err, presence, xhr) {
-                             start();
-                             equals(err, null, "shoud not have error");
-                             equals(presence.uid, "uid", "");
-                             equals(presence.sid, "sid", "");
-                         });
+                        function(err, presence, xhr) {
+                            start();
+                            equals(err, null, "shoud not have error");
+                            equals(presence.uid, "uid", "");
+                            equals(presence.sid, "sid", "");
+                        });
 });
 
 jackTest("can close a presence", function() {
