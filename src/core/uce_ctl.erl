@@ -75,7 +75,7 @@ usage(Object) ->
             io:format("\tmeeting update --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
             io:format("\tmeeting get --name <name>~n"),
             io:format("\tmeeting delete --name <name>~n"),
-            io:format("\tmeeting list [--status <status>]~n~n");
+            io:format("\tmeeting list --status <status>~n~n");
         true ->
             nothing
     end,
