@@ -149,13 +149,13 @@ function sammyapp() {
         var meeting = presence.presence.meeting(this.params['name']);
         meeting.join(function(err, result, xhr) {})
             .get(function(err, result, xhr) {
-	            var c = {meeting_name  : result.name,
-		                 meeting_desc  : result.metadata.description,
-		                 meeting_users : ""};
-		        context.loadPage('templates/meeting.tpl', c, function() {
-		            $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, presence]);
-		        });
-	        });
+                var c = {meeting_name  : result.name,
+                         meeting_desc  : result.metadata.description,
+                         meeting_users : ""};
+                context.loadPage('templates/meeting.tpl', c, function() {
+                    $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, presence]);
+                });
+            });
     });
     this.get('#/register', function(context) {
         this.title('Register');
@@ -299,8 +299,8 @@ $.sammy("#meeting", function() {
     var inReplay = false;
 
     function fold(element) {
-	    element.find('.ui-button-toggle')
-	        .button('option', 'icons', {primary: "ui-icon-triangle-1-e"});
+        element.find('.ui-button-toggle')
+            .button('option', 'icons', {primary: "ui-icon-triangle-1-e"});
     };
 
     this.bind('connect-meeting', function(e, data) {
@@ -312,129 +312,129 @@ $.sammy("#meeting", function() {
 
         inReplay = new Date(parseInt(result_meeting.end_date, 10)) < new Date().getTime();
 
-	    function addWidget(id, widgetName, options) {
+        function addWidget(id, widgetName, options) {
             var fold = $('<span>')
-		        .attr('class', 'ui-toolbar-button ui-button-fold')
-		        .button({
+                .attr('class', 'ui-toolbar-button ui-button-fold')
+                .button({
                     text: false,
                     icons: {primary: "ui-icon-triangle-1-s"}
-		        })
-		        .toggle(
-		            function() {
-			            widget.addClass('folded');
-			            $(this).button('option', 'icons', {primary: "ui-icon-triangle-1-e"});
-			            widget.find('.ui-widget-content').hide();
-		            },
-		            function() {
-			            widget.removeClass('folded');
-			            $(this).button('option', 'icons', {primary: "ui-icon-triangle-1-s"});
-			            widget.find('.ui-widget-content').show();
-		            });
+                })
+                .toggle(
+                    function() {
+                        widget.addClass('folded');
+                        $(this).button('option', 'icons', {primary: "ui-icon-triangle-1-e"});
+                        widget.find('.ui-widget-content').hide();
+                    },
+                    function() {
+                        widget.removeClass('folded');
+                        $(this).button('option', 'icons', {primary: "ui-icon-triangle-1-s"});
+                        widget.find('.ui-widget-content').show();
+                    });
 
-	        var widget = $(id);
+            var widget = $(id);
 
-	        function expand() {
-		        widget.detach();
-		        widget.prependTo('#expanded');
-		        widget.addClass('expanded');
-		        $(this).button('option', 'icons', {primary: "ui-icon-circle-minus"});
-		        widget[widgetName]('expand');
-		        $(this).unbind('click');
-		        $(this).bind('click', reduce);
-	        };
+            function expand() {
+                widget.detach();
+                widget.prependTo('#expanded');
+                widget.addClass('expanded');
+                $(this).button('option', 'icons', {primary: "ui-icon-circle-minus"});
+                widget[widgetName]('expand');
+                $(this).unbind('click');
+                $(this).bind('click', reduce);
+            };
 
-	        function reduce() {
-		        widget.detach();
-		        widget.prependTo('#reduced');
-		        widget.removeClass('expanded');
-		        $(this).button('option', 'icons', {primary: "ui-icon-circle-plus"});
-		        widget[widgetName]('reduce');
-		        $(this).unbind('click');
-		        $(this).bind('click', expand);
-	        }
+            function reduce() {
+                widget.detach();
+                widget.prependTo('#reduced');
+                widget.removeClass('expanded');
+                $(this).button('option', 'icons', {primary: "ui-icon-circle-plus"});
+                widget[widgetName]('reduce');
+                $(this).unbind('click');
+                $(this).bind('click', expand);
+            }
 
             var toggle = $('<span>')
-		        .attr('class', 'ui-toolbar-button ui-button-toggle')
-		        .button({
-		            text: false,
-		            icons: {primary: "ui-icon-circle-plus"}
-		        })
-		        .click(expand);
+                .attr('class', 'ui-toolbar-button ui-button-toggle')
+                .button({
+                    text: false,
+                    icons: {primary: "ui-icon-circle-plus"}
+                })
+                .click(expand);
 
-	        options['buttons'] = {left: [fold], right: [toggle]};
-	        widget[widgetName](options);
+            options['buttons'] = {left: [fold], right: [toggle]};
+            widget[widgetName](options);
 
-	        widget.bind('received', function(event, container) {
-		        if (container == 'reduced') {
-		            widget.removeClass('expanded');
-		            toggle.button('option', 'icons', {primary: "ui-icon-circle-plus"});
-		            widget[widgetName]('reduce');
-		            toggle.unbind('click');
-		            toggle.bind('click', expand);
-		        } else {
-		            widget.addClass('expanded');
-		            toggle.button('option', 'icons', {primary: "ui-icon-circle-minus"});
-		            widget[widgetName]('expand');
-		            toggle.unbind('click');
-		            toggle.bind('click', reduce);
-		        }		    
-	        });
+            widget.bind('received', function(event, container) {
+                if (container == 'reduced') {
+                    widget.removeClass('expanded');
+                    toggle.button('option', 'icons', {primary: "ui-icon-circle-plus"});
+                    widget[widgetName]('reduce');
+                    toggle.unbind('click');
+                    toggle.bind('click', expand);
+                } else {
+                    widget.addClass('expanded');
+                    toggle.button('option', 'icons', {primary: "ui-icon-circle-minus"});
+                    widget[widgetName]('expand');
+                    toggle.unbind('click');
+                    toggle.bind('click', reduce);
+                }           
+            });
 
-	        if (options.mode == "expanded") {
-		        toggle.click();
-	        } else {
-		        widget[widgetName]('reduce');
-	        }
-	    };
+            if (options.mode == "expanded") {
+                toggle.click();
+            } else {
+                widget[widgetName]('reduce');
+            }
+        };
 
-	    $('#reduced').sortable({connectWith: '.slots',
-				                handle: '.ui-widget-header',
-				                placeholder: 'highlight',
-				                receive: function(event, widget) {
-				                    $(widget.item).trigger('received', ['reduced']);
-				                }});
-	    $('#expanded').sortable({connectWith: '.slots',
-				                 handle: '.ui-widget-header',
-				                 placeholder: 'highlight',
-				                 receive: function(event, widget) {
-				                     $(widget.item).trigger('received', ['expanded']);
-				                 }});
-	    $('#reduced, #expanded').disableSelection();
+        $('#reduced').sortable({connectWith: '.slots',
+                                handle: '.ui-widget-header',
+                                placeholder: 'highlight',
+                                receive: function(event, widget) {
+                                    $(widget.item).trigger('received', ['reduced']);
+                                }});
+        $('#expanded').sortable({connectWith: '.slots',
+                                 handle: '.ui-widget-header',
+                                 placeholder: 'highlight',
+                                 receive: function(event, widget) {
+                                     $(widget.item).trigger('received', ['expanded']);
+                                 }});
+        $('#reduced, #expanded').disableSelection();
 
         presence.presence.time(function(err, time, xhr) {
             console.log(time);
-	        addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
+            addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
         });
 
-	    addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
-						                          mode: 'reduced',
-						                          dock: '#filesharing-dock'});
+        addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
+                                                  mode: 'reduced',
+                                                  dock: '#filesharing-dock'});
 
         if (inReplay) {
-	        addWidget("#video", 'player', {src: result_meeting.metadata.video,
-					                       start: result_meeting.start_date,
-					                       dock: '#video-dock',
-						                   width: 568,
-					                       mode: 'expanded'});
+            addWidget("#video", 'player', {src: result_meeting.metadata.video,
+                                           start: result_meeting.start_date,
+                                           dock: '#video-dock',
+                                           width: 568,
+                                           mode: 'expanded'});
         } else {
-	        addWidget("#video", 'video', {domain: document.location.hostname + "/ucengine",
-					                      ucemeeting : meeting,
-					                      dock: '#video-dock',
-					                      mode: 'expanded'});
+            addWidget("#video", 'video', {domain: document.location.hostname + "/ucengine",
+                                          ucemeeting : meeting,
+                                          dock: '#video-dock',
+                                          mode: 'expanded'});
         }
 
-	    addWidget("#chat", 'chat', {ucemeeting: meeting,
-				                    title: "Conversations",
-				                    dock: '#chat-dock',
-				                    mode: 'reduced'});
+        addWidget("#chat", 'chat', {ucemeeting: meeting,
+                                    title: "Conversations",
+                                    dock: '#chat-dock',
+                                    mode: 'reduced'});
 
-	    addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
-						                        dock		 : '#whiteboard-dock',
-						                        width		 : 574,
-						                        mode		 : 'reduced'});
+        addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
+                                                dock         : '#whiteboard-dock',
+                                                width        : 574,
+                                                mode         : 'reduced'});
 
         $("#replay-mode").hide();
-	    
+        
         if (inReplay) {
             // disabled some widgets
             $('#files').file("option", "upload", false);
@@ -463,7 +463,7 @@ $.sammy("#meeting", function() {
                     $('#whiteboard').whiteboard("clear");
                     $('#files').file("clear");
                     $('#chat').chat("clear");
-		            $('#filesharing').filesharing("clear");
+                    $('#filesharing').filesharing("clear");
                 }
                 $("#replay").replay({
                     date_start: start,
@@ -488,18 +488,18 @@ $.sammy("#meeting", function() {
                         $('#video').player("seek", ui.timecode);
                     }
                 });
-		        $('#results').results({ucemeeting: meeting, start: parseInt(result_meeting.start_date, 10),
-				                       jump: function(event, timecode) {
+                $('#results').results({ucemeeting: meeting, start: parseInt(result_meeting.start_date, 10),
+                                       jump: function(event, timecode) {
                                            $("#replay").replay("jump", timecode);
-				                       }});
-		        $('#activity').activity({ucemeeting: meeting, start: parseInt(result_meeting.start_date, 10),
-					                     jump: function(event, timecode) {
+                                       }});
+                $('#activity').activity({ucemeeting: meeting, start: parseInt(result_meeting.start_date, 10),
+                                         jump: function(event, timecode) {
                                              $("#replay").replay("jump", timecode);
-					                     }});
+                                         }});
 
             }, false);
         } else {
-	        $('#video').player("play");
+            $('#video').player("play");
             // start main loop
             loop = meeting.startLoop(0);
         }
@@ -522,7 +522,7 @@ $.sammy("#meeting", function() {
         $('#chat').chat("destroy");
         $('#whiteboard').whiteboard("destroy");
         $('#files').file("destroy");
-	    $('#filesharing').filesharing("destroy");
+        $('#filesharing').filesharing("destroy");
         this.unload();
     };
 });
