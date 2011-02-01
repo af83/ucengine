@@ -303,7 +303,7 @@
     border-bottom: 1px solid #D7D7D7;
 }
 
-.ui-chat-dock-notification {
+.ui-chat-dock .ui-widget-dock-notification {
     width: 10px;
     height: 10px;
     padding: 0;
@@ -315,5 +315,6 @@
     text-align: center;
     font: bold 7px/10px Helvetica;
     color: #FFF;
-    margin: -9px 0 0 19px;
+    margin: -9px 0 0 -17px;
+    float: right;
 }

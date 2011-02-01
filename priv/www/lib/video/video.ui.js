@@ -62,6 +62,7 @@ $.uce.widget("video", {
 		    $(window).scrollTop(that.element.offset().top);
 		    return false;
 		});
+        dock.addClass('ui-video-dock');
 		dock.appendTo(this.options.dock);
 	}
 

@@ -35,6 +35,7 @@ $.uce.widget("whiteboard", {
 		    $(window).scrollTop(that.element.offset().top);
 		    return false;
 		});
+        dock.addClass('ui-whiteboard-dock');
 		dock.appendTo(this.options.dock);
 	}
 
