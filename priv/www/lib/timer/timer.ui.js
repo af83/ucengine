@@ -45,7 +45,7 @@ $.uce.widget("timer", {
             valueText += " / " + that._format(remaining) + " / " + that._format(duration);
         }
         else {
-            valueText += " / ∞"
+            valueText += " / \u221E"
         }
 
 	    var value = $('<span>')

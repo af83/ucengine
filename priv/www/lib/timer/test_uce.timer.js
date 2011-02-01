@@ -32,7 +32,7 @@ jackTest("test widget default state", function () {
         .exactly("1 time")
         .mock(function(callback) {
             callback(undefined, Factories.createMeeting(0, 10000), undefined);
-	    start();
+	        start();
 	        equals($('#timer > .ui-widget-content > .ui-timer-value').text(), "00:00:00 / 00:00:10 / 00:00:10");
         });
 
@@ -53,8 +53,8 @@ jackTest("test widget increment every second", function () {
 	        setTimeout(function() {
 		        equals($('#timer > .ui-widget-content > .ui-timer-value').text(), "00:00:01 / 00:00:09 / 00:00:10");
 		        setTimeout(function() {
-		            equals($('#timer > .ui-widget-content > .ui-timer-value').text(), "00:00:02 / 00:00:08 / 00:00:10");
 		            start();
+		            equals($('#timer > .ui-widget-content > .ui-timer-value').text(), "00:00:02 / 00:00:08 / 00:00:10");
 		        }, 1200);
 	        }, 1200);
         });
@@ -63,14 +63,12 @@ jackTest("test widget increment every second", function () {
 });
 
 jackTest("test remaining time before open", function () {
-    stop();
     var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
     
     jack.expect("ucemeeting.get")
         .exactly("1 time")
         .mock(function(callback) {
             callback(undefined, Factories.createMeeting(30000, 50000), undefined);
-	        start();
 	        equals($('#timer > .ui-widget-content > .ui-timer-value').text(), "-00:00:20 / 00:00:40 / 00:00:20");
         });
     
@@ -78,14 +76,12 @@ jackTest("test remaining time before open", function () {
 });
 
 jackTest("test time elapsed after close", function () {
-    stop();
     var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
     
     jack.expect("ucemeeting.get")
         .exactly("1 time")
         .mock(function(callback) {
             callback(undefined, Factories.createMeeting(10000, 20000), undefined);
-	        start();
 	        equals($('#timer > .ui-widget-content > .ui-timer-value').text(), "00:00:10 / 00:00:00 / 00:00:10");
         });
     
@@ -93,15 +89,12 @@ jackTest("test time elapsed after close", function () {
 });
 
 jackTest("test meeting infinity", function () {
-    stop();
     var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
     
     jack.expect("ucemeeting.get")
         .exactly("1 time")
         .mock(function(callback) {
             callback(undefined, Factories.createMeeting(10000, "never"), undefined);
-	        start();
-            console.log($('#timer > .ui-widget-content > .ui-timer-value'));
 	        equals($('#timer > .ui-widget-content > .ui-timer-value').text(), "00:00:20 / \u221E");
         });
     
