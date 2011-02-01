@@ -1,8 +1,7 @@
 $.uce.widget("timer", {
     options: {
         ucemeeting : null,
-        start      : 0,
-        state      : 'elapsed'
+        start      : 0
     },
 
     _create: function() {
@@ -11,12 +10,8 @@ $.uce.widget("timer", {
         this.element.addClass('ui-widget ui-timer');
         this._content = $('<div>')
             .attr('class', 'ui-widget-content')
-            .appendTo(this.element)
-            .click(function() {
-                that.toggleState();
-            });
+            .appendTo(this.element);
 
-        var states = [];
         this.options.ucemeeting.get(function(err, meeting, xhr) {
             that._elapsed = that.options.start;
             that._meetingStart = meeting.start_date;
@@ -29,8 +24,6 @@ $.uce.widget("timer", {
     },
 
     _handleTimeout: function(that) {
-        var stateText = "";
-
         if (that._elapsed > that._meetingEnd) {
             that._elapsed = that._meetingEnd;
         }
