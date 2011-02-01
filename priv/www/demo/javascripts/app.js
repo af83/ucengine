@@ -66,9 +66,17 @@ function sammyapp() {
                      return function(text, render) {
                          var timestamp = render(text);
                          var date = new Date(new Number(timestamp));
-                         var out = date.getHours() + ":" + date.getMinutes();
-                         out = out + " " + date.getMonth() + "-" + date.getDate() + "-" + date.getFullYear();
-                         return out;
+                         var minutes = date.getMinutes();
+                         minutes = (minutes < 10) ? "0" + minutes : minutes;
+                         var hours = date.getHours();
+                         hours = (hours < 10) ? "0" + hours : hours;
+                         var time = hours + ":" + minutes;
+                         var month = date.getMonth();
+                         month = (month < 10) ? "0" + month : month;
+                         var day = date.getDate();
+                         day = (day < 10) ? "0" + day : day;
+                         var datetime = date.getFullYear() + "-" + day + "-" + month + " " + hours + ":" + minutes;
+                         return datetime;
                      };
                  }};
         var waiter = uce.getWaiter(3, function() {
