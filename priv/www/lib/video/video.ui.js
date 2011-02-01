@@ -21,11 +21,11 @@ $.uce.widget("video", {
     options: {
         title      : 'Video',
         ucemeeting : null,
-        token  : null,
         domain : "localhost",
         stream : "ucengine",
-        width  : 610,
-        height : 415,
+        width  : null,
+        height : null,
+        ratio  : 0.75,
         buttons: {left: [], right: []}
     },
     labels : {
@@ -43,37 +43,46 @@ $.uce.widget("video", {
         return $.param({stream     : this.options.stream,
                         server     : "rtmp://" + this.options.domain,
                         streamtype : "live",
-                        token      : this.options.token,
-                        width      : this.options.width,
-                        height     : this.options.height});
+                        token      : this.options.token});
     },
     _create: function() {
-	var that = this;
+	    var that = this;
 
 		/* create dock */
-	if (this.options.dock) {
-	    var dock = $('<a>')
-		.attr('class', 'ui-dock-button')
-		.attr('href', '#')
-		.button({
-		    text: false,
-		    icons: {primary: "ui-icon-person"}
-		}).click(function() {
-		    $(window).scrollTop(that.element.offset().top);
-		    return false;
-		});
-        dock.addClass('ui-video-dock');
-		dock.appendTo(this.options.dock);
-	}
+	    if (this.options.dock) {
+	        var dock = $('<a>')
+		        .attr('class', 'ui-dock-button')
+		        .attr('href', '#')
+		        .button({
+		            text: false,
+		            icons: {primary: "ui-icon-person"}
+		        }).click(function() {
+		            $(window).scrollTop(that.element.offset().top);
+		            return false;
+		        });
+            dock.addClass('ui-video-dock');
+		    dock.appendTo(this.options.dock);
+	    }
 
         this.element.addClass('ui-widget ui-video');
         this._button = $('<a>').attr('href', '#')
-                               .button({label: 'Publish'})
-                               .click($.proxy(this._onClickButton, this));
-	var rightButtons = [this._button].concat(this.options.buttons.right);
-	this._addHeader(this.options.title, {left: this.options.buttons.left,
-					     right: rightButtons});
+            .button({label: 'Publish'})
+            .click($.proxy(this._onClickButton, this));
+	    var rightButtons = [this._button].concat(this.options.buttons.right);
+	    this._addHeader(this.options.title, {left: this.options.buttons.left,
+					                         right: rightButtons});
         this._content = $('<div>').addClass('ui-widget-content').appendTo(this.element);
+
+	    if (!this.options.width && !this.options.height) {
+	        this.options.width = this.element.width();
+	    }
+	    if (!this.options.width && this.options.height) {
+	        this.options.width = this.options.height / this.options.ratio;
+	    }
+	    if (this.options.height) {
+	        this.options.ratio = this.options.height / this.options.width;
+	    }
+
         if (this.options.ucemeeting == null) {
             this._showReceive = true;
             this._updateEmbed();
@@ -135,6 +144,17 @@ $.uce.widget("video", {
     onStreamStopped: function(event) {
         this._button.button("enable");
         this._showReceive = false;
+        this._updateEmbed();
+    },
+    reduce: function() {
+        this._resize();
+    },
+    expand: function() {
+        this._resize();
+    },
+    _resize: function() {
+        this.options.width = this.element.width();
+        this.options.height = parseInt(this.options.width * this.options.ratio, 10);
         this._updateEmbed();
     },
     destroy: function() {

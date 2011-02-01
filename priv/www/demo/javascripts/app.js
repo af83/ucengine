@@ -414,6 +414,7 @@ $.sammy("#meeting", function() {
 	        addWidget("#video", 'player', {src: result_meeting.metadata.video,
 					                       start: result_meeting.start_date,
 					                       dock: '#video-dock',
+						                   width: 568,
 					                       mode: 'expanded'});
         } else {
 	        addWidget("#video", 'video', {domain: document.location.hostname + "/ucengine",
