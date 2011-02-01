@@ -22,8 +22,8 @@ test("customize with domain, stream and width/height", function() {
                        stream : 'plop'});
     equals(/server=([^&]+)/.exec($("#video embed").attr('flashvars'))[1], encodeURIComponent('rtmp://example.com/ucengine'), "server param");
     equals(/stream=(\w+)/.exec($("#video embed").attr('flashvars'))[1], 'plop');
-    equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 400);
-    equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 200);
+    equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 360);
+    equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 180);
     equals($("#video .ui-widget-content embed").attr('width'), 400);
     equals($("#video .ui-widget-content embed").attr('height'), 200);
 });
@@ -36,8 +36,8 @@ test("dynamic updated options", function() {
                                  "stream": "plop2"});
     equals(/server=([^&]+)/.exec($("#video embed").attr('flashvars'))[1], encodeURIComponent('rtmp://example.org'), "server param");
     equals(/stream=(\w+)/.exec($("#video embed").attr('flashvars'))[1], 'plop2');
-    equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 100);
-    equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 150);
+    equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 60);
+    equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 130);
     equals($("#video .ui-widget-content embed").attr('width'), 100);
     equals($("#video .ui-widget-content embed").attr('height'), 150);
 });

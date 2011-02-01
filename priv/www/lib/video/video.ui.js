@@ -43,7 +43,9 @@ $.uce.widget("video", {
         return $.param({stream     : this.options.stream,
                         server     : "rtmp://" + this.options.domain,
                         streamtype : "live",
-                        token      : this.options.token});
+                        token      : this.options.token,
+                        width      : this.options.width - 40,
+                        height     : this.options.height - 20});
     },
     _create: function() {
 	    var that = this;
