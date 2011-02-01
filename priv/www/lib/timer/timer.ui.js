@@ -20,9 +20,6 @@ $.uce.widget("timer", {
         });
     },
 
-    clear: function() {
-    },
-
     _handleTimeout: function(that) {
         if (that._elapsed > that._meetingEnd) {
             that._elapsed = that._meetingEnd;
@@ -62,7 +59,6 @@ $.uce.widget("timer", {
         }
 
         var date = new Date(timestamp);
-
         var hours = date.getHours() - 1;
         if (hours < 10) {
             hours = "0" + hours;
@@ -77,7 +73,6 @@ $.uce.widget("timer", {
         }
 
         var valueText = hours + ":" + minutes + ":" + seconds;
-
         if (neg) {
             valueText = "-" + valueText;
         }
