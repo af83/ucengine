@@ -33,7 +33,7 @@
                         <li><input type="submit" value="connection" /></li>
                         <li>or <a href="#/register">Register</a></li>
                     </ul>
-		</form>
+                </form>
                 <p class="checkbox">
                     <input type="checkbox" />
                     <label>Remember me</label>
@@ -44,7 +44,7 @@
         {{^not_connected}}
         <div class="block tweets">
             <div class="block-header">
-                <p><img src="images/image.png" alt="ucengine" /> UCengine</p>
+                <p><img src="images/image.png" alt="ucengine" /> U.C.Engine</p>
             </div>
             <div class="block-content">
                 <ul id="lastTweets">

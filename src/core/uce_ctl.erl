@@ -103,7 +103,7 @@ usage(Object) ->
     end,
     io:format("Formatting:~n"),
     io:format("\t<date>: ISO8601 formatted date (ex. '2010-25-12 00:00:01')~n~n"),
-    io:format("UCengine (c) AF83 - http://ucengine.org~n"),
+    io:format("U.C.Engine (c) AF83 - http://ucengine.org~n"),
     {ok, nothing}.
 
 getvalues([], _, _) ->
@@ -243,7 +243,7 @@ success(Result) ->
 error(Reason) ->
     case Reason of
         nodedown ->
-            io:format("Fatal: UCengine node is not running, call 'ucectl start' to start it.");
+            io:format("Fatal: U.C.Engine node is not running, call 'ucectl start' to start it.");
         _ ->
             io:format("Error: ~p", [Reason])
     end,

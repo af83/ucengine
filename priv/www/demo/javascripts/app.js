@@ -12,7 +12,7 @@ function sammyapp() {
     var infos = null;
 
     this.setTitle(function(title) {
-        return [title, " - UCengine"].join('');
+        return [title, " - U.C.Engine"].join('');
     });
 
     /**
@@ -59,7 +59,7 @@ function sammyapp() {
     this.around(selectMenu);
     this.around(isLoaded);
     function build_home(callback) {
-        var c = {welcome         : 'Welcome To UCengine by af83',
+        var c = {welcome         : 'Welcome To U.C.Engine by af83',
                  description     : infos.description,
                  not_connected   : (presence.presence == null),
                  format: function() {

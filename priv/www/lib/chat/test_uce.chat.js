@@ -28,36 +28,36 @@ Factories.newTweetEvent = function(p) {
 Factories.addRosterEvent = function(from) {
     return {
         type: "internal.roster.add",
-	from: from
+        from: from
     };
 }
 
 Factories.deleteRosterEvent = function(from) {
     return {
         type: "internal.roster.delete",
-	from: from
+        from: from
     };
 }
 
 Factories.newChatEvent = function(from, text) {
     return {
         type: "chat.message.new",
-	from: from,
-	metadata: {
-	    text: text,
-	    lang: 'fr'
-	}
+        from: from,
+        metadata: {
+            text: text,
+            lang: 'fr'
+        }
     };
 }
 
 Factories.newTranslationEvent = function(from, text, lang) {
     return {
         type: "chat.translation.new",
-	from: from,
-	metadata: {
-	    text: text,
-	    lang: lang
-	}
+        from: from,
+        metadata: {
+            text: text,
+            lang: lang
+        }
     };
 }
 
@@ -65,7 +65,7 @@ test("create some elements", function() {
     $('#chat').chat();
     ok($('#chat').hasClass("ui-chat"), "should have class ui-chat");
     ok($('#chat').hasClass("ui-widget"), "should have class ui-widget");
-    equals($('#chat').children().size(), 3);
+    equals($('#chat').children().size(), 2);
     equals($("#chat .ui-chat-minus > div").children().size(), 7);
     equals($("#chat .ui-chat-big > div").children().size(), 2);
 });
@@ -129,7 +129,7 @@ module("uce.chat", {
         };
         $('#chat').chat({
             ucemeeting: ucemeeting,
-	    dock: '#chat-dock'
+            dock: '#chat-dock'
         });
     },
     teardown: function() {
