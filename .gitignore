@@ -4,3 +4,4 @@ ucengine.access
 *.log
 datas/*
 deps/*
+.eunit
