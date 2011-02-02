@@ -165,3 +165,13 @@ parse_query(AsciiDirtyQuery) ->
                       end,
                       AsciiQuery),
     parse_query_elems(Query).
+
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+parse_query_test() ->
+    ?assertEqual([{"Test", "test"}], parse_query([{"Test", "test"}])),
+    ?assertEqual([{"test", [{"to", "test"}]}], parse_query([{"test[to]", "test"}])).
+
+-endif.
