@@ -40,7 +40,8 @@ $.uce.widget("video", {
             return '/lib/video/receive_video.swf';
     },
     _getFlashVar: function() {
-        return $.param({stream     : this.options.stream,
+        return $.param({wmode      : 'opaque',
+                        stream     : this.options.stream,
                         server     : "rtmp://" + this.options.domain,
                         streamtype : "live",
                         token      : this.options.token,
@@ -85,6 +86,10 @@ $.uce.widget("video", {
 	        this.options.ratio = this.options.height / this.options.width;
 	    }
 
+        this.options.height = parseInt(this.options.width * this.options.ratio, 10);
+        this._content.css('width', this.options.width);
+        this._content.css('min-height', this.options.height);
+
         if (this.options.ucemeeting == null) {
             this._showReceive = true;
             this._updateEmbed();
@@ -103,8 +108,7 @@ $.uce.widget("video", {
         }
     },
     _videoAttr: function() {
-        return {wmode     : 'transparent',
-                src       : this._getFlashSrc(),
+        return {src       : this._getFlashSrc(),
                 flashvars : this._getFlashVar(),
                 quality   : 75,
                 width     : this.options.width,
@@ -150,14 +154,17 @@ $.uce.widget("video", {
     },
     reduce: function() {
         this._resize();
+        this._updateEmbed();
     },
     expand: function() {
         this._resize();
+        this._updateEmbed();
     },
     _resize: function() {
         this.options.width = this.element.width();
         this.options.height = parseInt(this.options.width * this.options.ratio, 10);
-        this._updateEmbed();
+        this._content.css('width', this.options.width);
+        this._content.css('min-height', this.options.height);
     },
     destroy: function() {
         this.element.children().remove();

@@ -1,7 +1,0 @@
-.ui-widget.ui-video .ui-widget-content {
-    min-height: 200px;
-}
-
-.ui-widget.ui-video.expanded .ui-widget-content {
-    min-height: 400px;
-}
