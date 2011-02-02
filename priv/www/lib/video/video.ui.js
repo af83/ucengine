@@ -49,42 +49,42 @@ $.uce.widget("video", {
                         height     : this.options.height - 20});
     },
     _create: function() {
-	    var that = this;
+        var that = this;
 
-		/* create dock */
-	    if (this.options.dock) {
-	        var dock = $('<a>')
-		        .attr('class', 'ui-dock-button')
-		        .attr('href', '#')
-		        .button({
-		            text: false,
-		            icons: {primary: "ui-icon-person"}
-		        }).click(function() {
-		            $(window).scrollTop(that.element.offset().top);
-		            return false;
-		        });
+        /* create dock */
+        if (this.options.dock) {
+            var dock = $('<a>')
+                .attr('class', 'ui-dock-button')
+                .attr('href', '#')
+                .button({
+                    text: false,
+                    icons: {primary: "ui-icon-person"}
+                }).click(function() {
+                    $(window).scrollTop(that.element.offset().top);
+                    return false;
+                });
             dock.addClass('ui-video-dock');
-		    dock.appendTo(this.options.dock);
-	    }
+            dock.appendTo(this.options.dock);
+        }
 
         this.element.addClass('ui-widget ui-video');
         this._button = $('<a>').attr('href', '#')
             .button({label: 'Publish'})
             .click($.proxy(this._onClickButton, this));
-	    var rightButtons = [this._button].concat(this.options.buttons.right);
-	    this._addHeader(this.options.title, {left: this.options.buttons.left,
-					                         right: rightButtons});
+        var rightButtons = [this._button].concat(this.options.buttons.right);
+        this._addHeader(this.options.title, {left: this.options.buttons.left,
+                                             right: rightButtons});
         this._content = $('<div>').addClass('ui-widget-content').appendTo(this.element);
 
-	    if (!this.options.width && !this.options.height) {
-	        this.options.width = this.element.width();
-	    }
-	    if (!this.options.width && this.options.height) {
-	        this.options.width = this.options.height / this.options.ratio;
-	    }
-	    if (this.options.height) {
-	        this.options.ratio = this.options.height / this.options.width;
-	    }
+        if (!this.options.width && !this.options.height) {
+            this.options.width = this.element.width();
+        }
+        if (!this.options.width && this.options.height) {
+            this.options.width = this.options.height / this.options.ratio;
+        }
+        if (this.options.height) {
+            this.options.ratio = this.options.height / this.options.width;
+        }
 
         this.options.height = parseInt(this.options.width * this.options.ratio, 10);
         this._content.css('width', this.options.width);

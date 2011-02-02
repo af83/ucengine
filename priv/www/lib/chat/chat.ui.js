@@ -156,7 +156,7 @@ $.uce.widget("chat", {
                     $(window).scrollTop(that.element.offset().top);
                     return false;
                 });
-        this._dock.addClass('ui-chat-dock');
+            this._dock.addClass('ui-chat-dock');
             this._dock.appendTo(this.options.dock);
 
             this._startCount = new Date().getTime();
@@ -167,13 +167,12 @@ $.uce.widget("chat", {
                 .text(this._newCount)
                 .appendTo(this._dock);
 
-                this._updateNotifications();
+            this._updateNotifications();
 
             content.bind('mouseover', function() {
-                    that._newCount = 0;
-                    that._updateNotifications();
+                that._newCount = 0;
+                that._updateNotifications();
             });
-
         }
 
     },
@@ -254,12 +253,12 @@ $.uce.widget("chat", {
             this.element.find('.ui-chat-minus .ui-chat-minus-header.chat h3')
                 .text('Chatroom ('+ this._messages +')');
             // XXX: Can we refactor this to have a general behaviour when there is no dock ?
-                if (this.options.dock &&
-                        event.from != this.options.ucemeeting.uid &&
-                        event.datetime > this._startCount) {
-                        this._newCount++;
-                        this._updateNotifications();
-                }
+            if (this.options.dock &&
+                event.from != this.options.ucemeeting.uid &&
+                event.datetime > this._startCount) {
+                this._newCount++;
+                this._updateNotifications();
+            }
         }
     },
 
