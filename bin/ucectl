@@ -15,7 +15,7 @@ else
     NODE=$2
 fi
 
-NAME=-sname
+NAME=-name
 
 ERL_ARGS="+K true +P 65535 +A 2 -pa ebin -run uce_app  \
           -mnesia dir ${MNESIA_DIR} -boot start_sasl  \
