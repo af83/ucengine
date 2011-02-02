@@ -177,7 +177,7 @@ function sammyapp() {
             errors.push("Passwords required");
         }
         if (this.params['terms'] != 'on') {
-            errors.push("Please accept the terms and conditions of UCengine");
+            errors.push("Please accept the terms and conditions of U.C.Engine");
         }
         if (errors.length > 0) {
             context.loadPage('templates/register.tpl', {'errors': errors,
