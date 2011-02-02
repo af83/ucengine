@@ -4,7 +4,8 @@ $.uce.widget("chat", {
         title: "Conversations",
         lang: "fr",
         langs: ["fr", "en", "it"],
-        mode: 'reduced'
+        mode: 'reduced',
+        buttons: {right:[]}
     },
     // ucengine events
     meetingsEvents: {
