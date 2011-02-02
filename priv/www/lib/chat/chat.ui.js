@@ -4,7 +4,7 @@ $.uce.widget("chat", {
         title: "Conversations",
         lang: "fr",
         langs: ["fr", "en", "it"],
-	mode: 'reduced'
+        mode: 'reduced'
     },
     // ucengine events
     meetingsEvents: {
@@ -20,7 +20,7 @@ $.uce.widget("chat", {
 
         this.element.addClass('ui-chat ui-widget');
 
-	var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
+        var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
 
         var templateBig =
          '<div class="ui-chat-big">' +
@@ -69,23 +69,23 @@ $.uce.widget("chat", {
                '</div>' +
             '</div>';
         $.tmpl(templateMinus, {}).appendTo(content);
-	
-	var flags = $('<span>')
-	    .attr('class', 'ui-chat-flags');
+
+        var flags = $('<span>')
+            .attr('class', 'ui-chat-flags');
 
         /* create message block for each language */
         $.each(this.options.langs, function(i, lang) {
             var flag = $('<span>')
-		.attr('class', 'ui-chat-flag')
-		.button({
-		    text: false,
-		    icons: {primary: 'ui-chat-flag-' + lang}
-		})
-		.click(function(e) {
+                .attr('class', 'ui-chat-flag')
+                .button({
+                    text: false,
+                    icons: {primary: 'ui-chat-flag-' + lang}
+                })
+                .click(function(e) {
                     e.preventDefault();
                     that._showChat('chat:' + lang, "Chatroom (" + lang + ")");
-		});
-	    flag.appendTo(flags);
+                });
+            flag.appendTo(flags);
 
             that._addChat('chat:' + lang);
 
@@ -105,9 +105,9 @@ $.uce.widget("chat", {
             });
         });
 
-	var rightButtons = [flags].concat(this.options.buttons.right);
-	this._addHeader(this.options.title, {left: this.options.buttons.left,
-					     right: rightButtons});
+        var rightButtons = [flags].concat(this.options.buttons.right);
+        this._addHeader(this.options.title, {left: this.options.buttons.left,
+                                             right: rightButtons});
 
         this._addChat('hashtag:all');
 
@@ -143,37 +143,37 @@ $.uce.widget("chat", {
             this._showChat(this.options.lang);
         }
 
-	/* create dock */
-	if (this.options.dock) {
-	    this._dock = dock = $('<a>')
-		.attr('class', 'ui-dock-button')
-		.attr('href', '#')
-		.button({
-		    text: false,
-		    icons: {primary: "ui-icon-comment"}
-		}).click(function() {
-		    $(window).scrollTop(that.element.offset().top);
-		    return false;
-		});
+        /* create dock */
+        if (this.options.dock) {
+            this._dock = dock = $('<a>')
+                .attr('class', 'ui-dock-button')
+                .attr('href', '#')
+                .button({
+                    text: false,
+                    icons: {primary: "ui-icon-comment"}
+                }).click(function() {
+                    $(window).scrollTop(that.element.offset().top);
+                    return false;
+                });
         this._dock.addClass('ui-chat-dock');
-	    this._dock.appendTo(this.options.dock);
+            this._dock.appendTo(this.options.dock);
 
-	    this._startCount = new Date().getTime();
-	    this._newCount = 0;
+            this._startCount = new Date().getTime();
+            this._newCount = 0;
 
-	    this._new = $('<div>')
-		.attr('class', 'ui-widget-dock-notification')
-		.text(this._newCount)
-		.appendTo(this._dock);
+            this._new = $('<div>')
+                .attr('class', 'ui-widget-dock-notification')
+                .text(this._newCount)
+                .appendTo(this._dock);
 
-		this._updateNotifications();
+                this._updateNotifications();
 
-	    content.bind('mouseover', function() {
-		    that._newCount = 0;
-		    that._updateNotifications();
-	    });
+            content.bind('mouseover', function() {
+                    that._newCount = 0;
+                    that._updateNotifications();
+            });
 
-	}
+        }
 
     },
 
@@ -188,11 +188,11 @@ $.uce.widget("chat", {
             $(dt).remove();
         });
 
-	if (this.options.mode == "reduced") {
+        if (this.options.mode == "reduced") {
             this.reduce();
-	} else if (this.options.mode == "expanded") {
-	    this.expand();
-	}
+        } else if (this.options.mode == "expanded") {
+            this.expand();
+        }
     },
 
     /**
@@ -202,16 +202,16 @@ $.uce.widget("chat", {
         this.options.mode = 'reduced';
 
         this.element.find('.ui-chat-big').hide();
-	this.element.find('.ui-chat-flags').hide();
+        this.element.find('.ui-chat-flags').hide();
         this.element.find('.ui-chat-minus').show();
-        this._showChat("main");	
+        this._showChat("main");
     },
 
     expand: function() {
         this.options.mode = 'expanded';
 
         this.element.find('.ui-chat-big').show();
-	this.element.find('.ui-chat-flags').show();
+        this.element.find('.ui-chat-flags').show();
         this.element.find('.ui-chat-minus').hide();
         this._showChat("chat:" + this.options.lang);
     },
@@ -253,15 +253,15 @@ $.uce.widget("chat", {
             this.element.find('.ui-chat-minus .ui-chat-minus-header.chat h3')
                 .text('Chatroom ('+ this._messages +')');
             // XXX: Can we refactor this to have a general behaviour when there is no dock ?
-	        if (this.options.dock &&
-		        event.from != this.options.ucemeeting.uid &&
-		        event.datetime > this._startCount) {
-		        this._newCount++;
-		        this._updateNotifications();
-	        }
+                if (this.options.dock &&
+                        event.from != this.options.ucemeeting.uid &&
+                        event.datetime > this._startCount) {
+                        this._newCount++;
+                        this._updateNotifications();
+                }
         }
     },
-    
+
     _handleJoin: function(event) {
         for (var index = 0; index < this._roster.length; index++) {
             if (this._roster[index] == event.from) {
@@ -371,12 +371,12 @@ $.uce.widget("chat", {
     },
 
     _updateNotifications: function() {
-	this._new.text(this._newCount);
-	if (this._newCount == 0) {
-	    this._new.hide();
-	} else {
-	    this._new.show();
-	}
+        this._new.text(this._newCount);
+        if (this._newCount == 0) {
+            this._new.hide();
+        } else {
+            this._new.show();
+        }
     },
 
     _addMessage: function(name, from, text) {
