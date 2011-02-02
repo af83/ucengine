@@ -5,3 +5,8 @@
 .ui-widget.ui-video.expanded .ui-widget-content {
     min-height: 400px;
 }
+
+.ui-widget.ui-video.reduced .ui-widget-content {
+    width: 306px;
+    height: 208px;
+}
