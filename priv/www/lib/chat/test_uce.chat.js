@@ -65,7 +65,7 @@ test("create some elements", function() {
     $('#chat').chat();
     ok($('#chat').hasClass("ui-chat"), "should have class ui-chat");
     ok($('#chat').hasClass("ui-widget"), "should have class ui-widget");
-    equals($('#chat').children().size(), 3);
+    equals($('#chat').children().size(), 2);
     equals($("#chat .ui-chat-minus > div").children().size(), 7);
     equals($("#chat .ui-chat-big > div").children().size(), 2);
 });
