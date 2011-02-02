@@ -34,10 +34,6 @@
                         <li>or <a href="#/register">Register</a></li>
                     </ul>
                 </form>
-                <p class="checkbox">
-                    <input type="checkbox" />
-                    <label>Remember me</label>
-                </p>
             </div>
         </div>
         {{/not_connected}}
