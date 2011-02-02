@@ -9,7 +9,7 @@ module('app', {
         });
         $.mockjax({
             url: '/api/0.2/meeting/opened',
-            responseText: {"result":[{"name":"demo","start_date":1287493374119,"end_date":"never","roster":["root"],"metadata":{"description":"UCengine demo meetup"}},{"name":"demo2","start_date":1287493374120,"end_date":"never","roster":[],"metadata":{"description":"Meeting R&D"}}]}
+            responseText: {"result":[{"name":"demo","start_date":1287493374119,"end_date":"never","roster":["root"],"metadata":{"description":"U.C.Engine demo meetup"}},{"name":"demo2","start_date":1287493374120,"end_date":"never","roster":[],"metadata":{"description":"Meeting R&D"}}]}
         });
         $.mockjax({
             url : '/api/0.2/meeting/closed',
@@ -43,7 +43,7 @@ test("should load home page", function() {
     stop();
     whenNotEmpty($('#sammy_anchor'), function(e) {
         start();
-        equals(document.title, 'Home - UCengine', "document.title");
+        equals(document.title, 'Home - U.C.Engine', "document.title");
         ok($('nav .page li:eq(0)').hasClass('on'), "hav class 'on' on first li");
         ok(!$('nav .page li:eq(1)').hasClass('on'), "no class 'on' on second li");
         $(this).unbind();
@@ -57,7 +57,7 @@ test("should load about page", function() {
     window.location.hash = '#/about';
     whenNotEmpty($('#sammy_anchor'), function(e) {
         start();
-        equals(document.title, 'About - UCengine', "document.title");
+        equals(document.title, 'About - U.C.Engine', "document.title");
         ok(!$('nav .page li:eq(0)').hasClass('on'), "not class 'on' on first li");
         ok($('nav .page li:eq(1)').hasClass('on'), "has class 'on' on second li");
         $(this).unbind();
