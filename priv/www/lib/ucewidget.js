@@ -1,5 +1,5 @@
 /**
- * UC Engine UI Widget
+ * U.C.Engine UI Widget
  * http://ucengine.org/
  * (c) 2010 af83
  */
@@ -31,32 +31,32 @@
                 this[methodName](event);
             },
 
-	    _addHeader: function(title, buttons) {
-		var header = $('<div>')
-		    .attr('class', 'ui-widget-header ui-corner-all ui-helper-clearfix');
-		header.prependTo(this.element);
+            _addHeader: function(title, buttons) {
+                var header = $('<div>')
+                    .attr('class', 'ui-widget-header ui-corner-all ui-helper-clearfix');
+                header.prependTo(this.element);
 
-		if (buttons && buttons.left) {
-		    var left = $('<span>').attr('class', 'ui-widget-header-left');
-		    left.appendTo(header);
-		    $.each(buttons.left, function(index, elem) {
-			elem.appendTo(left);
-		    });
-		}
+                if (buttons && buttons.left) {
+                    var left = $('<span>').attr('class', 'ui-widget-header-left');
+                    left.appendTo(header);
+                    $.each(buttons.left, function(index, elem) {
+                        elem.appendTo(left);
+                    });
+                }
 
-		$('<span>')
-		    .addClass('ui-widget-header-title')
-		    .text(title)
-		    .appendTo(header);
+                $('<span>')
+                    .addClass('ui-widget-header-title')
+                    .text(title)
+                    .appendTo(header);
 
-		if (buttons && buttons.right) {
-		    var right = $('<span>').attr('class', 'ui-widget-header-right');
-		    right.appendTo(header);
-		    $.each(buttons.right, function(index, elem) {
-			elem.appendTo(right);
-		    });
-		}
-	    },
+                if (buttons && buttons.right) {
+                    var right = $('<span>').attr('class', 'ui-widget-header-right');
+                    right.appendTo(header);
+                    $.each(buttons.right, function(index, elem) {
+                        elem.appendTo(right);
+                    });
+                }
+            },
         }
         $.widget("uce." + name, $.extend(true, base, ucewidget), prototype);
     }
