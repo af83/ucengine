@@ -63,30 +63,37 @@ extract(Arg, State) ->
         'GET' ->
             {'GET', Arg#arg.pathinfo, parse_query(yaws_api:parse_query(Arg))};
         _ ->
-            case yaws_api:parse_multipart_post(Arg) of
-                [] ->
-                    Query = yaws_api:parse_post(Arg) ++ yaws_api:parse_query(Arg),
+            case Arg#arg.headers#headers.content_type of
+                "multipart/form-data;"++ _Boundary ->
+                    case yaws_api:parse_multipart_post(Arg) of
+                        [] ->
+                            {error, unexpected_error};
+                        {cont, Cont, Res} ->
+                            case add_file_chunk(Arg, Res, State) of
+                                {done, Result} ->
+                                    Result;
+                                {cont, NewState} ->
+                                    {get_more, Cont, NewState}
+                            end;
+                        {result, Res} ->
+                            case add_file_chunk(Arg, Res, State#upload{last=true}) of
+                                {done, Result} ->
+                                    Result;
+                                {cont, _} ->
+                                    {error, unexpected_error}
+                            end
+                    end;
+                _ContentType ->
+                    OriginalMethod = Request#http_request.method,
+                    NewArg = Arg#arg{req = Arg#arg.req#http_request{method = 'POST'}},
+                    Query = yaws_api:parse_post(NewArg) ++ yaws_api:parse_query(NewArg),
                     Method = case utils:get(Query, ["_method"]) of
                                  [none] ->
-                                     Request#http_request.method;
+                                     OriginalMethod;
                                  [StringMethod] ->
                                      list_to_atom(string:to_upper(StringMethod))
                              end,
-                    {Method, Arg#arg.pathinfo, parse_query(Query)};
-                {cont, Cont, Res} ->
-                    case add_file_chunk(Arg, Res, State) of
-                        {done, Result} ->
-                            Result;
-                        {cont, NewState} ->
-                            {get_more, Cont, NewState}
-                    end;
-                {result, Res} ->
-                    case add_file_chunk(Arg, Res, State#upload{last=true}) of
-                        {done, Result} ->
-                            Result;
-                        {cont, _} ->
-                            {error, unexpected_error}
-                    end
+                    {Method, Arg#arg.pathinfo, parse_query(Query)}
             end
     end.
 
