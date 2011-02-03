@@ -177,7 +177,7 @@ function sammyapp() {
             errors.push("Passwords required");
         }
         if (this.params['terms'] != 'on') {
-            errors.push("Please accept the terms and conditions of UCengine");
+            errors.push("Please accept the terms and conditions of U.C.Engine");
         }
         if (errors.length > 0) {
             context.loadPage('templates/register.tpl', {'errors': errors,
@@ -377,7 +377,7 @@ $.sammy("#meeting", function() {
                     widget[widgetName]('expand');
                     toggle.unbind('click');
                     toggle.bind('click', reduce);
-                }           
+                }
             });
 
             if (options.mode == "expanded") {
@@ -402,7 +402,6 @@ $.sammy("#meeting", function() {
         $('#reduced, #expanded').disableSelection();
 
         presence.presence.time(function(err, time, xhr) {
-            console.log(time);
             addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
         });
 
@@ -434,7 +433,7 @@ $.sammy("#meeting", function() {
                                                 mode         : 'reduced'});
 
         $("#replay-mode").hide();
-        
+
         if (inReplay) {
             // disabled some widgets
             $('#files').file("option", "upload", false);

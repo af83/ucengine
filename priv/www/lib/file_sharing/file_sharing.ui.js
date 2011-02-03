@@ -3,9 +3,9 @@ $.uce.widget("filesharing", {
         ucemeeting : null,
         upload     : true,
         title      : "File sharing",
-	mode	   : "expanded"
+        mode       : "expanded"
     },
-   
+
     // ucengine events
     meetingsEvents: {
         'internal.file.add'        : '_handleFileAddEvent',
@@ -14,12 +14,12 @@ $.uce.widget("filesharing", {
         'document.share.goto'      : '_handleShareGotoEvent',
         'document.share.stop'      : '_handleShareStopEvent'
     },
- 
+
     _create: function() {
         var that = this;
 
         this.element.addClass('ui-widget ui-filesharing');
-	    this._addHeader(this.options.title, this.options.buttons);
+        this._addHeader(this.options.title, this.options.buttons);
 
         var all = $('<div>').attr('class', 'ui-filesharing-all');
         var preview = $('<div>').attr('class', 'ui-filesharing-preview');
@@ -50,14 +50,14 @@ $.uce.widget("filesharing", {
         previous.appendTo(toolbar);
         next.appendTo(toolbar);
 
-	var pageSelector = $('<span>').attr('class', 'ui-filesharing ui-toolbar-selector');
+        var pageSelector = $('<span>').attr('class', 'ui-filesharing ui-toolbar-selector');
         $('<span>').attr('class', 'ui-filesharing ui-selector-current')
             .appendTo(pageSelector);
         $('<span>').attr('class', 'ui-filesharing ui-selector-separator').text('/')
-	    .appendTo(pageSelector);
+            .appendTo(pageSelector);
         $('<span>').attr('class', 'ui-filesharing ui-selector-total')
-	    .appendTo(pageSelector);
-	pageSelector.appendTo(toolbar);
+            .appendTo(pageSelector);
+        pageSelector.appendTo(toolbar);
 
         var stop = $('<span>')
             .attr('class', 'ui-filesharing ui-toolbar-button ui-button-stop')
@@ -90,7 +90,7 @@ $.uce.widget("filesharing", {
             if (page >= that._shared.file.pages.length) {
                 return false;
             }
-            that.options.ucemeeting.push('document.share.goto', {id: that._shared.file.id, 
+            that.options.ucemeeting.push('document.share.goto', {id: that._shared.file.id,
                                                                  page: page});
 
             return false;
@@ -100,7 +100,7 @@ $.uce.widget("filesharing", {
             return false;
         });
 
-	var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
+        var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
         all.appendTo(content);
         preview.appendTo(content);
         this.viewAll();
@@ -118,42 +118,42 @@ $.uce.widget("filesharing", {
                     action: this.options.ucemeeting.getFileUploadUrl(),
                     name: 'content',
                     onComplete : function(file, response){
-                           return true;
+                        return true;
                     }
                 });
             }
         }
 
-	    /* create dock */
-	    if (this.options.dock) {
-	        this._dock = dock = $('<a>')
-		        .attr('class', 'ui-dock-button')
-		        .attr('href', '#')
-		        .button({
-		            text: false,
-		            icons: {primary: "ui-icon-document"}
-		        }).click(function() {
-		            $(window).scrollTop(that.element.offset().top);
-		            return false;
-		        });
+        /* create dock */
+        if (this.options.dock) {
+            this._dock = dock = $('<a>')
+                .attr('class', 'ui-dock-button')
+                .attr('href', '#')
+                .button({
+                    text: false,
+                    icons: {primary: "ui-icon-document"}
+                }).click(function() {
+                    $(window).scrollTop(that.element.offset().top);
+                    return false;
+                });
             this._dock.addClass('ui-filesharing-dock');
-	        this._dock.appendTo(this.options.dock);
-            
-	        this._startCount = new Date().getTime();
-	        this._newCount = 0;
-            
-	        this._new = $('<div>')
-		        .attr('class', 'ui-widget-dock-notification')
-		        .text(this._newCount)
-		        .appendTo(this._dock);
-            
-		    this._updateNotifications();
-            
-	        all.bind('mouseover', function() {
-		        that._newCount = 0;
-		        that._updateNotifications();
-	        });
-	    }
+            this._dock.appendTo(this.options.dock);
+
+            this._startCount = new Date().getTime();
+            this._newCount = 0;
+
+            this._new = $('<div>')
+                .attr('class', 'ui-widget-dock-notification')
+                .text(this._newCount)
+                .appendTo(this._dock);
+
+            this._updateNotifications();
+
+            all.bind('mouseover', function() {
+                that._newCount = 0;
+                that._updateNotifications();
+            });
+        }
     },
 
     clear: function() {
@@ -175,7 +175,7 @@ $.uce.widget("filesharing", {
     _setOption: function(key, value) {
         $.Widget.prototype._setOption.apply(this, arguments);
         switch (key) {
-            case 'upload':
+        case 'upload':
             this.element.find('.ui-filesharing-add').toggle();
             break;
         }
@@ -185,11 +185,11 @@ $.uce.widget("filesharing", {
      *  Modes
      */
     reduce: function() {
-	this.options.mode = "reduced";
+        this.options.mode = "reduced";
     },
 
     expand: function() {
-	this.options.mode = "expanded";
+        this.options.mode = "expanded";
     },
 
     _handleFileAddEvent: function(event) {
@@ -199,7 +199,7 @@ $.uce.widget("filesharing", {
 
         if (event.datetime > this._startCount) {
             this._newCount++;
-		    this._updateNotifications();
+            this._updateNotifications();
         }
 
         this._listFiles.push($.extend({}, event, {pages: []}));
@@ -211,13 +211,13 @@ $.uce.widget("filesharing", {
             function(index, file) {
                 if (file.id == event.parent) {
                     for (var key in event.metadata) {
-                        var value = event.metadata[key]; 
-                      file.pages[key] = value;
+                        var value = event.metadata[key];
+                        file.pages[key] = value;
                     };
                 }
             }
         );
-        this._refreshListFiles();       
+        this._refreshListFiles();
     },
 
     _refreshListFiles: function() {
@@ -232,20 +232,20 @@ $.uce.widget("filesharing", {
                 if (file.pages.length != 0) {
                     var sharelink = $('<a>');
                     sharelink.attr('href', '#');
-		    sharelink.attr('class', 'ui-filesharing ui-preview-link');
+                    sharelink.attr('class', 'ui-filesharing ui-preview-link');
                     sharelink.text(' (preview)');
                     sharelink.bind('click', function() {
                         that.options.ucemeeting.push("document.share.start", {id: file.metadata.id});
                         return false;
                     });
-                    filename.append(sharelink);                
+                    filename.append(sharelink);
                 }
-		var fileowner = $('<p>').attr('class', 'ui-file-owner').text("From: " + file.from);
-		var li = $('<li>').attr('class', 'mime ' + mime).append(filename).append(fileowner);
+                var fileowner = $('<p>').attr('class', 'ui-file-owner').text("From: " + file.from);
+                var li = $('<li>').attr('class', 'mime ' + mime).append(filename).append(fileowner);
                 ul = ul.add(li);
-            }      
+            }
         );
-        this.element.find('.ui-filesharing-list').empty().append(ul);   
+        this.element.find('.ui-filesharing-list').empty().append(ul);
     },
 
     _refreshPreview: function() {
@@ -263,12 +263,12 @@ $.uce.widget("filesharing", {
     },
 
     _updateNotifications: function() {
-	    this._new.text(this._newCount);
-	    if (this._newCount == 0) {
-	        this._new.hide();
-	    } else {
-	        this._new.show();
-	    }
+        this._new.text(this._newCount);
+        if (this._newCount == 0) {
+            this._new.hide();
+        } else {
+            this._new.show();
+        }
     },
 
     _handleShareStartEvent: function(event) {
@@ -284,7 +284,7 @@ $.uce.widget("filesharing", {
                     that._refreshPreview();
                     that.viewPreview();
                 }
-            }      
+            }
         );
 
     },

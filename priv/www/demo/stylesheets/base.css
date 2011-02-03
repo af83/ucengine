@@ -502,6 +502,9 @@ section#expanded article.highlight {
 section > .ui-widget {
     border: 1px solid #DADADA;
 }
+.ui-widget.ui-replay {
+    border: 0;
+}
 
 /* for demo */
 #board p, #player p {
@@ -589,6 +592,7 @@ section > .ui-widget {
     border: 0;
     height: 32px;
 }
+.ui-widget.ui-slider .ui-widget-header { padding: 0; }
 
 .ui-widget .ui-widget-header-title,
 .ui-widget .ui-widget-header-left,
@@ -643,4 +647,8 @@ section > .ui-widget {
 .ui-widget .ui-corner-all {
     border-radius: 0;
     -webkit-border-radius: 0;-moz-border-radius: 0;-o-border-radius: 0;
+}
+
+.ui-results-list-element, .ui-search-elem-title {
+    cursor: pointer;
 }

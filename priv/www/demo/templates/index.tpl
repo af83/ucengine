@@ -34,10 +34,6 @@
                         <li>or <a href="#/register">Register</a></li>
                     </ul>
                 </form>
-                <p class="checkbox">
-                    <input type="checkbox" />
-                    <label>Remember me</label>
-                </p>
             </div>
         </div>
         {{/not_connected}}
@@ -69,7 +65,7 @@
                 <ul id="currentMeetings">
                     {{#currentmeetings}}
                     <li>
-                        <p><a href="#/meeting/{{name}}">{{name}}</a></p>
+                        <p><strong>{{name}}</strong></p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
                         <p>{{metadatas.description}}</p>
                         {{^not_connected}}
@@ -94,7 +90,7 @@
                 <ul id="closedMeetings">
                     {{#closedmeetings}}
                     <li>
-                        <p><a href="#/meeting/{{name}}">{{name}}</a></p>
+                        <p><strong>{{name}}</strong></p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
                         <p>{{metadatas.description}}</p>
                         {{^not_connected}}
@@ -119,7 +115,7 @@
                 <ul id="upcomingMeetings">
                     {{#upcomingmeetings}}
                     <li>
-                        <p><a href="#/meeting/{{name}}">{{name}}</a></p>
+                        <p><strong>{{name}}</strong></p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
                         <p>{{metadatas.description}}</p>
                         {{^not_connected}}

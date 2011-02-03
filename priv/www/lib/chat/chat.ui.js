@@ -139,7 +139,7 @@ $.uce.widget("chat", {
                 .text(this._newCount)
                 .appendTo(this._dock);
 
-                this._updateNotifications();
+            this._updateNotifications();
 
             this._content.bind('mouseover', function() {
                 that._newCount = 0;

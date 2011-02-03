@@ -14,7 +14,7 @@
   </servers>
 
   <!-- to start os monitoring (cpu, network, memory). Use an erlang
-  agent on the remote machine or SNMP. erlang is the default --> 
+  agent on the remote machine or SNMP. erlang is the default -->
   <load duration="200" unit="minute">
   <!-- several arrival phases can be set: for each phase, you can set
   the mean inter-arrival time between new clients and the phase
@@ -30,17 +30,17 @@
 <!-- Authenticate -->
 <request subst="true">
   <dyn_variable name="sid" jsonpath="result"></dyn_variable>
-  <http url='/api/0.1/presence/af83/root' contents='auth=password&amp;credential=root&amp;org=af83&amp;_method=PUT' method='POST'></http>
+  <http url='/api/0.2/presence/root' contents='credential=root&amp;_method=PUT' method='POST'></http>
 </request>
 
 <!-- Get the roster -->
-<request subst="true"><http url='/api/0.1/meeting/af83/all/demo/roster/root' contents='uid=root&amp;sid=%%_sid%%&amp;_method=PUT' method='POST'></http></request>
+<request subst="true"><http url='/api/0.2/meeting/all/demo/roster/root' contents='uid=root&amp;sid=%%_sid%%&amp;_method=PUT' method='POST'></http></request>
 
 <!-- First request -->
 <transaction name="total_pending">
 <request subst="true">
   <dyn_variable name="events" jsonpath="result"/>
-  <http url='/api/0.1/event/af83/demo/?uid=root&amp;sid=%%_sid%%&amp;start=0' method='GET'></http>
+  <http url='/api/0.2/event/demo/?uid=root&amp;sid=%%_sid%%&amp;start=0' method='GET'></http>
 </request>
 <setdynvars sourcetype="erlang" callback="tsung_utils:extract_last_timestamp">
   <var name="last" />
@@ -52,7 +52,7 @@
   <transaction name="pending">
     <request subst="true">
       <dyn_variable name="events" jsonpath="result"/>
-      <http url='/api/0.1/event/af83/demo/?uid=root&amp;sid=%%_sid%%&amp;start=%%_last%%' method='GET'></http>
+      <http url='/api/0.2/event/demo/?uid=root&amp;sid=%%_sid%%&amp;start=%%_last%%' method='GET'></http>
     </request>
   </transaction>
 
@@ -66,17 +66,17 @@
 <!-- Authenticate -->
 <request subst="true">
   <dyn_variable name="sid" jsonpath="result"></dyn_variable>
-  <http url='/api/0.1/presence/af83/root' version='1.1'  contents='auth=password&amp;credential=root&amp;org=af83&amp;_method=PUT' method='POST'></http>
+  <http url='/api/0.2/presence/root' version='1.1'  contents='auth=password&amp;credential=root&amp;_method=PUT' method='POST'></http>
 </request>
 
 <!-- Get the roster -->
-<request subst="true"><http url='/api/0.1/meeting/af83/all/demo/roster/root' contents='uid=root&amp;sid=%%_sid%%&amp;_method=PUT' method='POST'></http></request>
+<request subst="true"><http url='/api/0.2/meeting/all/demo/roster/root' contents='uid=root&amp;sid=%%_sid%%&amp;_method=PUT' method='POST'></http></request>
 
 <!-- First request -->
 <transaction name="total_pending">
 <request subst="true">
   <dyn_variable name="events" jsonpath="result"/>
-  <http url='/api/0.1/event/af83/demo/?uid=root&amp;sid=%%_sid%%&amp;start=0' method='GET'></http>
+  <http url='/api/0.2/event/demo/?uid=root&amp;sid=%%_sid%%&amp;start=0' method='GET'></http>
 </request>
 <setdynvars sourcetype="erlang" callback="tsung_utils:extract_last_timestamp">
   <var name="last" />
@@ -88,7 +88,7 @@
   <!-- POST an annotation -->
   <transaction name="post_annotation">
     <request subst="true">
-      <http url='/api/0.1/event/af83/demo' contents='type=test&amp;uid=root&amp;sid=%%_sid%%&amp;_method=PUT' method='POST'>
+      <http url='/api/0.2/event/demo' contents='type=test&amp;uid=root&amp;sid=%%_sid%%&amp;_method=PUT' method='POST'>
       </http>
     </request>
   </transaction>
@@ -100,4 +100,3 @@
 </session>
 </sessions>
 </tsung>
-

@@ -1,9 +1,9 @@
 #!/bin/bash
 
-export ERL_LIBS="$ERL_LIB:$ENCRE_PATH:."
+export ERL_LIBS="$ERL_LIB:$UCENGINE_PATH:."
 
 BENCH=$1
-: ${BENCH:="simple"}
+: ${BENCH:="quiet"}
 
 echo "Scenario chosen: benchmarks/scenarii/$BENCH.xml"
 

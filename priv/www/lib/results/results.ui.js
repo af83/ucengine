@@ -28,7 +28,7 @@ $.widget("uce.results", {
                 from.appendTo(listElem);
                 var link = $('<span>').attr({'class': 'ui-results-list-element-content'})
                     .text(event.metadata.text);
-                link.click(function(e) {
+                listElem.click(function(e) {
                     that._trigger("jump", event, parseInt(event.datetime, 10));
                 });
                 link.appendTo(listElem);

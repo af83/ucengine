@@ -1,3 +1,20 @@
+%%
+%%  U.C.Engine - Unified Colloboration Engine
+%%  Copyright (C) 2011 af83
+%%
+%%  This program is free software: you can redistribute it and/or modify
+%%  it under the terms of the GNU Affero General Public License as published by
+%%  the Free Software Foundation, either version 3 of the License, or
+%%  (at your option) any later version.
+%%
+%%  This program is distributed in the hope that it will be useful,
+%%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%  GNU Affero General Public License for more details.
+%%
+%%  You should have received a copy of the GNU Affero General Public License
+%%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%%
 -module(uce_http).
 
 -author('victor.goya@af83.com').
@@ -63,30 +80,35 @@ extract(Arg, State) ->
         'GET' ->
             {'GET', Arg#arg.pathinfo, parse_query(yaws_api:parse_query(Arg))};
         _ ->
-            case yaws_api:parse_multipart_post(Arg) of
-                [] ->
-                    Query = yaws_api:parse_post(Arg) ++ yaws_api:parse_query(Arg),
+            case Arg#arg.headers#headers.content_type of
+                "multipart/form-data;"++ _Boundary ->
+                    case yaws_api:parse_multipart_post(Arg) of
+                        {cont, Cont, Res} ->
+                            case add_file_chunk(Arg, Res, State) of
+                                {done, Result} ->
+                                    Result;
+                                {cont, NewState} ->
+                                    {get_more, Cont, NewState}
+                            end;
+                        {result, Res} ->
+                            case add_file_chunk(Arg, Res, State#upload{last=true}) of
+                                {done, Result} ->
+                                    Result;
+                                {cont, _} ->
+                                    {error, unexpected_error}
+                            end
+                    end;
+                _ContentType ->
+                    OriginalMethod = Request#http_request.method,
+                    NewArg = Arg#arg{req = Arg#arg.req#http_request{method = 'POST'}},
+                    Query = yaws_api:parse_post(NewArg) ++ yaws_api:parse_query(NewArg),
                     Method = case utils:get(Query, ["_method"]) of
                                  [none] ->
-                                     Request#http_request.method;
+                                     OriginalMethod;
                                  [StringMethod] ->
                                      list_to_atom(string:to_upper(StringMethod))
                              end,
-                    {Method, Arg#arg.pathinfo, parse_query(Query)};
-                {cont, Cont, Res} ->
-                    case add_file_chunk(Arg, Res, State) of
-                        {done, Result} ->
-                            Result;
-                        {cont, NewState} ->
-                            {get_more, Cont, NewState}
-                    end;
-                {result, Res} ->
-                    case add_file_chunk(Arg, Res, State#upload{last=true}) of
-                        {done, Result} ->
-                            Result;
-                        {cont, _} ->
-                            {error, unexpected_error}
-                    end
+                    {Method, Arg#arg.pathinfo, parse_query(Query)}
             end
     end.
 
@@ -158,3 +180,13 @@ parse_query(AsciiDirtyQuery) ->
                       end,
                       AsciiQuery),
     parse_query_elems(Query).
+
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+parse_query_test() ->
+    ?assertEqual([{"Test", "test"}], parse_query([{"Test", "test"}])),
+    ?assertEqual([{"test", [{"to", "test"}]}], parse_query([{"test[to]", "test"}])).
+
+-endif.

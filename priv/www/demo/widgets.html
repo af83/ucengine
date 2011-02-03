@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+        <title>U.C.Engine</title>
+        <link href="stylesheets/ui-lightness/jquery-ui-1.8.4.custom.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/timer/timer.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/chat/chat.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/file/file.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/file_sharing/file_sharing.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/video/video.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/search/search.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/results/results.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/activity/activity.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/replay/replay.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="../lib/whiteboard/whiteboard.css" media="screen" rel="stylesheet" type="text/css" />
+        <!-- Activity chart -->
+        <script type="text/javascript" src="../lib/raphael.js"></script>
+        <script type="text/javascript" src="../lib/g.raphael.js"></script>
+        <script type="text/javascript" src="../lib/g.bar.js"></script>
+
+        <script type="text/javascript" src="../lib/jquery-1.4.4.min.js"></script>
+        <script type="text/javascript" src="../lib/jquery-ui-1.8.4.custom.min.js"></script>
+        <script type="text/javascript" src="../lib/ajaxupload.js"></script>
+
+        <!-- Whiteboard stuff: -->
+        <script type="text/javascript" src="../lib/whiteboard/whiteboard.js"></script>
+
+        <script type="text/javascript" src="../lib/jquery.tmpl.min.js"></script>
+
+        <script type="text/javascript" src="../lib/uce.js"></script>
+        <script type="text/javascript" src="../lib/ucewidget.js"></script>
+        <script type="text/javascript" src="../lib/video/video.ui.js"></script>
+        <script type="text/javascript" src="../lib/whiteboard/whiteboard.ui.js"></script>
+        <script type="text/javascript" src="../lib/file/file.ui.js"></script>
+        <script type="text/javascript" src="../lib/file_sharing/file_sharing.ui.js"></script>
+        <script type="text/javascript" src="../lib/replay/replay.ui.js"></script>
+        <script type="text/javascript" src="../lib/search/search.ui.js"></script>
+        <script type="text/javascript" src="../lib/player/player.ui.js"></script>
+        <script type="text/javascript" src="../lib/activity/activity.ui.js"></script>
+        <script type="text/javascript" src="../lib/results/results.ui.js"></script>
+        <script type="text/javascript" src="../lib/chat/chat.ui.js"></script>
+        <script type="text/javascript" src="../lib/timer/timer.ui.js"></script>
+
+        <style type="text/css">
+            .widgets { width: 80%; margin: 0 auto; }
+            .widgets > .ui-widget { margin-bottom: 3em; }
+        </style>
+
+    </head>
+    <body>
+
+        <h1>U.C.Engine widgets</h1>
+
+        <div class="widgets"></div>
+
+        <script type="text/javascript">
+            var meeting = uce.attachPresence({}).meeting('demo');
+            var widgets = ['video', 'player', 'file', 'replay',
+                           'timer', 'search',
+                           'filesharing', 'chat'];
+            $(widgets).each(function(index, widget) {
+               $('<h2>').text(widget).appendTo($('.widgets'));
+               $('<div>')[widget]({ucemeeting: meeting})
+                         .appendTo($('.widgets'));
+            });
+            // meeting have an internal tiny pubsub
+            meeting.trigger({type: 'video.stream.new',
+                             metadata: {}});
+            meeting.trigger({type: 'internal.file.add',
+                             from: 'John',
+                             id  : '1234',
+                             metadata: {id: 'test',
+                                        name: 'test',
+                                        mime: 'application/pdf'}});
+            meeting.trigger({type: 'internal.file.add',
+                             from: 'John',
+                             metadata: {id: 'test2'}});
+            meeting.trigger({type: 'document.conversion.done',
+                             parent: '1234',
+                             metadata: {0: 'test_convert'}});
+            meeting.trigger({type: 'internal.roster.add',
+                             from: 'John',
+                             metadata: {}});
+            meeting.trigger({type: 'internal.roster.add',
+                             from: 'Chuck',
+                             metadata: {}});
+            meeting.trigger({type: 'chat.message.new',
+                             from: 'Chuck',
+                             metadata: {text: 'Hello', lang: 'en'}});
+        </script>
+    </body>
+</html>

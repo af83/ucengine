@@ -29,6 +29,7 @@ restart:
 
 tests: compile
 	bin/ucectl tests
+	./rebar eunit
 
 ###############################################################################
 # Cleanup
