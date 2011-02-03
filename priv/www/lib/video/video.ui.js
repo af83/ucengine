@@ -124,7 +124,10 @@ $.uce.widget("video", {
         if (this._showReceive || this._publish) {
             $('<embed>').attr(this._videoAttr()).appendTo(this._content);
         } else {
-            $('<p>').text(this.labels["content.nostream"]).appendTo(this._content);
+            $('<p>')
+                .attr('class', 'ui-video-error')
+                .text(this.labels["content.nostream"])
+                .appendTo(this._content);
         }
     },
     publish: function() {
