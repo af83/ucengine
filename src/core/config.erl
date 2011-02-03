@@ -41,8 +41,8 @@ start_link(Path) ->
                           end,
                           Configs),
             ok;
-        _ ->
-            {error, parsing_error}
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 get(Key) ->
