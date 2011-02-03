@@ -5,7 +5,7 @@ $.uce.widget("file", {
     },
 
     meetingsEvents: {
-	'internal.file.add' : '_handleFileEvent'
+        'internal.file.add' : '_handleFileEvent'
     },
 
     _create: function() {
@@ -20,11 +20,11 @@ $.uce.widget("file", {
             if (this.options.upload) {
                 var upload = ($('<div>')).append($('<p>').attr('class', 'ui-file-add').append($('<a>').attr('href', '#').text('Upload Files'))).appendTo(this.element);
                 new AjaxUpload(upload.find('a'), {
-	            action: this.options.ucemeeting.getFileUploadUrl(),
-	            name: 'content',
-	            onComplete : function(file, response){
-		        return true;
-	            }
+                    action: this.options.ucemeeting.getFileUploadUrl(),
+                    name: 'content',
+                    onComplete : function(file, response){
+                        return true;
+                    }
                 });
             }
         }
@@ -53,9 +53,9 @@ $.uce.widget("file", {
     },
 
     _handleFileEvent: function(event) {
-	// TODO: Do it better than hardcoding the brick's name
-	if (event.from == 'document')
-	    return;
+        // TODO: Do it better than hardcoding the brick's name
+        if (event.from == 'document')
+            return;
 
         this._nbFilesP.text('Files ('+ ++this._nbFiles +')');
         this.element.find('.ui-file-new').text(++this._nbNewFiles);
