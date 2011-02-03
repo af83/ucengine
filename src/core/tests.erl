@@ -23,10 +23,10 @@
 
 start() ->
     case run() of
-	error ->
-	    init:stop(2);
-	ok ->
-	    init:stop(0)
+        error ->
+            init:stop(2);
+        ok ->
+            init:stop(0)
     end.
 
 run() ->
@@ -39,24 +39,24 @@ run() ->
                file_tests,
                ctl_tests,
                infos_tests] ++
-	case config:get(search) of
-	    solr ->
-		[solr_tests];
-	    _ ->
-		[]
-	end,
+        case config:get(search) of
+            solr ->
+                [solr_tests];
+            _ ->
+                []
+        end,
     Failed = lists:filter(fun(Module) ->
-				  io:format("> ~p~n", [Module]),
-				  case Module:test() of
-				      ok ->
-					  false;
-				      error ->
-					  true
-				  end
-			  end, Modules),
+                                  io:format("> ~p~n", [Module]),
+                                  case Module:test() of
+                                      ok ->
+                                          false;
+                                      error ->
+                                          true
+                                  end
+                          end, Modules),
     if
-	length(Failed) > 0 ->	    
-	    error;
-	true ->
-	    ok
+        length(Failed) > 0 ->
+            error;
+        true ->
+            ok
     end.

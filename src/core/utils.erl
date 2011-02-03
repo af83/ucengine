@@ -22,15 +22,15 @@
 -include("uce.hrl").
 
 -export([
-	 now/0,
-	 token/0,
-	 uid/0,
+         now/0,
+         token/0,
+         uid/0,
 
-	 random/0,
-	 random/1,
-	 get/2,
-	 get/3
-	]).
+         random/0,
+         random/1,
+         get/2,
+         get/3
+        ]).
 
 %% Get current timestamp
 now() ->
@@ -57,16 +57,16 @@ get(Params, Keys) ->
     get(Params, Keys, none).
 get(Params, Keys, Default) when is_atom(Default) ->
     get(Params, Keys, lists:map(fun(_Elem) ->
-					Default
-				end,
-				Keys));
+                                        Default
+                                end,
+                                Keys));
 get(_Params, [], []) ->
     [];
 get(Params, [Key|Keys], [Default|Defaults]) ->
     ValueList = case lists:keysearch(Key, 1, Params) of
-		    {value, {Key, Value}} ->
-			[Value];
-		    false ->
-			[Default]
-		end,
+                    {value, {Key, Value}} ->
+                        [Value];
+                    false ->
+                        [Default]
+                end,
     ValueList ++ ?MODULE:get(Params, Keys, Defaults).

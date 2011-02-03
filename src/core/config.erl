@@ -22,26 +22,27 @@
 -behaviour(gen_server).
 
 -export([start_link/1,
-	 init/1,
-	 set/2,
-	 get/1,
-	 code_change/3,
-	 handle_call/3,
-	 handle_cast/2,
-	 handle_info/2,
-	 terminate/2]).
+         set/2,
+         get/1]).
+
+-export(init/1,
+        code_change/3,
+        handle_call/3,
+        handle_cast/2,
+        handle_info/2,
+        terminate/2]).
 
 start_link(Path) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []),
     case file:consult(Path) of
-	{ok, Configs} ->
-	    lists:foreach(fun({Key, Value}) ->
-				  config:set(Key, Value)
-			  end,
-			  Configs),
-	    ok;
-	_ ->
-	    {error, parsing_error}
+        {ok, Configs} ->
+            lists:foreach(fun({Key, Value}) ->
+                                  config:set(Key, Value)
+                          end,
+                          Configs),
+            ok;
+        _ ->
+            {error, parsing_error}
     end.
 
 get(Key) ->
@@ -54,11 +55,11 @@ init([]) ->
 
 handle_call({get, Key}, _From, {DB}) ->
     Reply = case ets:lookup(DB, Key) of
-		[{Key, Value}] ->
-		    Value;
-		_ ->
-		    undefined
-	    end,
+                [{Key, Value}] ->
+                    Value;
+                _ ->
+                    undefined
+            end,
     {reply, Reply, {DB}}.
 
 handle_cast({set, {Key, Value}}, {DB}) ->
