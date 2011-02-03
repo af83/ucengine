@@ -25,12 +25,12 @@
          set/2,
          get/1]).
 
--export(init/1,
-        code_change/3,
-        handle_call/3,
-        handle_cast/2,
-        handle_info/2,
-        terminate/2]).
+-export([init/1,
+         code_change/3,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         terminate/2]).
 
 start_link(Path) ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []),
