@@ -36,27 +36,26 @@ setup_meetings() ->
 
 setup_users() ->
     uce_user:add(#uce_user{uid="participant.user@af83.com",
-			   auth="password",
-			   credential="pwd"}),
+                           auth="password",
+                           credential="pwd"}),
     uce_acl:add(#uce_acl{uid="participant.user@af83.com",
-			 action="add",
-			 object="presence"}),
+                         action="add",
+                         object="presence"}),
     uce_acl:add(#uce_acl{uid="participant.user@af83.com",
-			 action="delete",
-			 object="presence",
-			 conditions=[{"user", "participant.user@af83.com"}]}),
+                         action="delete",
+                         object="presence",
+                         conditions=[{"user", "participant.user@af83.com"}]}),
 
     uce_user:add(#uce_user{uid="anonymous.user@af83.com", auth="anonymous", credential=""}),
     uce_acl:add(#uce_acl{uid="anonymous.user@af83.com",
-			 action="add",
-			 object="presence"}),
+                         action="add",
+                         object="presence"}),
     uce_acl:add(#uce_acl{uid="anonymous.user@af83.com",
-			 action="delete",
-			 object="presence",
-			 conditions=[{"user", "anonymous.user@af83.com"}]}),
+                         action="delete",
+                         object="presence",
+                         conditions=[{"user", "anonymous.user@af83.com"}]}),
 
     uce_user:add(#uce_user{uid="token.user@af83.com", auth="token", credential="4444"}),
-
     ok.
 
 setup_testers() ->
@@ -75,8 +74,8 @@ setup_testers() ->
                                            auth="password",
                                            credential="pwd"}),
     {ok, UglySid} = uce_presence:add(#uce_presence{uid=UglyUid,
-						   auth="password",
-						   metadata=[]}),
+                                                   auth="password",
+                                                   metadata=[]}),
     [{RootUid, RootSid}, {UglyUid, UglySid}].
 
 teardown_solr() ->
