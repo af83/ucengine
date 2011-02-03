@@ -43,6 +43,7 @@ Factories.newChatEvent = function(from, text) {
     return {
         type: "chat.message.new",
         from: from,
+        datetime: 42424242424242,
         metadata: {
             text: text,
             lang: 'fr'
@@ -66,8 +67,7 @@ test("create some elements", function() {
     ok($('#chat').hasClass("ui-chat"), "should have class ui-chat");
     ok($('#chat').hasClass("ui-widget"), "should have class ui-widget");
     equals($('#chat').children().size(), 2);
-    equals($("#chat .ui-chat-minus > div").children().size(), 7);
-    equals($("#chat .ui-chat-big > div").children().size(), 2);
+    equals($("#chat .ui-widget-content").children().size(), 2);
 });
 
 test("destroy delete all elements", function() {
@@ -78,17 +78,14 @@ test("destroy delete all elements", function() {
     equals($('#chat > *').size(), 0);
 });
 
-test("handle default minus mode", function() {
-    $('#chat').chat();
-    equals($("#chat .ui-chat-big").css('display'), 'none');
-    equals($("#chat .ui-chat-minus").css('display'), 'block');
-    equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'block');
+test("handle minus mode", function() {
+    $('#chat').chat().chat('reduce');
+    ok($('#chat').hasClass("ui-chat-reduced"), "should have class ui-chat-reduced");
 });
 
 test("toggle to big mode", function() {
     $('#chat').chat().chat("expand");
-    equals($("#chat .ui-chat-big").css('display'), 'block');
-    equals($("#chat .ui-chat-minus").css('display'), 'none');
+    ok($('#chat').hasClass("ui-chat-expanded"), "should have class ui-chat-expanded");
 });
 
 jackTest("add hashtag", function() {
@@ -98,13 +95,13 @@ jackTest("add hashtag", function() {
         .mock(function(eventname, metadata) {
             equals(eventname, "twitter.hashtag.add");
             equals(metadata.hashtag, "#pouet");
-            equals($('#chat').find('.column input[name="new-hashtag"]').val(), "");
+            equals($('#chat').find('form.ui-chat-hashtag-form input[type="text"]').val(), "");
         });
     $('#chat').chat({
         ucemeeting: ucemeeting
     });
-    $('#chat').find('.column input[name="new-hashtag"]').val("pouet");
-    $('#chat').find('.column form').submit();
+    $('#chat').find('form.ui-chat-hashtag-form input[type="text"]').val("pouet");
+    $('#chat').find('form.ui-chat-hashtag-form').submit();
 });
 
 module("uce.chat", {
@@ -138,30 +135,26 @@ module("uce.chat", {
 
 test("handle new hash event", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    // minus mode
-    equals($("#chat .ui-chat-minus .block-content.hashtags ul").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#chuck (0)');
-    // big mode
-    equals($("#chat .ui-chat-big .block.tweets dl").children().size(), 1);
-    equals($("#chat .ui-chat-big .block.tweets dl dt:eq(0)").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems").children().size(), 1);
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:last").text(), '#chuck (0)');
 });
 
 test("handle duplicate hashtag", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    equals($("#chat .ui-chat-minus .block-content.hashtags").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems").children().size(), 1);
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:last").text(), '#chuck (0)');
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    equals($("#chat .ui-chat-minus .block-content.hashtags").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#chuck (0)');
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems").children().size(), 1);
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:last").text(), '#chuck (0)');
 });
 
 test("sort hashtag by alphabetical order", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#atomic'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#TED'}));
-    equals($("#chat .ui-chat-minus .block-content.hashtags ul").children().size(), 3);
-    equals($("#chat .ui-chat-minus .block-content.hashtags li:eq(0)").text(), '#atomic (0)');
-    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#ted (0)');
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems").children().size(), 3);
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:eq(0)").text(), '#atomic (0)');
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:last").text(), '#ted (0)');
 });
 
 test("handle tweets events", function() {
@@ -170,36 +163,21 @@ test("handle tweets events", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck,#norris'}));
 
-    equal($("#chat .ui-chat-minus .block-content.hashtags li:eq(0)").css('display'), 'list-item', 'show nb total of tweets');
-    equals($("#chat .ui-chat-minus .block-content.hashtags li:eq(0)").text(), '#chuck (2)');
-    equals($("#chat .ui-chat-minus .block-content.hashtags li:last").text(), '#norris (1)');
-    // big mode
-    equals($("#chat .ui-chat-big .block.tweets dl dt:eq(0)").text(), '#chuck (2)');
-    equals($("#chat .ui-chat-big .block.tweets dl dt:last").text(), '#norris (1)');
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:eq(0)").text(), '#chuck (2)');
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:last").text(), '#norris (1)');
 });
 
-test("can show all tweets in reduced mode", function() {
+test("can show all tweets", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#norris'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .ui-chat-minus-header.tweets h3").click();
-    equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'none');
-    equals($("#chat .ui-chat-minus .block-content[name='hashtag:all']").css('display'), 'block');
-    equals($("#chat .ui-chat-minus .block-content[name='hashtag:all'] .ui-chat-title").text(), 'All tweets');
-    equals($("#chat .ui-chat-minus .block-content[name='hashtag:all'] ul").children().size(), 2);
-});
-
-test("can show all tweets in expanded mode", function() {
-    this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#norris'}));
-    this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
-
-    $("#chat").chat("expand");
-    $("#chat .ui-chat-big .block.tweets .block-header h3").click();
-    equals($("#chat .ui-chat-big .block.msg .block-content[name='hashtag:all']").children().size(), 1);
+    $("#chat .ui-chat-selector-hashtags.ui-chat-selector-all").click();
+    equals($("#chat .ui-chat-container[name='hashtag:all']").children().size(), 2);
+    ok(!$('#chat .ui-chat-container[name="hashtag:all"]').hasClass("ui-chat-current"), "should have class ui-chat-current");
+    equals($("#chat .ui-chat-container[name='hashtag:all'] .ui-chat-list li:eq(0) .ui-chat-message-text")
+           .text(), "plop");
 });
 
 test("can show hastag tweet and go back", function() {
@@ -208,39 +186,19 @@ test("can show hastag tweet and go back", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
-    $("#chat .ui-chat-minus .block-content.hashtags ul li:eq(0)").click();
-    equals($("#chat .ui-chat-minus .ui-chat-title").text(), '#chuck');
-    equals($("#chat .ui-chat-minus .block-content[name='hashtag:#chuck'] ul").children().size(), 1);
+    $("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:eq(0)").click();
+    ok($('#chat .ui-chat-container[name="hashtag:#chuck"]').hasClass("ui-chat-current"), 
+       "should have class ui-chat-current");
 
-    $('#chat .ui-chat-minus .block-content[name="hashtag:#chuck"] .ui-chat-back').click();
-    equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'block');
-});
+    ok(!$('#chat .ui-chat-container[name="hashtag:#norris"]').hasClass("ui-chat-current"),
+       "should not have class ui-chat-current");
 
-test("automatic update tweets in minus mode", function() {
-    this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#norris'}));
-    this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
+    equals($('#chat .ui-chat-container[name="hashtag:#chuck"] .ui-chat-list').children().size(), 1);
 
-    $("#chat .ui-chat-minus .block-content.hashtags ul li:eq(0)").click();
-    equals($("#chat .ui-chat-minus .ui-chat-title").text(), '#chuck');
-    equals($("#chat .ui-chat-minus .block-content[name='hashtag:#chuck'] ul").children().size(), 1);
+    $('#chat .ui-chat-container .ui-chat-container-back').click();
 
-    this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    equals($("#chat .ui-chat-minus .block-content[name='hashtag:#chuck'] ul").children().size(), 2);
-});
-
-test("automatic update tweets in big mode", function() {
-    this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
-    this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#norris'}));
-    this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
-    
-    $("#chat").chat("toggleMode", "big");
-    $("#chat .ui-chat-big .block.tweets dl dt:eq(0)").click();
-    equals($("#chat .ui-chat-big .block-content[name='hashtag:#chuck'] ul").children().size(), 1);
-    this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
-    equals($("#chat .ui-chat-big .block-content[name='hashtag:#chuck'] ul").children().size(), 2);
+    ok(!$('#chat .ui-chat-container[name="hashtag:#chuck"]').hasClass("ui-chat-current"),
+       "should not have class ui-chat-current");
 });
 
 test("clear chat", function() {
@@ -248,98 +206,73 @@ test("clear chat", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));
 
     $('#chat').chat('clear');
-    equals($("#chat .ui-chat-minus .block.tweets .block-content ul").children().size(), 0);
-    equals($("#chat .ui-chat-big .block.tweets dl").children().size(), 0);
+    equals($("#chat .ui-chat-containers").children().size(), 0);
+    equals($("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems").children().size(), 0);
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 0);
 });
 
 test("handle join", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
-    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
-    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
 });
 
 test("handle duplicate participant", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
-    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
-    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
 });
 
 test("handle leave", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
-    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
-    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
 
     this.callback_roster_delete(Factories.deleteRosterEvent('chuck'));
-    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 0);
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 0);
 });
 
 test("test messages", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
-    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
-    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
-
-    $("#chat .ui-chat-big .block.chat dl dt:eq(0)").click();
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
-    equals($("#chat .ui-chat-big .block-content[name='chat:fr'] ul").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 1);
+
+    equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list')
+           .children().size(), 1);
+    equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list li:eq(0) .ui-chat-message-from')
+           .text(), "chuck");
+    equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list li:eq(0) .ui-chat-message-text')
+           .text(), "hello");
 });
 
 test("test message notification", function() {
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
-    equals($("#chat-dock .ui-chat-dock-notification").text(), "1");
-});
-
-test("test automatic update messages", function() {
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
-    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
-    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
-
-    $("#chat .ui-chat-big .block.chat dl dt:eq(0)").click();
-
-    this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
-    equals($("#chat .ui-chat-big .block-content[name='chat:fr'] ul").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 1);
-
-    this.callback_chat(Factories.newChatEvent('chuck', 'hello2'));
-    equals($("#chat .ui-chat-big .block-content[name='chat:fr'] ul").children().size(), 2);
-    equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 2);
+    equals($("#chat-dock .ui-widget-dock-notification").text(), "1");
 });
 
 test("test translation", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
-    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
-    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
-
-    $("#chat .ui-chat-big .block.chat dl dt:eq(0)").click();
     this.callback_translation(Factories.newTranslationEvent('chuck', 'hello', 'en'));
-    equals($("#chat .ui-chat-big .block-content[name='chat:en'] ul").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block-content[name='chat:en'] ul").children().size(), 1);
-});
-
-test("test automatic update translations", function() {
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
-    equals($("#chat .ui-chat-big .block.chat dl").children().size(), 1);
-    equals($("#chat .ui-chat-big .block.chat dl dt:eq(0)").text(), 'chuck');
-
-    $("#chat .ui-chat-big .block.chat dl dt:eq(0)").click();
-    this.callback_translation(Factories.newTranslationEvent('chuck', 'hello', 'en'));
-    equals($("#chat .ui-chat-big .block-content[name='chat:en'] ul").children().size(), 1);
-    equals($("#chat .ui-chat-minus .block-content[name='chat:en'] ul").children().size(), 1);
-
-    this.callback_translation(Factories.newTranslationEvent('chuck', 'hello2', 'en'));
-    equals($("#chat .ui-chat-big .block-content[name='chat:en'] ul").children().size(), 2);
-    equals($("#chat .ui-chat-minus .block-content[name='chat:en'] ul").children().size(), 2);
+    equals($('#chat .ui-chat-container[name="conversation:all:en"] .ui-chat-list')
+           .children().size(), 1);
+    equals($('#chat .ui-chat-container[name="conversation:all:en"] .ui-chat-list li:eq(0) .ui-chat-message-from')
+           .text(), "chuck");
+    equals($('#chat .ui-chat-container[name="conversation:all:en"] .ui-chat-list li:eq(0) .ui-chat-message-text')
+           .text(), "hello");
 });
 
 test("can show chatroom and go back", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
 
-    $("#chat .ui-chat-minus .ui-chat-minus-header.chat h3").click();
-    equals($("#chat .ui-chat-minus .ui-chat-title").text(), 'Chatroom (fr)');
-    equals($("#chat .ui-chat-minus .block-content[name='chat:fr'] ul").children().size(), 1);
+    $("#chat .ui-chat-selector-conversations.ui-chat-selector-all li:eq(0)").click();
+    ok($('#chat .ui-chat-container[name="conversation:all:fr"]').hasClass("ui-chat-current"), 
+       "should have class ui-chat-current");
 
-    $('#chat .ui-chat-minus .block-content[name="chat:fr"] .ui-chat-back').click();
-    equals($("#chat .ui-chat-minus .block-content[name='main']").css('display'), 'block');
+    equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list').children().size(), 1);
+
+    $('#chat .ui-chat-container .ui-chat-container-back').click();
+
+    ok(!$('#chat .ui-chat-container[name="conversation:all:fr"]').hasClass("ui-chat-current"), 
+       "should not have class ui-chat-current");
 });
