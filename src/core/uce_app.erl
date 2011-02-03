@@ -20,20 +20,24 @@
 
 -behaviour(application).
 
--export([start/0, start/2, stop/1]).
+-export([start/0]).
+
+%% application callback
+-export([start/2, stop/1]).
 
 -include("uce.hrl").
 -include_lib("yaws/include/yaws.hrl").
 
 start() ->
+    application:start(uce).
+
+start(_, _) ->
     application:start(crypto),
     mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
     application:start(inets),
     ibrowse:start(),
-    application:start(uce).
 
-start(_, _) ->
     Arguments = init:get_arguments(),
     [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),
     case catch config:start_link(ConfigurationPath) of
