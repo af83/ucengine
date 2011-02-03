@@ -83,8 +83,6 @@ extract(Arg, State) ->
             case Arg#arg.headers#headers.content_type of
                 "multipart/form-data;"++ _Boundary ->
                     case yaws_api:parse_multipart_post(Arg) of
-                        [] ->
-                            {error, unexpected_error};
                         {cont, Cont, Res} ->
                             case add_file_chunk(Arg, Res, State) of
                                 {done, Result} ->
