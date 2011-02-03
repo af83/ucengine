@@ -648,3 +648,7 @@ section > .ui-widget {
     border-radius: 0;
     -webkit-border-radius: 0;-moz-border-radius: 0;-o-border-radius: 0;
 }
+
+.ui-results-list-element, .ui-search-elem-title {
+    cursor: pointer;
+}
