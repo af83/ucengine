@@ -24,8 +24,8 @@
 
 start() ->
     uce_infos:update([{"description", "U.C.Engine is a publish/subscribe server with persistence. It allows you to build real time applications like collaboration based services, live meetings, games or anything that fits well in an event driven philosophy."},
-                      {"logo", "af83.png"},
-                      {"htags", "af83"}]),
+                      {"logo", "ucengine.png"},
+                      {"htags", "ucengine"}]),
 
     uce_meeting:add(#uce_meeting{id=["demo"],
                                  metadata=[{"description", "U.C.Engine demo meetup"}],
