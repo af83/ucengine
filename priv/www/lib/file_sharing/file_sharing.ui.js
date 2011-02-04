@@ -292,6 +292,9 @@ $.uce.widget("filesharing", {
     },
 
     _handleShareGotoEvent: function(event) {
+        if (!this._shared) {
+            return;
+        }
         if (this._shared.master != event.from) {
             return;
         }
@@ -300,6 +303,9 @@ $.uce.widget("filesharing", {
     },
 
     _handleShareStopEvent: function(event) {
+        if (!this._shared) {
+            return;
+        }
         if (this._shared.master != event.from) {
             return;
         }
