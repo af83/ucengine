@@ -30,12 +30,12 @@ export ERL_LIBS=deps:/usr/lib/yaws/
 
 run()
 {
-    $ERL $NAME $NODE $ERL_ARGS $ERL_COMMANDS -- "$@"
+    $ERL $NAME $NODE $ERL_ARGS $ERL_COMMANDS -eval 'spawn(presence_controller:clean())' -- "$@"
 }
 
 start()
 {
-    $ERL $NAME $NODE $ERL_ARGS -detached $ERL_COMMANDS -- "$@"
+    $ERL $NAME $NODE $ERL_ARGS -detached $ERL_COMMANDS -eval 'spawn(presence_controller:clean())' -- "$@"
     echo Started
 }
 

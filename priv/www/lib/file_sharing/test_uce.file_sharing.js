@@ -123,6 +123,31 @@ test("view preview", function() {
     equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'block');
 });
 
+jackTest("handle roster delete event", function() {
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
+    var events =
+        [Factories.createFileEvent({eventId: "id_upload_event"}),
+         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
+                                                                                 "page_2.jpg"]}),
+         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"}),
+         Factories.createFileEvent({id: "page_2.jpg", name: "page_2.jpg", from: "document"})];
+
+    $('#files_shared').file_sharing({ucemeeting: ucemeeting});
+
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("1 time")
+        .returnValue('toto');
+
+    $(events).each(function(index, event) {
+           $('#files_shared').file_sharing('triggerUceEvent', event);
+    });
+
+    $('#files_shared').file_sharing('triggerUceEvent', Factories.createDocumentShareStartEvent({id : 'norris.pdf'}));
+    $('#files_shared').file_sharing('triggerUceEvent', Factories.createRosterDeleteEvent({id : 'chuck_in_roster_deletion'}));
+    equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'block');
+    equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
+});
+
 jackTest("handle new document share start", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =

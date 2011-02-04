@@ -33,7 +33,6 @@ var Factories = {
             metadata: metadata
         };
     },
-
     createDocumentShareStartEvent: function(params) {
         var from = params['from'] || "chuck";
         return {
@@ -58,6 +57,16 @@ var Factories = {
         var from = params['from'] || "chuck";
         return {
             type: "document.share.stop",
+            from: from,
+            metadata: {
+                id: params.id
+            }
+        };
+    },
+    createRosterDeleteEvent: function(params) {
+        var from = params['from'] || "chuck";
+        return {
+            type: "internal.roster.delete",
             from: from,
             metadata: {
                 id: params.id

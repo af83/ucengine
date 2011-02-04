@@ -19,7 +19,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, delete/1, update/1, exists/1]).
+-export([add/1, get/1, delete/1, update/1, exists/1, all/0, joinMeeting/2, leaveMeeting/2]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
@@ -33,6 +33,9 @@ add(#uce_presence{}=Presence) ->
 
 get(Sid) ->
     ?DB_MODULE:get(Sid).
+
+all() ->
+    ?DB_MODULE:all().
 
 delete(Sid) ->
     case ?MODULE:exists(Sid) of
@@ -57,3 +60,22 @@ exists(Sid) ->
 	{ok, _} ->
 	    true
     end.
+
+joinMeeting(Sid, Meeting) ->
+    {ok, Record} = ?DB_MODULE:get(Sid),
+    Meetings = Record#uce_presence.meetings ++ [Meeting],
+    ?DB_MODULE:update(Record#uce_presence{meetings=Meetings}).
+
+leaveMeeting(Sid, Meeting) ->
+    {ok, Record} = ?DB_MODULE:get(Sid),
+    Meetings = del_entry(Record#uce_presence.meetings, Meeting),
+    ?DB_MODULE:update(Record#uce_presence{meetings=Meetings}).
+
+del_entry([Entry], Entry) ->
+    [];
+del_entry([Entry, Tl], Entry) ->
+    Tl;
+del_entry([Hd, Tl], Entry) ->
+    [Hd] ++ del_entry(Tl, Entry);
+del_entry([], _Entry) ->
+    []. 

@@ -27,7 +27,8 @@
 	 list/1,
 	 get/1,
 	 delete/1,
-	 update/1]).
+	 update/1,
+         all/0]).
 
 -include("uce.hrl").
 
@@ -63,6 +64,9 @@ list(EUid) ->
 	{aborted, Reason} ->
 	    {error, Reason}
     end.
+
+all() ->
+    {ok, ets:tab2list(uce_presence)}.
 
 get(ESid) ->
     case mnesia:transaction(fun() ->
