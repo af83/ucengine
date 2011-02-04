@@ -107,6 +107,7 @@ check(_, [Uid, Sid], _) ->
 	{ok, Presence} ->
 	    case Presence#uce_presence.uid of
 		Uid ->
+                    uce_presence:update(Presence#uce_presence{last_activity=utils:now()}),
 		    {ok, continue};
 		_ ->
 		    {error, unauthorized}
