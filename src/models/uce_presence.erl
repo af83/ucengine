@@ -63,8 +63,12 @@ exists(Sid) ->
 
 joinMeeting(Sid, Meeting) ->
     {ok, Record} = ?DB_MODULE:get(Sid),
-    Meetings = Record#uce_presence.meetings ++ [Meeting],
-    ?DB_MODULE:update(Record#uce_presence{meetings=Meetings}).
+    case lists:member(Meeting, Record#uce_presence.meetings) of
+        true -> {ok, updated};
+        _ ->
+            Meetings = Record#uce_presence.meetings ++ [Meeting],
+            ?DB_MODULE:update(Record#uce_presence{meetings=Meetings})
+    end.
 
 leaveMeeting(Sid, Meeting) ->
     {ok, Record} = ?DB_MODULE:get(Sid),
