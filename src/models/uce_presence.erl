@@ -77,9 +77,9 @@ leaveMeeting(Sid, Meeting) ->
 
 del_entry([Entry], Entry) ->
     [];
-del_entry([Entry, Tl], Entry) ->
+del_entry([Entry | Tl], Entry) ->
     Tl;
-del_entry([Hd, Tl], Entry) ->
+del_entry([Hd | Tl], Entry) ->
     [Hd] ++ del_entry(Tl, Entry);
 del_entry([], _Entry) ->
     []. 
