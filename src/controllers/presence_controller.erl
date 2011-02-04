@@ -107,7 +107,7 @@ check(_, [Uid, Sid], _) ->
 	{ok, Presence} ->
 	    case Presence#uce_presence.uid of
 		Uid ->
-                    uce_presence:update(Presence#uce_presence{last_activity=utils:now()}),
+            uce_presence:update(Presence#uce_presence{last_activity=utils:now()}),
 		    {ok, continue};
 		_ ->
 		    {error, unauthorized}
@@ -116,7 +116,12 @@ check(_, [Uid, Sid], _) ->
 
 clean() ->
     ?MODULE:timeout(),
-    timer:sleep(?DEFAULT_TIME_INTERVAL),
+    case config:get(presence_timeout) of
+        Value when is_integer(Value) ->
+            timer:sleep(Value * 1000);
+        _ ->
+            timer:sleep(?DEFAULT_TIME_INTERVAL)
+    end,
     ?MODULE:clean().
 
 timeout() ->
@@ -133,8 +138,12 @@ delete_expired_presence([#uce_presence{sid=Sid, uid=Uid, last_activity=Last, aut
     Now = utils:now(),
     if
         Now >= Timeout , Auth == "password", Uid /= "root" ->
-            [ event_controller:add([Meeting], [Uid, "internal.roster.delete", [], [], []], []) || Meeting <- Meetings ],
-            event_controller:add([], [Uid, ?PRESENCE_EXPIRED_EVENT, [], [], []], []),
+            [ uce_event:add(#uce_event{ location=[Meeting],
+                                        type="internal.roster.delete",
+                                        from=Uid}) || Meeting <- Meetings ],
+            uce_event:add(#uce_event{ location=[""],
+                                      type="internal.presence.delete",
+                                      from=Uid}),
             uce_presence:delete(Sid);
         true ->
             nothing
