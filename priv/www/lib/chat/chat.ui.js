@@ -125,6 +125,7 @@ $.uce.widget("chat", {
                     text: false,
                     icons: {primary: "ui-icon-comment"}
                 }).click(function() {
+                    that.element.effect('bounce');
                     $(window).scrollTop(that.element.offset().top);
                     return false;
                 });
