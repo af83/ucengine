@@ -447,6 +447,14 @@ footer p {
     text-align: center;
 }
 
+#about h1 {
+    font: normal 24px Helvetica;
+}
+
+#about p {
+    margin: 1em;
+}
+
 /* meeting */
 #meeting section {
     clear: none;
