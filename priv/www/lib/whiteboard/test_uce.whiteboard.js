@@ -45,7 +45,7 @@ function emptyCanvas() {
     return canvas;
 }
 
-jackTest("when performing action, send event to ucengin", function() {
+jackTest("when performing action, send event to ucengine", function() {
     expect(9);
     var ucemeeting = jack.create("ucemeeting", ['push', 'bind']);
     jack.expect("ucemeeting.push")
@@ -62,7 +62,9 @@ jackTest("when performing action, send event to ucengin", function() {
                emptyCanvas().toDataURL("image/png"), "should be a empty canvas");
         });
     $('#whiteboard').whiteboard({
-        ucemeeting : ucemeeting
+        ucemeeting : ucemeeting,
+        width : 300,
+        height: 240
     });
     $('#whiteboard canvas').triggerSyn("mousedown", {});
     $('#whiteboard canvas').triggerSyn("mousemove", {});
@@ -83,7 +85,7 @@ jackTest("on clear, send special event to ucengine", function() {
 
 test("handle draw/clear events", function() {
     expect(3);
-    $('#whiteboard').whiteboard();
+    $('#whiteboard').whiteboard({width: 300, height: 240});
     ok(($('#whiteboard canvas').get(0).toDataURL("image/png") ==
         emptyCanvas().toDataURL("image/png")), "should be a empty canvas");
     $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard.shape.draw",
@@ -101,7 +103,7 @@ test("handle draw/clear events", function() {
 });
 
 test("clear method", function() {
-    $('#whiteboard').whiteboard();
+    $('#whiteboard').whiteboard({width: 300, height: 240});
 
     $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard.shape.draw",
 						    metadata: {'tool': 'pencil',

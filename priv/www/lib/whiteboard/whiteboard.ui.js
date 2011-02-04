@@ -179,7 +179,7 @@ $.uce.widget("whiteboard", {
         Whiteboard.init(canvasId);
 
         if (!this.options.width && !this.options.height) {
-            this.options.width = this.canvas.width();
+            this.options.width = this.element.width();
         }
         if (!this.options.width && this.options.height) {
             this.options.width = this.options.height / this.options.ratio;
@@ -262,7 +262,8 @@ $.uce.widget("whiteboard", {
     },
 
     _resize: function() {
-        var width = this.canvas.width();
+        var width = this.element.width();
+        console.log(width);
         this.canvas.css('height', width * this.options.ratio);
     },
 
