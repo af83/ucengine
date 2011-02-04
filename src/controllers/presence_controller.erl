@@ -115,7 +115,12 @@ check(_, [Uid, Sid], _) ->
 
 clean() ->
     ?MODULE:timeout(),
-    timer:sleep(?DEFAULT_TIME_INTERVAL),
+    case config:get(presence_timeout) of
+        Value when is_integer(Value) ->
+            timer:sleep(Value * 1000);
+        _ ->
+            timer:sleep(?DEFAULT_TIME_INTERVAL)
+    end,
     ?MODULE:clean().
 
 timeout() ->
