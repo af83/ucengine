@@ -60,6 +60,7 @@ $.uce.widget("video", {
                     text: false,
                     icons: {primary: "ui-icon-person"}
                 }).click(function() {
+                    that.element.effect('bounce');
                     $(window).scrollTop(that.element.offset().top);
                     return false;
                 });

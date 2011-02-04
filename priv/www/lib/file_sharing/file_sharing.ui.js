@@ -134,6 +134,7 @@ $.uce.widget("filesharing", {
                     text: false,
                     icons: {primary: "ui-icon-document"}
                 }).click(function() {
+                    that.element.effect('bounce');
                     $(window).scrollTop(that.element.offset().top);
                     return false;
                 });

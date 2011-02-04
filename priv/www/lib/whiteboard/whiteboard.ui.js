@@ -32,6 +32,7 @@ $.uce.widget("whiteboard", {
                     text: false,
                     icons: {primary: "ui-icon-image"}
                 }).click(function() {
+                    that.element.effect('bounce');
                     $(window).scrollTop(that.element.offset().top);
                     return false;
                 });
