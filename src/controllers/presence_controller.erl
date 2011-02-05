@@ -31,7 +31,7 @@ init() ->
 			    [required, []],
 			    [string, dictionary],
 			    [any, any]}]},
-     
+
      #uce_route{module="Presence",
 		method='DELETE',
 		regexp="/presence/([^/]+)/([^/]+)",
@@ -81,9 +81,9 @@ delete([ToUid, ToSid], [Uid], _) ->
     case uce_acl:check(Uid, "presence", "delete", [""], [{"user", ToUid}]) of
 	{ok, true} ->
 	    F = fun(M) ->
-                   uce_event:add(#uce_event{from=ToUid, type="internal.roster.delete", location=[M]}), 
+                   uce_event:add(#uce_event{from=ToUid, type="internal.roster.delete", location=[M]}),
 		   uce_meeting:leave([M], ToUid)
-	        end, 
+	        end,
             case uce_presence:get(ToSid) of
                 {ok, Presence} ->
 	             [ F(Meeting) || Meeting <- Presence#uce_presence.meetings ];
@@ -139,7 +139,7 @@ delete_expired_presence([#uce_presence{sid=Sid, uid=Uid, last_activity=Last, aut
     if
         Now >= Timeout , Auth == "password", Uid /= "root" ->
             F = fun(M) ->
-                   uce_event:add(#uce_event{from=Uid, type="internal.roster.delete", location=[M]}), 
+                   uce_event:add(#uce_event{from=Uid, type="internal.roster.delete", location=[M]}),
                    uce_meeting:leave([M], Uid)
                 end,
             [ F(Meeting) || Meeting <- Meetings ],
