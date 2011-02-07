@@ -64,7 +64,7 @@ delete(Domain, EUid, Object, Action, Location, Conditions) ->
 	    end
     end.
 	
-list(_Domain, EUid, Object, Action) ->
+list(Domain, EUid, Object, Action) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_acl{uid=EUid,
 								 object=Object,
@@ -80,14 +80,14 @@ list(_Domain, EUid, Object, Action) ->
 		    "all" ->
 			{ok, []};
 		    _ ->
-			?MODULE:list(EUid, "all", Object)
+			?MODULE:list(Domain, EUid, "all", Object)
 		end,
 	    {ok, AllObjects} =
 		case Object of
 		    "all" ->
 			{ok, []};
 		    _ ->
-			?MODULE:list(EUid, Action, "all")
+			?MODULE:list(Domain, EUid, Action, "all")
 		end,
 	    {ok, ACL ++ AllActions ++ AllObjects}
     end.

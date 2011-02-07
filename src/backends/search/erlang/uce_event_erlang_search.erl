@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1, list/7]).
+-export([add/2, list/8]).
 
 -include("uce.hrl").
 
@@ -27,7 +27,7 @@
 			      list_to_atom("uce_event_" ++ atom_to_list(config:get(db)))
 		      end())).
 
-add(_) ->
+add(_Domain, _) ->
     {ok, created}.
 
 search_value(_, []) ->
@@ -54,8 +54,8 @@ search(Events, Words) ->
 		 end,
 		 Events).
 
-list(Location, Search, From, Type, Start, End, Parent) ->
-    case ?EVENT_DBMOD:list(Location, From, Type, Start, End, Parent) of
+list(Domain, Location, Search, From, Type, Start, End, Parent) ->
+    case ?EVENT_DBMOD:list(Domain, Location, From, Type, Start, End, Parent) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, Events} ->

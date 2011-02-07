@@ -30,7 +30,7 @@ add(Domain, #uce_event{id=none}=Event) ->
 add(Domain, #uce_event{datetime=none}=Event) ->
     ?MODULE:add(Domain, Event#uce_event{datetime=utils:now()});
 add(Domain, #uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
-    case location_helpers:exists(Location) of
+    case location_helpers:exists(Domain, Location) of
 	false ->
 	    {error, not_found};
 	true ->
@@ -38,17 +38,17 @@ add(Domain, #uce_event{location=Location, type=Type, id=Id, from=From} = Event) 
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, created} ->
-		    ?PUBSUB_MODULE:publish(Domain, Location, Type, From, Id),
-		    ?SEARCH_MODULE:add(Domain, Event),
-		    case catch triggers:run(Domain, Location, Type, Event) of
-			{error, Reason} ->
-			    ?DEBUG("Error : ~p~n", [{error, Reason}]);
-			{'EXIT', Reason} ->
-			    ?DEBUG("Error : ~p~n", [{error, Reason}]);
-			_ ->
-			    nothing
-		    end,
-		    {ok, Id}
+                ?PUBSUB_MODULE:publish(Domain, Location, Type, From, Id),
+                ?SEARCH_MODULE:add(Domain, Event),
+                case catch triggers:run(Location, Type, Event) of
+                    {error, Reason} ->
+                        ?DEBUG("Error : ~p~n", [{error, Reason}]);
+                    {'EXIT', Reason} ->
+                        ?DEBUG("Error : ~p~n", [{error, Reason}]);
+                    _ ->
+                        nothing
+                end,
+                {ok, Id}
 	    end
     end.
 

@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([sort/1, sort/2, to_json/1, to_xml/1, from_json/1, feed/1, feed/2]).
+-export([sort/1, sort/2, to_json/1, to_xml/1, from_json/1, feed/2, feed/3]).
 
 sort(Events) ->
     ?MODULE:sort(Events, asc).
@@ -116,9 +116,9 @@ from_json({struct, Event}) ->
 		       metadata=Metadata}
     end.
 
-feed(Path) ->
-    feed(Path, []).
-feed(Path, Params) ->
+feed(Domain, Path) ->
+    feed(Domain, Path, []).
+feed(Domain, Path, Params) ->
     case file:read_file(Path) of
 	{error, Reason} ->
 	    {error, Reason};
@@ -141,7 +141,7 @@ feed(Path, Params) ->
                                             , type=Type
                                             };
 					   [Offset] ->
-					       case uce_meeting:get(Location) of
+					       case uce_meeting:get(Domain, Location) of
 						   {error, Reason} ->
 						       throw([Reason, Location]);
 						   {ok, Meeting} ->
@@ -157,7 +157,7 @@ feed(Path, Params) ->
 				       end
 			       end,
 			       JSONEvents),
-	    [ uce_event:add(Event) || Event <- Events ],
+	    [ uce_event:add(Domain, Event) || Event <- Events ],
 	    ok
     end.
 

@@ -22,15 +22,15 @@
 -author('victor.goya@af83.com').
 
 -export([init/1,
-	 start_link/0,
-	 publish/4,
-	 subscribe/9,
-	 unsubscribe/1,
-	 handle_call/3,
-	 handle_cast/2,
-	 handle_info/2,
-	 code_change/3,
-	 terminate/2]).
+         start_link/0,
+         publish/5,
+         subscribe/10,
+         unsubscribe/1,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         code_change/3,
+         terminate/2]).
 
 -include("uce.hrl").
 
@@ -46,25 +46,25 @@ init([]) ->
 			 {attributes, record_info(fields, uce_mnesia_pubsub)}]),
     {ok, {}}.
 
-publish(Location, Type, From, Id) ->
+publish(Domain, Location, Type, From, Id) ->
     case Location of
 	[""] ->
-	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, Location, '_', From, Id});
+	    gen_server:call(?MODULE, {publish, Domain, Location, Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, Domain, Location, '_', From, Id});
 	[_] ->
-	    gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
-	    gen_server:call(?MODULE, {publish, [""], Type, From, Id}),
-	    gen_server:call(?MODULE, {publish, [""], '_', From, Id})
+	    gen_server:call(?MODULE, {publish, Domain, Location, Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, Domain, Location, '_', From, Id}),
+	    gen_server:call(?MODULE, {publish, Domain, [""], Type, From, Id}),
+	    gen_server:call(?MODULE, {publish, Domain, [""], '_', From, Id})
     end.
 
-subscribe(Pid, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
-    [gen_server:cast(?MODULE, {subscribe, Location, Uid, Search, Type, From, Pid}) || Type <- Types].
+subscribe(Domain, Pid, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
+    [gen_server:cast(?MODULE, {subscribe, Domain, Location, Uid, Search, Type, From, Pid}) || Type <- Types].
 
 unsubscribe(Pid) ->
     gen_server:cast(?MODULE, {unsubscribe, Pid}).
 
-get_subscribers(Location, Type, From) ->
+get_subscribers(_Domain, Location, Type, From) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_mnesia_pubsub{
 							   location=Location,
@@ -94,8 +94,8 @@ get_subscribers(Location, Type, From) ->
 			 Subscribers)
     end.
 
-handle_call({publish, Location, Type, From, Message}, _From, State) ->
-    Return = case get_subscribers(Location, Type, From) of
+handle_call({publish, Domain, Location, Type, From, Message}, _From, State) ->
+    Return = case get_subscribers(Domain, Location, Type, From) of
 		 {error, Reason} ->
 		     {error, Reason};
 		 Subscribers ->
@@ -105,7 +105,7 @@ handle_call({publish, Location, Type, From, Message}, _From, State) ->
 	     end,
     {reply, Return, State}.
 
-handle_cast({subscribe, Location, Uid, Search, Type, From, Pid}, State) ->
+handle_cast({subscribe, _Domain, Location, Uid, Search, Type, From, Pid}, State) ->
     mnesia:transaction(fun() ->
 			       mnesia:write(#uce_mnesia_pubsub{pid=Pid,
 							       location=Location,

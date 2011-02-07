@@ -23,60 +23,88 @@
 
 
 start() ->
-    uce_infos:update([{"description", "U.C.Engine is a publish/subscribe server with persistence. It allows you to build real time applications like collaboration based services, live meetings, games or anything that fits well in an event driven philosophy."},
+
+    Domain = config:get(default_domain),
+
+    uce_infos:update(Domain,
+                     [{"description", "U.C.Engine is a publish/subscribe server with persistence. It allows you to build real time applications like collaboration based services, live meetings, games or anything that fits well in an event driven philosophy."},
                       {"logo", "ucengine.png"},
                       {"htags", "ucengine"}]),
 
-    uce_meeting:add(#uce_meeting{id=["demo"],
-                                 metadata=[{"description", "U.C.Engine demo meetup"}],
-                                 start_date=utils:now(),
-                                 end_date=?NEVER_ENDING_MEETING}),
-    uce_event:add(#uce_event{type="twitter.hashtag.add",
-                             location=["demo"],
-                             from="ucengine",
-                             metadata=[{"hashtag", "#TED"}]}),
-    uce_event:add(#uce_event{type="twitter.hashtag.add",
-                             location=["demo"],
-                             from="ucengine",
-                             metadata=[{"hashtag", "#sinek"}]}),
-    uce_event:add(#uce_event{type="twitter.hashtag.add",
-                             location=["demo"],
-                             from="ucengine",
-                             metadata=[{"hashtag", "#simonsinek"}]}),
-    uce_event:add(#uce_event{type="twitter.hashtag.add",
-                             location=["demo"],
-                             from="ucengine",
-                             metadata=[{"hashtag", "#ucengine"}]}),
-    uce_event:add(#uce_event{type="twitter.hashtag.add",
-                             location=["demo"],
-                             from="ucengine",
-                             metadata=[{"hashtag", "#ucengine"}]}),
+    uce_meeting:add(Domain, #uce_meeting{id=["demo"],
+                                         metadata=[{"description", "U.C.Engine demo meetup"}],
+                                         start_date=utils:now(),
+                                         end_date=?NEVER_ENDING_MEETING}),
+    uce_event:add(Domain, #uce_event{type="twitter.hashtag.add",
+                                     location=["demo"],
+                                     from="ucengine",
+                                     metadata=[{"hashtag", "#TED"}]}),
+    uce_event:add(Domain, #uce_event{type="twitter.hashtag.add",
+                                     location=["demo"],
+                                     from="ucengine",
+                                     metadata=[{"hashtag", "#sinek"}]}),
+    uce_event:add(Domain, #uce_event{type="twitter.hashtag.add",
+                                     location=["demo"],
+                                     from="ucengine",
+                                     metadata=[{"hashtag", "#simonsinek"}]}),
+    uce_event:add(Domain, #uce_event{type="twitter.hashtag.add",
+                                     location=["demo"],
+                                     from="ucengine",
+                                     metadata=[{"hashtag", "#ucengine"}]}),
+    uce_event:add(Domain, #uce_event{type="twitter.hashtag.add",
+                                     location=["demo"],
+                                     from="ucengine",
+                                     metadata=[{"hashtag", "#ucengine"}]}),
 
-    uce_meeting:add(#uce_meeting{id=["demo2"],
-                                 metadata=[{"description", "Meeting R&D"},
-                                           {"video", "/test"}],
-                                 start_date=utils:now(),
-                                 end_date=?NEVER_ENDING_MEETING}),
-    uce_meeting:add(#uce_meeting{id=["agoroom"],
-                                 metadata=[{"description", "Meeting agoroom"},
-                                           {"video", "http://encre.2metz.fr/simonsinek_2009x"}],
-                                 start_date=1287738533649,
-                                 end_date=1287739733649}),
+    uce_meeting:add(Domain, #uce_meeting{id=["demo2"],
+                                         metadata=[{"description", "Meeting R&D"},
+                                                   {"video", "/test"}],
+                                         start_date=utils:now(),
+                                         end_date=?NEVER_ENDING_MEETING}),
+    uce_meeting:add(Domain, #uce_meeting{id=["agoroom"],
+                                         metadata=[{"description", "Meeting agoroom"},
+                                                   {"video", "http://encre.2metz.fr/simonsinek_2009x"}],
+                                         start_date=1287738533649,
+                                         end_date=1287739733649}),
+    
+    uce_user:add(config:get(default_domain),
+                 #uce_user{uid="thierry.bomandouki@af83.com",
+                           auth="password",
+                           credential="pwd",
+                           metadata=[]}),
+    uce_user:add(config:get(default_domain),
+                 #uce_user{uid="victor.goya@af83.com",
+                           auth="password",
+                           credential="pwd",
+                           metadata=[]}),
+    uce_user:add(config:get(default_domain),
+                 #uce_user{uid="louis.ameline@af83.com",
+                           auth="password",
+                           credential="pwd",
+                           metadata=[]}),
+    uce_user:add(config:get(default_domain),
+                 #uce_user{uid="alexandre.eisenchteter@af83.com",
+                           auth="password",
+                           credential="pwd",
+                           metadata=[]}),
+    uce_user:add(config:get(default_domain),
+                 #uce_user{uid="romain.gauthier@af83.com",
+                           auth="password",
+                           credential="pwd",
+                           metadata=[]}),
+    uce_user:add(config:get(default_domain),
+                 #uce_user{uid="participant",
+                           auth="password",
+                           credential="pwd",
+                           metadata=[]}),
 
-    user_controller:add(["thierry.bomandouki@af83.com"], ["password", "pwd", []], []),
-    user_controller:add(["victor.goya@af83.com"], ["password", "pwd", []], []),
-    user_controller:add(["louis.ameline@af83.com"], ["password", "pwd", []], []),
-    user_controller:add(["alexandre.eisenchteter@af83.com"], ["password", "pwd", []], []),
-    user_controller:add(["romain.gauthier@af83.com"], ["password", "pwd", []], []),
-    user_controller:add(["participant"], ["password", "pwd", []], []),
-
-    ok = feed(),
+    ok = feed(Domain),
 
     case utils:get(config:get(admin), [uid, auth]) of
         [Uid, Auth] ->
-            {ok, Sid} = uce_presence:add(#uce_presence{uid=Uid,
-                                                       auth=Auth,
-                                                       metadata=[]}),
+            {ok, Sid} = uce_presence:add(Domain, #uce_presence{uid=Uid,
+                                                               auth=Auth,
+                                                               metadata=[]}),
             io:format("Admin: ~p/~p~n", [Uid, Sid]);
         Reason ->
             io:format("No admin account (~p)~n", [Reason])
@@ -84,13 +112,13 @@ start() ->
     ok.
 
 
-feed([]) ->
+feed(_, []) ->
     ok;
-feed([Path|Paths]) ->
+feed(Domain, [Path|Paths]) ->
     ["config", "samples", Meeting, _File] = re:split(Path, "/", [{return, list}]),
-    event_helpers:feed(Path, [{"location", [Meeting]}]),
-    feed(Paths).
+    event_helpers:feed(Domain, Path, [{"location", [Meeting]}]),
+    feed(Domain, Paths).
 
-feed() ->
+feed(Domain) ->
     Paths = filelib:wildcard("config/samples/*/*.json"),
-    feed(Paths).
+    feed(Domain, Paths).

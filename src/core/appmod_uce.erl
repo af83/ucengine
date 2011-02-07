@@ -80,9 +80,9 @@ convert([RawParam|ParamTail], [Types|TypeTail]) ->
             end
     end.
 
-exists([], [], []) ->
+exists([], [], [], _) ->
     true;
-exists([Param|ParamTail], [Object|ObjectTail], [Default|DefaultTail]) ->
+exists([Param|ParamTail], [Object|ObjectTail], [Default|DefaultTail], Domain) ->
     Exists = case Param of
                  Default ->
                      true;
@@ -91,22 +91,22 @@ exists([Param|ParamTail], [Object|ObjectTail], [Default|DefaultTail]) ->
                          any ->
                              true;
                          user ->
-                             uce_user:exists(Param);
+                             uce_user:exists(Domain, Param);
                          presence ->
-                             uce_presence:exists(Param);
+                             uce_presence:exists(Domain, Param);
                          event ->
-                             uce_event:exists(Param)
+                             uce_event:exists(Domain, Param)
                      end
              end,
     case Exists of
         false ->
             false;
         true ->
-            exists(ParamTail, ObjectTail, DefaultTail)
+            exists(ParamTail, ObjectTail, DefaultTail, Domain)
     end.
 
 
-validate(Query, ParamsList, ParamsDefault, Types, Objects) ->
+validate(Query, ParamsList, ParamsDefault, Types, Objects, Domain) ->
     case utils:get(Query, ParamsList, ParamsDefault) of
         {error, Reason} ->
             {error, Reason};
@@ -119,7 +119,7 @@ validate(Query, ParamsList, ParamsDefault, Types, Objects) ->
                         {error, Reason} ->
                             {error, Reason};
                         Params ->
-                            case exists(Params, Objects, ParamsDefault) of
+                            case exists(Params, Objects, ParamsDefault, Domain) of
                                 true ->
                                     {ok, Params};
                                 false ->
@@ -132,7 +132,7 @@ validate(Query, ParamsList, ParamsDefault, Types, Objects) ->
 call_handlers([], _, _, _) ->
     {ok, noreply};
 call_handlers([{Module, Function, ParamsList, ParamsDefault, Types, Objects}|Tl], Query, Match, Arg) ->
-    case validate(Query, ParamsList, ParamsDefault, Types, Objects) of
+    case validate(Query, ParamsList, ParamsDefault, Types, Objects, utils:domain(Arg)) of
         {error, Reason} ->
             json_helpers:error(Reason);
         {ok, Params} ->

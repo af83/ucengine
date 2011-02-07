@@ -19,7 +19,7 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/1, list/7, delete/1]).
+-export([add/2, list/8, delete/2]).
 
 -include("uce.hrl").
 
@@ -29,7 +29,7 @@
 
 -define(META_PREFIX, "metadata_").
 
-add(Event) ->
+add(_Domain, Event) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, to_solrxml(Event)),
     {ok, created}.
@@ -82,11 +82,11 @@ params_to_query([{Key, Value}|Tail]) ->
                             " +" ++ params_to_query(Tail)
                     end.
 
-list(Location, Search, From, Type, Start, End, Parent) ->
+list(Domain, Location, Search, From, Type, Start, End, Parent) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
-    search(Host, Location, Search, From, Type, Start, End, Parent).
+    search(Domain, Host, Location, Search, From, Type, Start, End, Parent).
 
-search(Host, [Meeting], Search, From, Type, Start, End, _) ->
+search(_Domain, Host, [Meeting], Search, From, Type, Start, End, _) ->
     MeetingSelector =
         if
             Meeting /= '_' ->
@@ -211,7 +211,7 @@ make_list_json_events([{struct, Elems}|Tail]) ->
                         metadata=Metadata}] ++ make_list_json_events(Tail)
     end.
 
-delete(Id) ->
+delete(_Domain, Id) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, "<delete><query>"++ Id ++"</query></delete>"),
     {ok, deleted}.

@@ -133,7 +133,8 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
 			"no" ->
 			    json_helpers:json(event_helpers:to_json([]));
 			"lp" ->
-			    uce_async_lp:wait(Location,
+			    uce_async_lp:wait(utils:domain(Arg),
+                                  Location,
                                   Keywords,
                                   From,
                                   Types,
@@ -143,7 +144,8 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
                                   Parent,
                                   Arg#arg.clisock);
                 "ws" ->
-                    uce_async_ws:wait(Location,
+                    uce_async_ws:wait(utils:domain(Arg),
+                                      Location,
                                       Uid,
                                       Keywords,
                                       Type,
