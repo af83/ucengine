@@ -23,7 +23,7 @@
 
 -export([init/0, drop/0]).
 
--export([add/1, list/1, get/1, delete/1]).
+-export([add/2, list/2, get/2, delete/2]).
 
 -include("uce.hrl").
 
@@ -33,7 +33,7 @@ init() ->
 			 {type, set},
 			 {attributes, record_info(fields, uce_file)}]).
 
-add(#uce_file{} = File) ->
+add(_Domain, #uce_file{} = File) ->
     case mnesia:transaction(fun() ->
 				    mnesia:write(File)
 			    end) of
@@ -43,7 +43,7 @@ add(#uce_file{} = File) ->
 	    {error, Reason}
     end.
 
-list(Location) ->
+list(_Domain, Location) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_file{id='_',
 								  name='_',
@@ -57,7 +57,7 @@ list(Location) ->
 	    {error, Reason}
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case mnesia:transaction(fun() ->
 				    mnesia:read(uce_file, Id)
 			    end) of
@@ -69,7 +69,7 @@ get(Id) ->
 	    {error, not_found}
     end.
 
-delete(Id) ->
+delete(_Domain, Id) ->
     case mnesia:transaction(fun() ->
 				    mnesia:delete({uce_file, Id})
 			    end) of

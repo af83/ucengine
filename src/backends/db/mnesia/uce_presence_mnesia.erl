@@ -23,12 +23,12 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
-	 list/1,
-	 get/1,
-	 delete/1,
-	 update/1,
-         all/0]).
+-export([add/2,
+         list/2,
+         get/2,
+         delete/2,
+         update/2,
+         all/1]).
 
 -include("uce.hrl").
 
@@ -38,7 +38,7 @@ init() ->
 			 {type, set},
 			 {attributes, record_info(fields, uce_presence)}]).
 
-add(#uce_presence{}=Presence) ->
+add(_Domain, #uce_presence{}=Presence) ->
     case mnesia:transaction(fun() ->
 				    mnesia:write(Presence)
 			    end) of
@@ -48,7 +48,7 @@ add(#uce_presence{}=Presence) ->
 	    {error, Reason}
     end.
 
-list(EUid) ->
+list(_Domain, EUid) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_presence{sid='_',
 								      uid=EUid,
@@ -65,12 +65,12 @@ list(EUid) ->
 	    {error, Reason}
     end.
 
-all() ->
+all(_Domain) ->
     {ok, ets:tab2list(uce_presence)}.
 
-get(ESid) ->
+get(_Domain, Sid) ->
     case mnesia:transaction(fun() ->
-				    mnesia:read(uce_presence, ESid)
+				    mnesia:read(uce_presence, Sid)
 			    end) of
 	{atomic, [Record]} ->
 	    {ok, Record};
@@ -80,7 +80,7 @@ get(ESid) ->
 	    {error, Reason}
     end.
 
-delete(Sid) ->
+delete(_Domain, Sid) ->
     case mnesia:transaction(fun() ->
 				     mnesia:delete({uce_presence, Sid})
 			     end) of
@@ -90,7 +90,7 @@ delete(Sid) ->
 	    {error, Reason}
     end.
 
-update(#uce_presence{}=Presence) ->
+update(_Domain, #uce_presence{}=Presence) ->
     case mnesia:transaction(fun() ->
 				       mnesia:write(Presence)
 			    end) of

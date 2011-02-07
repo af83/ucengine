@@ -21,14 +21,14 @@
 
 -behaviour(gen_uce_acl).
 
--export([add/1,
-	 delete/5,
-	 list/3]).
+-export([add/2,
+         delete/6,
+         list/4]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_acl{}=ACL) ->
+add(_Domain, #uce_acl{}=ACL) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_acl", to_collection(ACL)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -36,8 +36,8 @@ add(#uce_acl{}=ACL) ->
 	    {ok, created}
     end.
 
-delete(Uid, Object, Action, Location, Conditions) ->
-    case exists(Uid, Object, Action, Location, Conditions) of
+delete(Domain, Uid, Object, Action, Location, Conditions) ->
+    case exists(Domain, Uid, Object, Action, Location, Conditions) of
 	false ->
 	    {error, not_found};
 	true ->
@@ -53,7 +53,7 @@ delete(Uid, Object, Action, Location, Conditions) ->
 	    end
     end.
 
-list(Uid, Object, Action) ->
+list(Domain, Uid, Object, Action) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"uid", Uid},
                                                         {"object", Object},
                                                         {"action", Action}]) of
@@ -70,14 +70,14 @@ list(Uid, Object, Action) ->
 		    "all" ->
 			{ok, []};
 		    _ ->
-			list(Uid, Object, "all")
+			?MODULE:list(Domain, Uid, Object, "all")
 		end,
 	    {ok, AllObjects} =
 		case Object of
 		    "all" ->
 			{ok, []};
 		    _ ->
-			list(Uid, "all", Action)
+			?MODULE:list(Domain, Uid, "all", Action)
 		end,
 	    {ok, ACL ++ AllActions ++ AllObjects}
     end.
@@ -106,7 +106,7 @@ to_collection(#uce_acl{uid=Uid,
      {"location", Location},
      {"conditions", Conditions}].
 
-exists(Uid, Object, Action, Location, Conditions) ->
+exists(_Domain, Uid, Object, Action, Location, Conditions) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"uid", Uid},
                                                         {"object", Object},
                                                         {"action", Action},

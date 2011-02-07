@@ -102,8 +102,8 @@ init() ->
 			    [string],
 			    [user]}]}].
 
-add([Name], [Uid, Start, End, Metadata], _) ->
-    case uce_acl:check(Uid, "meeting", "add", [""], [{"name", Name}]) of
+add([Name], [Uid, Start, End, Metadata], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "meeting", "add", [""], [{"name", Name}]) of
 	{ok, true} ->
 	    case uce_meeting:add(#uce_meeting{id=[Name],
 					      start_date=Start,
@@ -118,10 +118,10 @@ add([Name], [Uid, Start, End, Metadata], _) ->
 	    {error, unauthorized}
     end.
 
-update([Name], [Uid, Start, End, Metadata], _) ->
-    case uce_acl:check(Uid, "meeting", "update", [""], [{"name", Name}]) of
+update([Name], [Uid, Start, End, Metadata], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "meeting", "update", [""], [{"name", Name}]) of
 	{ok, true} ->
-	    case uce_meeting:update(#uce_meeting{id=[Name],
+	    case uce_meeting:update(utils:domain(Arg), #uce_meeting{id=[Name],
 						 start_date=Start,
 						 end_date=End,
 						 metadata=Metadata}) of
@@ -134,31 +134,31 @@ update([Name], [Uid, Start, End, Metadata], _) ->
 	    {error, unauthorized}
     end.
 
-list([Status], [], _) ->
-    case uce_meeting:list(Status) of
+list([Status], [], Arg) ->
+    case uce_meeting:list(utils:domain(Arg), Status) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, Meetings} ->
 	    json_helpers:json({array, [meeting_helpers:to_json(Meeting) || Meeting <- Meetings]})
     end.
 
-get(Location, [], _) ->
-    case uce_meeting:get(Location) of
+get(Location, [], Arg) ->
+    case uce_meeting:get(utils:domain(Arg), Location) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, Meeting} ->
 	    json_helpers:json(meeting_helpers:to_json(Meeting))
     end.
 
-join([Meeting, To], [Uid, Sid], _) ->
-    case uce_acl:check(Uid, "roster", "add", [Meeting]) of
+join([Meeting, To], [Uid, Sid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "roster", "add", [Meeting]) of
 	{ok, true} ->
-	    case uce_meeting:join([Meeting], To) of
+	    case uce_meeting:join(utils:domain(Arg), [Meeting], To) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, updated} ->
-                    uce_presence:joinMeeting(Sid, Meeting),	
-		    uce_event:add(#uce_event{type="internal.roster.add",
+                    uce_presence:joinMeeting(utils:domain(Arg), Sid, Meeting),	
+		    uce_event:add(utils:domain(Arg), #uce_event{type="internal.roster.add",
 					     location=[Meeting],
 					     from=To}),
 		    json_helpers:ok()
@@ -168,15 +168,15 @@ join([Meeting, To], [Uid, Sid], _) ->
     end.
 
 %% TODO : Incomplete Sid must be ToSid
-leave([Meeting, To], [Uid, Sid], _) ->
-    case uce_acl:check(Uid, "roster", "delete", [Meeting]) of
+leave([Meeting, To], [Uid, Sid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "roster", "delete", [Meeting]) of
 	{ok, true} ->
-	    case uce_meeting:leave([Meeting], To) of
+	    case uce_meeting:leave(utils:domain(Arg), [Meeting], To) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, updated} ->
-                    uce_presence:leaveMeeting(Sid, Meeting),	
-		    uce_event:add(#uce_event{type="internal.roster.delete",
+                    uce_presence:leaveMeeting(utils:domain(Arg), Sid, Meeting),	
+		    uce_event:add(utils:domain(Arg),# uce_event{type="internal.roster.delete",
 					     location=[Meeting],
 					     from=To}),
 		    json_helpers:ok()
@@ -185,16 +185,16 @@ leave([Meeting, To], [Uid, Sid], _) ->
 	    {error, unauthorized}
     end.
 
-roster(Location, [Uid], _) ->
-    case uce_acl:check(Uid, "roster", "list", Location) of
+roster(Location, [Uid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "roster", "list", Location) of
 	{ok, true} ->
-	    case uce_meeting:roster(Location) of
+	    case uce_meeting:roster(utils:domain(Arg), Location) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, Roster} ->
 		    FullRoster =
 			lists:map(fun(MemberUid) ->
-					  case uce_user:get(MemberUid) of
+					  case uce_user:get(utils:domain(Arg), MemberUid) of
 					      {ok, User} ->
 						  {struct, [{uid, User#uce_user.uid},
 							    {auth, User#uce_user.auth},

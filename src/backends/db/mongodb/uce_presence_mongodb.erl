@@ -21,17 +21,17 @@
 
 -behaviour(gen_uce_presence).
 
--export([add/1,
-	 list/1,
-	 get/1,
-	 delete/1,
-	 update/1,
-         all/0]).
+-export([add/2,
+         list/2,
+         get/2,
+         delete/2,
+         update/2,
+         all/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_presence{}=Presence) ->
+add(_Domain, #uce_presence{}=Presence) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_presence", to_collection(Presence)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -39,7 +39,7 @@ add(#uce_presence{}=Presence) ->
 	    {ok, Presence#uce_presence.sid}
     end.
 
-list(EUid) ->
+list(_Domain, EUid) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_presence", [{"uid", EUid}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -51,7 +51,7 @@ list(EUid) ->
 	    {ok, Presences}
     end.
 
-all() ->
+all(_Domain) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_presence", []) of
         {'EXIT', _} ->
             {error, bad_parameters};
@@ -63,8 +63,8 @@ all() ->
             {ok, Presences}
     end.
 
-get(ESid) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_presence", [{"id", ESid}]) of
+get(_Domain, Sid) ->
+    case catch emongo:find_one(?MONGO_POOL, "uce_presence", [{"id", Sid}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
 	[Collection] ->
@@ -73,7 +73,7 @@ get(ESid) ->
 	    {error, not_found}
     end.
 
-delete(Sid) ->
+delete(_Domain, Sid) ->
     case catch emongo:delete(?MONGO_POOL, "uce_presence", [{"id", Sid}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -81,7 +81,7 @@ delete(Sid) ->
 	    {ok, deleted}
     end.
 
-update(#uce_presence{}=Presence) ->
+update(_Domain, #uce_presence{}=Presence) ->
     case catch emongo:update_sync(?MONGO_POOL, "uce_presence",
                                   [{"sid", Presence#uce_presence.sid}],
                                   to_collection(Presence)) of

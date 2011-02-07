@@ -19,61 +19,61 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, delete/1, update/1, exists/1, all/0, joinMeeting/2, leaveMeeting/2]).
+-export([add/2, get/2, delete/2, update/2, exists/2, all/1, joinMeeting/3, leaveMeeting/3]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
 
-add(#uce_presence{sid=[]}=Presence) ->
-    add(Presence#uce_presence{sid=utils:random()});
-add(#uce_presence{last_activity=undefined}=Presence) ->
-    add(Presence#uce_presence{last_activity=utils:now()});
-add(#uce_presence{}=Presence) ->
-    ?DB_MODULE:add(Presence).
+add(Domain, #uce_presence{sid=[]}=Presence) ->
+    add(Domain, Presence#uce_presence{sid=utils:random()});
+add(Domain, #uce_presence{last_activity=undefined}=Presence) ->
+    add(Domain, Presence#uce_presence{last_activity=utils:now()});
+add(Domain, #uce_presence{}=Presence) ->
+    ?DB_MODULE:add(Domain, Presence).
 
-get(Sid) ->
-    ?DB_MODULE:get(Sid).
+get(Domain, Sid) ->
+    ?DB_MODULE:get(Domain, Sid).
 
-all() ->
-    ?DB_MODULE:all().
+all(Domain) ->
+    ?DB_MODULE:all(Domain).
 
-delete(Sid) ->
-    case ?MODULE:exists(Sid) of
+delete(Domain, Sid) ->
+    case ?MODULE:exists(Domain, Sid) of
 	false ->
 	    {error, not_found};
 	true ->
-	    ?DB_MODULE:delete(Sid)
+	    ?DB_MODULE:delete(Domain, Sid)
     end.
 
-update(#uce_presence{}=Presence) ->
-    case ?MODULE:get(Presence#uce_presence.sid) of
+update(Domain, #uce_presence{}=Presence) ->
+    case ?MODULE:get(Domain, Presence#uce_presence.sid) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, _} ->
-	    ?DB_MODULE:update(Presence)
+	    ?DB_MODULE:update(Domain, Presence)
     end.
 
-exists(Sid) ->
-    case ?MODULE:get(Sid) of
+exists(Domain, Sid) ->
+    case ?MODULE:get(Domain, Sid) of
 	{error, _} ->
 	    false;
 	{ok, _} ->
 	    true
     end.
 
-joinMeeting(Sid, Meeting) ->
-    {ok, Record} = ?DB_MODULE:get(Sid),
+joinMeeting(Domain, Sid, Meeting) ->
+    {ok, Record} = ?DB_MODULE:get(Domain, Sid),
     case lists:member(Meeting, Record#uce_presence.meetings) of
         true -> {ok, updated};
         _ ->
             Meetings = Record#uce_presence.meetings ++ [Meeting],
-            ?DB_MODULE:update(Record#uce_presence{meetings=Meetings})
+            ?DB_MODULE:update(Domain, Record#uce_presence{meetings=Meetings})
     end.
 
-leaveMeeting(Sid, Meeting) ->
-    {ok, Record} = ?DB_MODULE:get(Sid),
+leaveMeeting(Domain, Sid, Meeting) ->
+    {ok, Record} = ?DB_MODULE:get(Domain, Sid),
     Meetings = del_entry(Record#uce_presence.meetings, Meeting),
-    ?DB_MODULE:update(Record#uce_presence{meetings=Meetings}).
+    ?DB_MODULE:update(Domain, Record#uce_presence{meetings=Meetings}).
 
 del_entry([Entry], Entry) ->
     [];

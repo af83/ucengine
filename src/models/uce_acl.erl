@@ -19,38 +19,38 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1,
-         delete/5,
-         check/3,
+-export([add/2,
+         delete/6,
          check/4,
          check/5,
+         check/6,
          trigger/2]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
 
-add(#uce_acl{uid=Uid, location=Location} = ACL) ->
-    case location_helpers:exists(Location) of
+add(Domain, #uce_acl{uid=Uid, location=Location} = ACL) ->
+    case location_helpers:exists(Domain, Location) of
 	false ->
 	    {error, not_found};
 	true ->
-	    case uce_user:get(Uid) of
+	    case uce_user:get(Domain, Uid) of
 		{error, Error} ->
 		    {error, Error};
 		_ ->
-		    ?DB_MODULE:add(ACL)
+		    ?DB_MODULE:add(Domain, ACL)
 	    end
     end.
 
-delete(Uid, Object, Action, Location, Conditions) ->
-    ?DB_MODULE:delete(Uid, Object, Action, Location, Conditions).
+delete(Domain, Uid, Object, Action, Location, Conditions) ->
+    ?DB_MODULE:delete(Domain, Uid, Object, Action, Location, Conditions).
 
-check(Uid, Object, Action) ->
-    check(Uid, Object, Action, [""]).
-check(Uid, Object, Action, Location) ->
-    check(Uid, Object, Action, Location, []).
-check(Uid, Object, Action, Location, Conditions) ->
-    case ?DB_MODULE:list(Uid, Object, Action) of
+check(Domain, Uid, Object, Action) ->
+    check(Domain, Uid, Object, Action, [""]).
+check(Domain, Uid, Object, Action, Location) ->
+    check(Domain, Uid, Object, Action, Location, []).
+check(Domain, Uid, Object, Action, Location, Conditions) ->
+    case ?DB_MODULE:list(Domain, Uid, Object, Action) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, ACL} ->

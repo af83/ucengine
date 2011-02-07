@@ -87,10 +87,10 @@ init() ->
 			    [string],
 			    [user]}]}].
 
-list([], [Uid], _) ->
-    case uce_acl:check(Uid, "user", "list") of
+list([], [Uid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "user", "list") of
 	{ok, true} ->
-	    case uce_user:list() of
+	    case uce_user:list(utils:domain(Arg)) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, Users} ->
@@ -101,33 +101,34 @@ list([], [Uid], _) ->
 	    {error, unauthorized}
     end.
 
-add([Uid], [Auth, Credential, Metadata], _) ->
-    case uce_user:add(#uce_user{uid=Uid, auth=Auth, credential=Credential, metadata=Metadata}) of
+add([Uid], [Auth, Credential, Metadata], Arg) ->
+    case uce_user:add(utils:domain(Arg),
+                      #uce_user{uid=Uid, auth=Auth, credential=Credential, metadata=Metadata}) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, created} ->
-	    uce_event:add(#uce_event{from=Uid, type="internal.user.add"}),
+	    uce_event:add(utils:domain(Arg), #uce_event{from=Uid, type="internal.user.add"}),
 	    json_helpers:created()
     end.
 
-update([To], [Uid, Auth, Credential, Metadata], _) ->
-    case uce_acl:check(Uid, "user", "update", [""], [{"user", To}, {"auth", Auth}]) of
+update([To], [Uid, Auth, Credential, Metadata], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "user", "update", [""], [{"user", To}, {"auth", Auth}]) of
 	{ok, true} ->
-	    case uce_user:update(To, Auth, Credential, Metadata) of
+	    case uce_user:update(utils:domain(Arg), To, Auth, Credential, Metadata) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, updated} ->
-		    uce_event:add(#uce_event{from=To, type="internal.user.update"}),
+		    uce_event:add(utils:domain(Arg), #uce_event{from=To, type="internal.user.update"}),
 		    json_helpers:ok()
 	    end;
 	{ok, false} ->
 	    {error, unauthorized}
     end.
 
-get([To], [Uid], _) ->
-    case uce_acl:check(Uid, "user", "get", [""], [{"user", To}]) of
+get([To], [Uid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "user", "get", [""], [{"user", To}]) of
 	{ok, true} ->
-	    case uce_user:get(To) of
+	    case uce_user:get(utils:domain(Arg), To) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, User} ->
@@ -137,10 +138,10 @@ get([To], [Uid], _) ->
 	    {error, unauthorized}
     end.
 
-delete([To], [Uid], _) ->
-    case uce_acl:check(Uid, "user", "delete", [""], [{"user", To}]) of
+delete([To], [Uid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "user", "delete", [""], [{"user", To}]) of
 	{ok, true} ->
-	    case uce_user:delete(To) of
+	    case uce_user:delete(utils:domain(Arg), To) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, deleted} ->

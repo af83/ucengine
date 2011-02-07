@@ -21,16 +21,16 @@
 
 -behaviour(gen_uce_user).
 
--export([add/1,
-	 delete/1,
-	 update/1,
-	 list/0,
-	 get/1]).
+-export([add/2,
+         delete/2,
+         update/2,
+         list/1,
+         get/2]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_user{} = User) ->
+add(_Domain, #uce_user{} = User) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_user", to_collection(User)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -38,7 +38,7 @@ add(#uce_user{} = User) ->
 	    {ok, created}
     end.
 
-delete(EUid) ->
+delete(_Domain, EUid) ->
     case catch emongo:delete(?MONGO_POOL, "uce_user", [{"uid", EUid}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -46,7 +46,7 @@ delete(EUid) ->
 	    {ok, deleted}
     end.    
 
-update(#uce_user{uid=Uid} = User) ->
+update(_Domain, #uce_user{uid=Uid} = User) ->
     case catch emongo:update(?MONGO_POOL, "uce_user", [{"uid", Uid}], to_collection(User)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -54,7 +54,7 @@ update(#uce_user{uid=Uid} = User) ->
 	    {ok, updated}
     end.
 
-list() ->
+list(_Domain) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_user") of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -66,7 +66,7 @@ list() ->
 	    {ok, Users}
     end.
 
-get(EUid) ->
+get(_Domain, EUid) ->
     case emongo:find_one(?MONGO_POOL, "uce_user", [{"uid", EUid}]) of
 	[Collection] ->
 	    {ok, from_collection(Collection)};

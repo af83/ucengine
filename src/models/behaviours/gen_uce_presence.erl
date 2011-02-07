@@ -22,11 +22,11 @@
 -export([behaviour_info/1]).
 
 behaviour_info(callbacks) ->
-    [{add, 1},
-     {list, 1},
-     {get, 1},
-     {delete, 1},
-     {update, 1}];
+    [{add, 2},
+     {list, 2},
+     {get, 2},
+     {delete, 2},
+     {update, 2}];
 
 behaviour_info(_) ->
     undefined.

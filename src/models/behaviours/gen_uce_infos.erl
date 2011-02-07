@@ -20,8 +20,8 @@
 -export([behaviour_info/1]).
 
 behaviour_info(callbacks) ->
-    [{get, 0},
-     {update, 1}];
+    [{get, 1},
+     {update, 2}];
 
 behaviour_info(_) ->
     undefined.

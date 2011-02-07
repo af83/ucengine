@@ -19,10 +19,10 @@
 
 -include("uce_models.hrl").
 
--export([get/0, update/1]).
+-export([get/1, update/2]).
 
-get() ->
-    ?DB_MODULE:get().
+get(Domain) ->
+    ?DB_MODULE:get(Domain).
 
-update(Metadata) ->
-    ?DB_MODULE:update(Metadata).
+update(Domain, Metadata) ->
+    ?DB_MODULE:update(Domain, Metadata).

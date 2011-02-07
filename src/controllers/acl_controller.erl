@@ -79,13 +79,13 @@ init() ->
 
 check([To, Object, Action], Params, Arg) ->
     check([To, Object, Action, ""], Params, Arg);
-check([To, Object, Action, Meeting], [EUid, Conditions], _) ->
-    case uce_acl:check(EUid, "acl", "check", [Meeting], [{"user", To},
-                                                         {"action", Action},
-                                                         {"object", Object},
-                                                         {"meeting", Meeting}] ++ Conditions) of
+check([To, Object, Action, Meeting], [EUid, Conditions], Arg) ->
+    case uce_acl:check(utils:domain(Arg), EUid, "acl", "check", [Meeting], [{"user", To},
+                                                                            {"action", Action},
+                                                                            {"object", Object},
+                                                                            {"meeting", Meeting}] ++ Conditions) of
 	{ok, true} ->
-	    case uce_acl:check(To, Object, Action, [Meeting], Conditions) of
+	    case uce_acl:check(utils:domain(Arg), To, Object, Action, [Meeting], Conditions) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, true} ->
@@ -99,17 +99,17 @@ check([To, Object, Action, Meeting], [EUid, Conditions], _) ->
 
 add([To, Object, Action], Params, Arg) ->
     add([To, Object, Action, ""], Params, Arg);
-add([To, Object, Action, Meeting], [EUid, Conditions], _) ->
-    case uce_acl:check(EUid, "acl", "add", [Meeting], [{"user", To},
-                                                       {"action", Action},
-                                                       {"object", Object},
-                                                       {"meeting", Meeting}] ++ Conditions) of
+add([To, Object, Action, Meeting], [EUid, Conditions], Arg) ->
+    case uce_acl:check(utils:domain(Arg), EUid, "acl", "add", [Meeting], [{"user", To},
+                                                                          {"action", Action},
+                                                                          {"object", Object},
+                                                                          {"meeting", Meeting}] ++ Conditions) of
 	{ok, true} ->
-	    case uce_acl:add(#uce_acl{uid=To,
-				      action=Action,
-				      object=Object,
-				      location=[Meeting],
-				      conditions=Conditions}) of
+	    case uce_acl:add(utils:domain(Arg), #uce_acl{uid=To,
+                                                     action=Action,
+                                                     object=Object,
+                                                     location=[Meeting],
+                                                     conditions=Conditions}) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, created} ->
@@ -121,12 +121,12 @@ add([To, Object, Action, Meeting], [EUid, Conditions], _) ->
 
 delete([To, Object, Action], Params, Arg) ->
     delete([To, Object, Action, "", ""], Params, Arg);
-delete([To, Object, Action, Meeting], [EUid, Conditions], _) ->
-    case uce_acl:check(EUid, "acl", "delete", [Meeting], [{"user", To},
-                                                          {"action", Action},
-                                                          {"object", Object}] ++ Conditions) of
+delete([To, Object, Action, Meeting], [EUid, Conditions], Arg) ->
+    case uce_acl:check(utils:domain(Arg), EUid, "acl", "delete", [Meeting], [{"user", To},
+                                                                             {"action", Action},
+                                                                             {"object", Object}] ++ Conditions) of
 	{ok, true} ->
-	    case uce_acl:delete(To, Object, Action, [Meeting], Conditions) of
+	    case uce_acl:delete(utils:domain(Arg), To, Object, Action, [Meeting], Conditions) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, deleted} ->

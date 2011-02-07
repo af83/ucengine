@@ -54,18 +54,18 @@ init() ->
 %% Get domain informations
 %% Return a json object containing the domain's metadata. Can be empty.
 %%
-get(_UrlParams, _Params, _Arg) ->
-    {ok, Result} = uce_infos:get(),
+get(_UrlParams, _Params, Arg) ->
+    {ok, Result} = uce_infos:get(utils:domain(Arg)),
     json_helpers:json({struct, Result}).
 
 %%
 %% Update domain informations
 %% Return ok in case of success.
 %%
-update(_UrlParams, [Uid, Metadata], _Arg) ->
-    case uce_acl:check(Uid, "infos", "update") of
+update(_UrlParams, [Uid, Metadata], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "infos", "update") of
         {ok, true} ->
-            uce_infos:update(Metadata),
+            uce_infos:update(utils:domain(Arg), Metadata),
             json_helpers:ok();
         {ok, false} ->
             {error, unauthorized}

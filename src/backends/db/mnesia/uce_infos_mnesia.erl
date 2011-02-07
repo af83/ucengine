@@ -19,7 +19,7 @@
 
 -behaviour(gen_uce_infos).
 %% gen_uce_infos api
--export([get/0, update/1]).
+-export([get/1, update/2]).
 
 -export([init/0, drop/0]).
 
@@ -38,8 +38,8 @@ init() ->
                                {type, set},
                                {attributes, record_info(fields, uce_infos)}]).
 
-get() ->
-    case get(default) of
+get(Domain) ->
+    case get(Domain, default) of
         {atomic, [#uce_infos{metadata = Metadata}]} ->
             {ok, Metadata};
         {atomic, []} ->
@@ -48,13 +48,13 @@ get() ->
             {error, Reason}
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     mnesia:transaction(fun() ->
                                mnesia:read({uce_infos, Id})
                        end).
 
-update(Metadata) ->
-    case get(default) of
+update(Domain, Metadata) ->
+    case get(Domain, default) of
         {atomic, [Infos]} ->
             case mnesia:transaction(fun() ->
                                             mnesia:write(Infos#uce_infos{metadata=Metadata})

@@ -21,15 +21,15 @@
 
 -behaviour(gen_uce_file).
 
--export([add/1,
-	 list/1,
-	 get/1,
-	 delete/1]).
+-export([add/2,
+         list/2,
+         get/2,
+         delete/2]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_file{} = File) ->
+add(_Domain, #uce_file{} = File) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_file", to_collection(File)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -37,7 +37,7 @@ add(#uce_file{} = File) ->
 	    {ok, created}
     end.
 
-list(Location) ->
+list(_Domain, Location) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_file", [{"location", Location}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -45,7 +45,7 @@ list(Location) ->
 	    {ok, [from_collection(File) || File <- Files]}
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_file", [{"id", Id}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -55,7 +55,7 @@ get(Id) ->
 	    {error, not_found}
     end.
 
-delete(Id) ->
+delete(_Domain, Id) ->
     case catch emongo:delete(?MONGO_POOL, "uce_file", [{"id", Id}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};

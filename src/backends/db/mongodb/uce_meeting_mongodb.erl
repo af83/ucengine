@@ -21,16 +21,16 @@
 
 -behaviour(gen_uce_meeting).
 
--export([add/1,
-         delete/1,
-         get/1,
-         update/1,
-         list/0]).
+-export([add/2,
+         delete/2,
+         get/2,
+         update/2,
+         list/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_meeting{} = Meeting) ->
+add(_Domain, #uce_meeting{} = Meeting) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_meeting", to_collection(Meeting)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -38,7 +38,7 @@ add(#uce_meeting{} = Meeting) ->
 	    {ok, created}
     end.
 
-delete([Meeting]) ->
+delete(_Domain, [Meeting]) ->
     case emongo:delete(?MONGO_POOL, "uce_meeting", [{"meeting", Meeting}]) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -46,7 +46,7 @@ delete([Meeting]) ->
 	    {ok, deleted}
     end.
 
-get([Meeting]) ->
+get(_Domain, [Meeting]) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_meeting",
                                [{"meeting", Meeting}]) of
 	{'EXIT', _} ->
@@ -57,7 +57,7 @@ get([Meeting]) ->
 	    {error, not_found}
     end.
 
-update(#uce_meeting{id=[MeetingName]} = Meeting) ->
+update(_Domain, #uce_meeting{id=[MeetingName]} = Meeting) ->
     case catch emongo:update_sync(?MONGO_POOL, "uce_meeting",
                                   [{"meeting", MeetingName}],
                                   to_collection(Meeting), false) of
@@ -67,7 +67,7 @@ update(#uce_meeting{id=[MeetingName]} = Meeting) ->
 	    {ok, updated}
     end.
 
-list() ->
+list(_Domain) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_meeting", []) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};

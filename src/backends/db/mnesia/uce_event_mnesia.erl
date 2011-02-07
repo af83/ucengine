@@ -23,9 +23,9 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
-         get/1,
-         list/6]).
+-export([add/2,
+         get/2,
+         list/7]).
 
 -include("uce.hrl").
 
@@ -35,7 +35,7 @@ init() ->
 			 {type, set},
 			 {attributes, record_info(fields, uce_event)}]).
 
-add(#uce_event{} = Event) ->
+add(_Domain, #uce_event{} = Event) ->
     case mnesia:transaction(fun() ->
 				    mnesia:write(Event)
 			    end) of
@@ -45,7 +45,7 @@ add(#uce_event{} = Event) ->
 	    {error, Reason}
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case mnesia:transaction(fun() ->
 				    mnesia:read(uce_event, Id)
 			    end) of
@@ -57,7 +57,7 @@ get(Id) ->
 	    {ok, Event}
     end.
 
-list(Location, From, Type, Start, End, Parent) ->
+list(_Domain, Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
 			 [""] ->
 			     ['$4'];

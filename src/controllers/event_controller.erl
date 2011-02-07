@@ -88,12 +88,12 @@ init() ->
 			    [string, string, string, string, dictionary],
 			    [user, any, user, event, any]}]}].
 
-get([_, Id], [Uid], _) ->
-    case uce_acl:check(Uid, "event", "get", [""], [{"id", Id}]) of
+get([_, Id], [Uid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "event", "get", [""], [{"id", Id}]) of
         {ok, false} ->
             {error, unauthorized};
         {ok, true} ->
-            case uce_event:get(Id) of
+            case uce_event:get(utils:domain(Arg), Id) of
                 {error, Reason} ->
                     {error, Reason};
                 {ok, #uce_event{to=To} = Event} ->
@@ -111,7 +111,7 @@ get([_, Id], [Uid], _) ->
 list([], Match, Arg) ->
     ?MODULE:list([""], Match, Arg);
 list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
-    case uce_acl:check(Uid, "event", "list", Location, [{"from", From}]) of
+    case uce_acl:check(utils:domain(Arg), Uid, "event", "list", Location, [{"from", From}]) of
 	{ok, true} ->
 	    Types = case Type of
 			'_' ->
@@ -125,7 +125,7 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
 			   _ ->
 			       string:tokens(Search, " ")
 		       end,
-	    case uce_event:list(Location, Keywords, From, Types, Uid, Start, End, Parent) of
+	    case uce_event:list(utils:domain(Arg), Location, Keywords, From, Types, Uid, Start, End, Parent) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, []} ->
@@ -134,24 +134,24 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
 			    json_helpers:json(event_helpers:to_json([]));
 			"lp" ->
 			    uce_async_lp:wait(Location,
-					      Keywords,
-					      From,
-					      Types,
-					      Uid,
-					      Start,
-					      End,
-					      Parent,
-					      Arg#arg.clisock);
-			"ws" ->
-			    uce_async_ws:wait(Location,
-					      Uid,
-					      Keywords,
-					      Type,
-					      From,
-					      Start,
-					      Arg#arg.clisock);
-			_ ->
-			    {error, bad_parameters}
+                                  Keywords,
+                                  From,
+                                  Types,
+                                  Uid,
+                                  Start,
+                                  End,
+                                  Parent,
+                                  Arg#arg.clisock);
+                "ws" ->
+                    uce_async_ws:wait(Location,
+                                      Uid,
+                                      Keywords,
+                                      Type,
+                                      From,
+                                      Start,
+                                      Arg#arg.clisock);
+                _ ->
+                    {error, bad_parameters}
 		    end;
 		{ok, Events} ->
 		    case helpers:paginate(event_helpers:sort(Events), Count, Page, Order) of
@@ -167,11 +167,11 @@ list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent,
 
 add([], [Uid, Type, To, Parent, Metadata], Arg) ->
     add([""], [Uid, Type, To, Parent, Metadata], Arg);
-add(Location, [Uid, Type, To, Parent, Metadata], _) ->
-    case uce_acl:check(Uid, "event", "add", Location, [{"type", Type},
-                                                       {"to", To}]) of
+add(Location, [Uid, Type, To, Parent, Metadata], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "event", "add", Location, [{"type", Type},
+                                                                          {"to", To}]) of
 	{ok, true} ->
-	    case uce_event:add(#uce_event{location=Location,
+	    case uce_event:add(utils:domain(Arg), #uce_event{location=Location,
 					  from=Uid,
 					  type=Type,
 					  to=To,

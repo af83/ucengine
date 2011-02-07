@@ -46,22 +46,22 @@ init() ->
 			    [string],
 			    [user]}]}].
 
-add([Uid], [Credential, Metadata], _) ->
-    case uce_acl:check(Uid, "presence", "add") of
+add([Uid], [Credential, Metadata], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "presence", "add") of
 	{ok, true} ->
-	    case uce_user:get(Uid) of
+	    case uce_user:get(utils:domain(Arg), Uid) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, #uce_user{} = User} ->
 		    case catch ?AUTH_MODULE(User#uce_user.auth):check(User, Credential) of
 			true ->
-			    case uce_presence:add(#uce_presence{uid=Uid,
+			    case uce_presence:add(utils:domain(Arg), #uce_presence{uid=Uid,
 								auth=User#uce_user.auth,
 								metadata=Metadata}) of
 				{error, Reason} ->
 				    {error, Reason};
 				{ok, Sid} ->
-				    uce_event:add(#uce_event{location=[""],
+				    uce_event:add(utils:domain(Arg), #uce_event{location=[""],
 							     from=Uid,
 							     type="internal.presence.add",
 							     metadata=Metadata}),
@@ -77,37 +77,37 @@ add([Uid], [Credential, Metadata], _) ->
 	    {error, unauthorized}
     end.
 
-delete([ToUid, ToSid], [Uid], _) ->
-    case uce_acl:check(Uid, "presence", "delete", [""], [{"user", ToUid}]) of
+delete([ToUid, ToSid], [Uid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), Uid, "presence", "delete", [""], [{"user", ToUid}]) of
 	{ok, true} ->
 	    F = fun(M) ->
-                   uce_event:add(#uce_event{from=ToUid, type="internal.roster.delete", location=[M]}),
-		   uce_meeting:leave([M], ToUid)
+                   uce_event:add(utils:domain(Arg), #uce_event{from=ToUid, type="internal.roster.delete", location=[M]}),
+		   uce_meeting:leave(utils:domain(Arg), [M], ToUid)
 	        end,
-            case uce_presence:get(ToSid) of
+            case uce_presence:get(utils:domain(Arg), ToSid) of
                 {ok, Presence} ->
 	             [ F(Meeting) || Meeting <- Presence#uce_presence.meetings ];
                  _ -> nothing
             end,
-	    case uce_presence:delete(ToSid) of
+	    case uce_presence:delete(utils:domain(Arg), ToSid) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, deleted} ->
-                    uce_event:add(#uce_event{location=[""], from=ToUid, type="internal.presence.delete"}),
+                    uce_event:add(utils:domain(Arg), #uce_event{location=[""], from=ToUid, type="internal.presence.delete"}),
 		    json_helpers:json(ok)
 	    end;
 	{ok, false} ->
 	    {error, unauthorized}
     end.
 
-check(_, [Uid, Sid], _) ->
-    case uce_presence:get(Sid) of
+check(_, [Uid, Sid], Arg) ->
+    case uce_presence:get(utils:domain(Arg), Sid) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, Presence} ->
 	    case Presence#uce_presence.uid of
 		Uid ->
-            uce_presence:update(Presence#uce_presence{last_activity=utils:now()}),
+            uce_presence:update(utils:domain(Arg), Presence#uce_presence{last_activity=utils:now()}),
 		    {ok, continue};
 		_ ->
 		    {error, unauthorized}

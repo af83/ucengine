@@ -23,9 +23,9 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
-	 delete/5,
-	 list/3]).
+-export([add/2,
+         delete/6,
+         list/4]).
 
 -include("uce.hrl").
 
@@ -35,7 +35,7 @@ init() ->
 			       {type, bag},
 			       {attributes, record_info(fields, uce_acl)}]).
 
-add(#uce_acl{}=ACL) ->
+add(_Domain, #uce_acl{}=ACL) ->
     case mnesia:transaction(fun() ->
 				    mnesia:write(ACL)
 			    end) of
@@ -45,8 +45,8 @@ add(#uce_acl{}=ACL) ->
 	    {error, Reason}
     end.
 
-delete(EUid, Object, Action, Location, Conditions) ->
-    case exists(EUid, Object, Action, Location, Conditions) of
+delete(Domain, EUid, Object, Action, Location, Conditions) ->
+    case exists(Domain, EUid, Object, Action, Location, Conditions) of
 	false ->
 	    {error, not_found};
 	true ->
@@ -64,7 +64,7 @@ delete(EUid, Object, Action, Location, Conditions) ->
 	    end
     end.
 	
-list(EUid, Object, Action) ->
+list(_Domain, EUid, Object, Action) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_acl{uid=EUid,
 								 object=Object,
@@ -92,7 +92,7 @@ list(EUid, Object, Action) ->
 	    {ok, ACL ++ AllActions ++ AllObjects}
     end.
 
-exists(EUid, Object, Action, Location, Conditions) ->
+exists(_Domain, EUid, Object, Action, Location, Conditions) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_acl{uid=EUid,
 								 object=Object,

@@ -80,21 +80,21 @@ init() ->
 			    [string],
 			    [user]}]}].
 
-add(Location, [EUid, Name, Uri, Metadata], _) ->
-    case uce_acl:check(EUid, "file", "add", Location) of
+add(Location, [EUid, Name, Uri, Metadata], Arg) ->
+    case uce_acl:check(utils:domain(Arg), EUid, "file", "add", Location) of
 	{ok, true} ->
-	    case uce_file:add(#uce_file{location=Location,
-					name=Name,
-					uri=Uri,
-					metadata=Metadata}) of
+	    case uce_file:add(utils:domain(Arg), #uce_file{location=Location,
+                                                       name=Name,
+                                                       uri=Uri,
+                                                       metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, Id} ->
 		    % XXX: shall the model returns this precious record of her ?
-		    case uce_file:get(Id) of
+		    case uce_file:get(utils:domain(Arg), Id) of
 			{ok, #uce_file{} = File} ->
                 {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
-			    uce_event:add(#uce_event{location=Location,
+			    uce_event:add(utils:domain(Arg), #uce_event{location=Location,
 						     from=EUid,
 						     type="internal.file.add",
 						     metadata=[ {"id", File#uce_file.id},
@@ -110,10 +110,10 @@ add(Location, [EUid, Name, Uri, Metadata], _) ->
 	    {error, unauthorized}
     end.
 
-list(Location, [EUid], _) ->
-    case uce_acl:check(EUid, "file", "list", Location) of
+list(Location, [EUid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), EUid, "file", "list", Location) of
 	{ok, true} ->
-	    case uce_file:list(Location) of
+	    case uce_file:list(utils:domain(Arg), Location) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, Files} ->
@@ -130,10 +130,10 @@ list(Location, [EUid], _) ->
 get_path(Uri) ->
     re:replace(Uri, "file\:\/", config:get(datas), [{return, list}]).
 
-get([Meeting, Id], [EUid], _) ->
-    case uce_acl:check(EUid, "file", "get", [Meeting], [{"id", Id}]) of
+get([Meeting, Id], [EUid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), EUid, "file", "get", [Meeting], [{"id", Id}]) of
 	{ok, true} ->
-	    case uce_file:get(Id) of
+	    case uce_file:get(utils:domain(Arg), Id) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, File} ->
@@ -149,10 +149,10 @@ get([Meeting, Id], [EUid], _) ->
 	    {error, unauthorized}
     end.
 
-delete([Meeting, Id], [EUid], _) ->
-    case uce_acl:check(EUid, "file", "delete", [Meeting], [{"id", Id}]) of
+delete([Meeting, Id], [EUid], Arg) ->
+    case uce_acl:check(utils:domain(Arg), EUid, "file", "delete", [Meeting], [{"id", Id}]) of
 	{ok, true} ->
-	    case uce_file:delete(Id) of
+	    case uce_file:delete(utils:domain(Arg), Id) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, deleted} ->

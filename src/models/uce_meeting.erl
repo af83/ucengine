@@ -19,43 +19,43 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1, delete/1, update/1, get/1, list/1, join/2, leave/2, roster/1, exists/1]).
+-export([add/2, delete/2, update/2, get/2, list/2, join/3, leave/3, roster/2, exists/2]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
 
-add(#uce_meeting{} = Meeting) ->
-    case ?MODULE:exists(Meeting#uce_meeting.id) of
+add(Domain, #uce_meeting{} = Meeting) ->
+    case ?MODULE:exists(Domain, Meeting#uce_meeting.id) of
 	true ->
 	    {error, conflict};
 	false ->
 	    [_] = Meeting#uce_meeting.id,
-            ?DB_MODULE:add(Meeting)
+            ?DB_MODULE:add(Domain, Meeting)
     end.
 
-delete(Id) ->
-    case ?MODULE:exists(Id) of
+delete(Domain, Id) ->
+    case ?MODULE:exists(Domain, Id) of
 	false ->
 	    {error, not_found};
 	true ->
-	    ?DB_MODULE:delete(Id)
+	    ?DB_MODULE:delete(Domain, Id)
     end.
 
 
-get(Id) ->
-    ?DB_MODULE:get(Id).
+get(Domain, Id) ->
+    ?DB_MODULE:get(Domain, Id).
 
-update(#uce_meeting{} = Meeting) ->
-    case ?MODULE:get(Meeting#uce_meeting.id) of
+update(Domain, #uce_meeting{} = Meeting) ->
+    case ?MODULE:get(Domain, Meeting#uce_meeting.id) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, _} ->
-	    ?DB_MODULE:update(Meeting)
+	    ?DB_MODULE:update(Domain, Meeting)
     end.
 
-list(Status) ->
+list(Domain, Status) ->
     Now = utils:now(),
-    case ?DB_MODULE:list() of
+    case ?DB_MODULE:list(Domain) of
         {error, Reason} ->
             {error, Reason};
         {ok, Meetings} ->
@@ -96,39 +96,39 @@ list(Status) ->
             end
     end.
 
-exists(Id) ->
-    case ?MODULE:get(Id) of
+exists(Domain, Id) ->
+    case ?MODULE:get(Domain, Id) of
 	{error, _} ->
 	    false;
 	_ ->
 	    true
     end.
 
-join(Id, Uid) when is_list(Uid) ->
-    case uce_user:exists(Uid) of
+join(Domain, Id, Uid) when is_list(Uid) ->
+    case uce_user:exists(Domain, Uid) of
 	false ->
 	    {error, not_found};
 	true ->
-	    case ?MODULE:get(Id) of
+	    case ?MODULE:get(Domain, Id) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, #uce_meeting{} = Meeting} ->
 		    case lists:member(Uid, Meeting#uce_meeting.roster) of
 			false ->
 			    Roster = Meeting#uce_meeting.roster ++ [Uid],
-			    ?MODULE:update(Meeting#uce_meeting{roster=Roster});
+			    ?MODULE:update(Domain, Meeting#uce_meeting{roster=Roster});
 			true ->
 			    {ok, updated}
 		    end
 	    end
     end.
 
-leave(Id, Uid) when is_list(Uid) ->
-    case uce_user:exists(Uid) of
+leave(Domain, Id, Uid) when is_list(Uid) ->
+    case uce_user:exists(Domain, Uid) of
 	false ->
 	    {error, not_found};
 	true ->
-	    case ?MODULE:get(Id) of
+	    case ?MODULE:get(Domain, Id) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, #uce_meeting{} = Meeting} ->
@@ -137,13 +137,13 @@ leave(Id, Uid) when is_list(Uid) ->
 			    {error, not_found};
 			true ->
 			    Roster = lists:subtract(Meeting#uce_meeting.roster, [Uid]),
-			    ?MODULE:update(Meeting#uce_meeting{roster=Roster})
+			    ?MODULE:update(Domain, Meeting#uce_meeting{roster=Roster})
 		    end
 	    end
     end.
 
-roster(Id) ->
-    case ?MODULE:get(Id) of
+roster(Domain, Id) ->
+    case ?MODULE:get(Domain, Id) of
 	{error, Reason} ->
 	    {error, Reason};
 	{ok, #uce_meeting{} = Meeting} ->

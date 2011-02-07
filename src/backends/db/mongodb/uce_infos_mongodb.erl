@@ -22,9 +22,9 @@
 -include("mongodb.hrl").
 
 %% gen_uce_infos api
--export([get/0, update/1]).
+-export([get/1, update/2]).
 
-get() ->
+get(_Domain) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_infos", []) of
         [Infos] ->
             {"metadata", Metadata} = mongodb_helpers:get_item_from_collection("metadata", Infos),
@@ -33,7 +33,7 @@ get() ->
             {ok, []}
     end.
 
-update(Metadata) ->
+update(_Domain, Metadata) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"id", "default"}]) of
         [_Infos] ->
             emongo:update_sync(?MONGO_POOL, "uce_infos", [{"id", "default"}], [{"metadata", Metadata}], false);

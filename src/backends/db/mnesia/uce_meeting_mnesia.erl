@@ -23,11 +23,11 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
-	 delete/1,
-	 get/1,
-	 update/1,
-	 list/0]).
+-export([add/2,
+         delete/2,
+         get/2,
+         update/2,
+         list/1]).
 
 -include("uce.hrl").
 
@@ -37,7 +37,7 @@ init() ->
 			 {type, set},
 			 {attributes, record_info(fields, uce_meeting)}]).
 
-add(#uce_meeting{} = Meeting) ->
+add(_Domain, #uce_meeting{} = Meeting) ->
     case mnesia:transaction(fun() ->
 			       mnesia:write(Meeting)
 		       end) of
@@ -47,7 +47,7 @@ add(#uce_meeting{} = Meeting) ->
 	    {error, Reason}
     end.
 
-delete(Id) ->
+delete(_Domain, Id) ->
     case mnesia:transaction(fun() ->
 				    mnesia:delete({uce_meeting, Id})
 			    end) of
@@ -57,7 +57,7 @@ delete(Id) ->
 	    {error, Reason}
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case mnesia:transaction(fun() ->
 				    mnesia:read(uce_meeting, Id)
 			    end) of
@@ -69,7 +69,7 @@ get(Id) ->
 	    {error, Reason}
     end.
 
-update(#uce_meeting{} = Meeting) ->
+update(_Domain, #uce_meeting{} = Meeting) ->
     case mnesia:transaction(fun() ->
 				    mnesia:write(Meeting)
 			    end) of
@@ -79,7 +79,7 @@ update(#uce_meeting{} = Meeting) ->
 	    {error, Reason}
     end.
 
-list() ->
+list(_Domain) ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_meeting{id=['_'],
 								     start_date='_',

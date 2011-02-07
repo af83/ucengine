@@ -166,8 +166,8 @@ out(#arg{} = Arg) ->
         {error, Reason} ->
             json_helpers:error(Reason);
         {get_more, _, _} = State ->
-            State;
-        {Method, Path, Query} ->
+            State;  
+      {Method, Path, Query} ->
             process(Method, Path, Query, Arg);
         _ ->
             json_helpers:unexpected_error()

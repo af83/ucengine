@@ -147,7 +147,8 @@ setup_server() ->
     yaws_api:setconf(GConf#gconf{cache_refresh_secs=config:get(cache_refresh)}, SConfs).
 
 setup_session_timeout() ->
-    spawn(presence_controller, clean, []).
+%    spawn(presence_controller, clean, []).
+    nothing.
 
 save_pid() ->
     Pid = os:getpid(),
