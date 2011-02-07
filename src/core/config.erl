@@ -23,7 +23,9 @@
 
 -export([start_link/1,
          set/2,
-         get/1]).
+         set/3,
+         get/1,
+         get/2]).
 
 -export([init/1,
          code_change/3,
@@ -46,24 +48,29 @@ start_link(Path) ->
     end.
 
 get(Key) ->
-    gen_server:call(?MODULE, {get, Key}).
+    ?MODULE:get(global, Key).
 set(Key, Value) ->
-    gen_server:cast(?MODULE, {set, {Key, Value}}).
+    ?MODULE:set(global, Key, Value).
+
+get(Domain, Key) ->
+    gen_server:call(?MODULE, {get, Domain, Key}).
+set(Domain, Key, Value) ->
+    gen_server:cast(?MODULE, {set, Domain, {Key, Value}}).
 
 init([]) ->
     {ok, {ets:new(uce_config, [set, public, {keypos, 1}])}}.
 
-handle_call({get, Key}, _From, {DB}) ->
+handle_call({get, Domain, Key}, _From, {DB}) ->
     Reply = case ets:lookup(DB, Key) of
-                [{Key, Value}] ->
+                [{Key, Value, Domain}] ->
                     Value;
                 _ ->
                     undefined
             end,
     {reply, Reply, {DB}}.
 
-handle_cast({set, {Key, Value}}, {DB}) ->
-    ets:insert(DB, {Key, Value}),
+handle_cast({set, Domain, {Key, Value}}, {DB}) ->
+    ets:insert(DB, {Key, Value, Domain}),
     {noreply, {DB}}.
 
 handle_info(_Info, State) ->
