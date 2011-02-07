@@ -147,8 +147,17 @@ function sammyapp() {
         }
         this.title('Meeting');
         var meeting = presence.presence.meeting(this.params['name']);
+
+        var that = this;
         meeting.join(function(err, result, xhr) {})
             .get(function(err, result, xhr) {
+
+                /* Make the user leave the meeting on window unload */
+                window.onbeforeunload = function() {
+                    presence.presence.meeting(that.params['name'])
+                        .leave(function(err, result, xhr) {});
+                };
+
                 var c = {meeting_name  : result.name,
                          meeting_desc  : result.metadata.description,
                          meeting_users : ""};
