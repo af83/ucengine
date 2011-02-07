@@ -40,14 +40,10 @@ add(Domain, #uce_event{location=Location, type=Type, id=Id, from=From} = Event) 
 		{ok, created} ->
                 ?PUBSUB_MODULE:publish(Domain, Location, Type, From, Id),
                 ?SEARCH_MODULE:add(Domain, Event),
-                case catch triggers:run(Location, Type, Event) of
-                    {error, Reason} ->
-                        ?DEBUG("Error : ~p~n", [{error, Reason}]);
-                    {'EXIT', Reason} ->
-                        ?DEBUG("Error : ~p~n", [{error, Reason}]);
-                    _ ->
-                        nothing
-                end,
+                
+                % Add rights after some events
+                uce_acl:trigger(Domain, Event),
+
                 {ok, Id}
 	    end
     end.

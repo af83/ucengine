@@ -52,9 +52,7 @@ start(_, _) ->
 
 setup() ->
     save_pid(),
-    triggers:init(),
     setup_db(),
-    setup_acl(),
     setup_bricks(),
     setup_root(),
     setup_controllers(),
@@ -65,15 +63,6 @@ setup() ->
 stop(State) ->
     remove_pid(),
     State.
-
-setup_acl() ->
-    [[triggers:add(#uce_trigger{location='_',
-                                type=Type,
-                                action={{uce_acl, trigger},
-                                        #uce_acl{object=Object,
-                                                 action=Action,
-                                                 conditions=Conditions}}})
-      || {Object, Action, Conditions} <- Rules] || {Type, Rules} <- config:get(acl)].
 
 setup_db() ->
     DBBackend = list_to_atom(atom_to_list(config:get(db)) ++ "_db"),

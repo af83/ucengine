@@ -121,21 +121,36 @@ replace_conditions([{Key, Value}|Tail], Variables) ->
 		end,
     Condition ++ replace_conditions(Tail, Variables).
 
-trigger(#uce_event{location=Location,
-		   from=From,
-		   metadata=UnsecureMetadata},
-	#uce_acl{conditions=Conditions} = ACL) ->
-    Metadata = lists:filter(fun({Key, _}) ->
-				    case Key of
-					"location" ->
-					    false;
-					"from" ->
-					    false;
-					_ ->
-					    true
-				    end
-			    end,
-			    UnsecureMetadata),
-    NewConditions = replace_conditions(Conditions, Metadata ++
-					   [{"location", Location}, {"from", From}]),
-    uce_acl:add(ACL#uce_acl{conditions=NewConditions, uid=From}).
+trigger(Domain, #uce_event{type=Type,
+                           location=Location,
+                           from=From,
+                           metadata=UnsecureMetadata}) ->
+    Rules =
+        lists:filter(fun({RuleType, _}) ->
+                             RuleType == Type
+                     end,
+                     config:get(acl)),
+    lists:foreach(fun({Object, Action, Conditions}) ->
+                          Metadata = lists:filter(fun({Key, _}) ->
+                                                          case Key of
+                                                              "location" ->
+                                                                  false;
+                                                              "from" ->
+                                                                  false;
+                                                              _ ->
+                                                                  true
+                                                          end
+                                                  end,
+                                                  UnsecureMetadata),
+                          NewConditions = replace_conditions(Conditions, Metadata ++
+                                                                 [{"location", Location},
+                                                                  {"from", From}]),
+                          uce_acl:add(Domain, #uce_acl{object=Object,
+                                                       action=Action,
+                                                       conditions=NewConditions,
+                                                       uid=From})
+                  end,
+                  [Rule || {_, Rule} <- Rules]).
+
+
+
