@@ -39,7 +39,6 @@ ctl_meeting_test_() ->
         , ?_test(test_meeting_delete_not_found(Domain))
         , ?_test(test_meeting_list(Domain))
         , ?_test(test_meeting_list_missing_parameter())
-        , ?_test(test_meeting_list_not_found(Domain))
         ]
       end
     }.
@@ -165,8 +164,6 @@ test_meeting_list(Domain) ->
     ok = uce_ctl:action(meeting, list, Params).
 test_meeting_list_missing_parameter() ->
     error = uce_ctl:action(meeting, list, []).
-test_meeting_list_not_found(Domain) ->
-    error = uce_ctl:action(meeting, list, [{"domain", [Domain]}]).
 
 %%
 %% User
