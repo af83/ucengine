@@ -90,31 +90,31 @@ usage(Object) ->
     if
         Object == none ; Object == meeting ->
             io:format("Meetings:~n"),
-            io:format("\tmeeting add --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
-            io:format("\tmeeting update --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
-            io:format("\tmeeting get --name <name>~n"),
-            io:format("\tmeeting delete --name <name>~n"),
-            io:format("\tmeeting list --status <status>~n~n");
+            io:format("\tmeeting add --domain <domain> --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
+            io:format("\tmeeting update --domain <domain> --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
+            io:format("\tmeeting get --domain <domain> --name <name>~n"),
+            io:format("\tmeeting delete --domain <domain> --name <name>~n"),
+            io:format("\tmeeting list --domain <domain> --status <status>~n~n");
         true ->
             nothing
     end,
     if
         Object == none ; Object == user ->
             io:format("Users:~n"),
-            io:format("\tuser add --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
-            io:format("\tuser update --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
-            io:format("\tuser get --uid <uid>~n"),
-            io:format("\tuser delete --uid <uid>~n"),
-            io:format("\tuser list~n~n");
+            io:format("\tuser add --domain <domain> --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
+            io:format("\tuser update --domain <domain> --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
+            io:format("\tuser get --domain <domain> --uid <uid>~n"),
+            io:format("\tuser delete --domain <domain> --uid <uid>~n"),
+            io:format("\tuser list --domain <domain>~n~n");
         true ->
             nothing
     end,
     if
         Object == none ; Object == acl ->
             io:format("ACL:~n"),
-            io:format("\tacl add --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n"),
-            io:format("\tacl delete --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n"),
-            io:format("\tacl check --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n~n");
+            io:format("\tacl add --domain <domain> --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n"),
+            io:format("\tacl delete --domain <domain> --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n"),
+            io:format("\tacl check --domain <domain> --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n~n");
         true ->
             nothing
     end,
@@ -336,10 +336,8 @@ action(meeting, update, Args) ->
     end;
 
 action(meeting, list, Args) ->
-    Res = case getopt(["domain", "status"], Args) of
+    Res = case getopt(["domain", "status"], Args, [none, ["all"]]) of
               {[none, _], _} ->
-                  {error, missing_parameter};
-              {[_, none], _} ->
                   {error, missing_parameter};
               {[[Domain], [Status]], _} ->
                   call(meeting, list, [Domain, Status])
