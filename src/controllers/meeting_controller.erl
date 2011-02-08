@@ -105,10 +105,10 @@ init() ->
 add([Name], [Uid, Start, End, Metadata], Arg) ->
     case uce_acl:check(utils:domain(Arg), Uid, "meeting", "add", [""], [{"name", Name}]) of
 	{ok, true} ->
-	    case uce_meeting:add(#uce_meeting{id=[Name],
-					      start_date=Start,
-					      end_date=End,
-					      metadata=Metadata}) of
+	    case uce_meeting:add(utils:domain(Arg), #uce_meeting{id=[Name],
+                                                             start_date=Start,
+                                                             end_date=End,
+                                                             metadata=Metadata}) of
 		{error, Reason} ->
 		    {error, Reason};
 		{ok, created} ->
@@ -122,16 +122,16 @@ update([Name], [Uid, Start, End, Metadata], Arg) ->
     case uce_acl:check(utils:domain(Arg), Uid, "meeting", "update", [""], [{"name", Name}]) of
 	{ok, true} ->
 	    case uce_meeting:update(utils:domain(Arg), #uce_meeting{id=[Name],
-						 start_date=Start,
-						 end_date=End,
-						 metadata=Metadata}) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, updated} ->
-		    json_helpers:ok()
+                                                                start_date=Start,
+                                                                end_date=End,
+                                                                metadata=Metadata}) of
+            {error, Reason} ->
+                {error, Reason};
+            {ok, updated} ->
+                json_helpers:ok()
 	    end;
-	{ok, false} ->
-	    {error, unauthorized}
+        {ok, false} ->
+            {error, unauthorized}
     end.
 
 list([Status], [], Arg) ->
@@ -158,10 +158,10 @@ join([Meeting, To], [Uid, Sid], Arg) ->
 		    {error, Reason};
 		{ok, updated} ->
                     uce_presence:joinMeeting(utils:domain(Arg), Sid, Meeting),	
-		    uce_event:add(utils:domain(Arg), #uce_event{type="internal.roster.add",
-					     location=[Meeting],
-					     from=To}),
-		    json_helpers:ok()
+                uce_event:add(utils:domain(Arg), #uce_event{type="internal.roster.add",
+                                                            location=[Meeting],
+                                                            from=To}),
+                json_helpers:ok()
 	    end;
 	{ok, false} ->
 	    {error, unauthorized}

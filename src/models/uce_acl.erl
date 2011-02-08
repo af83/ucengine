@@ -125,32 +125,32 @@ trigger(Domain, #uce_event{type=Type,
                            location=Location,
                            from=From,
                            metadata=UnsecureMetadata}) ->
-    Rules =
-        lists:filter(fun({RuleType, _}) ->
-                             RuleType == Type
-                     end,
-                     config:get(acl)),
-    lists:foreach(fun({Object, Action, Conditions}) ->
-                          Metadata = lists:filter(fun({Key, _}) ->
-                                                          case Key of
-                                                              "location" ->
-                                                                  false;
-                                                              "from" ->
-                                                                  false;
-                                                              _ ->
-                                                                  true
-                                                          end
-                                                  end,
-                                                  UnsecureMetadata),
-                          NewConditions = replace_conditions(Conditions, Metadata ++
-                                                                 [{"location", Location},
-                                                                  {"from", From}]),
-                          uce_acl:add(Domain, #uce_acl{object=Object,
-                                                       action=Action,
-                                                       conditions=NewConditions,
-                                                       uid=From})
-                  end,
-                  [Rule || {_, Rule} <- Rules]).
-
-
-
+    case lists:keyfind(Type, 1, config:get(acl)) of
+        {Type, Rules} ->
+            lists:foreach(fun({Object, Action, Conditions}) ->
+                                  Metadata =
+                                      lists:filter(fun({Key, _}) ->
+                                                           case Key of
+                                                               "location" ->
+                                                                   false;
+                                                               "from" ->
+                                                                   false;
+                                                               _ ->
+                                                                   true
+                                                           end
+                                                   end,
+                                                   UnsecureMetadata),
+                                  NewConditions =
+                                      replace_conditions(Conditions, Metadata ++
+                                                             [{"location", Location},
+                                                              {"from", From}]),
+                                  uce_acl:add(Domain, #uce_acl{object=Object,
+                                                               action=Action,
+                                                               conditions=NewConditions,
+                                                               uid=From})
+                          end,
+                          [Rule || {_, Rule} <- Rules]),
+            ok;
+        _ ->
+            ok
+    end.
