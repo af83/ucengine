@@ -20,60 +20,58 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
-setup_events() ->
-    uce_event:add(#uce_event{ type="test_event_1",
-                              location=["testmeeting"],
-                              from="participant.user@af83.com"}),
+setup_events(Domain) ->
+    uce_event:add(Domain,#uce_event{ type="test_event_1",
+                                     location=["testmeeting"],
+                                     from="participant.user@af83.com"}),
     timer:sleep(10),
-    uce_event:add(#uce_event{ type="test_event_2",
-                              location=["testmeeting"],
-                              from="user_2"
-                            }),
+    uce_event:add(Domain, #uce_event{ type="test_event_2",
+                                      location=["testmeeting"],
+                                      from="user_2"}),
     timer:sleep(10),
-    uce_event:add(#uce_event{ type="test_event_3",
-                              location=["testmeeting"],
-                              from="user_3",
-                              metadata=[{"description", "test"}]
-                            }),
+    uce_event:add(Domain, #uce_event{ type="test_event_3",
+                                      location=["testmeeting"],
+                                      from="user_3",
+                                      metadata=[{"description", "test"}]}),
     ok.
 
 event_test_() ->
     { setup
       , fun() ->
-                Testers = fixtures:setup(),
-                setup_events(),
-                Testers
+                [Domain, BaseUrl, Testers] = fixtures:setup(),
+                setup_events(Domain),
+                [Domain, BaseUrl, Testers]
         end
       , fun fixtures:teardown/1
-      , fun(Testers) ->
-                [?_test(test_push(Testers)),
-                 ?_test(test_push_without_meeting(Testers)),
-                 ?_test(test_push_with_parent(Testers)),
-                 ?_test(test_push_to_me(Testers)),
-                 ?_test(test_push_to_other(Testers)),
+      , fun([_, BaseUrl, Testers]) ->
+                [?_test(test_push(BaseUrl, Testers)),
+                 ?_test(test_push_without_meeting(BaseUrl, Testers)),
+                 ?_test(test_push_with_parent(BaseUrl, Testers)),
+                 ?_test(test_push_to_me(BaseUrl, Testers)),
+                 ?_test(test_push_to_other(BaseUrl, Testers)),
 
-                 ?_test(test_push_missing_type(Testers)),
-                 ?_test(test_push_not_found_meeting(Testers)),
-                 ?_test(test_push_not_found_parent(Testers)),
-                 ?_test(test_push_not_found_to(Testers)),
+                 ?_test(test_push_missing_type(BaseUrl, Testers)),
+                 ?_test(test_push_not_found_meeting(BaseUrl, Testers)),
+                 ?_test(test_push_not_found_parent(BaseUrl, Testers)),
+                 ?_test(test_push_not_found_to(BaseUrl, Testers)),
 
-                 ?_test(test_get(Testers)),
-                 ?_test(test_get_with_keywords(Testers)),
-                 ?_test(test_get_with_type(Testers)),
-                 ?_test(test_get_with_types(Testers)),
-                 ?_test(test_get_with_type_and_timestart(Testers)),
-                 ?_test(test_get_with_type_and_timestart_and_timeend(Testers)),
-                 ?_test(test_get_with_type_and_timeend(Testers)),
-                 ?_test(test_last(Testers))]
+                 ?_test(test_get(BaseUrl, Testers)),
+                 ?_test(test_get_with_keywords(BaseUrl, Testers)),
+                 ?_test(test_get_with_type(BaseUrl, Testers)),
+                 ?_test(test_get_with_types(BaseUrl, Testers)),
+                 ?_test(test_get_with_type_and_timestart(BaseUrl, Testers)),
+                 ?_test(test_get_with_type_and_timestart_and_timeend(BaseUrl, Testers)),
+                 ?_test(test_get_with_type_and_timeend(BaseUrl, Testers)),
+                 ?_test(test_last(BaseUrl, Testers))]
         end}.
 
-test_push([{RootUid, RootSid}, _]) ->
+test_push(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "test_push_1"},
               {"metadata[description]", "pushed_event"}],
     {struct, [{"result", Id}]} =
-        tests_utils:put("/event/testmeeting", Params),
+        tests_utils:put(BaseUrl, "/event/testmeeting", Params),
     {struct, [{"result",
                {struct, [{"type", "test_push_1"},
                          {"datetime", _},
@@ -81,30 +79,30 @@ test_push([{RootUid, RootSid}, _]) ->
                          {"meeting", "testmeeting"},
                          {"from", RootUid},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
-                   tests_utils:get("/event/testmeeting/" ++ Id, Params).
+                   tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params).
 
-test_push_without_meeting([{RootUid, RootSid}, _]) ->
+test_push_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "test_push_1"},
               {"metadata[description]", "pushed_event"}],
     {struct, [{"result", Id}]} =
-        tests_utils:put("/event/", Params),
+        tests_utils:put(BaseUrl, "/event/", Params),
     {struct, [{"result",
                {struct, [{"type", "test_push_1"},
                          {"datetime", _},
                          {"id", Id},
                          {"from", RootUid},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
-                   tests_utils:get("/event/all/" ++ Id, Params).
+                   tests_utils:get(BaseUrl, "/event/all/" ++ Id, Params).
 
-test_push_with_parent([{RootUid, RootSid}, _]) ->
+test_push_with_parent(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "test_push_1"},
               {"metadata[description]", "pushed_event"}],
     {struct, [{"result", ParentId}]} =
-        tests_utils:put("/event/testmeeting", Params),
+        tests_utils:put(BaseUrl, "/event/testmeeting", Params),
 
     ParamsChild = [{"uid", RootUid},
                    {"sid", RootSid},
@@ -112,7 +110,7 @@ test_push_with_parent([{RootUid, RootSid}, _]) ->
                    {"parent", ParentId},
                    {"metadata[description]", "pushed_event"}],
     {struct, [{"result", ChildId}]} =
-        tests_utils:put("/event/testmeeting", ParamsChild),
+        tests_utils:put(BaseUrl,"/event/testmeeting", ParamsChild),
 
     {struct, [{"result",
                {struct, [{"type", "test_push_1"},
@@ -122,16 +120,16 @@ test_push_with_parent([{RootUid, RootSid}, _]) ->
                          {"from", RootUid},
                          {"parent", ParentId},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
-                   tests_utils:get("/event/testmeeting/" ++ ChildId, Params).
+                   tests_utils:get(BaseUrl, "/event/testmeeting/" ++ ChildId, Params).
 
-test_push_to_me([{RootUid, RootSid}, _]) ->
+test_push_to_me(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "test_push_1"},
               {"to", RootUid},
               {"metadata[description]", "pushed_event"}],
     {struct, [{"result", Id}]} =
-        tests_utils:put("/event/testmeeting", Params),
+        tests_utils:put(BaseUrl, "/event/testmeeting", Params),
     {struct, [{"result",
                {struct, [{"type", "test_push_1"},
                          {"datetime", _},
@@ -139,58 +137,58 @@ test_push_to_me([{RootUid, RootSid}, _]) ->
                          {"meeting", "testmeeting"},
                          {"from", RootUid},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
-                   tests_utils:get("/event/testmeeting/" ++ Id, Params).
+                   tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params).
 
-test_push_to_other([{RootUid, RootSid}, _]) ->
+test_push_to_other(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "test_push_to_other"},
               {"to", "participant.user@af83.com"},
               {"metadata[description]", "pushed_event"}],
     {struct, [{"result", Id}]} =
-        tests_utils:put("/event/testmeeting", Params),
+        tests_utils:put(BaseUrl, "/event/testmeeting", Params),
     {struct, [{"error", "unauthorized"}]} =
-        tests_utils:get("/event/testmeeting/" ++ Id, Params),
+        tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params),
         ParamsGetStart = [{"uid", RootUid},
                           {"sid", RootSid},
                           {"type", "test_push_to_other"}],
     {struct, [{"result", {array, []}}]} =
-        tests_utils:get("/event/testmeeting/", ParamsGetStart).
+        tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).
 
-test_push_missing_type([{RootUid, RootSid}, _]) ->
+test_push_missing_type(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "missing_parameters"}]} =
-        tests_utils:put("/event/testmeeting", Params).
+        tests_utils:put(BaseUrl, "/event/testmeeting", Params).
 
-test_push_not_found_meeting([{RootUid, RootSid}, _]) ->
+test_push_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "test_push_1"},
               {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
-        tests_utils:put("/event/unexistentmeeting", Params).
+        tests_utils:put(BaseUrl, "/event/unexistentmeeting", Params).
 
-test_push_not_found_parent([{RootUid, RootSid}, _]) ->
+test_push_not_found_parent(BaseUrl, [{RootUid, RootSid}, _]) ->
     ParamsChild = [{"uid", RootUid},
                    {"sid", RootSid},
                    {"type", "test_push_1"},
                    {"parent", "unexistent_id"},
                    {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
-        tests_utils:put("/event/testmeeting", ParamsChild).
+        tests_utils:put(BaseUrl, "/event/testmeeting", ParamsChild).
 
-test_push_not_found_to([{RootUid, RootSid}, _]) ->
+test_push_not_found_to(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "test_push_1"},
               {"to", "unexistent_user"},
               {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
-        tests_utils:put("/event/testmeeting", Params).
+        tests_utils:put(BaseUrl, "/event/testmeeting", Params).
 
-test_get([{RootUid, RootSid}, _]) ->
+test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
     {struct, [{"result", {array,
@@ -215,14 +213,14 @@ test_get([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting", Params).
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params).
 
-test_get_with_keywords([{RootUid, RootSid}, _]) ->
+test_get_with_keywords(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "search_event"},
               {"metadata[description]", "lonely event"}],
-    {struct, [{"result", _}]} = tests_utils:put("/event/testmeeting", Params),
+    {struct, [{"result", _}]} = tests_utils:put(BaseUrl, "/event/testmeeting", Params),
 
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
@@ -235,9 +233,9 @@ test_get_with_keywords([{RootUid, RootSid}, _]) ->
                                      , {"meeting", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "lonely event"}]}}
-                                    ]}]}}]} = tests_utils:get("/event/testmeeting", ParamsGet).
+                                    ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet).
 
-test_get_with_type([{RootUid, RootSid}, _]) ->
+test_get_with_type(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
     {struct, [{"result", {array,
@@ -262,7 +260,7 @@ test_get_with_type([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting", Params),
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_3"}],
@@ -274,9 +272,9 @@ test_get_with_type([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting/", ParamsGetStart).
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).
 
-test_get_with_types([{RootUid, RootSid}, _]) ->
+test_get_with_types(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
     {struct, [{"result", {array,
@@ -301,7 +299,7 @@ test_get_with_types([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting", Params),
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_3,test_event_1"}],
@@ -320,9 +318,9 @@ test_get_with_types([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting/", ParamsGetStart).
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).
 
-test_get_with_type_and_timestart([{RootUid, RootSid}, _]) ->
+test_get_with_type_and_timestart(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
     {struct, [{"result", {array,
@@ -347,7 +345,7 @@ test_get_with_type_and_timestart([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting", Params),
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_3"},
@@ -360,9 +358,9 @@ test_get_with_type_and_timestart([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting/", ParamsGetStart).
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).
 
-test_get_with_type_and_timestart_and_timeend([{RootUid, RootSid}, _]) ->
+test_get_with_type_and_timestart_and_timeend(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
     {struct, [{"result", {array,
@@ -387,7 +385,7 @@ test_get_with_type_and_timestart_and_timeend([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting", Params),
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_3"},
@@ -401,16 +399,16 @@ test_get_with_type_and_timestart_and_timeend([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting/", ParamsGetStart),
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart),
     ParamsGetNothing = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_3"},
                       {"start", integer_to_list(Third - 2)},
                       {"end", integer_to_list(Third - 1)}],
     {struct, [{"result", {array,[]}}]} =
-        tests_utils:get("/event/testmeeting/", ParamsGetNothing).
+        tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetNothing).
 
-test_get_with_type_and_timeend([{RootUid, RootSid}, _]) ->
+test_get_with_type_and_timeend(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
     {struct, [{"result", {array,
@@ -435,7 +433,7 @@ test_get_with_type_and_timeend([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting", Params),
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_2"},
@@ -448,14 +446,14 @@ test_get_with_type_and_timeend([{RootUid, RootSid}, _]) ->
                                       , {"from", "user_2"}
                                       , {"metadata", {struct, []}}
                                      ]}|_]
-                         }}]} = tests_utils:get("/event/testmeeting/", ParamsGetStart).
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).
 
-test_last([{RootUid, RootSid}, _]) ->
+test_last(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "last_event"},
               {"metadata[description]", "pushed_event"}],
-    {struct, [{"result", _}]} = tests_utils:put("/event/testmeeting", Params),
+    {struct, [{"result", _}]} = tests_utils:put(BaseUrl, "/event/testmeeting", Params),
 
     ParamsGetLast = [{"uid", RootUid},
                      {"sid", RootSid},
@@ -468,4 +466,4 @@ test_last([{RootUid, RootSid}, _]) ->
                                   , {"meeting", "testmeeting"}
                                   , {"from", _}
                                   , {"metadata", {struct, [{"description", "pushed_event"}]}}
-                                 ]}]}}]} = tests_utils:get("/event/testmeeting/", ParamsGetLast).
+                                 ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetLast).

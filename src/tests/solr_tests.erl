@@ -20,32 +20,32 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--export([test_add/0, test_search/0]).
+-export([test_add/1, test_search/1]).
 
 solr_test_() ->
     { setup
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
-	, fun(_) ->
-        [ ?_test(test_add())
-        , ?_test(test_search())
+	, fun([Domain, _, _]) ->
+        [ ?_test(test_add(Domain))
+        , ?_test(test_search(Domain))
         ]
       end
     }.
 
-test_add() ->
-    {ok, created} = uce_event_solr_search:add(#uce_event{id=utils:random(),
-							 datetime=utils:now(),
-							 location=["testmeeting"],
-							 from="chuck_norris",
-							 type="test_solr_event",
-							 metadata=[{"text","This is a test event."}]}).
+test_add(Domain) ->
+    {ok, created} = uce_event_solr_search:add(Domain,
+                                              #uce_event{id=utils:random(),
+                                                         datetime=utils:now(),
+                                                         location=["testmeeting"],
+                                                         from="chuck_norris",
+                                                         type="test_solr_event",
+                                                         metadata=[{"text","This is a test event."}]}).
 
-test_search() ->
-    ok = case uce_event_solr_search:list(['_'], ["This"], '_', '_', 0, infinity, '_') of
-	     {error, Reason} ->
-		 {error, Reason};
-	     {ok, [_]} ->
-		 ok
-	 end.
-
+test_search(Domain) ->
+    ok = case uce_event_solr_search:list(Domain, ['_'], ["This"], '_', '_', 0, infinity, '_') of
+             {error, Reason} ->
+                 {error, Reason};
+             {ok, [_]} ->
+                 ok
+         end.

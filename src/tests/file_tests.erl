@@ -24,18 +24,18 @@ file_test_() ->
     { setup
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
-    , fun(Testers) ->
-	      [?_test(test_upload_small(Testers)),
-	       ?_test(test_upload_big(Testers)),
-	       ?_test(test_upload_not_found_meeting(Testers)),
+    , fun([_, BaseUrl, Testers]) ->
+	      [?_test(test_upload_small(BaseUrl, Testers)),
+	       ?_test(test_upload_big(BaseUrl, Testers)),
+	       ?_test(test_upload_not_found_meeting(BaseUrl, Testers)),
 
-	       ?_test(test_list(Testers)),
-	       ?_test(test_list_not_found_meeting(Testers)),
+	       ?_test(test_list(BaseUrl, Testers)),
+	       ?_test(test_list_not_found_meeting(BaseUrl, Testers)),
 
-	       ?_test(test_get(Testers)),
-	       ?_test(test_get_not_found(Testers)),
+	       ?_test(test_get(BaseUrl, Testers)),
+	       ?_test(test_get_not_found(BaseUrl, Testers)),
 
-	       ?_test(test_delete(Testers))]
+	       ?_test(test_delete(BaseUrl, Testers))]
       end
     }.
 
@@ -47,21 +47,22 @@ gen_file(Size, FileName) ->
 	Body ++ "\r\n" ++
 	"------WebKitFormBoundaryLwCN5mZmxIA54Aif--\r\n".
 
-upload(Params, File) ->
-    upload("testmeeting", Params, File).
+upload(BaseUrl, Params, File) ->
+    upload(BaseUrl, "testmeeting", Params, File).
 
-upload(Meeting, Params, File) ->
-    tests_utils:post("/file/" ++ Meeting ++"/", 
+upload(BaseUrl, Meeting, Params, File) ->
+    tests_utils:post(BaseUrl,
+                     "/file/" ++ Meeting ++"/", 
                      Params,
                      "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
                      File).
 
-test_upload_small([{RootUid, RootSid}, _]) ->
+test_upload_small(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"_method", "put"}, 
 	      {"metadata[description]", "test_file"}],
-    {struct,[{"result", _}]} = upload(Params, gen_file(4, "small")),
+    {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4, "small")),
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
                  {"type", "internal.file.add"},
@@ -72,27 +73,27 @@ test_upload_small([{RootUid, RootSid}, _]) ->
 			 {"id", _},
 			 {"meeting", "testmeeting"},
 			 {"from", RootUid}, 
-			 {"metadata", Metadata}]}]}}]} = tests_utils:get("/event/testmeeting", ParamsGet),
+			 {"metadata", Metadata}]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
     {struct, [{"id", _},
               {"name", "small"}, 
               {"size", "28"}, 
               {"mime", "text/plain"}]} = Metadata.
 
-test_upload_big([{RootUid, RootSid}, _]) ->
+test_upload_big(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
-    {struct,[{"result", _}]} = upload(Params, gen_file(4000, "big")).
+    {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4000, "big")).
 
-test_upload_not_found_meeting([{RootUid, RootSid}, _]) ->
+test_upload_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
-    {struct,[{"error", "not_found"}]} = upload("testorg", Params, gen_file(4, "small")).
+    {struct,[{"error", "not_found"}]} = upload(BaseUrl, "testorg", Params, gen_file(4, "small")).
 
-test_list([{RootUid, RootSid}, _]) ->
+test_list(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid}],
     {struct,
@@ -103,37 +104,41 @@ test_list([{RootUid, RootSid}, _]) ->
 	   {"name",_},
 	   {"uri", _},
 	   {"meeting", "testmeeting"},
-	   {"metadata",{struct,_}}]}|_]}}]} = tests_utils:get("/file/testmeeting/", Params).
+	   {"metadata",{struct,_}}]}|_]}}]} = tests_utils:get(BaseUrl, "/file/testmeeting/", Params).
 
-test_list_not_found_meeting([{RootUid, RootSid}, _]) ->
+test_list_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid}],
-    {struct,[{"error", "not_found"}]} = tests_utils:get("/file/unexistentmeeting/", Params).
+    {struct,[{"error", "not_found"}]} = tests_utils:get(BaseUrl, "/file/unexistentmeeting/", Params).
 
-test_get([{RootUid, RootSid}, _]) ->
+test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
-    {struct,[{"result", Id}]} = upload(Params, gen_file(4, "small")),
+    {struct,[{"result", Id}]} = upload(BaseUrl, Params, gen_file(4, "small")),
     ParamsGet = [{"uid", RootUid},
 		 {"sid", RootSid}],
-    tests_utils:get_raw("/file/testmeeting/" ++ Id, ParamsGet),
+    tests_utils:get_raw(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet),
     true.
 
-test_get_not_found([{RootUid, RootSid}, _]) ->
+test_get_not_found(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid}],
-    {struct,[{"error", "not_found"}]} = tests_utils:get("/file/testmeeting/unexistentfile", Params).
+    {struct,[{"error", "not_found"}]} =
+        tests_utils:get(BaseUrl, "/file/testmeeting/unexistentfile", Params).
 
-test_delete([{RootUid, RootSid}, _]) ->
+test_delete(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"_method", "put"}],
-    {struct,[{"result", Id}]} = upload(Params, gen_file(4, "small")),    ParamsDelete = [{"uid", RootUid},
-		    {"sid", RootSid}],
-    {struct,[{"result", "ok"}]} = tests_utils:delete("/file/testmeeting/" ++ Id, ParamsDelete),
+              {"sid", RootSid},
+              {"_method", "put"}],
+    {struct,[{"result", Id}]} =
+        upload(BaseUrl, Params, gen_file(4, "small")),    ParamsDelete = [{"uid", RootUid},
+                                                                          {"sid", RootSid}],
+    {struct,[{"result", "ok"}]} =
+        tests_utils:delete(BaseUrl, "/file/testmeeting/" ++ Id, ParamsDelete),
     
     ParamsGet = [{"uid", RootUid},
-		 {"sid", RootSid}],
-    {struct,[{"error", "not_found"}]} = tests_utils:get("/file/testmeeting/" ++ Id, ParamsGet).
+                 {"sid", RootSid}],
+    {struct,[{"error", "not_found"}]} =
+        tests_utils:get(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet).

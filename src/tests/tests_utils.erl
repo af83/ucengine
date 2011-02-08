@@ -19,60 +19,60 @@
 
 -include("uce.hrl").
 
--export([ post/2
-        , post/4
-        , get_raw/2
-        , get/1
+-export([ post/3
+        , post/5
+        , get_raw/3
         , get/2
-        , put/2
-        , put/4
-        , delete/2
+        , get/3
+        , put/3
+        , put/5
+        , delete/3
         ]).
 -export([url_encode/1]).
 
 -define(HTTP_TIMEOUT, 30000).
 
-get_raw(Path, Params) ->
-    httpc:request(?BASE_URL ++ Path ++ "?" ++ url_encode(Params), httpc:default_profile()).
+get_raw(BaseUrl, Path, Params) ->
+    httpc:request(BaseUrl ++ Path ++ "?" ++ url_encode(Params), httpc:default_profile()).
 
-get(Path) ->
-    {ok, {_, _, JSON}} = httpc:request(?BASE_URL ++ Path, httpc:default_profile()),
+get(BaseUrl, Path) ->
+    {ok, {_, _, JSON}} = httpc:request(BaseUrl ++ Path, httpc:default_profile()),
     mochijson:decode(JSON).
-get(Path, Params) ->
+get(BaseUrl, Path, Params) ->
     {ok, {_, _, JSON}} =
-        httpc:request(?BASE_URL ++ Path ++ "?" ++ url_encode(Params), httpc:default_profile()),
+        httpc:request(BaseUrl ++ Path ++ "?" ++ url_encode(Params), httpc:default_profile()),
     mochijson:decode(JSON).
 
-post(Path, Params) ->
+post(BaseUrl, Path, Params) ->
     {ok, {_, _, JSON}} =
-        request(Path, post, [], "application/x-www-form-urlencoded", url_encode(Params)),
+        request(BaseUrl, Path, post, [], "application/x-www-form-urlencoded", url_encode(Params)),
     mochijson:decode(JSON).
 
-post(Path, Params, ContentType, Body) ->
-    {ok, {_, _, JSON}} = request(Path, post, Params, ContentType, Body),
+post(BaseUrl, Path, Params, ContentType, Body) ->
+    {ok, {_, _, JSON}} = request(BaseUrl, Path, post, Params, ContentType, Body),
     mochijson:decode(JSON).
 
-put(Path, Params) ->
-    {ok, {_, _, JSON}} = request(Path, put, Params, "application/x-www-form-urlencoded", []),
+put(BaseUrl, Path, Params) ->
+    {ok, {_, _, JSON}} = request(BaseUrl, Path, put, Params, "application/x-www-form-urlencoded", []),
     mochijson:decode(JSON).
 
-put(Path, Params, ContentType, Body) ->
-    {ok, {_, _, JSON}} = request(Path, put, Params, ContentType, Body),
+put(BaseUrl, Path, Params, ContentType, Body) ->
+    {ok, {_, _, JSON}} = request(BaseUrl, Path, put, Params, ContentType, Body),
     mochijson:decode(JSON).
 
-delete(Path, Params) ->
+delete(BaseUrl, Path, Params) ->
     {ok, {_, _, JSON}} =
-        httpc:request(delete, {?BASE_URL ++ Path ++ "?" ++ url_encode(Params), []}, [], []),
+        httpc:request(delete, {BaseUrl ++ Path ++ "?" ++ url_encode(Params), []}, [], []),
     mochijson:decode(JSON).
 
-request(Path, Method, Params, ContentType, Body) ->
+request(BaseUrl, Path, Method, Params, ContentType, Body) ->
     Query = case Params of
                 [] ->
                     "";
                 _ ->
                     "?" ++ url_encode(Params)
             end,
-    Request = httpc:request(Method, {?BASE_URL ++ Path ++ Query,
+    Request = httpc:request(Method, {BaseUrl ++ Path ++ Query,
                                      [], ContentType,
                                      Body}, [{timeout, ?HTTP_TIMEOUT}], []),
     {Return, {{_RVersion, RCode, RComment}, _RHeaders, RBody}} = Request,

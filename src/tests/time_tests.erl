@@ -23,12 +23,12 @@ time_test_() ->
     { setup,
       fun fixtures:setup/0,
       fun fixtures:teardown/1,
-      fun(_) ->
-	      [?_test(test_get())]
+      fun([_, BaseUrl, _]) ->
+	      [?_test(test_get(BaseUrl))]
       end}.
 
-test_get() ->
-    {struct, [{"result", Time}]} = tests_utils:get("/time", []),
+test_get(BaseUrl) ->
+    {struct, [{"result", Time}]} = tests_utils:get(BaseUrl, "/time", []),
     Diff = Time - utils:now(),
     if
 	Diff > 1000 ->
