@@ -149,7 +149,7 @@ trigger(Domain, #uce_event{type=Type,
                                                                conditions=NewConditions,
                                                                uid=From})
                           end,
-                          [Rule || {_, Rule} <- Rules]),
+                          Rules),
             ok;
         _ ->
             ok
