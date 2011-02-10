@@ -230,20 +230,35 @@ $.uce.widget("filesharing", {
             function(index, file) {
                 var id = file.metadata.id;
                 var mime = (file.metadata.mime == "application/pdf") ? "pdf" : "default";
-                var filename = $('<p>').text(file.metadata.name);
+                var filename = $('<a>').text(file.metadata.name)
+                                       .attr('href', '#')
+                                       .attr('class', 'ui-filesharing ui-preview-link');
+
+		var date = $.strftime("%m-%d-%y", file.datetime);
+                var fileowner = $('<span>').attr('class', 'ui-file-owner')
+                                           .text(" " + date + " by " + file.from);
+
+                var downloadLink = $('<a>').attr('href', '#')
+                                           .text('Download')
+                                           .attr('class', 'ui-filesharing ui-download-link');
+
+                var li = $('<li>').attr('class', 'mime ' + mime).append(filename).append(fileowner).append(downloadLink);
+
                 if (file.pages.length != 0) {
-                    var sharelink = $('<a>');
-                    sharelink.attr('href', '#');
-                    sharelink.attr('class', 'ui-filesharing ui-preview-link');
-                    sharelink.text(' (preview)');
-                    sharelink.bind('click', function() {
-                        that.options.ucemeeting.push("document.share.start", {id: file.metadata.id});
-                        return false;
-                    });
-                    filename.append(sharelink);
+                        viewLink = $('<a>').attr('href', '#')
+                                           .text('Open in the viewer')
+                                           .attr('class', 'ui-filesharing ui-preview-link');
+                        li.append(' | ').append(viewLink);
+
+                        shareLink = $('<a>').attr('href', '#')
+                                            .text('Share')
+                                            .bind('click', function() {
+                                                that.options.ucemeeting.push("document.share.start", {id: file.metadata.id});
+                                                return false; })
+                                            .attr('class', 'ui-filesharing ui-share-link');
+                        li.append(' | ').append(shareLink);
                 }
-                var fileowner = $('<p>').attr('class', 'ui-file-owner').text("From: " + file.from);
-                var li = $('<li>').attr('class', 'mime ' + mime).append(filename).append(fileowner);
+
                 ul = ul.add(li);
             }
         );
