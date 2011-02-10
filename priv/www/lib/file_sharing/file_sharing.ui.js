@@ -234,21 +234,27 @@ $.uce.widget("filesharing", {
                                        .attr('href', '#')
                                        .attr('class', 'ui-filesharing ui-preview-link');
 
-		var date = $.strftime("%m-%d-%y", file.datetime);
+		        var date = $.strftime("%m-%d-%y", file.datetime);
                 var fileowner = $('<span>').attr('class', 'ui-file-owner')
                                            .text(" " + date + " by " + file.from);
 
-                var downloadLink = $('<a>').attr('href', '#')
+                var downloadLink = $('<a>').attr('href', ucemeeting.getFileDownloadUrl(id))
                                            .text('Download')
                                            .attr('class', 'ui-filesharing ui-download-link');
 
-                var li = $('<li>').attr('class', 'mime ' + mime).append(filename).append(fileowner).append(downloadLink);
+                var li = $('<li>').attr('class', 'mime ' + mime);
+                $('<p>').append(filename).appendTo(li);
+                $('<p>').append(fileowner).appendTo(li);
 
                 if (file.pages.length != 0) {
                         viewLink = $('<a>').attr('href', '#')
                                            .text('Open in the viewer')
+                                           .bind('click', function() {
+                                                if (! file.actualpage)
+                                                    file.actualpage = 0;
+                                                that._preview(file); 
+                                                return false; })
                                            .attr('class', 'ui-filesharing ui-preview-link');
-                        li.append(' | ').append(viewLink);
 
                         shareLink = $('<a>').attr('href', '#')
                                             .text('Share')
@@ -256,13 +262,30 @@ $.uce.widget("filesharing", {
                                                 that.options.ucemeeting.push("document.share.start", {id: file.metadata.id});
                                                 return false; })
                                             .attr('class', 'ui-filesharing ui-share-link');
-                        li.append(' | ').append(shareLink);
-                }
 
+                        $('<p>').append(downloadLink).append(' | ').append(viewLink).append(' | ').append(shareLink).appendTo(li);
+                }
+                else {
+                        $('<p>').append(downloadLink).appendTo(li);
+                }
                 ul = ul.add(li);
             }
         );
         this.element.find('.ui-filesharing-list').empty().append(ul);
+    },
+
+    _preview: function(file) {
+        var preview = this.element.find('.ui-filesharing-preview');
+        this.element.find('.ui-filesharing-preview-title')
+            .text(file.metadata.name);
+        this.element.find('.ui-selector-current')
+            .text(file.actualpage + 1);
+        this.element.find('.ui-selector-total')
+            .text(file.pages.length);
+        var pageImg = this.element.find('.ui-filesharing-preview-page img');
+        var src = this.options.ucemeeting
+            .getFileDownloadUrl(file.pages[file.actualpage]);
+        pageImg.attr('src', src);
     },
 
     _refreshPreview: function() {

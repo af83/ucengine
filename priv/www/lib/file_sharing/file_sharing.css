@@ -26,9 +26,16 @@
     margin-top: 1em;
 }
 
+.ui-filesharing .ui-download-link {
+    font-weight: bold;
+}
+
 .ui-filesharing .ui-preview-link {
     font-weight: bold;
-    float: right;
+}
+
+.ui-filesharing .ui-share-link {
+    font-weight: bold;
 }
 
 .ui-filesharing .ui-file-owner {

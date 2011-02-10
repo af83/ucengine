@@ -90,6 +90,25 @@ jackTest("when clicking the share link, fire an event", function() {
     $('#files_shared').find('ul > li a.ui-filesharing.ui-share-link').click();
 });
 
+test("when clicking the view link, launch preview", function() {
+    var timestamp = new Date().getTime();
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'push']);
+    var events =
+        [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
+         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
+         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document", datetime: timestamp})];
+
+    $('#files_shared').filesharing({ucemeeting: ucemeeting});
+    $(events).each(function(index, event) {
+           $('#files_shared').filesharing('triggerUceEvent', event);
+    });
+
+    $('#files_shared').find('ul > li a.ui-filesharing.ui-view-link').click(function() {
+        equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'none');
+        equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'block');
+    });
+});
+
 test("can hide upload button", function() {
     $('#files_shared').filesharing({upload: false});
     equals($('#files_shared .ui-filesharing-add').size(), 0);
