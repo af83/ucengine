@@ -29,10 +29,16 @@ jackTest("handle new file upload", function() {
     var timestamp = new Date().getTime();
     var date = $.strftime('%m-%d-%y', timestamp);
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
-    $('#files_shared').filesharing({ucemeeting: ucemeeting})
-                      .filesharing('triggerUceEvent', Factories.createFileEvent({id : 'norris_pop_12.pdf',
-                                                                                 name : 'norris_pop.pdf',
-														                         datetime : timestamp}));
+
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("1 time")
+        .returnValue('#');
+
+    $('#files_shared')
+        .filesharing({ucemeeting: ucemeeting})
+        .filesharing('triggerUceEvent', Factories.createFileEvent({id : 'norris_pop_12.pdf',
+                                                                   name : 'norris_pop.pdf',
+                                                                   datetime : timestamp}));
     equals($('#files_shared ul > li').size(), 1);
     equals($('#files_shared ul > li:eq(0)').text(), 'norris_pop.pdf ' + date + ' by test_userDownload');
 });
@@ -41,6 +47,11 @@ jackTest("handle 2 files upload", function() {
     var timestamp = new Date().getTime();
     var date = $.strftime('%m-%d-%y', timestamp);
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("2 times")
+        .returnValue('#');
+
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
     $([Factories.createFileEvent(),
        Factories.createFileEvent({id: 'lee.pdf', name: 'lee.pdf', datetime: timestamp})]).each(function(i, item) {
@@ -54,7 +65,12 @@ jackTest("handle 2 files upload", function() {
 test("handle conversion done event", function() {
     var timestamp = new Date().getTime();
     var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("2 times")
+        .returnValue('#');
+
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
     $([Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
        Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: {"0": "page_1.jpg"}}),
@@ -66,14 +82,16 @@ test("handle conversion done event", function() {
 });
 
 jackTest("when clicking the share link, fire an event", function() {
-    expect(3);
-
     var timestamp = new Date().getTime();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
          Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document", datetime: timestamp})];
+
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("2 times")
+        .returnValue('#');
 
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
     $(events).each(function(index, event) {
@@ -82,21 +100,22 @@ jackTest("when clicking the share link, fire an event", function() {
 
     jack.expect("ucemeeting.push")
         .exactly("1 time")
-        .mock(function(type, metadata, callback) {
-            equals(type, "document.share.start");
-            equals(metadata.id, "norris.pdf");
-        });
+        .returnValue('#');
 
     $('#files_shared').find('ul > li a.ui-filesharing.ui-share-link').click();
 });
 
 test("when clicking the view link, launch preview", function() {
     var timestamp = new Date().getTime();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
          Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document", datetime: timestamp})];
+
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("2 times")
+        .returnValue('#');
 
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
     $(events).each(function(index, event) {
@@ -163,8 +182,8 @@ jackTest("handle roster delete event", function() {
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
 
     jack.expect("ucemeeting.getFileDownloadUrl")
-        .exactly("1 time")
-        .returnValue('toto');
+        .exactly("3 times")
+        .returnValue('#');
 
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);
@@ -188,8 +207,8 @@ jackTest("handle new document share start", function() {
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
 
     jack.expect("ucemeeting.getFileDownloadUrl")
-        .exactly("1 time")
-        .returnValue('toto');
+        .exactly("3 times")
+        .returnValue('#');
 
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);
@@ -201,7 +220,7 @@ jackTest("handle new document share start", function() {
     equals($("#files_shared").find(".ui-filesharing .ui-selector-current").text(), "1");
     equals($("#files_shared").find(".ui-filesharing .ui-selector-total").text(), "2");
     equals($("#files_shared").find(".ui-filesharing-preview-page").children().size(), 1);
-    equals($("#files_shared .ui-filesharing-preview-page img").attr('src'), "toto");
+    equals($("#files_shared .ui-filesharing-preview-page img").attr('src'), "#");
 });
 
 jackTest("when a 'document.share.goto' event is received, go to the right page", function() {
@@ -218,8 +237,8 @@ jackTest("when a 'document.share.goto' event is received, go to the right page",
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
 
     jack.expect("ucemeeting.getFileDownloadUrl")
-        .exactly("2 time")
-        .returnValue('toto');
+        .exactly("4 times")
+        .returnValue('#');
 
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);
@@ -232,7 +251,7 @@ jackTest("when a 'document.share.goto' event is received, go to the right page",
     equals($("#files_shared").find(".ui-filesharing-preview-page")
            .children().size(), 1, "There is one image");
     equals($("#files_shared .ui-filesharing-preview-page img")
-           .attr('src'), "toto", "The image's url");
+           .attr('src'), "#", "The image's url");
 });
 
 jackTest("check the from field when a 'document.share.goto' event is received", function() {
@@ -249,8 +268,8 @@ jackTest("check the from field when a 'document.share.goto' event is received", 
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
 
     jack.expect("ucemeeting.getFileDownloadUrl")
-        .exactly("1 time")
-        .returnValue('toto');
+        .exactly("3 times")
+        .returnValue('#');
 
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);
@@ -263,7 +282,7 @@ jackTest("check the from field when a 'document.share.goto' event is received", 
     equals($("#files_shared").find(".ui-filesharing-preview-page")
            .children().size(), 1, "There is one image");
     equals($("#files_shared .ui-filesharing-preview-page img")
-           .attr('src'), "toto", "The image's url");
+           .attr('src'), "#", "The image's url");
 });
 
 jackTest("when click on next, go to the right page", function() {
@@ -276,8 +295,11 @@ jackTest("when click on next, go to the right page", function() {
          Factories.createFileEvent({id: "page_2.jpg", name: "page_2.jpg", from: "document"}),
          Factories.createDocumentShareStartEvent({id: 'norris.pdf'})];
 
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("4 times")
+        .returnValue("#");
 
+    $('#files_shared').filesharing({ucemeeting: ucemeeting});
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);
     });
@@ -303,8 +325,11 @@ jackTest("when click on previous, go to the right page", function() {
          Factories.createDocumentShareStartEvent({id: 'norris.pdf'}),
          Factories.createDocumentShareGotoEvent({page: "1"})];
 
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("4 times")
+        .returnValue("#");
 
+    $('#files_shared').filesharing({ucemeeting: ucemeeting});
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);
     });
@@ -329,8 +354,11 @@ jackTest("when click on stop, send a 'document.share.stop' event", function() {
          Factories.createFileEvent({id: "page_2.jpg", name: "page_2.jpg", from: "document"}),
          Factories.createDocumentShareStartEvent({id: 'norris.pdf'})];
 
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .exactly("3 times")
+        .returnValue("#");
 
+    $('#files_shared').filesharing({ucemeeting: ucemeeting});
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);
     });
@@ -358,8 +386,8 @@ jackTest("when a 'document.share.stop' event is received, stop the file sharing"
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
 
     jack.expect("ucemeeting.getFileDownloadUrl")
-        .exactly("1 time")
-        .returnValue('toto');
+        .exactly("3 times")
+        .returnValue('#');
 
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);
@@ -383,8 +411,8 @@ jackTest("check the from field when a 'document.share.stop' event is received", 
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
 
     jack.expect("ucemeeting.getFileDownloadUrl")
-        .exactly("1 time")
-        .returnValue('toto');
+        .exactly("3 times")
+        .returnValue('#');
 
     $(events).each(function(index, event) {
            $('#files_shared').filesharing('triggerUceEvent', event);

@@ -234,7 +234,7 @@ $.uce.widget("filesharing", {
                                        .attr('href', '#')
                                        .attr('class', 'ui-filesharing ui-preview-link');
 
-		        var date = $.strftime("%m-%d-%y", file.datetime);
+                var date = $.strftime("%m-%d-%y", file.datetime);
                 var fileowner = $('<span>').attr('class', 'ui-file-owner')
                                            .text(" " + date + " by " + file.from);
 
