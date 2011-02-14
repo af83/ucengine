@@ -3,7 +3,7 @@
   <ul id="dock">
     <li id="chat-dock" />
     <li id="video-dock" />
-    <li id="filesharing-dock" />
+    <li id="fileupload-dock" />
     <li id="whiteboard-dock" />
   </ul>
 
@@ -24,7 +24,7 @@
     </section>
     
     <section id="reduced" class="slots">
-      <article id="filesharing" />
+      <article id="fileupload" />
       <article id="chat" />
       <article id="whiteboard" />
     </section>
