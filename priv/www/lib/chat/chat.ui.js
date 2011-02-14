@@ -216,10 +216,11 @@ $.uce.widget("chat", {
         var hashtags = event.metadata.hashtags.toLowerCase().split(',');
         var that = this;
         $.each(hashtags, function(i, hashtag) {
+            var timestamp = event.datetime;
             var from = event.metadata.from;
             var text = event.metadata.text;
-            that._addTweet(hashtag, from, text);
-            that._addTweet('all', from, text);
+            that._addTweet(hashtag, timestamp, from, text);
+            that._addTweet('all', timestamp, from, text);
             that._state.hashtags[hashtag] += 1;
         });
         this._updateHashtags();
@@ -363,8 +364,7 @@ $.uce.widget("chat", {
         return (container);
     },
 
-    _addChat: function(name, language, timestamp, from, text) {
-        // TODO: Refactor the following code to a timestampToISO function?
+    _timestampToISO: function(timestamp) {
         var date = new Date(new Number(timestamp));
         var minutes = date.getMinutes();
         minutes = (minutes < 10) ? "0" + minutes : minutes;
@@ -377,11 +377,17 @@ $.uce.widget("chat", {
         day = (day < 10) ? "0" + day : day;
         var datetime = date.getFullYear() + "-" + day + "-" + month + " " + hours + ":" + minutes;
 
+        return datetime
+    },
+
+    _addChat: function(name, language, timestamp, from, text) {
+        var datetime = this._timestampToISO(timestamp);
         this._addMessage('conversation:' + name + ":" + language, datetime, from, text);
     },
 
-    _addTweet: function(hashtag, from, text) {
-        this._addMessage('hashtag:' + hashtag, from, text);
+    _addTweet: function(hashtag, timestamp, from, text) {
+        var datetime = this._timestampToISO(timestamp);
+        this._addMessage('hashtag:' + hashtag, datetime, from, text);
     },
 
     _addMessage: function(name, datetime, from, text) {
