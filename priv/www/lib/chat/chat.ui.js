@@ -231,6 +231,7 @@ $.uce.widget("chat", {
         }
         this._addChat('all',
                       event.metadata.lang,
+                      event.datetime,
                       event.from,
                       event.metadata.text);
         // XXX: Can we refactor this to have a general behaviour when there is no dock ?
@@ -362,19 +363,36 @@ $.uce.widget("chat", {
         return (container);
     },
 
-    _addChat: function(name, language, from, text) {
-        this._addMessage('conversation:' + name + ":" + language, from, text);
+    _addChat: function(name, language, timestamp, from, text) {
+        // TODO: Refactor the following code to a timestampToISO function?
+        var date = new Date(new Number(timestamp));
+        var minutes = date.getMinutes();
+        minutes = (minutes < 10) ? "0" + minutes : minutes;
+        var hours = date.getHours();
+        hours = (hours < 10) ? "0" + hours : hours;
+        var time = hours + ":" + minutes;
+        var month = date.getMonth();
+        month = (month < 10) ? "0" + month : month;
+        var day = date.getDate();
+        day = (day < 10) ? "0" + day : day;
+        var datetime = date.getFullYear() + "-" + day + "-" + month + " " + hours + ":" + minutes;
+
+        this._addMessage('conversation:' + name + ":" + language, datetime, from, text);
     },
 
     _addTweet: function(hashtag, from, text) {
         this._addMessage('hashtag:' + hashtag, from, text);
     },
 
-    _addMessage: function(name, from, text) {
+    _addMessage: function(name, datetime, from, text) {
         var conversationList = this.element
             .find('.ui-chat-container[name="' + name + '"] ul.ui-chat-list');
         var message = $('<li>')
             .attr('class', 'ui-chat-message');
+        var date = $('<span>')
+            .attr('class', 'ui-chat-message-date')
+            .text(datetime)
+            .appendTo(message);
         var from = $('<span>')
             .attr('class', 'ui-chat-message-from')
             .text(from)

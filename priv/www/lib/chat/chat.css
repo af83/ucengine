@@ -143,10 +143,12 @@
     padding: 5px 50px 5px 10px;
 }
 
+.ui-chat .ui-chat-container .ui-chat-message-date {
+    margin-right: 0.5em;
+}
 .ui-chat .ui-chat-container .ui-chat-message-from {
     font: bold 12px Helvetica;
-    display: block;}
-
+}
 
 .ui-chat .ui-chat-container .ui-chat-message-text {
     font: 12px Helvetica;
