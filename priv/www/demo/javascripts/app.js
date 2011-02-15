@@ -414,6 +414,10 @@ $.sammy("#meeting", function() {
             addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
         });
 
+        addWidget("#fileupload", 'fileupload', {ucemeeting: meeting,
+                                                  mode: 'reduced',
+                                                  dock: '#fileupload-dock'});
+
         addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
                                                   mode: 'reduced',
                                                   dock: '#filesharing-dock'});
@@ -471,7 +475,7 @@ $.sammy("#meeting", function() {
                     $('#whiteboard').whiteboard("clear");
                     $('#files').file("clear");
                     $('#chat').chat("clear");
-                    $('#filesharing').filesharing("clear");
+                    $('#fileupload').fileupload("clear");
                 }
                 $("#replay").replay({
                     date_start: start,
@@ -530,7 +534,7 @@ $.sammy("#meeting", function() {
         $('#chat').chat("destroy");
         $('#whiteboard').whiteboard("destroy");
         $('#files').file("destroy");
-        $('#filesharing').filesharing("destroy");
+        $('#fileupload').fileupload("destroy");
         this.unload();
     };
 });
