@@ -216,10 +216,11 @@ $.uce.widget("chat", {
         var hashtags = event.metadata.hashtags.toLowerCase().split(',');
         var that = this;
         $.each(hashtags, function(i, hashtag) {
+            var timestamp = event.datetime;
             var from = event.metadata.from;
             var text = event.metadata.text;
-            that._addTweet(hashtag, from, text);
-            that._addTweet('all', from, text);
+            that._addTweet(hashtag, timestamp, from, text);
+            that._addTweet('all', timestamp, from, text);
             that._state.hashtags[hashtag] += 1;
         });
         this._updateHashtags();
@@ -231,6 +232,7 @@ $.uce.widget("chat", {
         }
         this._addChat('all',
                       event.metadata.lang,
+                      event.datetime,
                       event.from,
                       event.metadata.text);
         // XXX: Can we refactor this to have a general behaviour when there is no dock ?
@@ -362,19 +364,41 @@ $.uce.widget("chat", {
         return (container);
     },
 
-    _addChat: function(name, language, from, text) {
-        this._addMessage('conversation:' + name + ":" + language, from, text);
+    _timestampToISO: function(timestamp) {
+        var date = new Date(new Number(timestamp));
+        var minutes = date.getMinutes();
+        minutes = (minutes < 10) ? "0" + minutes : minutes;
+        var hours = date.getHours();
+        hours = (hours < 10) ? "0" + hours : hours;
+        var time = hours + ":" + minutes;
+        var month = date.getMonth();
+        month = (month < 10) ? "0" + month : month;
+        var day = date.getDate();
+        day = (day < 10) ? "0" + day : day;
+        var datetime = date.getFullYear() + "-" + day + "-" + month + " " + hours + ":" + minutes;
+
+        return datetime
     },
 
-    _addTweet: function(hashtag, from, text) {
-        this._addMessage('hashtag:' + hashtag, from, text);
+    _addChat: function(name, language, timestamp, from, text) {
+        var datetime = this._timestampToISO(timestamp);
+        this._addMessage('conversation:' + name + ":" + language, datetime, from, text);
     },
 
-    _addMessage: function(name, from, text) {
+    _addTweet: function(hashtag, timestamp, from, text) {
+        var datetime = this._timestampToISO(timestamp);
+        this._addMessage('hashtag:' + hashtag, datetime, from, text);
+    },
+
+    _addMessage: function(name, datetime, from, text) {
         var conversationList = this.element
             .find('.ui-chat-container[name="' + name + '"] ul.ui-chat-list');
         var message = $('<li>')
             .attr('class', 'ui-chat-message');
+        var date = $('<span>')
+            .attr('class', 'ui-chat-message-date')
+            .text(datetime)
+            .appendTo(message);
         var from = $('<span>')
             .attr('class', 'ui-chat-message-from')
             .text(from)
@@ -383,6 +407,11 @@ $.uce.widget("chat", {
             .attr('class', 'ui-chat-message-text')
             .text(text)
             .appendTo(message);
+
+        // Change http URIs into links
+        var httpLinks = /(http:\/\/[^ ]+)/;
+        text.html(text.html().replace(httpLinks, '<a href="$1">$1</a>'));
+
         message.appendTo(conversationList);
         conversationList.scrollTop(conversationList[0].scrollHeight);
     },
