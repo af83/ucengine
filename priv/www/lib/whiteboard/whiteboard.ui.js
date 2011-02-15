@@ -264,7 +264,6 @@ $.uce.widget("whiteboard", {
 
     _resize: function() {
         var width = this.element.width();
-        console.log(width);
         this.canvas.css('height', width * this.options.ratio);
     },
 
