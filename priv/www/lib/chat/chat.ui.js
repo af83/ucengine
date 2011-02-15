@@ -407,6 +407,11 @@ $.uce.widget("chat", {
             .attr('class', 'ui-chat-message-text')
             .text(text)
             .appendTo(message);
+
+        // Change http URIs into links
+        var httpLinks = /(http:\/\/[^ ]+)/;
+        text.html(text.html().replace(httpLinks, '<a href="$1">$1</a>'));
+
         message.appendTo(conversationList);
         conversationList.scrollTop(conversationList[0].scrollHeight);
     },
