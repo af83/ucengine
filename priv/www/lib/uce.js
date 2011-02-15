@@ -4,7 +4,7 @@
  * (c) 2010 af83
  */
 (function(g) {
-    var VERSION = "0.2";
+    var VERSION = "0.3";
 
     function getCollection(url, params, callback) {
         get(url, params, function(err, result, xhr) {

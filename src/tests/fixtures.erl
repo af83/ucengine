@@ -26,7 +26,7 @@ setup() ->
     Port = config:get(port),
     setup_meetings(Domain),
     setup_users(Domain),
-    [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/0.2/", setup_testers(Domain)].
+    [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/0.3/", setup_testers(Domain)].
 
 teardown([Domain, _, _Testers]) ->
     apply(list_to_atom(atom_to_list(config:get(db)) ++ "_db"), drop, []),

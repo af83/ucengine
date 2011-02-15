@@ -3,8 +3,8 @@
     "authority": "af83",
     "meta": {},
 
-    "base_url": "http://localhost:5280/api/0.2/",
-    "version": "0.2",
+    "base_url": "http://localhost:5280/api/0.3/",
+    "version": "0.3",
 
     "formats": ["json"]
 
@@ -19,7 +19,7 @@
 
         "addRight": {
             "path": "/user/:user/acl/:object/:action",
-            "method": "PUT",
+            "method": "POST",
             "required_params": ["uid", "sid", "conditions"],
             "authentication": true
         },
@@ -37,15 +37,15 @@
         },
 
         "auth": {
-            "path": "/presence/:uid",
-            "method": "PUT",
+            "path": "/presence/",
+            "method": "POST",
             "required_params": ["uid", "auth", "_credential"],
             "optional_params": ["metadata"],
             "expected_status": [200, 400, 403]
         },
 
         "logout": {
-            "path": "/presence/:uid/:sid",
+            "path": "/presence/:sid",
             "method": "DELETE",
             "required_params": ["uid", "sid"],
             "expected_status": [200, 400, 401, 404],
@@ -76,16 +76,16 @@
 
         "pushGlobalEvent": {
             "path": "/event/",
-            "method": "PUT",
-            "required_params": ["uid", "sid", "_type"],
+            "method": "POST",
+            "required_params": ["uid", "sid", "type"],
             "expected_status": [201, 400, 401, 404],
             "authentication": true
         },
 
         "pushMeetingEvent": {
             "path": "/event/:meeting",
-            "method": "PUT",
-            "required_params": ["uid", "sid", "_type", "meeting"],
+            "method": "POST",
+            "required_params": ["uid", "sid", "type", "meeting"],
             "expected_status": [201, 400, 401, 404],
             "authentication": true
         }

@@ -156,7 +156,7 @@ test("can be accessed via window.uce", function() {
 
 jackTest("can open a new presence", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/presence/", { "uid": "uid", "metadata": {"nickname": "nickname"}}, 200, '{"result": "sid"}');
+    addUceApiCall("post", "/api/0.3/presence/", { "uid": "uid", "metadata": {"nickname": "nickname"}}, 200, '{"result": "sid"}');
     uce.presence.create("", "uid", "nickname",
                         function(err, presence, xhr) {
                             start();
@@ -168,7 +168,7 @@ jackTest("can open a new presence", function() {
 
 jackTest("can close a presence", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/presence/mysid", { "_method": "delete", "uid": "myuid", "sid": "mysid"}, 200, '');
+    addUceApiCall("post", "/api/0.3/presence/mysid", { "_method": "delete", "uid": "myuid", "sid": "mysid"}, 200, '');
     uce.attachPresence(Factories.createPresence()).presence.close(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -177,7 +177,7 @@ jackTest("can close a presence", function() {
 
 jackTest("can get current domain informations", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/infos/", {}, 200, '{"result" : {"domain": "localhost", "metadata": {"name": "myuser", "plop": "plip"}}}');
+    addUceApiCall("get", "/api/0.3/infos/", {}, 200, '{"result" : {"domain": "localhost", "metadata": {"name": "myuser", "plop": "plip"}}}');
     uce.infos.get(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -187,7 +187,7 @@ jackTest("can get current domain informations", function() {
 
 jackTest("can update current domain informations", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/infos/", {"_method": "put", "uid": "myuid", "sid": "mysid", "metadata": {"pouet" : "pouet"}}, 200, '{"result" : "ok"}');
+    addUceApiCall("post", "/api/0.3/infos/", {"_method": "put", "uid": "myuid", "sid": "mysid", "metadata": {"pouet" : "pouet"}}, 200, '{"result" : "ok"}');
     uce.attachPresence(Factories.createPresence()).infos.update({pouet: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -197,7 +197,7 @@ jackTest("can update current domain informations", function() {
 
 jackTest("can list users", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/user/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myuser"}, {}]}');
+    addUceApiCall("get", "/api/0.3/user/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myuser"}, {}]}');
     uce.attachPresence(Factories.createPresence()).users.get(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -207,7 +207,7 @@ jackTest("can list users", function() {
 
 jackTest("can get opened meetings", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/meeting/opened", {}, 200, '{"result" : [{"name": "mymeeting"}, {}]}');
+    addUceApiCall("get", "/api/0.3/meeting/opened", {}, 200, '{"result" : [{"name": "mymeeting"}, {}]}');
     uce.meetings.opened(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -217,7 +217,7 @@ jackTest("can get opened meetings", function() {
 
 jackTest("can get closed meetings", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/meeting/closed", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    addUceApiCall("get", "/api/0.3/meeting/closed", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
     uce.meetings.closed(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -227,7 +227,7 @@ jackTest("can get closed meetings", function() {
 
 jackTest("can get upcoming meetings", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/meeting/upcoming", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    addUceApiCall("get", "/api/0.3/meeting/upcoming", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
     uce.meetings.upcoming(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -237,7 +237,7 @@ jackTest("can get upcoming meetings", function() {
 
 jackTest("can get all meetings", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/meeting/all", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    addUceApiCall("get", "/api/0.3/meeting/all", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
     uce.meetings.all(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -247,7 +247,7 @@ jackTest("can get all meetings", function() {
 
 jackTest("can get meeting", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/meeting/all/mymeeting", {}, 200, '{"result" : {"name": "mymeeting"}}');
+    addUceApiCall("get", "/api/0.3/meeting/all/mymeeting", {}, 200, '{"result" : {"name": "mymeeting"}}');
     uce.meeting("mymeeting").get(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -257,7 +257,7 @@ jackTest("can get meeting", function() {
 
 jackTest("can join meeting", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/meeting/all/mymeeting/roster/",  {"uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
+    addUceApiCall("post", "/api/0.3/meeting/all/mymeeting/roster/",  {"uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
     var meeting = uce.attachPresence(Factories.createPresence()).meeting("mymeeting");
     meeting.join(function(err, r, xhr) {
         start();
@@ -269,7 +269,7 @@ jackTest("can join meeting", function() {
 
 jackTest("can leave meeting", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/meeting/all/mymeeting/roster/myuid",  {"_method" :"delete", "uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
+    addUceApiCall("post", "/api/0.3/meeting/all/mymeeting/roster/myuid",  {"_method" :"delete", "uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").leave(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -278,7 +278,7 @@ jackTest("can leave meeting", function() {
 
 jackTest("can push event on meeting", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "type": "test_event", "metadata": {_mymetadata: "myvalue"}}, 200, '');
+    addUceApiCall("post", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "type": "test_event", "metadata": {_mymetadata: "myvalue"}}, 200, '');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").push('test_event', {_mymetadata:"myvalue"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -287,7 +287,7 @@ jackTest("can push event on meeting", function() {
 
 jackTest("getEvents with callback on global success", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": [{}, {}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": [{}, {}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").getEvents({}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -299,7 +299,7 @@ jackTest("getEvents with callback on each event", function() {
     stop();
     expect(8);
     var called = 0;
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": [{}, {}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": [{}, {}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").getEvents({}, function(err, r, xhr) {
         equals(err, null);
         called++;
@@ -313,7 +313,7 @@ jackTest("getEvents with callback on each event", function() {
 
 jackTest("getEvents with start", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "start": "pouet"}, 200, '{"result": [{}, {}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "start": "pouet"}, 200, '{"result": [{}, {}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").getEvents({start: "pouet" }, function(err, r, xhr) {
         start();
     }, false);
@@ -321,7 +321,7 @@ jackTest("getEvents with start", function() {
 
 jackTest("getEvents with end", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "end": "plop"}, 200, '{"result": [{}, {}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "end": "plop"}, 200, '{"result": [{}, {}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").getEvents({end: "plop"}, function(err, r, xhr) {
         start();
     }, false);
@@ -329,7 +329,7 @@ jackTest("getEvents with end", function() {
 
 jackTest("getEvents with type", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "type": "chuck_norris"}, 200, '{"result": [{}, {}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "type": "chuck_norris"}, 200, '{"result": [{}, {}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").getEvents({type: "chuck_norris"}, function(err, r, xhr) {
         start();
     }, false);
@@ -337,7 +337,7 @@ jackTest("getEvents with type", function() {
 
 jackTest("waitEvents without type param", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -346,7 +346,7 @@ jackTest("waitEvents without type param", function() {
 
 jackTest("waitEvents with type param", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet", "type" : "chuck_norris"}, 200, '{"result": [{}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet", "type" : "chuck_norris"}, 200, '{"result": [{}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({"start": "pouet", type: "chuck_norris"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -355,7 +355,7 @@ jackTest("waitEvents with type param", function() {
 
 jackTest("waitEvents without wait param", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -365,7 +365,7 @@ jackTest("waitEvents without wait param", function() {
 jackTest("waitEvents can be stopped", function() {
     expect(5);
     stop();
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}', {
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}', {
         abort: function() {
             start();
             ok(true, "waitEvent stopped");
@@ -380,7 +380,7 @@ test("waitEvents auto restart after wait", function() {
     var ajaxcall = 0; // nb of ajax request/response
     var called   = 0;
     $.mockjax({
-        url: '/api/0.2/event/mymeeting',
+        url: '/api/0.3/event/mymeeting',
         responseTime: 10,
         response: function() {
             this.responseText = {
@@ -414,7 +414,7 @@ jackTest("waitEvents, callback is called on each events", function() {
     stop();
     expect(5);
     var called = 0;
-    addUceApiCall("get", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}, {}]}');
+    addUceApiCall("get", "/api/0.3/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}, {}]}');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {
         called++;
         if (called == 2) {
@@ -441,7 +441,7 @@ test("startLoop with bind", function() {
         mock : function() {
             var that = this;
             $.mockjax({
-                url: '/api/0.2/event/mymeeting',
+                url: '/api/0.3/event/mymeeting',
                 responseTime: 1,
                 response: function() {
                     this.responseText = {
@@ -473,7 +473,7 @@ test("startLoop widgets/whatever can bind event handler with special type", func
         mock : function() {
             var that = this;
             $.mockjax({
-                url: '/api/0.2/event/mymeeting',
+                url: '/api/0.3/event/mymeeting',
                 responseTime: 1,
                 response: function() {
                     this.responseText = {
@@ -489,22 +489,22 @@ test("startLoop widgets/whatever can bind event handler with special type", func
 
 test("get upload url", function() {
     var url = uce.attachPresence(Factories.createPresence()).meeting("mymeeting").getFileUploadUrl();
-    equals(url, "/api/0.2/file/mymeeting?uid=myuid&sid=mysid");
+    equals(url, "/api/0.3/file/mymeeting?uid=myuid&sid=mysid");
     var url = uce.attachPresence({"uid": "myuid2", "sid": "mysid2"}).meeting("mymeeting2").getFileUploadUrl();
-    equals(url, "/api/0.2/file/mymeeting2?uid=myuid2&sid=mysid2");
+    equals(url, "/api/0.3/file/mymeeting2?uid=myuid2&sid=mysid2");
 });
 
 test("get download file url", function() {
     var meeting = uce.attachPresence(Factories.createPresence()).meeting("mymeeting");
     var url = meeting.getFileDownloadUrl('mydoc.pdf');
-    equals(url, "/api/0.2/file/mymeeting/mydoc.pdf?uid=myuid&sid=mysid");
+    equals(url, "/api/0.3/file/mymeeting/mydoc.pdf?uid=myuid&sid=mysid");
     var url = meeting.getFileDownloadUrl('mydoc2.pdf');
-    equals(url, "/api/0.2/file/mymeeting/mydoc2.pdf?uid=myuid&sid=mysid");
+    equals(url, "/api/0.3/file/mymeeting/mydoc2.pdf?uid=myuid&sid=mysid");
 });
 
 jackTest("uce.time",  function() {
     stop();
-    addUceApiCall("get", "/api/0.2/time",  {}, 200, '{"result": "4"}');
+    addUceApiCall("get", "/api/0.3/time",  {}, 200, '{"result": "4"}');
     uce.time(function(err, result, xhr) {
         start();
         equals(null, err);
@@ -523,7 +523,7 @@ test("uce waiter", function() {
 
 jackTest("register new user", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
+    addUceApiCall("post", "/api/0.3/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
     uce.user.register('test@example.net', 'password', 'mypwd', {nickname: 'test'}, function(err, result) {
         start();
         equals(null, err);
@@ -533,7 +533,7 @@ jackTest("register new user", function() {
 
 jackTest("register with password", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
+    addUceApiCall("post", "/api/0.3/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
     uce.user.registerWithPassword('test@example.net', 'mypwd', {nickname: 'test'}, function(err, result) {
         start();
         equals(null, err);
@@ -543,7 +543,7 @@ jackTest("register with password", function() {
 
 jackTest("get user", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/user/test@example.net",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": {}}');
+    addUceApiCall("get", "/api/0.3/user/test@example.net",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": {}}');
     uce.attachPresence(Factories.createPresence()).user.get('test@example.net', function(err, result) {
         start();
         equals(null, err);
@@ -667,7 +667,7 @@ module("ucejs.acl",
 
 jackTest("user.can", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/user/otheruid/acl/all/all", {"uid": "myuid", "sid": "mysid"}, 200, '{"result":"true"}');
+    addUceApiCall("get", "/api/0.3/user/otheruid/acl/all/all", {"uid": "myuid", "sid": "mysid"}, 200, '{"result":"true"}');
     uce.attachPresence(Factories.createPresence()).user.can("otheruid", "all", "all", function(err, result) {
         start();
         equals(err, null);
