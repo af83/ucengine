@@ -19,29 +19,42 @@
 
 -behaviour(gen_uce_infos).
 
+-include("uce.hrl").
 -include("mongodb.hrl").
 
 %% gen_uce_infos api
--export([get/1, update/2]).
+-export([get/1, update/1]).
 
-get(_Domain) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_infos", []) of
-        [Infos] ->
-            {"metadata", Metadata} = mongodb_helpers:get_item_from_collection("metadata", Infos),
-            {ok, Metadata};
+get(Domain) ->
+    case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"domain", Domain}]) of
+        [Record] ->
+            {ok, from_collection(Record)};
         [] ->
-            {ok, []}
+            {ok, #uce_infos{domain=Domain, metadata=[]}};
+        _ ->
+            throw({error, bad_parameters})
     end.
 
-update(_Domain, Metadata) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"id", "default"}]) of
-        [_Infos] ->
-            emongo:update_sync(?MONGO_POOL, "uce_infos", [{"id", "default"}], [{"metadata", Metadata}], false);
-        [] ->
-            case catch emongo:insert_sync(?MONGO_POOL, "uce_infos", [{"id", "default"}, {"metadata", Metadata}]) of
-                {'EXIT', _} ->
-                    {error, bad_parameters};
-                _ ->
-                    {ok, updated}
-            end
+update(#uce_infos{domain=Domain} = Infos) ->
+    case catch emongo:update_sync(?MONGO_POOL, "uce_infos",
+                                  [{"domain", Domain}],
+                                  to_collection(Infos), false) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        _ ->
+            {ok, updated}
+    end.
+
+to_collection(#uce_infos{domain=Domain,
+                         metadata=Metadata}) ->
+    [{"domain", Domain},
+     {"metadata", Metadata}].
+
+from_collection(Collection) ->
+    case utils:get(mongodb_helpers:collection_to_list(Collection),
+		   ["domain", "metadata"]) of
+        [Domain, Metadata] ->
+            #uce_infos{domain=Domain, metadata=Metadata};
+        _ ->
+            throw({error, bad_parameters})
     end.

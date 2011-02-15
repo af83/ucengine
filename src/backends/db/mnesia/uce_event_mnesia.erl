@@ -23,88 +23,91 @@
 
 -export([init/0, drop/0]).
 
--export([add/2,
-         get/2,
-         list/7]).
+-export([add/1,
+         get/1,
+         list/6]).
 
 -include("uce.hrl").
 
 init() ->
     mnesia:create_table(uce_event,
-			[{disc_copies, [node()]},
-			 {type, set},
-			 {attributes, record_info(fields, uce_event)}]).
+                        [{disc_copies, [node()]},
+                         {type, set},
+                         {attributes, record_info(fields, uce_event)}]).
 
-add(_Domain, #uce_event{} = Event) ->
+add(#uce_event{} = Event) ->
     case mnesia:transaction(fun() ->
-				    mnesia:write(Event)
-			    end) of
-	{atomic, _} ->
-	    {ok, created};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:write(Event)
+                            end) of
+        {atomic, _} ->
+            {ok, Event#uce_event.id};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
+get(Id) ->
     case mnesia:transaction(fun() ->
-				    mnesia:read(uce_event, Id)
-			    end) of
-	{aborted, Reason} ->
-	    {error, Reason};
-	{atomic, []} ->
-	    {error, not_found};
-	{atomic, [Event]} ->
-	    {ok, Event}
+                                    mnesia:read(uce_event, Id)
+                            end) of
+        {aborted, _} ->
+            throw({error, bad_parameters});
+        {atomic, []} ->
+            throw({error, not_found});
+        {atomic, [Event]} ->
+            {ok, Event}
     end.
 
-list(_Domain, Location, From, Type, Start, End, Parent) ->
-    SelectLocation = case Location of
-			 [""] ->
-			     ['$4'];
-			 [Meeting] ->
-			     [Meeting]
-		     end,
-    SelectFrom = if
-		     From == '_' ->
-			 '$5';
-		     true ->
-			 From
-		 end,
+list(Location, From, Type, Start, End, Parent) ->
+    {SelectLocation, ResultLocation} =
+        case Location of
+            {"", _} ->
+                {'$4', '$4'};
+            _ ->
+                {Location, {Location}}
+        end,
+    {SelectFrom, ResultFrom} =
+        case From of
+            {"", _} ->
+                {'$5', '$5'};
+            _ ->
+                {From, {From}}
+        end,
     SelectType = if
-		     Type == '_' ->
-			 '$7';
-		     true ->
-			 Type
-		 end,			  
+                     Type == '_' ->
+                         '$7';
+                     true ->
+                         Type
+                 end,			  
     SelectParent = if
-		       Parent == '_' ->
-			   '$8';
-		       true ->
-			   Parent
-		   end,
+                       Parent == '_' ->
+                           '$8';
+                       true ->
+                           Parent
+                   end,
     Guard = if 
-		Start /= 0, End /= infinity ->
-		    [{'>=', '$2', Start}, {'=<', '$2', End}];
-		
-		Start /= 0 ->
-		    [{'>=', '$2', Start}];
-		
-		End /= infinity ->
-		    [{'=<', '$2', End}];
-		
-		true ->
-		    []
-	    end,
+                Start /= 0, End /= infinity ->
+                    [{'>=', '$3', Start}, {'=<', '$3', End}];
+                
+                Start /= 0 ->
+                    [{'>=', '$3', Start}];
+                
+                End /= infinity ->
+                    [{'=<', '$3', End}];
+                
+                true ->
+                    []
+            end,
     Match = #uce_event{id='$1',
-		       datetime='$2',
-		       location=SelectLocation,
-		       from=SelectFrom,
-		       to='$6',
-		       type=SelectType,
-		       parent=SelectParent,
-		       metadata='$9'},
-    Result = {{'uce_event', '$1','$2', SelectLocation,
-	       SelectFrom, '$6', SelectType, SelectParent, '$9'}},
+                       domain='$2',
+                       datetime='$3',
+                       location=SelectLocation,
+                       from=SelectFrom,
+                       to='$6',
+                       type=SelectType,
+                       parent=SelectParent,
+                       metadata='$9'},
+    Result = {{'uce_event', '$1', '$2', '$3', ResultLocation,
+               ResultFrom, '$6', SelectType, SelectParent, '$9'}},
     {ok, mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])}.
 
 drop() ->

@@ -23,81 +23,97 @@
 
 -export([init/0, drop/0]).
 
--export([add/2,
-         list/2,
-         get/2,
-         delete/2,
-         update/2,
+-export([add/1,
+         list/1,
+         get/1,
+         delete/1,
+         update/1,
          all/1]).
 
 -include("uce.hrl").
 
 init() ->
     mnesia:create_table(uce_presence,
-			[{disc_copies, [node()]},
-			 {type, set},
-			 {attributes, record_info(fields, uce_presence)}]).
+                        [{disc_copies, [node()]},
+                         {type, set},
+                         {attributes, record_info(fields, uce_presence)}]).
 
-add(_Domain, #uce_presence{}=Presence) ->
+add(#uce_presence{}=Presence) ->
     case mnesia:transaction(fun() ->
-				    mnesia:write(Presence)
-			    end) of
-	{atomic, _} ->
-	    {ok, Presence#uce_presence.sid};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:write(Presence)
+                            end) of
+        {atomic, _} ->
+            {ok, Presence#uce_presence.id};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
-list(_Domain, EUid) ->
+list(User) ->
     case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_presence{sid='_',
-								      uid=EUid,
-								      auth='_',
-								      last_activity='_',
-								      resource='_',
-								      metadata='_'})
-			    end) of
-	{atomic, []} ->
-	    {ok, []};
-	{atomic, Records} ->
-	    {ok, Records};
-	{aborted, Reason} ->
-	    {error, Reason}
+				    mnesia:match_object(#uce_presence{id='_',
+                                                      user=User,
+                                                      domain='_',
+                                                      auth='_',
+                                                      last_activity='_',
+                                                      resource='_',
+                                                      metadata='_'})
+                            end) of
+        {atomic, []} ->
+            {ok, []};
+        {atomic, Records} ->
+            {ok, Records};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
-all(_Domain) ->
-    {ok, ets:tab2list(uce_presence)}.
-
-get(_Domain, Sid) ->
+all(Domain) ->
     case mnesia:transaction(fun() ->
-				    mnesia:read(uce_presence, Sid)
-			    end) of
-	{atomic, [Record]} ->
-	    {ok, Record};
-	{atomic, _} ->
-	    {error, not_found};
-	{aborted, Reason} ->
-	    {error, Reason}
+				    mnesia:match_object(#uce_presence{id='_',
+                                                      domain=Domain,
+                                                      user='_',
+                                                      auth='_',
+                                                      last_activity='_',
+                                                      resource='_',
+                                                      metadata='_'})
+                            end) of
+        {atomic, []} ->
+            {ok, []};
+        {atomic, Records} ->
+            {ok, Records};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
-delete(_Domain, Sid) ->
+get(Id) ->
     case mnesia:transaction(fun() ->
-				     mnesia:delete({uce_presence, Sid})
-			     end) of
-	{atomic, _} ->
-	    {ok, deleted};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:read(uce_presence, Id)
+                            end) of
+        {atomic, [Record]} ->
+            {ok, Record};
+        {atomic, _} ->
+            throw({error, not_found});
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
-update(_Domain, #uce_presence{}=Presence) ->
+delete(Id) ->
     case mnesia:transaction(fun() ->
-				       mnesia:write(Presence)
-			    end) of
-	{atomic, _} ->
-	    {ok, updated};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:delete({uce_presence, Id})
+                            end) of
+        {atomic, _} ->
+            {ok, deleted};
+        {aborted, _} ->
+            throw({error, bad_parameters})
+    end.
+
+update(#uce_presence{}=Presence) ->
+    case mnesia:transaction(fun() ->
+                                    mnesia:write(Presence)
+                            end) of
+        {atomic, _} ->
+            {ok, updated};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
 drop() ->

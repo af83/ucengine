@@ -19,7 +19,7 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/2, list/8, delete/2]).
+-export([add/1, list/7, delete/2]).
 
 -include("uce.hrl").
 
@@ -29,7 +29,7 @@
 
 -define(META_PREFIX, "metadata_").
 
-add(_Domain, Event) ->
+add(Event) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, to_solrxml(Event)),
     {ok, created}.
@@ -82,11 +82,11 @@ params_to_query([{Key, Value}|Tail]) ->
                             " +" ++ params_to_query(Tail)
                     end.
 
-list(Domain, Location, Search, From, Type, Start, End, Parent) ->
+list(Location, Search, From, Type, Start, End, Parent) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
-    search(Domain, Host, Location, Search, From, Type, Start, End, Parent).
+    search(Host, Location, Search, From, Type, Start, End, Parent).
 
-search(_Domain, Host, [Meeting], Search, From, Type, Start, End, _) ->
+search(Host, [Meeting], Search, From, Type, Start, End, _) ->
     MeetingSelector =
         if
             Meeting /= '_' ->

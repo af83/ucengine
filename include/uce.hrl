@@ -1,93 +1,98 @@
 -record(uce_event, {
-	  %% Id
-	  id = none,
-	  % date (ms from epoch)
-	  datetime = none,
-	  %% location = [Meeting]
-	  location = [""],
-	  %% From: uid|brick
-	  from,
-	  %% To : string
-	  to = "all",
-	  %% Type event : string
-	  type,
-	  %% parent id
-	  parent = "",
-	  %% MetaData : list
-	  metadata = []}).
-
--record(uce_trigger, {
-	  %% Event type
-	  type,
-	  %% [meeting]
-	  location = [""],
-	  %% action : {Action, Params}
-	  action}).
+          %% Id
+          id = none,
+          % Domain (vhost)
+          domain,
+          %% date (ms from epoch)
+          datetime = undefined,
+          %% location = [Meeting]
+          location = {"", ""},
+          %% From: uid|brick
+          from,
+          %% To : string
+          to = {"", ""},
+          %% Type event : string
+          type,
+          %% parent id
+          parent = "",
+          %% MetaData : list
+          metadata = []}).
 
 -record(uce_presence, {
-	  sid = [],
-	  % user id
-	  uid,
-	  %% authification method
-	  auth,
-	  % timeout
-	  last_activity = undefined,
-	  % resource
-	  resource,
+          %% Id
+          id = none,
+          %% domain
+          domain,
+          %% user id
+          user,
+          %% authification method
+          auth,
+          %% timeout
+          last_activity = undefined,
+          %% resource
+          resource,
           %% list meetings joined by user
-	  meetings = [],
-	  %% MetaData : list
-	  metadata = []}).
+          meetings = [],
+          %% MetaData : list
+          metadata = []}).
 
 -record(uce_meeting, {
-	  %% uce meeting id {meeting_name})
-	  id,
-	  %% start_date and end_date format : {{Year, Month, Day}, {Hours, Minutes, Seconds}}
-	  %% or timestamp
-	  start_date = none,
-	  end_date = none,
-	  roster = [],
-	  %% [{"description",Desc}, {"language",Lang}, ... ]
-	  metadata = []
-	 }).
+          %% uce meeting id
+          id = {"", ""},
+          domain,
+          %% name
+          name,
+          %% start_date and end_date format : ms since epoch
+          start_date = none,
+          end_date = none,
+          roster = [],
+          %% [{"description",Desc}, {"language",Lang}, ... ]
+          metadata = []}).
 
 -record(uce_file, {
-	  % file id
-	  id,
-	  % name
-	  name,
-	  % [meeting]
-	  location = [""],
-	  % path
-	  uri = [],
-	  % mime type
-	  mime = "text/plain",
-	  % name as send by the browser
-	  metadata = []
+	      % file id
+          id = none,
+          % domain
+          domain,
+	      % name
+	      name,
+	      % {Meeting, Domain}
+	      location = {"", ""},
+	      % path
+	      uri = [],
+	      % mime type
+	      mime = "text/plain",
+	      % name as send by the browser
+	      metadata = []
 	 }).
 
 -record(uce_user, {
-	  uid,
-	  auth,
-	  credential,
-	  metadata = []}).
+          %% User (name, domain)
+          id = none,
+          auth,
+          credential,
+          metadata = []}).
+
+-record(uce_infos, {
+          domain = none,
+          metadata = []}).
 
 -record(uce_acl, {
-	  uid,
-	  action,
-	  object,
-	  location=[""],
-	  conditions=[]}).
+          user,
+          action,
+          object,
+          location={"", ""},
+          conditions=[]}).
 
 -record(uce_route, {
-	  module = [],
-	  title = [],
-	  desc = [],
-	  path = [],
-	  types = [],
-	  method,
-	  regexp,
-	  callbacks}).
+          module = [],
+          title = [],
+          desc = [],
+          path = [],
+          types = [],
+          method,
+          regexp,
+          callbacks}).
 
 -define(TIMEOUT, 5000).
 

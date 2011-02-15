@@ -19,51 +19,52 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/2, delete/2, update/5, update/2, list/1, get/2, exists/2]).
+-export([add/1, delete/1, update/1, list/1, get/1, exists/1]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
 
-add(Domain, #uce_user{} = User) ->
-    case ?MODULE:exists(Domain, User#uce_user.uid) of
-	true ->
-	    {error, conflict};
-	false ->
-	    ?DB_MODULE:add(Domain, User)
+add(#uce_user{id=Id} = User) ->
+    case exists(Id) of
+        true ->
+            throw({error, conflict});
+        false ->
+            ?DB_MODULE:add(User)
     end.
 
-delete(Domain, Uid) ->
-    case ?MODULE:get(Domain, Uid) of
-	{error, Reason} ->
-	    {error, Reason};
-	{ok, _} ->
-	    ?DB_MODULE:delete(Domain, Uid)
+delete(Id) ->
+    case exists(Id) of
+        true ->
+            ?DB_MODULE:delete(Id);
+        false ->
+            throw({error, not_found})
     end.
 
-update(Domain, Uid, Auth, Credential, Metadata) ->
-    ?MODULE:update(Domain, #uce_user{uid=Uid,
-                                     auth=Auth,
-                                     credential=Credential,
-                                     metadata=Metadata}).
-
-update(Domain, #uce_user{} = User) ->
-    case ?MODULE:get(Domain, User#uce_user.uid) of
-	{error, Reason} ->
-	    {error, Reason};
-	{ok, _} ->
-	    ?DB_MODULE:update(Domain, User)
+update(#uce_user{id=Id} = User) ->
+    case ?MODULE:exists(Id) of
+        true ->
+            ?DB_MODULE:update(User);
+        false ->
+            throw({error, not_found})
     end.
 
 list(Domain) ->
     ?DB_MODULE:list(Domain).
 
-get(Domain, Uid) ->
-    ?DB_MODULE:get(Domain, Uid).
+get(Id) ->
+    ?DB_MODULE:get(Id).
 
-exists(Domain, Uid) ->
-    case ?MODULE:get(Domain, Uid) of
-	{error, _} ->
-	    false;
-	_ ->
-	    true
+exists(Id) ->
+    case Id of
+        {"", _} -> % all
+            true;
+        _ ->
+            case catch ?MODULE:get(Id) of
+                {error, not_found} ->
+                    false;
+                {error, Reason} ->
+                    throw({error, Reason});
+                _ ->
+                    true
+            end
     end.

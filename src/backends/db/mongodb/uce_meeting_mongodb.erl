@@ -21,71 +21,68 @@
 
 -behaviour(gen_uce_meeting).
 
--export([add/2,
-         delete/2,
-         get/2,
-         update/2,
+-export([add/1,
+         delete/1,
+         get/1,
+         update/1,
          list/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(_Domain, #uce_meeting{} = Meeting) ->
+add(#uce_meeting{} = Meeting) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_meeting", to_collection(Meeting)) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    {ok, created}
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        _ ->
+            {ok, Meeting#uce_meeting.id}
     end.
 
-delete(_Domain, [Meeting]) ->
-    case emongo:delete(?MONGO_POOL, "uce_meeting", [{"meeting", Meeting}]) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    {ok, deleted}
+delete(Id) ->
+    case emongo:delete(?MONGO_POOL, "uce_meeting", [{"id", Id}]) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        _ ->
+            {ok, deleted}
     end.
 
-get(_Domain, [Meeting]) ->
+get(Id) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_meeting",
-                               [{"meeting", Meeting}]) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	[Record] ->
-	    {ok, from_collection(Record)};
-	_ ->
-	    {error, not_found}
+                               [{"id", Id}]) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        [Record] ->
+            {ok, from_collection(Record)};
+        _ ->
+            throw({error, not_found})
     end.
 
-update(_Domain, #uce_meeting{id=[MeetingName]} = Meeting) ->
+update(#uce_meeting{id=Id} = Meeting) ->
     case catch emongo:update_sync(?MONGO_POOL, "uce_meeting",
-                                  [{"meeting", MeetingName}],
+                                  [{"id", Id}],
                                   to_collection(Meeting), false) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    {ok, updated}
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        _ ->
+            {ok, updated}
     end.
 
-list(_Domain) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_meeting", []) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	Collections ->
-	    Meetings = lists:map(fun(Collection) ->
-					 from_collection(Collection)
-				 end,
-				 Collections),
-	    {ok, Meetings}
+list(Domain) ->
+    case catch emongo:find_all(?MONGO_POOL, "uce_meeting", [{"domain", Domain}]) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        Collections ->
+            {ok, [from_collection(Collection) || Collection <- Collections]}
     end.
 
 
-to_collection(#uce_meeting{id=[MeetingName],
-			     start_date=Start,
-			     end_date=End,
-			     roster=Roster,
-			     metadata=Metadata}) ->
-    [{"meeting", MeetingName},
+to_collection(#uce_meeting{id={Name, Domain},
+                           start_date=Start,
+                           end_date=End,
+                           roster=Roster,
+                           metadata=Metadata}) ->
+    [{"name", Name},
+     {"domain", Domain},
      {"start_date", integer_to_list(Start)},
      {"end_date", integer_to_list(End)},
      {"roster", Roster},
@@ -93,13 +90,13 @@ to_collection(#uce_meeting{id=[MeetingName],
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		   ["meeting", "start_date", "end_date", "roster", "metadata"]) of
-	[Meeting, Start, End, Roster, Metadata] ->
-	    #uce_meeting{id=[Meeting],
-			   start_date=list_to_integer(Start),
-			   end_date=list_to_integer(End),
-			   roster=Roster,
-			   metadata=Metadata};
-	_ ->
-	    {error, bad_parameters}
+		   ["name", "domain", "start_date", "end_date", "roster", "metadata"]) of
+	[Name, Domain, Start, End, Roster, Metadata] ->
+	    #uce_meeting{id={Name, Domain},
+                     start_date=list_to_integer(Start),
+                     end_date=list_to_integer(End),
+                     roster=Roster,
+                     metadata=Metadata};
+        _ ->
+            throw({error, bad_parameters})
     end.

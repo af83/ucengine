@@ -21,73 +21,83 @@
 
 -behaviour(gen_uce_user).
 
--export([add/2,
-         delete/2,
-         update/2,
+-export([add/1,
+         delete/1,
+         update/1,
          list/1,
-         get/2]).
+         get/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(_Domain, #uce_user{} = User) ->
+add(#uce_user{} = User) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_user", to_collection(User)) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    {ok, created}
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        _ ->
+            {ok, created}
     end.
 
-delete(_Domain, EUid) ->
-    case catch emongo:delete(?MONGO_POOL, "uce_user", [{"uid", EUid}]) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    {ok, deleted}
+delete({Name, Domain}) ->
+    case catch emongo:delete(?MONGO_POOL, "uce_user", [{"name", Name},
+                                                       {"domain", Domain}]) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        _ ->
+            {ok, deleted}
     end.    
 
-update(_Domain, #uce_user{uid=Uid} = User) ->
-    case catch emongo:update(?MONGO_POOL, "uce_user", [{"uid", Uid}], to_collection(User)) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    {ok, updated}
+update(#uce_user{id={Name, Domain}} = User) ->
+    case catch emongo:update(?MONGO_POOL, "uce_user", [{"name", Name},
+                                                       {"domain", Domain}],
+                             to_collection(User)) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        _ ->
+            {ok, updated}
     end.
 
-list(_Domain) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_user") of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	Collections ->
-	    Users = lists:map(fun(Collection) ->
-				      from_collection(Collection)
-			      end,
-			      Collections),
-	    {ok, Users}
+list(Domain) ->
+    case catch emongo:find_all(?MONGO_POOL, "uce_user", [{"domain", Domain}]) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        Collections ->
+            Users = lists:map(fun(Collection) ->
+                                      from_collection(Collection)
+                              end,
+                              Collections),
+            {ok, Users}
     end.
 
-get(_Domain, EUid) ->
-    case emongo:find_one(?MONGO_POOL, "uce_user", [{"uid", EUid}]) of
-	[Collection] ->
-	    {ok, from_collection(Collection)};
-	_ ->
-	    {error, not_found}
+get({Name, Domain}) ->
+    case catch emongo:find_one(?MONGO_POOL, "uce_user", [{"name", Name},
+                                                         {"domain", Domain}]) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        [Collection] ->
+            {ok, from_collection(Collection)};
+        [] ->
+            throw({error, not_found})
     end.
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		   ["uid", "auth", "credential", "metadata"]) of
-	[EUid, Auth, Credential, Metadata] ->
-	    #uce_user{uid=EUid,
-		      auth=Auth,
-		      credential=Credential,
-		      metadata=Metadata};
-	_ ->
-	    {error, bad_parameters}
+                   ["name", "domain", "auth", "credential", "metadata"]) of
+        [Name, Domain, Auth, Credential, Metadata] ->
+            #uce_user{id={Name, Domain},
+                      auth=Auth,
+                      credential=Credential,
+                      metadata=Metadata};
+        _ ->
+            throw({error, bad_parameters})
     end.
 
-to_collection(#uce_user{} = User) ->
-    [{"uid", User#uce_user.uid},
-     {"auth", User#uce_user.auth},
-     {"credential", User#uce_user.credential},
-     {"metadata", User#uce_user.metadata}].
+to_collection(#uce_user{id={Name, Domain},
+                        auth=Auth,
+                        credential=Credential,
+                        metadata=Metadata}) ->
+    [{"name", Name},
+     {"domain", Domain},
+     {"auth", Auth},
+     {"credential", Credential},
+     {"metadata", Metadata}].

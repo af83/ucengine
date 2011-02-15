@@ -21,102 +21,102 @@
 
 -behaviour(gen_uce_acl).
 
--export([add/2,
-         delete/6,
-         list/4]).
+-export([add/1,
+         delete/5,
+         list/3]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(_Domain, #uce_acl{}=ACL) ->
+add(#uce_acl{}=ACL) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_acl", to_collection(ACL)) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    {ok, created}
+        {'EXIT', _} ->
+            {error, bad_parameters};
+        _ ->
+            {ok, created}
     end.
 
-delete(Domain, Uid, Object, Action, Location, Conditions) ->
-    case exists(Domain, Uid, Object, Action, Location, Conditions) of
-	false ->
-	    {error, not_found};
-	true ->
-	    case catch emongo:delete(?MONGO_POOL, "uce_acl", [{"uid", Uid},
-							      {"object", Object},
-							      {"action", Action},
-							      {"location", Location},
-							      {"conditions", Conditions}]) of
-		{'EXIT', _} ->
-		    {error, bad_parameters};
-		_ ->
-		    {ok, deleted}
-	    end
+delete(User, Object, Action, Location, Conditions) ->
+    case exists(User, Object, Action, Location, Conditions) of
+        false ->
+            throw({error, not_found});
+        true ->
+            case catch emongo:delete(?MONGO_POOL, "uce_acl", [{"user", User},
+                                                              {"object", Object},
+                                                              {"action", Action},
+                                                              {"location", Location},
+                                                              {"conditions", Conditions}]) of
+                {'EXIT', _} ->
+                    throw({error, bad_parameters});
+                _ ->
+                    {ok, deleted}
+            end
     end.
 
-list(Domain, Uid, Object, Action) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"uid", Uid},
+list(User, Object, Action) ->
+    case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"user", User},
                                                         {"object", Object},
                                                         {"action", Action}]) of
-	
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	ACLCollections ->
-	    ACL = lists:map(fun(Collection) ->
-				    from_collection(Collection)
-			    end,
-			    ACLCollections),
-	    {ok, AllActions} =
-		case Action of
-		    "all" ->
-			{ok, []};
-		    _ ->
-			?MODULE:list(Domain, Uid, Object, "all")
-		end,
-	    {ok, AllObjects} =
-		case Object of
-		    "all" ->
-			{ok, []};
-		    _ ->
-			?MODULE:list(Domain, Uid, "all", Action)
-		end,
-	    {ok, ACL ++ AllActions ++ AllObjects}
+        
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        ACLCollections ->
+            ACL = lists:map(fun(Collection) ->
+                                    from_collection(Collection)
+                            end,
+                            ACLCollections),
+            {ok, AllActions} =
+                case Action of
+                    "all" ->
+                        {ok, []};
+                    _ ->
+                        ?MODULE:list(User, Object, "all")
+                end,
+            {ok, AllObjects} =
+                case Object of
+                    "all" ->
+                        {ok, []};
+                    _ ->
+                        ?MODULE:list(User, "all", Action)
+                end,
+            {ok, ACL ++ AllActions ++ AllObjects}
     end.
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		   ["uid", "object", "action", "location", "conditions"]) of
-	[Uid, Object, Action, Location, Conditions] ->
-	    #uce_acl{uid=Uid,
-		     action=Action,
-		     object=Object,
-		     location=Location,
-		     conditions=Conditions};
-	_ ->
-	    {error, bad_parameters}
+                   ["user", "object", "action", "location", "conditions"]) of
+        [User, Object, Action, Location, Conditions] ->
+            #uce_acl{user=User,
+                     action=Action,
+                     object=Object,
+                     location=Location,
+                     conditions=Conditions};
+        _ ->
+            throw({error, bad_parameters})
     end.
-						      
-to_collection(#uce_acl{uid=Uid,
-		       object=Object,
-		       action=Action,
-		       location=Location,
-		       conditions=Conditions}) ->
-    [{"uid", Uid},
+
+to_collection(#uce_acl{user=User,
+                       object=Object,
+                       action=Action,
+                       location=Location,
+                       conditions=Conditions}) ->
+    [{"user", User},
      {"object", Object},
      {"action", Action},
      {"location", Location},
      {"conditions", Conditions}].
 
-exists(_Domain, Uid, Object, Action, Location, Conditions) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"uid", Uid},
+exists(User, Object, Action, Location, Conditions) ->
+    case catch emongo:find_all(?MONGO_POOL, "uce_acl", [{"user", User},
                                                         {"object", Object},
                                                         {"action", Action},
                                                         {"location", Location},
                                                         {"conditions", Conditions}],
-			  [{limit, 1}]) of
-	{'EXIT', _} ->
-	    false;
-	[] ->
-	    false;
-	_ ->
-	    true
+                               [{limit, 1}]) of
+        {'EXIT', _} ->
+            throw({error, bad_parameters});
+        [] ->
+            false;
+        _ ->
+            true
     end.

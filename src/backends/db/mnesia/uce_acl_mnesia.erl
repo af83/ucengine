@@ -23,89 +23,68 @@
 
 -export([init/0, drop/0]).
 
--export([add/2,
-         delete/6,
-         list/4]).
+-export([add/1,
+         delete/5,
+         list/3]).
 
 -include("uce.hrl").
 
 init() ->
     catch mnesia:create_table(uce_acl,
-			      [{disc_copies, [node()]},
-			       {type, bag},
+                              [{disc_copies, [node()]},
+                               {type, bag},
 			       {attributes, record_info(fields, uce_acl)}]).
 
-add(_Domain, #uce_acl{}=ACL) ->
+add(#uce_acl{}=ACL) ->
     case mnesia:transaction(fun() ->
-				    mnesia:write(ACL)
-			    end) of
-	{atomic, _} ->
-	    {ok, created};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:write(ACL)
+                            end) of
+        {atomic, _} ->
+            {ok, created};
+        {aborted, Reason} ->
+            {error, Reason}
     end.
 
-delete(Domain, EUid, Object, Action, Location, Conditions) ->
-    case exists(Domain, EUid, Object, Action, Location, Conditions) of
-	false ->
-	    {error, not_found};
-	true ->
-	    case mnesia:transaction(fun() ->
-					    mnesia:delete_object(#uce_acl{uid=EUid,
-									  object=Object,
-									  action=Action,
-									  location=Location,
-									  conditions=Conditions})
-				    end) of
-		{atomic, _} ->
-		    {ok, deleted};
-		{aborted, Reason} ->
-		    {error, Reason}
-	    end
+delete(User, Object, Action, Location, Conditions) ->
+    case mnesia:transaction(fun() ->
+                                    mnesia:delete_object(#uce_acl{user=User,
+                                                                  object=Object,
+                                                                  action=Action,
+                                                                  location=Location,
+                                                                  conditions=Conditions})
+                            end) of
+        {atomic, _} ->
+            {ok, deleted};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 	
-list(Domain, EUid, Object, Action) ->
+list(User, Object, Action) ->
     case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_acl{uid=EUid,
-								 object=Object,
-								 action=Action,
-								 location='_',
-								 conditions='_'})
-			    end) of
-	{aborted, _Reason} ->
-	    {ok, []};
-	{atomic, ACL} ->
-	    {ok, AllActions} =
-		case Action of
-		    "all" ->
-			{ok, []};
-		    _ ->
-			?MODULE:list(Domain, EUid, "all", Object)
-		end,
-	    {ok, AllObjects} =
-		case Object of
-		    "all" ->
-			{ok, []};
-		    _ ->
-			?MODULE:list(Domain, EUid, Action, "all")
-		end,
-	    {ok, ACL ++ AllActions ++ AllObjects}
-    end.
-
-exists(_Domain, EUid, Object, Action, Location, Conditions) ->
-    case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_acl{uid=EUid,
-								 object=Object,
-								 action=Action,
-								 location=Location,
-								 conditions=Conditions})
-			    end) of
-	{atomic, [_]} ->
-	    true;
-	{atomic, _} ->
-	    false;
-	{aborted, _} ->
-	    false
+				    mnesia:match_object(#uce_acl{user=User,
+                                                 object=Object,
+                                                 action=Action,
+                                                 location='_',
+                                                 conditions='_'})
+                            end) of
+        {aborted, _} ->
+            throw({error, bad_parameters});
+        {atomic, ACL} ->
+            {ok, AllActions} =
+                case Action of
+                    "all" ->
+                        {ok, []};
+                    _ ->
+                        ?MODULE:list(User, "all", Object)
+                end,
+            {ok, AllObjects} =
+                case Object of
+                    "all" ->
+                        {ok, []};
+                    _ ->
+                        ?MODULE:list(User, Action, "all")
+                end,
+            {ok, ACL ++ AllActions ++ AllObjects}
     end.
 
 drop() ->

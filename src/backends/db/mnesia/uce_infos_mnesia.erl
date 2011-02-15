@@ -17,15 +17,15 @@
 %%
 -module(uce_infos_mnesia).
 
+
 -behaviour(gen_uce_infos).
+
+-include("uce.hrl").
+
 %% gen_uce_infos api
--export([get/1, update/2]).
+-export([get/1, update/1]).
 
 -export([init/0, drop/0]).
-
--record(uce_infos, {
-          id = none,
-          metadata = []}).
 
 % ambiguous call of overridden pre R14 auto-imported BIF get/1
 % - use erlang:get/1 or "-compile({no_auto_import,[get/1]})." to resolve name clash
@@ -39,40 +39,25 @@ init() ->
                                {attributes, record_info(fields, uce_infos)}]).
 
 get(Domain) ->
-    case get(Domain, default) of
-        {atomic, [#uce_infos{metadata = Metadata}]} ->
-            {ok, Metadata};
+    case mnesia:transaction(fun() ->
+                                    mnesia:read({uce_infos, Domain})
+                            end) of
+        {atomic, [Infos]} ->
+            {ok, Infos};
         {atomic, []} ->
-            {ok, []};
-        {aborted, Reason} ->
-            {error, Reason}
+            {ok, #uce_infos{domain=Domain, metadata=[]}};
+        _ ->
+            throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
-    mnesia:transaction(fun() ->
-                               mnesia:read({uce_infos, Id})
-                       end).
-
-update(Domain, Metadata) ->
-    case get(Domain, default) of
-        {atomic, [Infos]} ->
-            case mnesia:transaction(fun() ->
-                                            mnesia:write(Infos#uce_infos{metadata=Metadata})
-                                    end) of
-                {atomic, _} ->
-                    {ok, updated};
-                {aborted, Reason} ->
-                    {error, Reason}
-            end;
-        _ ->
-            case mnesia:transaction(fun() ->
-                                            mnesia:write(#uce_infos{id=default, metadata = Metadata})
-                                    end) of
-                {atomic, _} ->
-                    {ok, updated};
-                {aborted, Reason} ->
-                    {error, Reason}
-            end
+update(Infos) ->
+    case mnesia:transaction(fun() ->
+                                    mnesia:write(Infos)
+                            end) of
+        {atomic, _} ->
+            {ok, updated};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
 drop() ->

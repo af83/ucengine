@@ -19,47 +19,42 @@
 
 -author('victor.goya@af83.com').
 
--export([add/2, list/2, get/2, delete/2]).
+-export([add/1, list/1, get/1, delete/1]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
 
-add(Domain, #uce_file{location=Location, name=Name} = File) ->
-    case location_helpers:exists(Domain, Location) of
-	false ->
-	    {error, not_found};
-	true ->
-	    {Id, Mime} =
-		case re:run(Name, "([^/]+)\\.([^/]+)$ ?", [{capture, all, list}]) of
-		    {match, [_, BareName, Extension]} ->
-			{BareName ++ "_" ++ utils:random() ++ "." ++ Extension,
-			 yaws_api:mime_type(Name)};
-		    _ ->
-			{Name ++ "_" ++ utils:random(), "text/plain"}
-		end,
-	    case ?DB_MODULE:add(Domain, File#uce_file{id=Id, mime=Mime}) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, created} ->
-		    {ok, Id}
-	    end
+add(#uce_file{location=Location, name=Name} = File) ->
+    case location_helpers:exists(Location) of
+        false ->
+            throw({error, not_found});
+        true ->
+            {Id, Mime} =
+                case re:run(Name, "([^/]+)\\.([^/]+)$ ?", [{capture, all, list}]) of
+                    {match, [_, BareName, Extension]} ->
+                        {BareName ++ "_" ++ utils:random() ++ "." ++ Extension,
+                         yaws_api:mime_type(Name)};
+                    _ ->
+                        {Name ++ "_" ++ utils:random(), "text/plain"}
+                end,
+            ?DB_MODULE:add(File#uce_file{id=Id, mime=Mime})
     end.
 
-list(Domain, Location) ->
-    case location_helpers:exists(Domain, Location) of
-	false ->
-	    {error, not_found};
-	true ->
-	    ?DB_MODULE:list(Domain, Location)
+list(Location) ->
+    case location_helpers:exists(Location) of
+        false ->
+            throw({error, not_found});
+        true ->
+            ?DB_MODULE:list(Location)
     end.
 
-get(Domain, Id) ->
-    ?DB_MODULE:get(Domain, Id).
+get(Id) ->
+    ?DB_MODULE:get(Id).
 
-delete(Domain, Id) ->
-    case ?MODULE:get(Domain, Id) of
-	{error, Reason} ->
-	    {error, Reason};
-	{ok, _} ->
-	    ?DB_MODULE:delete(Domain, Id)
+delete(Id) ->
+    case ?MODULE:get(Id) of
+        {error, Reason} ->
+            {error, Reason};
+        {ok, _} ->
+            ?DB_MODULE:delete(Id)
     end.

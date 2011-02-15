@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([add/2, list/8]).
+-export([add/1, list/7]).
 
 -include("uce.hrl").
 
@@ -27,26 +27,26 @@
 			      list_to_atom("uce_event_" ++ atom_to_list(config:get(db)))
 		      end())).
 
-add(_Domain, _) ->
+add(_) ->
     {ok, created}.
 
 search_value(_, []) ->
     true;
 search_value(Value, [Word|Words]) ->
     case string:str(Value, Word) of
-	0 ->
-	    false;
-	_ ->
-	    search_value(Value, Words)
+        0 ->
+            false;
+        _ ->
+            search_value(Value, Words)
     end. 
 search_metadata([], _) ->
     false;
 search_metadata([{_, Value}|Tail], Words) ->
     case search_value(Value, Words) of
-	true ->
-	    true;
-	false ->
-	    search_metadata(Tail, Words)
+        true ->
+            true;
+        false ->
+            search_metadata(Tail, Words)
     end.
 search(Events, Words) ->
     lists:filter(fun(#uce_event{metadata=Metadata}) ->
@@ -54,10 +54,7 @@ search(Events, Words) ->
 		 end,
 		 Events).
 
-list(Domain, Location, Search, From, Type, Start, End, Parent) ->
-    case ?EVENT_DBMOD:list(Domain, Location, From, Type, Start, End, Parent) of
-	{error, Reason} ->
-	    {error, Reason};
-	{ok, Events} ->
-	    {ok, search(Events, Search)}
-    end.
+list(Location, Search, From, Type, Start, End, Parent) ->
+    {ok, Events} = ?EVENT_DBMOD:list(Location, From, Type, Start, End, Parent),
+    {ok, search(Events, Search)}.
+

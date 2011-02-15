@@ -21,7 +21,15 @@
 
 -include("uce.hrl").
 
--export([check/2]).
+-export([assert/2, check/2]).
+
+assert(User, Credential) ->
+    case ?MODULE:check(User, Credential) of
+        {ok, true} ->
+            {ok, true};
+        {ok, false} ->
+            throw({error, bad_credentials})
+    end.
 
 check(User, Credential) ->
     case User#uce_user.credential of

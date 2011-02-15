@@ -23,60 +23,76 @@
 
 -export([init/0, drop/0]).
 
--export([add/2, list/2, get/2, delete/2]).
+-export([add/1, list/1, get/1, all/1, delete/1]).
 
 -include("uce.hrl").
 
 init() ->
     mnesia:create_table(uce_file,
-			[{disc_copies, [node()]},
-			 {type, set},
-			 {attributes, record_info(fields, uce_file)}]).
+                        [{disc_copies, [node()]},
+                         {type, set},
+                         {attributes, record_info(fields, uce_file)}]).
 
-add(_Domain, #uce_file{} = File) ->
+add(#uce_file{} = File) ->
     case mnesia:transaction(fun() ->
-				    mnesia:write(File)
-			    end) of
-	{atomic, _} ->
-	    {ok, created};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:write(File)
+                            end) of
+        {atomic, _} ->
+            {ok, File#uce_file.id};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
-list(_Domain, Location) ->
+list(Location) ->
     case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_file{id='_',
-								  name='_',
-								  location=Location,
-								  uri='_',
-								  metadata='_'})
-			    end) of
-	{atomic, Files} ->
-	    {ok, Files};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:match_object(#uce_file{id='_',
+                                                                  domain='_',
+                                                                  name='_',
+                                                                  location=Location,
+                                                                  uri='_',
+                                                                  metadata='_'})
+                            end) of
+        {atomic, Files} ->
+            {ok, Files};
+        {aborted, _} ->
+            throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
-    case mnesia:transaction(fun() ->
-				    mnesia:read(uce_file, Id)
-			    end) of
-	{atomic, [File]} ->
-	    {ok, File};
-	{aborted, Reason} ->
-	    {error, Reason};
-	_ ->
-	    {error, not_found}
+all(Domain) ->
+        case mnesia:transaction(fun() ->
+                                    mnesia:match_object(#uce_file{id='_',
+                                                                  domain=Domain,
+                                                                  name='_',
+                                                                  location='_',
+                                                                  uri='_',
+                                                                  metadata='_'})
+                                end) of
+            {atomic, Files} ->
+                {ok, Files};
+            {aborted, _} ->
+                throw({error, bad_parameters})
     end.
 
-delete(_Domain, Id) ->
+get(Id) ->
     case mnesia:transaction(fun() ->
-				    mnesia:delete({uce_file, Id})
-			    end) of
-	{atomic, ok} ->
-	    {ok, deleted};
-	{aborted, Reason} ->
-	    {error, Reason}
+                                    mnesia:read(uce_file, Id)
+                            end) of
+        {atomic, [File]} ->
+            {ok, File};
+        {atomic, []} ->
+            throw({error, not_found});
+        {aborted, _} ->
+            throw({error, bad_parameters})
+    end.
+
+delete(Id) ->
+    case mnesia:transaction(fun() ->
+                                    mnesia:delete({uce_file, Id})
+                            end) of
+        {atomic, ok} ->
+            {ok, deleted};
+        {aborted, _} ->
+            throw({error, bad_paramaters})
     end.
 
 drop() ->

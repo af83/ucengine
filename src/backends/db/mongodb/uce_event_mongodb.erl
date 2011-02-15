@@ -21,14 +21,14 @@
 
 -behaviour(gen_uce_event).
 
--export([add/2,
-         get/2,
-         list/7]).
+-export([add/1,
+         get/1,
+         list/6]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(_Domain, #uce_event{} = Event) ->
+add(#uce_event{} = Event) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_event", to_collection(Event)) of
 	{'EXIT', _} ->
 	    {error, bad_parameters};
@@ -36,7 +36,7 @@ add(_Domain, #uce_event{} = Event) ->
 	    {ok, created}
     end.
 
-get(_Domain, Id) ->
+get(Id) ->
     case emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
 	[Collection] ->
 	    {ok, from_collection(Collection)};
@@ -44,7 +44,7 @@ get(_Domain, Id) ->
 	    {error, not_found}
     end.
 
-list(_Domain, Location, From, Type, Start, End, Parent) ->
+list(Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
 			 [""] ->
 			     [];
@@ -98,27 +98,29 @@ from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
 		  ["id", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
 	[Id, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
-	    #uce_event{id=Id,
-		       datetime=Datetime,
-		       from=From,
-		       to=To,
-		       location=[Meeting],
-		       type=Type,
-		       parent=Parent,
-		       metadata=Metadata};
-	_ ->
-	    {error, bad_parameters}
+            #uce_event{id=Id,
+                       datetime=Datetime,
+                       from=From,
+                       to=To,
+                       location=[Meeting],
+                       type=Type,
+                       parent=Parent,
+                       metadata=Metadata};
+        _ ->
+            {error, bad_parameters}
     end.
 
-to_collection(#uce_event{id=Id,
-			 location=[Meeting],
-			 from=From,
-			 to=To,
-			 metadata=Metadata,
-			 datetime=Datetime,
-			 type=Type,
-			 parent=Parent}) ->
-    [{"id", Id},
+to_collection(#uce_event{domain=Domain,
+                         id=Id,
+                         location=[Meeting],
+                         from=From,
+                         to=To,
+                         metadata=Metadata,
+                         datetime=Datetime,
+                         type=Type,
+                         parent=Parent}) ->
+    [{"domain", Domain},
+     {"id", Id},
      {"meeting", Meeting},
      {"from", From},
      {"to", To},

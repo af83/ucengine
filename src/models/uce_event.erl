@@ -19,76 +19,76 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/2, get/2, exists/2, list/9]).
+-export([add/1, get/1, exists/1, list/8]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
 -include("uce_async.hrl").
 
-add(Domain, #uce_event{id=none}=Event) ->
-    ?MODULE:add(Domain, Event#uce_event{id=utils:random()});
-add(Domain, #uce_event{datetime=none}=Event) ->
-    ?MODULE:add(Domain, Event#uce_event{datetime=utils:now()});
-add(Domain, #uce_event{location=Location, type=Type, id=Id, from=From} = Event) ->
-    case location_helpers:exists(Domain, Location) of
-	false ->
-	    {error, not_found};
-	true ->
-	    case ?DB_MODULE:add(Domain, Event) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, created} ->
-                ?PUBSUB_MODULE:publish(Domain, Location, Type, From, Id),
-                ?SEARCH_MODULE:add(Domain, Event),
-                
-                % Add rights after some events
-                uce_acl:trigger(Domain, Event),
+add(#uce_event{id=none}=Event) ->
+    ?MODULE:add(Event#uce_event{id=utils:random()});
+add(#uce_event{datetime=undefined}=Event) ->
+    ?MODULE:add(Event#uce_event{datetime=utils:now()});
+add(#uce_event{location=Location, from=From, to=To, parent=Parent} = Event) ->
+    LocationExists = uce_meeting:exists(Location),
+    FromExists = uce_user:exists(From),
+    ToExists = uce_user:exists(To),
+    ParentExists = uce_event:exists(Parent),
 
-                {ok, Id}
-	    end
+    if
+        LocationExists == true,
+        FromExists == true,
+        ToExists == true,
+        ParentExists == true ->
+            {ok, Id} = ?DB_MODULE:add(Event),
+            catch ?PUBSUB_MODULE:publish(Event),
+            catch ?SEARCH_MODULE:add(Event),
+            catch uce_acl:trigger(Event),
+            {ok, Id};
+        true ->
+            throw({error, not_found})
     end.
 
-get(Domain, Id) ->
-    ?DB_MODULE:get(Domain, Id).
+get(Id) ->
+    ?DB_MODULE:get(Id).
 
-exists(Domain, Id) ->
+exists(Id) ->
     case Id of
-	"" -> % "" is the root of the event hierarchy
-	    true;
-	_ ->
-	    case ?MODULE:get(Domain, Id) of
-		{error, _} ->
-		    false;	       
-		_ ->
-		    true
-	    end
+        "" -> % "" is the root of the event hierarchy
+            true;
+        _ ->
+            case catch ?MODULE:get(Id) of
+                {error, not_found} -> 
+                   false;
+                {error, Reason} ->
+                    throw({error, Reason});
+                _ ->
+                    true
+            end
     end.
-		    
-list(_, _, _, _, [], _, _, _, _) ->
+
+list(_, _, _, [], _, _, _, _) ->
     {ok, []};
-list(Domain, Location, Search, From, '_', Uid, Start, End, Parent) ->
-    ?MODULE:list(Domain, Location, Search, From, ['_'], Uid, Start, End, Parent);
-list(Domain, Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
-    {ok, AllEvents} = case Search of
-                          '_' ->
-                              ?DB_MODULE:list(Domain, Location, From, Type, Start, End, Parent);
-                          _ ->
-                              ?SEARCH_MODULE:list(Domain, Location, Search, From, Type, Start, End, Parent)
+list(Location, Search, From, '_', Uid, Start, End, Parent) ->
+    ?MODULE:list(Location, Search, From, ['_'], Uid, Start, End, Parent);
+list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
+    {ok, AllEvents} =
+        case Search of
+            '_' ->
+                ?DB_MODULE:list(Location, From, Type, Start, End, Parent);
+            _ ->
+                ?SEARCH_MODULE:list(Location, Search, From, Type, Start, End, Parent)
 		end,
     FilteredEvents = lists:filter(fun(#uce_event{to=To}) ->
-					  if
-					      To == "all" ->
-						  true;
-					      To == Uid ->
-						  true;
-					      true ->
-						  false
-					  end
-				  end,
-				  AllEvents),
-    case ?MODULE:list(Domain, Location, Search, From, Tail, Uid, Start, End, Parent) of
-	{error, Reason} ->
-	    {error, Reason};
-	{ok, RemainingEvents} ->
-	    {ok, FilteredEvents ++ RemainingEvents}
-    end.
+                                          case To of
+                                              {"", _} -> % all
+                                                  true;
+                                              Uid ->
+                                                  true;
+                                              _ ->
+                                                  false
+                                          end
+                                  end,
+                                  AllEvents),
+    {ok, RemainingEvents} = ?MODULE:list(Location, Search, From, Tail, Uid, Start, End, Parent),
+    {ok, FilteredEvents ++ RemainingEvents}.
