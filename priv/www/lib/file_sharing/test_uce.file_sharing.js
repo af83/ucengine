@@ -7,13 +7,12 @@ test("create basic structure", function() {
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
     ok($('#files_shared').hasClass('ui-widget'), 'class ui-widget');
     ok($('#files_shared').hasClass('ui-filesharing'), 'class ui-filesharing');
+    // XXX: Do we really need ui-filesharing-list and ui-filesharing-all elements?
     equals($('#files_shared').find('.ui-filesharing-list').size(), 1);
     equals($('#files_shared').find('.ui-filesharing-list').children().size(), 0);
-    equals($('#files_shared').find('.ui-filesharing-all').children().size(), 2);
-    equals($('#files_shared > div .ui-filesharing-add').size(), 1);
+    equals($('#files_shared').find('.ui-filesharing-all').children().size(), 1);
     equals($('#files_shared').find('.ui-filesharing-preview').children().size(), 3);
     equals($('#files_shared').find('.ui-preview-toolbar').children().size(), 4);
-    equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'block');
     equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
 });
 
@@ -25,144 +24,6 @@ test("destroy everything", function() {
     ok(!$('#files_shared').hasClass('ui-filesharing'), 'class ui-filesharing');
 });
 
-jackTest("handle new file upload", function() {
-    var timestamp = new Date().getTime();
-    var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $('#files_shared')
-        .filesharing({ucemeeting: ucemeeting})
-        .filesharing('triggerUceEvent', Factories.createFileEvent({id : 'norris_pop_12.pdf',
-                                                                   name : 'norris_pop.pdf',
-                                                                   datetime : timestamp}));
-    equals($('#files_shared ul > li').size(), 1);
-    equals($('#files_shared ul > li:eq(0)').text(), 'norris_pop.pdf ' + date + ' by test_userDownload');
-});
-
-jackTest("handle new image upload", function() {
-    var timestamp = new Date().getTime();
-    var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $('#files_shared')
-        .filesharing({ucemeeting: ucemeeting})
-        .filesharing('triggerUceEvent', Factories.createFileEvent({id : 'norris_pop_12.jpg',
-                                                                   name : 'norris_pop.jpg',
-                                                                   mime : 'image/jpeg',
-                                                                   datetime : timestamp}));
-    equals($('#files_shared ul > li').size(), 1);
-    equals($('#files_shared ul > li:eq(0)').text(), 'norris_pop.jpg ' + date + ' by test_userDownload | Open in the viewer');
-});
-
-jackTest("handle 2 files upload", function() {
-    var timestamp = new Date().getTime();
-    var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-    $([Factories.createFileEvent({datetime: timestamp}),
-       Factories.createFileEvent({id: 'lee.pdf', name: 'lee.pdf', datetime: timestamp})]).each(function(i, item) {
-        
-        $('#files_shared').filesharing('triggerUceEvent', item);
-    });
-    equals($('#files_shared').find('ul > li').size(), 2);
-    equals($('#files_shared').find('ul > li:eq(0)').text(), 'norris.pdf ' + date + ' by test_userDownload');
-    equals($('#files_shared').find('ul > li:eq(1)').text(), 'lee.pdf ' + date + ' by test_userDownload');
-});
-
-test("handle conversion done event", function() {
-    var timestamp = new Date().getTime();
-    var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-    $([Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
-       Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: {"0": "page_1.jpg"}}),
-       Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"})]).each(function(i, item) {
-           $('#files_shared').filesharing('triggerUceEvent', item);
-    });
-    equals($('#files_shared').find('ul > li:eq(0)').text(), 'norris.pdf ' + date + ' by test_userDownload | Open in the viewer | Share');
-    equals($('#files_shared').find('ul > li:eq(1)').text(), '');
-});
-
-jackTest("when clicking the share link, fire an event", function() {
-    var timestamp = new Date().getTime();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
-    var events =
-        [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
-         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
-         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document", datetime: timestamp})];
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-    $(events).each(function(index, event) {
-           $('#files_shared').filesharing('triggerUceEvent', event);
-    });
-
-    jack.expect("ucemeeting.push")
-        .exactly("1 time")
-        .returnValue('#');
-
-    $('#files_shared').find('ul > li a.ui-filesharing.ui-share-link').click();
-});
-
-test("when clicking the view link, launch preview", function() {
-    var timestamp = new Date().getTime();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
-    var events =
-        [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
-         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
-         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document", datetime: timestamp})];
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-    $(events).each(function(index, event) {
-           $('#files_shared').filesharing('triggerUceEvent', event);
-    });
-
-    $('#files_shared').find('ul > li a.ui-filesharing.ui-view-link').click(function() {
-        equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'none');
-        equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'block');
-    });
-});
-
-test("can hide upload button", function() {
-    $('#files_shared').filesharing({upload: false});
-    equals($('#files_shared .ui-filesharing-add').size(), 0);
-});
-
-test("can hide upload button after init", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-    equals($('#files_shared .ui-filesharing-add').size(), 1);
-    $('#files_shared').filesharing("option", "upload", false);
-    equals($('#files_shared .ui-filesharing-add').css('display'), 'none');
-    $('#files_shared').filesharing("option", "upload", true);
-    equals($('#files_shared .ui-filesharing-add').css('display'), 'block');
-});
-
 test("clear file to share", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
     jack.expect("ucemeeting.getFileDownloadUrl")
@@ -172,22 +33,6 @@ test("clear file to share", function() {
     $('#files_shared').filesharing('triggerUceEvent', Factories.createFileEvent());
     $('#files_shared').filesharing("clear");
     equals($('#files_shared').find('ul > li').size(), 0);
-});
-
-test("view all", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-    $('#files_shared').filesharing("viewAll");
-    equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'block');
-    equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
-});
-
-test("view preview", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-    $('#files_shared').filesharing("viewPreview");
-    equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'none');
-    equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'block');
 });
 
 jackTest("handle roster delete event", function() {
@@ -211,7 +56,6 @@ jackTest("handle roster delete event", function() {
 
     $('#files_shared').filesharing('triggerUceEvent', Factories.createDocumentShareStartEvent({id : 'norris.pdf'}));
     $('#files_shared').filesharing('triggerUceEvent', Factories.createRosterDeleteEvent({id : 'chuck_in_roster_deletion'}));
-    equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'block');
     equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
 });
 
@@ -321,7 +165,6 @@ jackTest("when click on next, go to the right page", function() {
 
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
     $(events).each(function(index, event) {
-        console.log(event);
         $('#files_shared').filesharing('triggerUceEvent', event);
     });
 
@@ -414,7 +257,6 @@ jackTest("when a 'document.share.stop' event is received, stop the file sharing"
            $('#files_shared').filesharing('triggerUceEvent', event);
     });
 
-    equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'block');
     equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
 });
 

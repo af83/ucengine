@@ -9,11 +9,7 @@ $.uce.widget("fileupload", {
     // ucengine events
     meetingsEvents: {
         'internal.file.add'           : '_handleFileAddEvent',
-        'document.conversion.done'    : '_handleFileDocumentEvent',
-        'document.share.start'        : '_handleShareStartEvent',
-        'document.share.goto'         : '_handleShareGotoEvent',
-        'document.share.stop'         : '_handleShareStopEvent',
-        'internal.roster.delete'      : '_handleShareStopEvent'
+        'document.conversion.done'    : '_handleFileDocumentEvent'
     },
 
     _create: function() {
@@ -87,7 +83,7 @@ $.uce.widget("fileupload", {
         });
         next.bind('click', function() {
             if (that.currentPreview) {
-                if (that.currentPreview.actualPage<that.currenPreview.pages.length-1)
+                if (that.currentPreview.actualPage<that.currentPreview.pages.length-1)
                     that.currentPreview.actualPage++;
                 var page = that.currentPreview.actualPage;
                 that._preview(that.currentPreview);
@@ -322,45 +318,6 @@ $.uce.widget("fileupload", {
         } else {
             this._new.show();
         }
-    },
-
-    _handleShareStartEvent: function(event) {
-        var that = this;
-        $(this._listFiles).each(
-            function(i, file) {
-                if (file.metadata.id == event.metadata.id) {
-                    that._shared = {
-                        master : event.from,
-                        page   : 0,
-                        file   : file
-                    };
-                    //that._refreshPreview();
-                    //that.viewPreview();
-                }
-            }
-        );
-
-    },
-
-    _handleShareGotoEvent: function(event) {
-        if (!this._shared) {
-            return;
-        }
-        if (this._shared.master != event.from) {
-            return;
-        }
-        this._shared.page = parseInt(event.metadata.page);
-        this._refreshPreview();
-    },
-
-    _handleShareStopEvent: function(event) {
-        if (!this._shared) {
-            return;
-        }
-        if (this._shared.master != event.from) {
-            return;
-        }
-        this.viewAll();
     },
 
     destroy: function() {

@@ -418,6 +418,10 @@ $.sammy("#meeting", function() {
                                                   mode: 'reduced',
                                                   dock: '#fileupload-dock'});
 
+        addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
+                                                  mode: 'reduced',
+                                                  dock: '#filesharing-dock'});
+
         if (inReplay) {
             addWidget("#video", 'player', {src: result_meeting.metadata.video,
                                            start: result_meeting.start_date,
