@@ -79,7 +79,7 @@ handle_cast({set, #uce_route{regexp=Regexp} = Route}, DB) ->
         {ok, CompiledRegexp} ->
             ets:insert(DB, {CompiledRegexp, Route});
         {error, Reason} ->
-            ?DEBUG("Error during route compilation '~p': ~p~n", [Route, Reason])
+            ?ERROR_MSG("Error during route compilation '~p': ~p~n", [Route, Reason])
     end,
     {noreply, DB}.
 

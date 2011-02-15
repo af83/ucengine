@@ -80,33 +80,7 @@ convert([RawParam|ParamTail], [Types|TypeTail]) ->
             end
     end.
 
-exists([], [], [], _) ->
-    true;
-exists([Param|ParamTail], [Object|ObjectTail], [Default|DefaultTail], Domain) ->
-    Exists = case Param of
-                 Default ->
-                     true;
-                 _ ->
-                     case Object of
-                         any ->
-                             true;
-                         user ->
-                             uce_user:exists(Domain, Param);
-                         presence ->
-                             uce_presence:exists(Domain, Param);
-                         event ->
-                             uce_event:exists(Domain, Param)
-                     end
-             end,
-    case Exists of
-        false ->
-            false;
-        true ->
-            exists(ParamTail, ObjectTail, DefaultTail, Domain)
-    end.
-
-
-validate(Query, ParamsList, ParamsDefault, Types, Objects, Domain) ->
+validate(Query, ParamsList, ParamsDefault, Types) ->
     case utils:get(Query, ParamsList, ParamsDefault) of
         {error, Reason} ->
             {error, Reason};
@@ -119,44 +93,44 @@ validate(Query, ParamsList, ParamsDefault, Types, Objects, Domain) ->
                         {error, Reason} ->
                             {error, Reason};
                         Params ->
-                            case exists(Params, Objects, ParamsDefault, Domain) of
-                                true ->
-                                    {ok, Params};
-                                false ->
-                                    {error, not_found}
-                            end
+                            {ok, Params}
                     end
             end
     end.
 
 call_handlers([], _, _, _) ->
-    {ok, noreply};
-call_handlers([{Module, Function, ParamsList, ParamsDefault, Types, Objects}|Tl], Query, Match, Arg) ->
-    case validate(Query, ParamsList, ParamsDefault, Types, Objects, utils:domain(Arg)) of
+    json_helpers:error(not_found);
+call_handlers([{Module, Function, ParamsList, ParamsDefault, Types}|_Tl], Query, Match, Arg) ->
+    case validate(Query, ParamsList, ParamsDefault, Types) of
         {error, Reason} ->
             json_helpers:error(Reason);
         {ok, Params} ->
-            ?DEBUG("Call ~p:~p matching ~p with ~p~n", [Module, Function, Match, Params]),
-            case catch Module:Function(Match, Params, Arg) of
-                {ok, continue} ->
-                    ?MODULE:call_handlers(Tl, Query, Match, Arg);
+
+            Domain =
+                case catch string:sub_word(Arg#arg.headers#headers.host, 1, $:) of
+                    Result when is_list(Result) ->
+                        Result;
+                    _ ->
+                        config:get(default_domain)
+                end,
+
+            ?DEBUG("~p: call ~p:~p matching ~p with ~p~n", [Domain, Module, Function, Match, Params]),
+            case catch Module:Function(Domain, Match, Params, Arg) of
                 {error, Reason} ->
-                    ?ERROR_MSG("Error: ~p:~p: ~p~n", [Module, Function, Reason]),
+                    ?ERROR_MSG("~p: error: ~p:~p: ~p~n", [Domain, Module, Function, Reason]),
                     json_helpers:error(Reason);
                 {'EXIT', {function_clause, [{Module, Function,_}|_]}} ->
-                    ?ERROR_MSG("Error: ~p:~p: not_found~n", [Module, Function]),
+                    ?ERROR_MSG("~p: error: ~p:~p: function not found~n", [Domain, Module, Function]),
                     json_helpers:error(not_found);
                 {'EXIT', Reason} ->
-                    ?ERROR_MSG("Error: ~p:~p: ~p~n", [Module, Function, Reason]),
+                    ?ERROR_MSG("~p: error: ~p:~p: ~p~n", [Domain, Module, Function, Reason]),
                     json_helpers:error(Reason);
-                {ehtml, _} = HTML ->
-                    HTML;
                 {streamcontent_from_pid, _, _} = Stream ->
                     Stream;
                 Response when is_list(Response) ->
                     Response;
                 Error ->
-                    ?ERROR_MSG("Error: ~p:~p: ~p~n", [Module, Function, Error]),
+                    ?ERROR_MSG("~p: error: ~p:~p: ~p~n", [Domain, Module, Function, Error]),
                     json_helpers:unexpected_error()
             end
     end.
@@ -177,6 +151,8 @@ process(Method, Path, Query, Arg) ->
     case routes:get(Method, Path) of
         {ok, Match, Handlers} ->
             ?MODULE:call_handlers(Handlers, Query, Match, Arg);
+        {error, not_found} ->
+            ?ERROR_MSG("~p ~p: no route found~n", [Method, Path]);
         {error, Reason} ->
             json_helpers:error(Reason)
     end.

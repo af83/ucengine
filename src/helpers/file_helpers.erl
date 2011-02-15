@@ -23,17 +23,23 @@
 
 -export([to_json/1, download/2, upload/1]).
 
-to_json(#uce_file{id=Id, name=Name, location=Location, uri=Uri, metadata=Metadata}) ->
+to_json(#uce_file{id=Id,
+                  domain=Domain,
+                  name=Name,
+                  location=Location,
+                  uri=Uri,
+                  metadata=Metadata}) ->
     JSONLocation = case Location of
-		       [Meeting] ->
-			   [{meeting, Meeting}];
-		       [] ->
-			   []
-		   end,
+                       {Meeting, _} ->
+                           [{location, Meeting}];
+                       [] ->
+                           []
+                   end,
     {struct, [{id, Id},
-	      {name, Name},
-	      {uri, Uri}] ++ JSONLocation ++
-	      [{metadata, {struct, Metadata}}]}.
+              {domain, Domain},
+              {name, Name},
+              {uri, Uri}] ++ JSONLocation ++
+         [{metadata, {struct, Metadata}}]}.
 
 download(Id, Content) ->
     [{status, 200},

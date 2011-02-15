@@ -47,8 +47,8 @@ function sammyapp() {
                 if (err) {
                     return;
                 }
-                $("#logoPartner").html('<img src="images/' + result.logo +'" style="vertical-align: middle;" />');
-                infos = result;
+                $("#logoPartner").html('<img src="images/' + result.metadata.logo +'" style="vertical-align: middle;" />');
+                infos = result.metadata;
                 callback();
             });
         } else {
@@ -110,20 +110,21 @@ function sammyapp() {
         });
     });
     this.post('#/user/login', function() {
-        var uid      = this.params['email'];
-        var nickname = uid;
+        var name     = this.params['email'];
+        var nickname = name;
         var password = this.params['password'];
-        if (!uid) {
+        if (!name) {
             return false;
         }
         var that = this;
-        uce.presence.create(password, uid, nickname, function(err, result, xhr) {
-            if (err) {
-                return;
-            }
-            var presence = uce.attachPresence(result);
-            that.trigger('connected', {me:uid, presence:presence});
-        });
+        uce.presence.create(password, name, nickname,
+                            function(err, result, xhr) {
+                                if (err) {
+                                    return;
+                                }
+                                var presence = uce.attachPresence(result);
+                                that.trigger('connected', {me:name, presence:presence});
+                            });
     });
     this.get('#/user/logout', function() {
         var that = this;
@@ -513,7 +514,7 @@ $.sammy("#meeting", function() {
         }
     });
 
-    this.get('#/meeting/:name', function(context) {});
+    this.get('#/meeting/:id', function(context) {});
 
     this.notFound = function() {
         // destroy all

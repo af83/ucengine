@@ -29,8 +29,7 @@
          random/0,
          random/1,
          get/2,
-         get/3,
-         domain/1]).
+         get/3]).
 
 %% Get current timestamp
 now() ->
@@ -71,11 +70,3 @@ get(Params, [Key|Keys], [Default|Defaults]) ->
                 end,
     ValueList ++ ?MODULE:get(Params, Keys, Defaults).
 
-domain(#arg{headers = Headers}) ->
-    Host = Headers#headers.host,
-    case catch string:sub_word(Host, 1, $:) of
-        Result when is_list(Result) ->
-            Result;
-        _ ->
-            config:get(default_domain)
-    end.

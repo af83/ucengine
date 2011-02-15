@@ -35,7 +35,7 @@ add_file_chunk(Arg, [], State) when State#upload.last==true,
     file:close(State#upload.fd),
     Query = yaws_api:parse_query(Arg) ++ [{"_uri", State#upload.uri},
                                           {"_filename", State#upload.filename}],
-    {done, {'PUT', Arg#arg.pathinfo, parse_query(Query)}};
+    {done, {'POST', Arg#arg.pathinfo, parse_query(Query)}};
 
 add_file_chunk(_Arg, [], State) when State#upload.last==true ->
     {done, {error, unexpected_error}};

@@ -17,111 +17,66 @@
 %%
 -module(file_controller).
 
--export([init/0, add/3, list/3, get/3, delete/3]).
+-export([init/0, add/4, list/4, get/4, delete/4]).
 
 -include("uce.hrl").
 
 -include_lib("kernel/include/file.hrl").
 
 init() ->
-    [#uce_route{module="Files",
-		method='GET',
-		regexp="/file/([^/]+)",
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, list,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]},
+    [#uce_route{method='POST',
+                regexp="/file/([^/]+)",
+                callbacks=[{?MODULE, add,
+                            ["uid", "sid", "_filename", "_uri", "metadata"],
+                            [required, required, required, required, []],
+                            [string, string, string, string, dictionary]}]},
      
-     #uce_route{module="Files",
-		method='GET',
-		regexp="/file/([^/]+)/([^/]+)",
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, get,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]},
+     #uce_route{method='GET',
+                regexp="/file/([^/]+)",
+                callbacks=[{?MODULE, list,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]},
      
-     #uce_route{module="Files",
-		method='PUT',
-		regexp="/file/([^/]+)",
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, add,
-			    ["uid", "_filename", "_uri", "metadata"],
-			    [required, required, required, []],
-			    [string, string, string, dictionary],
-			    [user, any, any, any]}]},
+     #uce_route{method='GET',
+                regexp="/file/([^/]+)/([^/]+)",
+                callbacks=[{?MODULE, get,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]},
      
-     #uce_route{module="Files",
-		method='DELETE',
-		regexp="/file/([^/]+)/([^/]+)",
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, delete,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]}].
+     #uce_route{method='DELETE',
+                regexp="/file/([^/]+)/([^/]+)",
+                callbacks=[{?MODULE, delete,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]}].
 
-add(Location, [EUid, Name, Uri, Metadata], Arg) ->
-    case uce_acl:check(utils:domain(Arg), EUid, "file", "add", Location) of
-	{ok, true} ->
-	    case uce_file:add(utils:domain(Arg), #uce_file{location=Location,
-                                                       name=Name,
-                                                       uri=Uri,
-                                                       metadata=Metadata}) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, Id} ->
-		    % XXX: shall the model returns this precious record of her ?
-		    case uce_file:get(utils:domain(Arg), Id) of
-			{ok, #uce_file{} = File} ->
-                {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
-			    uce_event:add(utils:domain(Arg), #uce_event{location=Location,
-						     from=EUid,
-						     type="internal.file.add",
-						     metadata=[ {"id", File#uce_file.id},
-								{"name", File#uce_file.name},
-								{"size", integer_to_list(FileInfo#file_info.size)},
-								{"mime", File#uce_file.mime}]}),
-			    file_helpers:upload(File#uce_file.id);
-			{error, Reason} ->
-			    {error, Reason}
-		    end
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "file", "add", {Meeting, Domain}),
+    {ok, Id} = uce_file:add(#uce_file{location={Meeting, Domain},
+                                      domain=Domain,
+                                      name=Name,
+                                      uri=Uri,
+                                      metadata=Metadata}),
+    {ok, File} = uce_file:get(Id),
+    {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
+    uce_event:add(#uce_event{domain=Domain,
+                             location={Meeting, Domain},
+                             from={Uid, Domain},
+                             type="internal.file.add",
+                             metadata=[ {"id", File#uce_file.id},
+                                        {"name", File#uce_file.name},
+                                        {"size", integer_to_list(FileInfo#file_info.size)},
+                                        {"mime", File#uce_file.mime}]}),
+    file_helpers:upload(File#uce_file.id).
 
-list(Location, [EUid], Arg) ->
-    case uce_acl:check(utils:domain(Arg), EUid, "file", "list", Location) of
-	{ok, true} ->
-	    case uce_file:list(utils:domain(Arg), Location) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, Files} ->
-		    json_helpers:json({array, [file_helpers:to_json(File) || File <- Files]})
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+list(Domain, [Meeting], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "file", "list", {Meeting, Domain}),
+    {ok, Files} = uce_file:list({Meeting, Domain}),
+    json_helpers:json({array, [file_helpers:to_json(File) || File <- Files]}).
 
 %%
 %% @doc Get real path from encoded uri of record uce_file
@@ -130,34 +85,20 @@ list(Location, [EUid], Arg) ->
 get_path(Uri) ->
     re:replace(Uri, "file\:\/", config:get(datas), [{return, list}]).
 
-get([Meeting, Id], [EUid], Arg) ->
-    case uce_acl:check(utils:domain(Arg), EUid, "file", "get", [Meeting], [{"id", Id}]) of
-	{ok, true} ->
-	    case uce_file:get(utils:domain(Arg), Id) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, File} ->
-		    Path = get_path(File#uce_file.uri),
-			case file:read_file(Path) of
-			{error, Reason} ->
-		        {error, Reason};
-			{ok, Content} ->
-				file_helpers:download(File#uce_file.id, Content)
-			end
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
+get(Domain, [Meeting, Id], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "file", "get", {Meeting, Domain}, [{"id", Id}]),
+    {ok, File} = uce_file:get(Id),
+    Path = get_path(File#uce_file.uri),
+    case file:read_file(Path) of
+        {error, Reason} ->
+            throw({error, Reason});
+        {ok, Content} ->
+            file_helpers:download(File#uce_file.id, Content)
     end.
 
-delete([Meeting, Id], [EUid], Arg) ->
-    case uce_acl:check(utils:domain(Arg), EUid, "file", "delete", [Meeting], [{"id", Id}]) of
-	{ok, true} ->
-	    case uce_file:delete(utils:domain(Arg), Id) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, deleted} ->
-		    json_helpers:ok()
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "file", "delete", {Meeting, Domain}, [{"id", Id}]),
+    {ok, deleted} = uce_file:delete(Id),
+    json_helpers:ok().

@@ -25,7 +25,6 @@
         , get/2
         , get/3
         , put/3
-        , put/5
         , delete/3
         ]).
 -export([url_encode/1]).
@@ -54,10 +53,6 @@ post(BaseUrl, Path, Params, ContentType, Body) ->
 
 put(BaseUrl, Path, Params) ->
     {ok, {_, _, JSON}} = request(BaseUrl, Path, put, Params, "application/x-www-form-urlencoded", []),
-    mochijson:decode(JSON).
-
-put(BaseUrl, Path, Params, ContentType, Body) ->
-    {ok, {_, _, JSON}} = request(BaseUrl, Path, put, Params, ContentType, Body),
     mochijson:decode(JSON).
 
 delete(BaseUrl, Path, Params) ->

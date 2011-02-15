@@ -60,41 +60,46 @@ meeting_test_() ->
 
 test_create(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
-             , {"sid", RootSid}
-	     , {"start", integer_to_list(utils:now())}
-             , {"metadata[description]", "Meeting"}],
-    {struct, [{"result", "created"}]} = tests_utils:put(BaseUrl, "/meeting/all/newmeeting", Params).
+               , {"sid", RootSid}
+               , {"name", "newmeeting"}
+               , {"start", integer_to_list(utils:now())}
+               , {"metadata[description]", "Meeting"}],
+    {struct, [{"result", "created"}]} = tests_utils:post(BaseUrl, "/meeting/all/", Params).
 
 test_create_conflict(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
              , {"sid", RootSid}
+               , {"name", "newmeeting"}
 	     , {"start", integer_to_list(utils:now())}
              , {"metadata[description]", "Meeting"}],
-    {struct, [{"error", "conflict"}]} = tests_utils:put(BaseUrl, "/meeting/all/newmeeting", Params).
+    {struct, [{"error", "conflict"}]} = tests_utils:post(BaseUrl, "/meeting/all/", Params).
 
 test_create_bad_start(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
              , {"sid", RootSid}
-	     , {"start", "i wish i was an integer"}
+               , {"name", "newmeeting2"}
+               , {"start", "i wish i was an integer"}
              , {"metadata[description]", "Meeting"}],
     {struct, [{"error", "bad_parameters"}]} =
-	tests_utils:put(BaseUrl, "/meeting/all/newmeeting", Params).
+        tests_utils:post(BaseUrl, "/meeting/all/", Params).
 
 test_create_bad_end(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
              , {"sid", RootSid}
-	     , {"end", "i wish i was an integer"}
+               , {"name", "newmeeting2"}
+               , {"end", "i wish i was an integer"}
              , {"metadata[description]", "Meeting"}],
     {struct, [{"error", "bad_parameters"}]} =
-	tests_utils:put(BaseUrl, "/meeting/all/newmeeting", Params).
+        tests_utils:post(BaseUrl, "/meeting/all/", Params).
 
 test_create_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
     Params = [ {"uid", UglyUid}
              , {"sid", UglySid}
-	     , {"start", "0"}
+               , {"name", "newmeeting2"}
+               , {"start", "0"}
              , {"metadata[description]", "Meeting"}],
     {struct, [{"error", "unauthorized"}]} =
-	tests_utils:put(BaseUrl, "/meeting/all/newmeeting", Params).
+        tests_utils:post(BaseUrl, "/meeting/all/", Params).
 
 
 test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
@@ -103,9 +108,9 @@ test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
     {struct, [{"result",
 	       {struct,
 		[{"name", "newmeeting"},
+         {"domain", _},
 		 {"start_date",_},
 		 {"end_date","never"},
-		 {"roster",{array, []}},
 		 {"metadata",{struct, [{"description", "Meeting"}]}}]}}]} =
 	tests_utils:get(BaseUrl, "/meeting/all/newmeeting", Params).
 
@@ -117,7 +122,7 @@ test_get_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
 
 test_list_all(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid}],
+              {"sid", RootSid}],
     JSON = tests_utils:get(BaseUrl, "/meeting/all", Params),
     test_meeting_in_list(["testmeeting"], JSON),
     test_meeting_in_list(["closedmeeting"], JSON),
@@ -156,16 +161,17 @@ test_list_bad_parameters(BaseUrl, [{RootUid, RootSid}, _]) ->
 test_update(BaseUrl, [{RootUid, RootSid}, _]) ->
     Now = utils:now(),
     Params = [ {"uid", RootUid}
-             , {"sid", RootSid}
-	     , {"start", integer_to_list(Now)}
-             , {"metadata[description]", "A new description"}],
-    {struct, [{"result", "ok"}]} = tests_utils:post(BaseUrl, "/meeting/all/testmeeting", Params),
+               , {"sid", RootSid}
+               , {"start", integer_to_list(Now)}
+               , {"metadata[description]", "A new description"}],
+    {struct, [{"result", "ok"}]} =
+        tests_utils:put(BaseUrl, "/meeting/all/testmeeting", Params),
     {struct, [{"result",
 	       {struct,
 		[{"name", "testmeeting"},
+         {"domain", _},
 		 {"start_date", Now},
 		 {"end_date","never"},
-		 {"roster",{array, []}},
 		 {"metadata",{struct, [{"description", "A new description"}]}}]}}]} =
 	tests_utils:get(BaseUrl, "/meeting/all/testmeeting", Params).
 
@@ -173,10 +179,10 @@ test_update_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Now = integer_to_list(utils:now()),
     Params = [ {"uid", RootUid}
              , {"sid", RootSid}
-	     , {"start", Now}
+               , {"start", Now}
              , {"metadata[description]", "A new description"}],
     {struct, [{"error", "not_found"}]} =
-	tests_utils:post(BaseUrl, "/meeting/all/unexistentmeeting", Params).
+	tests_utils:put(BaseUrl, "/meeting/all/unexistentmeeting", Params).
 
 test_update_bad_start(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
@@ -184,7 +190,7 @@ test_update_bad_start(BaseUrl, [{RootUid, RootSid}, _]) ->
 	     , {"start", "i wish i was an integer"}
              , {"metadata[description]", "A new description"}],
     {struct, [{"error", "bad_parameters"}]} =
-	tests_utils:post(BaseUrl, "/meeting/all/testmeeting", Params).
+	tests_utils:put(BaseUrl, "/meeting/all/testmeeting", Params).
 
 test_update_bad_end(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
@@ -192,55 +198,56 @@ test_update_bad_end(BaseUrl, [{RootUid, RootSid}, _]) ->
 	     , {"end", "i wish i was an integer"}
              , {"metadata[description]", "A new description"}],
     {struct, [{"error", "bad_parameters"}]} =
-	tests_utils:post(BaseUrl, "/meeting/all/testmeeting", Params).
+	tests_utils:put(BaseUrl, "/meeting/all/testmeeting", Params).
 
 test_update_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
     Params = [ {"uid", UglyUid}
              , {"sid", UglySid}
-	     , {"start", "0"}
+               , {"start", "0"}
              , {"metadata[description]", "Meeting"}],
     {struct, [{"error", "unauthorized"}]} =
-	tests_utils:post(BaseUrl, "/meeting/all/testmeeting", Params).
+	tests_utils:put(BaseUrl, "/meeting/all/testmeeting", Params).
 
 
 test_join(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
-	       , {"sid", RootSid}],
-
+               , {"sid", RootSid}],
+    
     {struct, [{"result", "ok"}]} =
-	tests_utils:put(BaseUrl, "/meeting/all/testmeeting/roster/" ++ RootUid, Params),
+	tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params),
 
     {struct, [{"result", {array, Array}}]} = 
-	tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster", Params),
+        tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster/", Params),
     [{struct,[{"uid",RootUid},
-	      {"auth","password"},
-	      {"metadata",{struct,[]}}]}] = Array.
+              {"domain",_},
+              {"auth","password"},
+              {"metadata",{struct,[]}}]}] = Array.
 
 test_join_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
 	       , {"sid", RootSid}],
     {struct, [{"error", "not_found"}]} =
-	tests_utils:put(BaseUrl, "/meeting/all/unexistentmeeting/roster/" ++ RootUid, Params).
+        tests_utils:post(BaseUrl, "/meeting/all/unexistentmeeting/roster/", Params).
 
-test_join_not_found_uid(BaseUrl, [{RootUid, RootSid}, _]) ->
-    Params = [ {"uid", RootUid},
-	       {"sid", RootSid}],
+test_join_not_found_uid(BaseUrl, [_, _]) ->
+    Params = [ {"uid", "unexistentuid"},
+               {"sid", ""}],
     {struct, [{"error", "not_found"}]} =
-        tests_utils:put(BaseUrl, "/meeting/all/testmeeting/roster/unexistentuid", Params).
+        tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params).
 
 test_join_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
     Params = [{"uid", UglyUid},
-	      {"sid", UglySid}],
+              {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} =
-        tests_utils:put(BaseUrl, "/meeting/all/testmeeting/roster/test.user@af83.com", Params).
+        tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params).
 
 test_leave(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [ {"uid", RootUid}
-	       , {"sid", RootSid}],
+               , {"sid", RootSid}],
     {struct, [{"result", "ok"}]} =
-	tests_utils:delete(BaseUrl, "/meeting/all/testmeeting/roster/" ++ RootUid, Params),
+        tests_utils:delete(BaseUrl, "/meeting/all/testmeeting/roster/" ++ RootUid, Params),
     {struct, [{"result", {array, Array}}]} =
-	tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster", Params),
+        tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster", Params),
     [] = Array.
 
 test_leave_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
@@ -268,9 +275,9 @@ test_meeting_in_list(Id, []) ->
 test_meeting_in_list(Id, [Meeting|Tail]) ->
     {struct,
      [{"name", MeetingName},
+      {"domain", _},
       {"start_date",_},
       {"end_date",_},
-      {"roster",_},
       {"metadata",_}]} = Meeting,
     case Id of
 	[MeetingName] ->

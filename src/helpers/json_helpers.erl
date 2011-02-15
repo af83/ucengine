@@ -18,14 +18,14 @@
 -module(json_helpers).
 
 -export([unexpected_error/0,
-	 error/1,
-	 ok/0,
-	 true/0,
-	 false/0,
-	 created/0,
-	 created/1,
-	 json/1,
-	 xml/1]).
+         error/1,
+         ok/0,
+         true/0,
+         false/0,
+         created/0,
+         created/1,
+         json/1,
+         xml/1]).
 
 unexpected_error() ->
     Content = mochijson:encode({struct, [{error, unexpected_error}]}),

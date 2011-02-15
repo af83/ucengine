@@ -77,17 +77,18 @@
                 /**
                  * Create user presence
                  */
-                create: function(credential, uid, nickname, callback)
+                create: function(credential, name, nickname, callback)
                 {
                     var params = {"metadata" : {"nickname": nickname}};
                     if (credential) {
                         params.credential = credential;
                     }
-                    put("/presence/" + uid, params, function(err, result, xhr) {
+                    params.uid = name;
+                    post("/presence/", params, function(err, result, xhr) {
                         if (err) {
                             callback(err, result, xhr);
                         } else {
-                            var presence = {"uid": uid, "sid": result.result};
+                            var presence = {"uid": name, "sid": result.result};
                             callback(err, presence, xhr);
                         }
                     });
@@ -97,7 +98,7 @@
                  * Close user presence
                  */
                 close: function(callback) {
-                    del("/presence/" + presence.uid +"/"+ presence.sid, presence, callback);
+                    del("/presence/" + presence.sid, presence, callback);
                     return this;
                 }
             },
@@ -128,8 +129,8 @@
                 /**
                  * Update infos
                  */
-                post: function(metadata, callback) {
-                    post("/infos/", $.extend({}, presence, {metadata: metadata}), function(err, result, xhr) {
+                update: function(metadata, callback) {
+                    put("/infos/", $.extend({}, presence, {metadata: metadata}), function(err, result, xhr) {
                         if (!err) {
                             callback(err, result, xhr);
                         } else {
@@ -146,7 +147,7 @@
                     name: meetingname,
                     uid: (presence || {}).uid,
                     get: function(callback) {
-                        get("/meeting/all/"+ meetingname, {}, function(err, result, xhr) {
+                        get("/meeting/all/" + meetingname, {}, function(err, result, xhr) {
                             if (!err) {
                                 callback(err, result.result, xhr);
                             } else {
@@ -156,7 +157,7 @@
                         return this;
                     },
                     join: function(callback) {
-                        put("/meeting/all/" + meetingname + "/roster/" + presence.uid,
+                        post("/meeting/all/" + meetingname + "/roster/",
                             presence,
                             callback);
                         return this;
@@ -166,7 +167,6 @@
                         return this;
                     },
                     getRoster: function(callback) {
-
                         get("/meeting/all/" + meetingname + "/roster",
                             presence,
                             function (err, result, xhr) {
@@ -181,7 +181,7 @@
                      * Push event
                      */
                     push: function(type, metadata, callback) {
-                        put("/event/" + meetingname,
+                        post("/event/" + meetingname,
                             $.extend({}, presence, {type: type, metadata: metadata}),
                             callback);
                         return this;
@@ -190,7 +190,7 @@
                      * Get file upload url for this meeting
                      */
                     getFileUploadUrl: function() {
-                        return "/api/"+ VERSION +"/file/"+meetingname+"?uid="+presence.uid+"&sid="+presence.sid+"&_method=put"
+                        return "/api/"+ VERSION +"/file/"+meetingname+"?uid="+presence.uid+"&sid="+presence.sid;
                     },
                     /**
                      * Get file download url
@@ -392,7 +392,7 @@
             },
             user: {
                 register: function(uid, auth, credential, metadata, callback) {
-                    put("/user/"+ uid, $.extend({}, {auth: auth, credential:credential, metadata:metadata}), function(err, result, xhr) {
+                    post("/user/", $.extend({}, {uid: uid, auth: auth, credential:credential, metadata:metadata}), function(err, result, xhr) {
                         callback(err, result, xhr);
                     });
                     return this;

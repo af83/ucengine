@@ -23,8 +23,10 @@
 
 -export([to_json/1]).
 
-to_json(#uce_user{} = User) ->
-    {struct, [{uid, User#uce_user.uid},
-	      {auth, User#uce_user.auth},
-	      {metadata, {struct, User#uce_user.metadata}}]}.
-
+to_json(#uce_user{id={Name, Domain},
+                  auth=Auth,
+                  metadata=Metadata}) ->
+    {struct, [{uid, Name},
+              {domain, Domain},
+              {auth, Auth},
+              {metadata, {struct, Metadata}}]}.

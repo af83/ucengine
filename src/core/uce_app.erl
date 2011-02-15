@@ -70,13 +70,11 @@ setup_db() ->
 
 setup_bricks() ->
     lists:map(fun({Name, Token}) ->
-                      uce_user:add(config:get(default_domain),
-                                   #uce_user{uid=Name,
+                      catch uce_user:add(#uce_user{id={Name, config:get(default_domain)},
                                              auth="token",
                                              credential=Token,
                                              metadata=[]}),
-                      uce_acl:add(config:get(default_domain),
-                                  #uce_acl{uid=Name,
+                      catch uce_acl:add(#uce_acl{user={Name, config:get(default_domain)},
                                            action="all",
                                            object="all",
                                            conditions=[]})
@@ -89,17 +87,14 @@ setup_root() ->
                    [none, none, none, []]) of
         [Uid, Auth, Credential, Metadata]
           when is_list(Uid) and is_list(Auth) and is_list(Credential) ->
-            uce_user:add(config:get(default_domain),
-                         #uce_user{uid=Uid,
-                                   auth=Auth,
-                                   credential=Credential,
-                                   metadata=Metadata}),
-
-            uce_acl:add(config:get(default_domain),
-                        #uce_acl{uid=Uid,
-                                 action="all",
-                                 object="all",
-                                 conditions=[]});
+            catch uce_user:add(#uce_user{id={Uid, config:get(default_domain)},
+                                         auth=Auth,
+                                         credential=Credential,
+                                         metadata=Metadata}),
+            catch uce_acl:add(#uce_acl{user={Uid, config:get(default_domain)},
+                                       action="all",
+                                       object="all",
+                                       conditions=[]});
         _ ->
             ?ERROR_MSG("Invalid or inexistent admin account~n", [])
     end.

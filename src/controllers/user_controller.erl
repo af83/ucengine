@@ -17,136 +17,92 @@
 %%
 -module(user_controller).
 
--export([init/0, add/3, update/3, get/3, list/3, delete/3]).
+-export([init/0, add/4, update/4, get/4, list/4, delete/4]).
 
 -include("uce.hrl").
 
 init() ->
-    [#uce_route{module="Users",
-		method='GET',
-		regexp="/user",
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, list,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]},
+    [#uce_route{method='POST',
+                regexp="/user",
+                callbacks=[{?MODULE, add,
+                            ["uid", "auth", "credential", "metadata"],
+                            [required, required, required, []],
+                            [string, string, string, dictionary]}]},
      
-     #uce_route{module="Users",
-		method='PUT',
-		regexp="/user/([^/]+)",
-		callbacks=[{?MODULE, add,
-			    ["auth", "credential", "metadata"],
-			    [required, required, []],
-			    [string, string, dictionary],
-			    [any, any, any]}]},
+     #uce_route{method='GET',
+                regexp="/user",
+                callbacks=[{?MODULE, list,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]},
+
+     #uce_route{method='GET',
+                regexp="/user/([^/]+)",
+                callbacks=[{?MODULE, get,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]},
      
-     #uce_route{module="Users",
-		method='POST',
-		regexp="/user/([^/]+)",
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, update,
-			    ["uid", "auth", "credential", "metadata"],
-			    [required, required, required, []],
-			    [string, string, string, dictionary],
-			    [user, any, any, any]}]},
+     #uce_route{method='PUT',
+                regexp="/user/([^/]+)",
+                callbacks=[{?MODULE, update,
+                            ["uid", "sid", "auth", "credential", "metadata"],
+                            [required, required, required, required, []],
+                            [string, string, string, string, dictionary]}]},
      
-     #uce_route{module="Users",
-		method='GET',
-		regexp="/user/([^/]+)",
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, get,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]},
-     
-     #uce_route{module="Users",
-		method='DELETE',
-		regexp="/user/([^/]+)",
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, delete,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]}].
+     #uce_route{method='DELETE',
+                regexp="/user/([^/]+)",
+                callbacks=[{?MODULE, delete,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]}].
 
-list([], [Uid], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "user", "list") of
-	{ok, true} ->
-	    case uce_user:list(utils:domain(Arg)) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, Users} ->
-		    JSONUsers = [ user_helpers:to_json(User) || User <- Users],
-		    json_helpers:json({array, JSONUsers})
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
 
-add([Uid], [Auth, Credential, Metadata], Arg) ->
-    case uce_user:add(utils:domain(Arg),
-                      #uce_user{uid=Uid, auth=Auth, credential=Credential, metadata=Metadata}) of
-	{error, Reason} ->
-	    {error, Reason};
-	{ok, created} ->
-	    uce_event:add(utils:domain(Arg), #uce_event{from=Uid, type="internal.user.add"}),
-	    json_helpers:created()
-    end.
+add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
+    {ok, created} = uce_user:add(#uce_user{id={Name, Domain},
+                                           auth=Auth,
+                                           credential=Credential,
+                                           metadata=Metadata}),
 
-update([To], [Uid, Auth, Credential, Metadata], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "user", "update", [""], [{"user", To}, {"auth", Auth}]) of
-	{ok, true} ->
-	    case uce_user:update(utils:domain(Arg), To, Auth, Credential, Metadata) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, updated} ->
-		    uce_event:add(utils:domain(Arg), #uce_event{from=To, type="internal.user.update"}),
-		    json_helpers:ok()
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+    catch uce_event:add(#uce_event{domain=Domain,
+                                   from={Name, Domain},
+                                   location={"", Domain},
+                                   type="internal.user.add"}),
 
-get([To], [Uid], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "user", "get", [""], [{"user", To}]) of
-	{ok, true} ->
-	    case uce_user:get(utils:domain(Arg), To) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, User} ->
-		    json_helpers:json(user_helpers:to_json(User))
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+    json_helpers:created().
 
-delete([To], [Uid], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "user", "delete", [""], [{"user", To}]) of
-	{ok, true} ->
-	    case uce_user:delete(utils:domain(Arg), To) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, deleted} ->
-		    json_helpers:ok()
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+list(Domain, [], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "user", "list"),
+    {ok, Users} = uce_user:list(Domain),
+    json_helpers:json({array, [user_helpers:to_json(User) || User <- Users]}).
+
+get(Domain, [Name], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "user", "get", {"", Domain},
+                                [{"user", {Name, Domain}}]),
+    {ok, Record} = uce_user:get({Name, Domain}),
+    json_helpers:json(user_helpers:to_json(Record)).
+
+update(Domain, [Name], [Uid, Sid, Auth, Credential, Metadata], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "user", "update", {"", Domain},
+                                [{"user", {Name, Domain}},
+                                 {"auth", Auth}]),
+    {ok, updated} = uce_user:update(#uce_user{id={Name, Domain},
+                                              auth=Auth,
+                                              credential=Credential,
+                                              metadata=Metadata}),
+
+    catch uce_event:add(#uce_event{domain=Domain,
+                                   from={Name, Domain},
+                                   location={"", Domain},
+                                   type="internal.user.update"}),
+    
+    json_helpers:ok().
+
+delete(Domain, [Name], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "user", "delete", {"", Domain}, [{"user", Name}]),
+    {ok, deleted} = uce_user:delete({Name, Domain}),
+    json_helpers:ok().

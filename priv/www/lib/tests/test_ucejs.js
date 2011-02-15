@@ -156,7 +156,7 @@ test("can be accessed via window.uce", function() {
 
 jackTest("can open a new presence", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/presence/uid", { "_method": "put", "metadata": {"nickname": "nickname"}}, 200, '{"result": "sid"}');
+    addUceApiCall("post", "/api/0.2/presence/", { "uid": "uid", "metadata": {"nickname": "nickname"}}, 200, '{"result": "sid"}');
     uce.presence.create("", "uid", "nickname",
                         function(err, presence, xhr) {
                             start();
@@ -168,7 +168,7 @@ jackTest("can open a new presence", function() {
 
 jackTest("can close a presence", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/presence/myuid/mysid", { "_method": "delete", "uid": "myuid", "sid": "mysid"}, 200, '');
+    addUceApiCall("post", "/api/0.2/presence/mysid", { "_method": "delete", "uid": "myuid", "sid": "mysid"}, 200, '');
     uce.attachPresence(Factories.createPresence()).presence.close(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -177,18 +177,18 @@ jackTest("can close a presence", function() {
 
 jackTest("can get current domain informations", function() {
     stop();
-    addUceApiCall("get", "/api/0.2/infos/", {}, 200, '{"result" : {"name": "myuser", "plop": "plip"}}');
+    addUceApiCall("get", "/api/0.2/infos/", {}, 200, '{"result" : {"domain": "localhost", "metadata": {"name": "myuser", "plop": "plip"}}}');
     uce.infos.get(function(err, r, xhr) {
         start();
         equals(err, null);
-        same({name: 'myuser', plop: 'plip'}, r);
+        same(r, {"domain": "localhost", "metadata": {name: 'myuser', plop: 'plip'}});
     });
 });
 
 jackTest("can update current domain informations", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/infos/", {"uid": "myuid", "sid": "mysid", "metadata": {"pouet" : "pouet"}}, 200, '{"result" : "ok"}');
-    uce.attachPresence(Factories.createPresence()).infos.post({pouet: "pouet"}, function(err, r, xhr) {
+    addUceApiCall("post", "/api/0.2/infos/", {"_method": "put", "uid": "myuid", "sid": "mysid", "metadata": {"pouet" : "pouet"}}, 200, '{"result" : "ok"}');
+    uce.attachPresence(Factories.createPresence()).infos.update({pouet: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
         same({result: "ok"}, r);
@@ -257,7 +257,7 @@ jackTest("can get meeting", function() {
 
 jackTest("can join meeting", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/meeting/all/mymeeting/roster/myuid",  {"_method" :"put", "uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
+    addUceApiCall("post", "/api/0.2/meeting/all/mymeeting/roster/",  {"uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
     var meeting = uce.attachPresence(Factories.createPresence()).meeting("mymeeting");
     meeting.join(function(err, r, xhr) {
         start();
@@ -278,7 +278,7 @@ jackTest("can leave meeting", function() {
 
 jackTest("can push event on meeting", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/event/mymeeting",  {"_method" :"put", "uid": "myuid", "sid": "mysid", "type": "test_event", "metadata": {_mymetadata: "myvalue"}}, 200, '');
+    addUceApiCall("post", "/api/0.2/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "type": "test_event", "metadata": {_mymetadata: "myvalue"}}, 200, '');
     uce.attachPresence(Factories.createPresence()).meeting("mymeeting").push('test_event', {_mymetadata:"myvalue"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -489,9 +489,9 @@ test("startLoop widgets/whatever can bind event handler with special type", func
 
 test("get upload url", function() {
     var url = uce.attachPresence(Factories.createPresence()).meeting("mymeeting").getFileUploadUrl();
-    equals(url, "/api/0.2/file/mymeeting?uid=myuid&sid=mysid&_method=put");
+    equals(url, "/api/0.2/file/mymeeting?uid=myuid&sid=mysid");
     var url = uce.attachPresence({"uid": "myuid2", "sid": "mysid2"}).meeting("mymeeting2").getFileUploadUrl();
-    equals(url, "/api/0.2/file/mymeeting2?uid=myuid2&sid=mysid2&_method=put");
+    equals(url, "/api/0.2/file/mymeeting2?uid=myuid2&sid=mysid2");
 });
 
 test("get download file url", function() {
@@ -523,7 +523,7 @@ test("uce waiter", function() {
 
 jackTest("register new user", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/user/test@example.net",  {auth: 'password', credential: 'mypwd', _method: 'put', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
+    addUceApiCall("post", "/api/0.2/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
     uce.user.register('test@example.net', 'password', 'mypwd', {nickname: 'test'}, function(err, result) {
         start();
         equals(null, err);
@@ -533,7 +533,7 @@ jackTest("register new user", function() {
 
 jackTest("register with password", function() {
     stop();
-    addUceApiCall("post", "/api/0.2/user/test@example.net",  {auth: 'password', credential: 'mypwd', _method: 'put', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
+    addUceApiCall("post", "/api/0.2/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
     uce.user.registerWithPassword('test@example.net', 'mypwd', {nickname: 'test'}, function(err, result) {
         start();
         equals(null, err);

@@ -23,18 +23,17 @@
 
 -export([to_json/1]).
 
-to_json(#uce_meeting{id=[Meeting],
-		       start_date=StartDate,
-		       end_date=EndDate,
-		       roster=Roster,
-		       metadata=Metadata}) ->
-    {struct, [{name, Meeting},
-	      {start_date, StartDate},
-	      {end_date, case EndDate of
-			     ?NEVER_ENDING_MEETING ->
-				 "never";
-			     _ ->
-				 integer_to_list(EndDate)
-			 end},
-	      {roster, {array, Roster}},
-	      {metadata, {struct, Metadata}}]}.
+to_json(#uce_meeting{id={Name, Domain},
+                     start_date=StartDate,
+                     end_date=EndDate,
+                     metadata=Metadata}) ->
+    {struct, [{name, Name},
+              {domain, Domain},
+              {start_date, StartDate},
+              {end_date, case EndDate of
+                             ?NEVER_ENDING_MEETING ->
+                                 "never";
+                             _ ->
+                                 integer_to_list(EndDate)
+                         end},
+              {metadata, {struct, Metadata}}]}.

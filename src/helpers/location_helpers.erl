@@ -21,18 +21,12 @@
 
 -include("uce.hrl").
 
--export([exists/2]).
+-export([exists/1]).
 
-exists(Domain, Location) ->
+exists(Location) ->
     case Location of
-	[""] ->
-	    true;
-	[Meeting] ->
-	    case uce_meeting:get(Domain, [Meeting]) of
-		{error, _} ->
-		    false;
-		_ ->
-		    true
-	    end
+        {"", _Domain} -> % root
+            true;
+        {_Name, _Domain} = Meeting->
+            uce_meeting:exists(Meeting)
     end.
-

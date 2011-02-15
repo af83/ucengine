@@ -17,121 +17,75 @@
 %%
 -module(acl_controller).
 
--export([init/0, check/3, add/3, delete/3]).
+-export([init/0, check/4, add/4, delete/4]).
 
 -include("uce.hrl").
 
 init() ->
-    [#uce_route{module="ACL",
-		title="Check right",
-		desc="Check right",
-		path="/user/:to/acl/:object/:action/:meeting",
-		method='GET',
-		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
-		types=[user, any, any, meeting],
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, check,
-			    ["uid", "conditions"],
-			    [required, []],
-			    [string, dictionary],
-			    [user, any]}]},
+    [#uce_route{method='GET',
+                regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
+                types=[user, any, any, meeting],
+                callbacks=[{?MODULE, check,
+                            ["uid", "sid", "conditions"],
+                            [required, required, []],
+                            [string, string, dictionary]}]},
      
-     #uce_route{module="ACL",
-		title="Add right",
-		desc="Add right",
-		path="/user/:to/acl/:object/:action/:meeting",
-		method='PUT',
-		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
-		types=[user, any, any, meeting],
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, add,
-			    ["uid", "conditions"],
-			    [required, []],
-			    [string, dictionary],
-			    [user, any]}]},
+     #uce_route{method='PUT',
+                regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
+                types=[user, any, any, meeting],
+                callbacks=[{?MODULE, add,
+                            ["uid", "sid", "conditions"],
+                            [required, required, []],
+                            [string, string, dictionary]}]},
      
-     #uce_route{module="ACL",
-		title="Delete right",
-		desc="Delete right",
-		path="/user/:to/acl/:object/:action/:meeting",
-		method='DELETE',
-		regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
-		types=[user, any, any, meeting],
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, delete,
-			    ["uid", "conditions"],
-			    [required, []],
-			    [string, dictionary],
-			    [user, any]}]}].
+     #uce_route{method='DELETE',
+                regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
+                callbacks=[{?MODULE, delete,
+                            ["uid", "sid", "conditions"],
+                            [required, required, []],
+                            [string, string, dictionary]}]}].
 
 
-check([To, Object, Action], Params, Arg) ->
-    check([To, Object, Action, ""], Params, Arg);
-check([To, Object, Action, Meeting], [EUid, Conditions], Arg) ->
-    case uce_acl:check(utils:domain(Arg), EUid, "acl", "check", [Meeting], [{"user", To},
-                                                                            {"action", Action},
-                                                                            {"object", Object},
-                                                                            {"meeting", Meeting}] ++ Conditions) of
-	{ok, true} ->
-	    case uce_acl:check(utils:domain(Arg), To, Object, Action, [Meeting], Conditions) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, true} ->
-		    json_helpers:true();
-		{ok, false} ->
-		    json_helpers:false()
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
+check(Domain, [To, Object, Action], Params, Arg) ->
+    check(Domain, [To, Object, Action, ""], Params, Arg);
+check(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "acl", "check", {Meeting, Domain},
+                                [{"user", {To, Domain}},
+                                 {"action", Action},
+                                 {"object", Object},
+                                 {"meeting", {Meeting, Domain}}]),
+    case uce_acl:check({To, Domain}, Object, Action, {Meeting, Domain}, Conditions) of
+        {ok, true} ->
+            json_helpers:true();
+        {ok, false} ->
+            json_helpers:false()
     end.
 
-add([To, Object, Action], Params, Arg) ->
-    add([To, Object, Action, ""], Params, Arg);
-add([To, Object, Action, Meeting], [EUid, Conditions], Arg) ->
-    case uce_acl:check(utils:domain(Arg), EUid, "acl", "add", [Meeting], [{"user", To},
-                                                                          {"action", Action},
-                                                                          {"object", Object},
-                                                                          {"meeting", Meeting}] ++ Conditions) of
-	{ok, true} ->
-	    case uce_acl:add(utils:domain(Arg), #uce_acl{uid=To,
-                                                     action=Action,
-                                                     object=Object,
-                                                     location=[Meeting],
-                                                     conditions=Conditions}) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, created} ->
-		    json_helpers:created()
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+add(Domain, [To, Object, Action], Params, Arg) ->
+    add(Domain, [To, Object, Action, ""], Params, Arg);
+add(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "acl", "add", {Meeting, Domain},
+                                [{"user", {To, Domain}},
+                                 {"action", Action},
+                                 {"object", Object},
+                                 {"meeting", {Meeting, Domain}}]),
+    {ok, created} = uce_acl:add(#uce_acl{user={To, Domain},
+                                         action=Action,
+                                         object=Object,
+                                         location={Meeting, Domain},
+                                         conditions=Conditions}),
+    json_helpers:created().
 
-delete([To, Object, Action], Params, Arg) ->
-    delete([To, Object, Action, "", ""], Params, Arg);
-delete([To, Object, Action, Meeting], [EUid, Conditions], Arg) ->
-    case uce_acl:check(utils:domain(Arg), EUid, "acl", "delete", [Meeting], [{"user", To},
-                                                                             {"action", Action},
-                                                                             {"object", Object}] ++ Conditions) of
-	{ok, true} ->
-	    case uce_acl:delete(utils:domain(Arg), To, Object, Action, [Meeting], Conditions) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, deleted} ->
-		    json_helpers:ok()
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+delete(Domain, [To, Object, Action], Params, Arg) ->
+    delete(Domain, [To, Object, Action, "", ""], Params, Arg);
+delete(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "acl", "delete", {Meeting, Domain},
+                                [{"user", {To, Domain}},
+                                 {"action", Action},
+                                 {"object", Object},
+                                 {"meeting", {Meeting, Domain}}]),
+    {ok, deleted} = uce_acl:delete({To, Domain}, Object, Action, {Meeting, Domain}, Conditions),
+    json_helpers:ok().

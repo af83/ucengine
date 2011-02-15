@@ -17,102 +17,59 @@
 %%
 -module(presence_controller).
 
--export([init/0, delete/3, add/3, check/3, timeout/0, clean/0]).
+-export([init/0, delete/4, add/4, timeout/0, clean/0]).
 
 -include("uce.hrl").
 -include("uce_auth.hrl").
 
 init() ->
-    [#uce_route{module="Presence",
-		method='PUT',
-		regexp="/presence/([^/]+)",
-		callbacks=[{?MODULE, add,
-			    ["credential", "metadata"],
-			    [required, []],
-			    [string, dictionary],
-			    [any, any]}]},
+    [#uce_route{method='POST',
+                regexp="/presence",
+                callbacks=[{?MODULE, add,
+                            ["uid", "credential", "metadata"],
+                            [none, none, []],
+                            [string, string, dictionary]}]},
+     
+     #uce_route{method='DELETE',
+                regexp="/presence/([^/]+)",
+                callbacks=[{?MODULE, delete,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]}].
 
-     #uce_route{module="Presence",
-		method='DELETE',
-		regexp="/presence/([^/]+)/([^/]+)",
-		callbacks=[{?MODULE, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, delete,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]}].
+add(Domain, [], [Name, Credential, Metadata], _) ->
+    {ok, User} = uce_user:get({Name, Domain}),
+    {ok, true} = uce_acl:assert(User#uce_user.id, "presence", "add"),
+    {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
+    {ok, Id} = uce_presence:add(#uce_presence{user=User#uce_user.id,
+                                              auth=User#uce_user.auth,
+                                              metadata=Metadata}),
+    catch uce_event:add(#uce_event{domain=Domain,
+                                   from=User#uce_user.id,
+                                   location={"", Domain},
+                                   type="internal.presence.add"}),
+    json_helpers:created(Id).
 
-add([Uid], [Credential, Metadata], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "presence", "add") of
-	{ok, true} ->
-	    case uce_user:get(utils:domain(Arg), Uid) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, #uce_user{} = User} ->
-		    case catch ?AUTH_MODULE(User#uce_user.auth):check(User, Credential) of
-			true ->
-			    case uce_presence:add(utils:domain(Arg), #uce_presence{uid=Uid,
-								auth=User#uce_user.auth,
-								metadata=Metadata}) of
-				{error, Reason} ->
-				    {error, Reason};
-				{ok, Sid} ->
-				    uce_event:add(utils:domain(Arg), #uce_event{location=[""],
-							     from=Uid,
-							     type="internal.presence.add",
-							     metadata=Metadata}),
-				    json_helpers:created(Sid)
-			    end;
-			false ->
-			    {error, bad_credentials};
-			_ ->
-			    {error, bad_credentials}
-		    end
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+delete(Domain, [Id], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, Record} = uce_presence:get(Id),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "presence", "delete", {"", Domain},
+                                [{"id", Record#uce_presence.id}]),
+    {ok, deleted} = uce_presence:delete(Record#uce_presence.id),
 
-delete([ToUid, ToSid], [Uid], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "presence", "delete", [""], [{"user", ToUid}]) of
-	{ok, true} ->
-	    F = fun(M) ->
-                   uce_event:add(utils:domain(Arg), #uce_event{from=ToUid, type="internal.roster.delete", location=[M]}),
-		   uce_meeting:leave(utils:domain(Arg), [M], ToUid)
-	        end,
-            case uce_presence:get(utils:domain(Arg), ToSid) of
-                {ok, Presence} ->
-	             [ F(Meeting) || Meeting <- Presence#uce_presence.meetings ];
-                 _ -> nothing
-            end,
-	    case uce_presence:delete(utils:domain(Arg), ToSid) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, deleted} ->
-                    uce_event:add(utils:domain(Arg), #uce_event{location=[""], from=ToUid, type="internal.presence.delete"}),
-		    json_helpers:json(ok)
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
+    lists:foreach(fun(Meeting) ->
+                          catch uce_event:add(#uce_event{domain=Domain,
+                                                         from=Record#uce_presence.user,
+                                                         type="internal.roster.delete",
+                                                         location=Meeting}),
+                          catch uce_meeting:leave(Meeting, Record#uce_presence.user)
+                  end,
+                  Record#uce_presence.meetings),
 
-check(_, [Uid, Sid], Arg) ->
-    case uce_presence:get(utils:domain(Arg), Sid) of
-	{error, Reason} ->
-	    {error, Reason};
-	{ok, Presence} ->
-	    case Presence#uce_presence.uid of
-		Uid ->
-            uce_presence:update(utils:domain(Arg), Presence#uce_presence{last_activity=utils:now()}),
-		    {ok, continue};
-		_ ->
-		    {error, unauthorized}
-	    end
-    end.
+    catch uce_event:add(#uce_event{domain=Domain,
+                                   from=Record#uce_presence.user,
+                                   type="internal.presence.delete"}),
+    json_helpers:json(ok).
 
 clean() ->
     ?MODULE:timeout(),
@@ -132,25 +89,32 @@ timeout() ->
             nothing
     end.
 
-delete_expired_presence([#uce_presence{sid=Sid, uid=Uid, last_activity=Last, auth=Auth, meetings=Meetings} | TlPresences]) ->
+delete_expired_presence([#uce_presence{id=Sid,
+                                       user=Uid,
+                                       last_activity=Last,
+                                       auth=Auth,
+                                       meetings=Meetings} | TlPresences]) ->
     ?DEBUG("Timeout: ~p~n", [?SESSION_TIMEOUT]),
     Timeout = Last + ?SESSION_TIMEOUT,
     Now = utils:now(),
     if
         Now >= Timeout , Auth == "password", Uid /= "root" ->
             F = fun(M) ->
-                   uce_event:add(#uce_event{from=Uid, type="internal.roster.delete", location=[M]}),
+                   uce_event:add(#uce_event{from=Uid,
+                                            type="internal.roster.delete",
+                                            location=[M]}),
                    uce_meeting:leave([M], Uid)
                 end,
             [ F(Meeting) || Meeting <- Meetings ],
-            uce_event:add(#uce_event{ location=[""],
-                                      type="internal.presence.delete",
-                                      from=Uid}),
+            uce_event:add(#uce_event{location=[""],
+                                     type="internal.presence.delete",
+                                     from=Uid}),
             uce_presence:delete(Sid);
         true ->
             nothing
     end,
     delete_expired_presence(TlPresences);
+
 delete_expired_presence([]) ->
     ok.
 

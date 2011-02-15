@@ -19,54 +19,35 @@
 
 -include("uce.hrl").
 
--export([init/0, get/3, update/3]).
+-export([init/0, get/4, update/4]).
 
 init() ->
-    [#uce_route{module="Infos",
-                title="Get infos",
-                desc="Get informations",
-                path="/infos",
-                method='GET',
+    [#uce_route{method='GET',
                 regexp="/infos",
-                types=[],
-                callbacks=[{?MODULE, get, [], [], [], []}]},
+                callbacks=[{?MODULE, get, [], [], []}]},
 
-     #uce_route{module="Infos",
-                title="Update infos",
-                desc="Update informations",
-                path="/infos",
-                method='POST',
+     #uce_route{method='PUT',
                 regexp="/infos",
-                types=[],
-                callbacks=[{presence_controller, check,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string],
-                            [user, presence]},
-                           {?MODULE, update,
-                            ["uid", "metadata"],
-                            [required, []],
-                            [string, dictionary],
-                            [user, any]}]
-               }].
+                callbacks=[{?MODULE, update,
+                            ["uid", "sid", "metadata"],
+                            [required, required, []],
+                            [string, string, dictionary]}]}].
 
 %%
 %% Get domain informations
 %% Return a json object containing the domain's metadata. Can be empty.
 %%
-get(_UrlParams, _Params, Arg) ->
-    {ok, Result} = uce_infos:get(utils:domain(Arg)),
-    json_helpers:json({struct, Result}).
+get(Domain, _UrlParams, _Params, _) ->
+    {ok, #uce_infos{domain=Domain, metadata=Metadata}} = uce_infos:get(Domain),
+    json_helpers:json({struct, [{domain, Domain},
+                                {metadata, {struct, Metadata}}]}).
 
 %%
 %% Update domain informations
 %% Return ok in case of success.
 %%
-update(_UrlParams, [Uid, Metadata], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "infos", "update") of
-        {ok, true} ->
-            uce_infos:update(utils:domain(Arg), Metadata),
-            json_helpers:ok();
-        {ok, false} ->
-            {error, unauthorized}
-    end.
+update(Domain, _UrlParams, [Uid, Sid, Metadata], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "infos", "update"),
+    {ok, updated} = uce_infos:update(#uce_infos{domain=Domain, metadata=Metadata}),
+    json_helpers:ok().

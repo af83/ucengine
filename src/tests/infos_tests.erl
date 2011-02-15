@@ -33,25 +33,29 @@ event_test_() ->
 -include("mongodb.hrl").
 
 test_get(BaseUrl) ->
-    {struct, [{"result", {struct, []}}]} = tests_utils:get(BaseUrl, "/infos", []).
+    {struct, [{"result", {struct, [{"domain", _},
+                                   {"metadata", {struct, []}}]}}]} =
+        tests_utils:get(BaseUrl, "/infos", []).
 
 test_update(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "UC Engine"}],
-    {struct, [{"result", "ok"}]} = tests_utils:post(BaseUrl, "/infos", Params),
-    {struct, [{"result", {struct, [{"description", "UC Engine"}]}}]} =
+    {struct, [{"result", "ok"}]} = tests_utils:put(BaseUrl, "/infos", Params),
+    {struct, [{"result", {struct, [{"domain", _},
+                                   {"metadata", {struct, [{"description", "UC Engine"}]}}]}}]} =
         tests_utils:get(BaseUrl, "/infos", []),
 
     Params2 = [{"uid", RootUid},
                {"sid", RootSid},
                {"metadata[description]", "UC Engine2"}],
-    {struct, [{"result", "ok"}]} = tests_utils:post(BaseUrl, "/infos", Params2),
-    {struct, [{"result", {struct, [{"description", "UC Engine2"}]}}]} =
+    {struct, [{"result", "ok"}]} = tests_utils:put(BaseUrl, "/infos", Params2),
+    {struct, [{"result", {struct, [{"domain", _},
+                                   {"metadata", {struct, [{"description", "UC Engine2"}]}}]}}]} =
         tests_utils:get(BaseUrl, "/infos", []).
 
 test_update_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
     Params = [{"uid", UglyUid},
               {"sid", UglySid},
               {"metadata[description]", "UC Engine"}],
-    {struct, [{"error", "unauthorized"}]} = tests_utils:post(BaseUrl, "/infos", Params).
+    {struct, [{"error", "unauthorized"}]} = tests_utils:put(BaseUrl, "/infos", Params).

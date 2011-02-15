@@ -28,6 +28,7 @@ user_test_() ->
               [?_test(test_register(BaseUrl)),
                ?_test(test_register_missing_auth(BaseUrl)),
                ?_test(test_register_missing_credential(BaseUrl)),
+               ?_test(test_register_missing_name(BaseUrl)),
                ?_test(test_register_conflict(BaseUrl)),
                
                ?_test(test_get(BaseUrl, Testers)),
@@ -45,41 +46,51 @@ user_test_() ->
                
                ?_test(test_delete_unauthorized(BaseUrl, Testers)),
                ?_test(test_delete(BaseUrl, Testers)),
-               ?_test(test_delete_not_found(BaseUrl, Testers))
-              ]
+               ?_test(test_delete_not_found(BaseUrl, Testers))]
       end
     }.
 
 test_register(BaseUrl) ->
     Params = [{"auth", "test"},
-	      {"credential", "test"},
-	      {"metadata[nickname]", "test_nickname"}],
+              {"credential", "test"},
+              {"uid", "test.user@af83.com"},
+              {"metadata[nickname]", "test_nickname"}],
     {struct, [{"result", "created"}]} =
-        tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
+        tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_missing_auth(BaseUrl) ->
     Params = [{"credential", "test"},
-	      {"metadata[nickname]", "test_nickname"}],
+              {"uid", "test.user@af83.com"},
+              {"metadata[nickname]", "test_nickname"}],
     {struct, [{"error", "missing_parameters"}]} =
-        tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
+        tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_missing_credential(BaseUrl) ->
     Params = [{"auth", "test"},
-	      {"metadata[nickname]", "test_nickname"}],
+              {"uid", "test.user@af83.com"},
+              {"metadata[nickname]", "test_nickname"}],
     {struct, [{"error", "missing_parameters"}]} =
-        tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
+        tests_utils:post(BaseUrl, "/user/", Params).
+
+test_register_missing_name(BaseUrl) ->
+    Params = [{"auth", "test"},
+              {"metadata[nickname]", "test_nickname"}],
+    {struct, [{"error", "missing_parameters"}]} =
+        tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_conflict(BaseUrl) ->
     Params = [{"auth", "test"},
-	      {"credential", "test"}],
+              {"uid", "test.user@af83.com"},
+              {"credential", "test"}],
     {struct, [{"error", "conflict"}]} =
-        tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
+        tests_utils:post(BaseUrl, "/user/", Params).
 
 test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
     {struct,[{"result",
               {struct,[{"uid","test.user@af83.com"},
+                       {"domain", _},
                        {"auth","test"},
                        {"metadata",{struct,[{"nickname", "test_nickname"}]}}
                       ]}
@@ -87,7 +98,7 @@ test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
 
 test_get_not_found(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid}],
+              {"sid", RootSid}],
     {struct, [{"error", "not_found"}]} =
         tests_utils:get(BaseUrl, "/user/unexistent.user@af83.com", Params).
 
@@ -99,10 +110,11 @@ test_get_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
 
 test_list(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-             {"sid", RootSid}],
+              {"sid", RootSid}],
     {struct,[{"result",
               {array,
                [{struct,[{"uid",_},
+                         {"domain", _},
                          {"auth",_},
                          {"metadata",{struct,_}}
                         ]}|_]
@@ -115,38 +127,38 @@ test_list_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
 
 test_update(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"auth", "test_modified"},
-	      {"credential", "test_modified"},
-	      {"metadata[nickname]", "test_modified_nickname"}],
+              {"sid", RootSid},
+              {"auth", "test_modified"},
+              {"credential", "test_modified"},
+              {"metadata[nickname]", "test_modified_nickname"}],
     {struct, [{"result", "ok"}]} =
-        tests_utils:post(BaseUrl, "/user/test.user@af83.com", Params).
+        tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
 
 
 test_update_missing_auth(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"credential", "test_modified"},
-	      {"metadata[nickname]", "test_modified_nickname"}],
+              {"sid", RootSid},
+              {"credential", "test_modified"},
+              {"metadata[nickname]", "test_modified_nickname"}],
     {struct, [{"error", "missing_parameters"}]} =
-        tests_utils:post(BaseUrl, "/user/test.user@af83.com", Params).
+        tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
 
 test_update_missing_credential(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"auth", "test_modified"},
-	      {"metadata[nickname]", "test_modified_nickname"}],
+              {"sid", RootSid},
+              {"auth", "test_modified"},
+              {"metadata[nickname]", "test_modified_nickname"}],
     {struct, [{"error", "missing_parameters"}]} =
-        tests_utils:post(BaseUrl, "/user/test.user@af83.com", Params).
+        tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
 
 test_update_not_found(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"auth", "test_modified"},
-	      {"credential", "test_modified"},
-	      {"metadata[nickname]", "test_modified_nickname"}],
+              {"sid", RootSid},
+              {"auth", "test_modified"},
+              {"credential", "test_modified"},
+              {"metadata[nickname]", "test_modified_nickname"}],
     {struct, [{"error", "not_found"}]} =
-        tests_utils:post(BaseUrl, "/user/unexistent.user@af83.com", Params).
+        tests_utils:put(BaseUrl, "/user/unexistent.user@af83.com", Params).
 
 test_update_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
     Params = [{"uid", UglyUid},
@@ -155,7 +167,7 @@ test_update_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
               {"credential", "test_modified"},
               {"metadata[nickname]", "test_modified_nickname"}],
     {struct, [{"error", "unauthorized"}]} =
-        tests_utils:post(BaseUrl, "/user/test.user@af83.com", Params).
+        tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
 
 test_delete_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
     Params = [{"uid", UglyUid},

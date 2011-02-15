@@ -40,67 +40,67 @@ presence_test_() ->
 
 test_presence_create_password(BaseUrl) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
-	      {"auth", "password"},
-	      {"credential", "pwd"}],
+              {"uid", "participant.user@af83.com"},
+              {"credential", "pwd"}],
     {struct,[{"result", _}]} =
-        tests_utils:put(BaseUrl, "/presence/participant.user@af83.com", Params).
+        tests_utils:post(BaseUrl, "/presence/", Params).
 
 test_presence_create_missing_credential(BaseUrl) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
-	      {"auth", "password"}],
-    {struct,[{"error", "missing_parameters"}]} =
-        tests_utils:put(BaseUrl, "/presence/participant.user@af83.com", Params).
+              {"uid", "participant.user@af83.com"}],
+    {struct,[{"error", "bad_credentials"}]} =
+        tests_utils:post(BaseUrl, "/presence/", Params).
 
 test_presence_create_bad_password(BaseUrl) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
-	      {"auth", "password"},
-	      {"credential", "badpwd"}],
+              {"uid", "participant.user@af83.com"},
+              {"credential", "badpwd"}],
     {struct,[{"error", "bad_credentials"}]} =
-        tests_utils:put(BaseUrl, "/presence/participant.user@af83.com", Params).
+        tests_utils:post(BaseUrl, "/presence/", Params).
 
 test_presence_create_not_found_user(BaseUrl) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"auth", "password"},
+              {"uid", "unexistent.user@af83.com"},
               {"credential", "pwd"}],
-    {struct,[{"error", "unauthorized"}]} =
-        tests_utils:put(BaseUrl, "/presence/unexistent.user@af83.com", Params).
+    {struct,[{"error", "not_found"}]} =
+        tests_utils:post(BaseUrl, "/presence/", Params).
 
 test_presence_create_unauthorized(BaseUrl, [_, {UglyUid, _}]) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
-	      {"auth", "password"},
-	      {"credential", "pwd"}],
+              {"uid", UglyUid},
+              {"credential", "pwd"}],
     {struct,[{"error", "unauthorized"}]} =
-        tests_utils:put(BaseUrl, "/presence/" ++ UglyUid, Params).
+        tests_utils:post(BaseUrl, "/presence/", Params).
 
 test_presence_close(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-	      {"auth", "password"},
-	      {"credential", "pwd"}],
     Uid = "participant.user@af83.com",
-    {struct,[{"result", Sid}]} = tests_utils:put(BaseUrl, "/presence/" ++ Uid, Params),
+    Params = [{"metadata[nickname]", "PasswordParticipant"},
+              {"uid", Uid},
+              {"credential", "pwd"}],
+    {struct,[{"result", Sid}]} = tests_utils:post(BaseUrl, "/presence/", Params),
 
     ParamsDelete = [{"uid", Uid},
-		    {"sid", Sid}],
+                    {"sid", Sid}],
     {struct, [{"result", "ok"}]} =
-        tests_utils:delete(BaseUrl, "/presence/" ++ Uid ++ "/" ++ Sid, ParamsDelete).
+        tests_utils:delete(BaseUrl, "/presence/" ++ Sid, ParamsDelete).
 
 test_presence_close_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
     ParamsDelete = [{"uid", UglyUid},
-		    {"sid", UglySid}],
+                    {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} =
-	tests_utils:delete(BaseUrl, "/presence/" ++ UglyUid ++ "/" ++ UglySid, ParamsDelete).
+	tests_utils:delete(BaseUrl, "/presence/" ++ UglySid, ParamsDelete).
 
 test_presence_close_not_foundsid(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-	      {"auth", "password"},
-	      {"credential", "pwd"}],
     Uid = "participant.user@af83.com",
-    {struct,[{"result", Sid}]} = tests_utils:put(BaseUrl, "/presence/" ++ Uid, Params),
+    Params = [{"metadata[nickname]", "PasswordParticipant"},
+              {"uid", Uid},
+              {"credential", "pwd"}],
+    {struct,[{"result", Sid}]} = tests_utils:post(BaseUrl, "/presence/", Params),
 
     ParamsDelete = [{"uid", Uid},
                     {"sid", Sid}],
     {struct, [{"error", "not_found"}]} =
-	tests_utils:delete(BaseUrl, "/presence/" ++ Uid ++ "/unexistentsid", ParamsDelete).
+        tests_utils:delete(BaseUrl, "/presence/unexistentsid", ParamsDelete).
 
 %% test_presence_timeout(_BaseUrl) ->
 %%     uce_presence:add({uce_presence, "testsid", "test", "password", 1, undefined, [], []}),

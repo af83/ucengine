@@ -59,9 +59,8 @@ upload(BaseUrl, Meeting, Params, File) ->
 
 test_upload_small(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"_method", "put"}, 
-	      {"metadata[description]", "test_file"}],
+              {"sid", RootSid},
+              {"metadata[description]", "test_file"}],
     {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4, "small")),
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
@@ -69,11 +68,13 @@ test_upload_small(BaseUrl, [{RootUid, RootSid}, _]) ->
                  {"count", "1"},
                  {"order", "desc"}],
     {struct,[{"result", {array, [{struct, [{"type", "internal.file.add"},
-			 {"datetime", _},
-			 {"id", _},
-			 {"meeting", "testmeeting"},
-			 {"from", RootUid}, 
-			 {"metadata", Metadata}]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
+                                           {"domain", _},
+                                           {"datetime", _},
+                                           {"id", _},
+                                           {"location", "testmeeting"},
+                                           {"from", RootUid}, 
+                                           {"metadata", Metadata}]}]}}]} =
+        tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
     {struct, [{"id", _},
               {"name", "small"}, 
               {"size", "28"}, 
@@ -81,57 +82,54 @@ test_upload_small(BaseUrl, [{RootUid, RootSid}, _]) ->
 
 test_upload_big(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"_method", "put"},
-	      {"metadata[description]", "test_file"}],
+              {"sid", RootSid},
+              {"metadata[description]", "test_file"}],
     {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4000, "big")).
 
 test_upload_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
-	      {"_method", "put"},
 	      {"metadata[description]", "test_file"}],
     {struct,[{"error", "not_found"}]} = upload(BaseUrl, "testorg", Params, gen_file(4, "small")).
 
 test_list(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid}],
+              {"sid", RootSid}],
     {struct,
      [{"result",
        {array,
-	[{struct,
-	  [{"id", _},
-	   {"name",_},
-	   {"uri", _},
-	   {"meeting", "testmeeting"},
-	   {"metadata",{struct,_}}]}|_]}}]} = tests_utils:get(BaseUrl, "/file/testmeeting/", Params).
+        [{struct,
+          [{"id", _},
+           {"domain", _},
+           {"name",_},
+           {"uri", _},
+           {"location", "testmeeting"},
+           {"metadata",{struct,_}}]}|_]}}]} = tests_utils:get(BaseUrl, "/file/testmeeting/", Params).
 
 test_list_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid}],
+              {"sid", RootSid}],
     {struct,[{"error", "not_found"}]} = tests_utils:get(BaseUrl, "/file/unexistentmeeting/", Params).
 
 test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"_method", "put"},
-	      {"metadata[description]", "test_file"}],
+              {"sid", RootSid},
+              {"metadata[description]", "test_file"}],
     {struct,[{"result", Id}]} = upload(BaseUrl, Params, gen_file(4, "small")),
     ParamsGet = [{"uid", RootUid},
-		 {"sid", RootSid}],
+                 {"sid", RootSid}],
     tests_utils:get_raw(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet),
     true.
 
 test_get_not_found(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid}],
+              {"sid", RootSid}],
     {struct,[{"error", "not_found"}]} =
         tests_utils:get(BaseUrl, "/file/testmeeting/unexistentfile", Params).
 
 test_delete(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"_method", "put"}],
+              {"sid", RootSid}],
     {struct,[{"result", Id}]} =
         upload(BaseUrl, Params, gen_file(4, "small")),    ParamsDelete = [{"uid", RootUid},
                                                                           {"sid", RootSid}],

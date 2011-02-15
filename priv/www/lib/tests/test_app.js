@@ -3,9 +3,10 @@ module('app', {
         this.app = $.sammy('#sammy_anchor', sammyapp);
         $.mockjax({
             url : '/api/0.2/infos/',
-            responseText: {"result": {"description":"af83m\u00e9dia specializes in digital communication. Our mission is to design and manage online content and communities.",
-                                      "logo":"af83.png",
-                                      "htags":"af83"}}
+            responseText: {"result": {"domain": "localhost",
+                                      "metadata": {"description":"af83m\u00e9dia specializes in digital communication. Our mission is to design and manage online content and communities.",
+                                                   "logo":"af83.png",
+                                                   "htags":"af83"}}}
         });
         $.mockjax({
             url: '/api/0.2/meeting/opened',

@@ -17,173 +17,130 @@
 %%
 -module(event_controller).
 
--export([init/0, get/3, list/3, add/3]).
+-export([init/0, get/4, list/4, add/4]).
 
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 
 init() ->
-    [#uce_route{module="Events",
-		method='GET',
-		regexp="/event/([^/]+)/([^/]+)/?",
-		types=[any, event],
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, get,
-			    ["uid"],
-			    [required],
-			    [string],
-			    [user]}]},
+    [#uce_route{method='POST',
+                regexp="/event/?([^/]+)?",
+                callbacks=[{?MODULE, add,
+                            ["uid", "sid", "type", "to", "parent", "metadata"],
+                            [required, required, required, "", "", []],
+                            [string, string, string, string, string, dictionary]}]},
 
-     #uce_route{module="Events",
-		method='GET',
-		regexp="/event/?([^/]+)?/?",
-		types=[meeting],
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, list,
-			    ["uid",
-			     "search",
-			     "type",
-			     "from",
-			     "start",
-			     "end",
-			     "count",
-			     "page",
-			     "order",
-			     "parent",
-			     "_async"],
-			    [required, '_', '_', '_', 0, infinity, infinity, 1, asc, '_', "no"],
-			    [string,
-			     [string, atom],
-			     [string, atom],
-			     [string, atom],
-			     integer,
-			     [integer, atom],
-			     [integer, atom],
-			     integer,
-			     atom,
-			     [string, atom],
-			     string],
-			    [user, any, any, user, any, any, any, any, any, event, any]}]},
-     
-     #uce_route{module="Events",
-		method='PUT',
-		regexp="/event/?([^/]+)?/?",
-		types=[meeting],
-		callbacks=[{presence_controller, check,
-			    ["uid", "sid"],
-			    [required, required],
-			    [string, string],
-			    [user, presence]},
-			   {?MODULE, add,
-			    ["uid", "type", "to", "parent", "metadata"],
-			    [required, required, "all", "", []],
-			    [string, string, string, string, dictionary],
-			    [user, any, user, event, any]}]}].
+     #uce_route{method='GET',
+                regexp="/event/([^/]+)/([^/]+)",
+                callbacks=[{?MODULE, get,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]},     
 
-get([_, Id], [Uid], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "event", "get", [""], [{"id", Id}]) of
-        {ok, false} ->
-            {error, unauthorized};
-        {ok, true} ->
-            case uce_event:get(utils:domain(Arg), Id) of
-                {error, Reason} ->
-                    {error, Reason};
-                {ok, #uce_event{to=To} = Event} ->
-                    if
-                        To == "all" ->
-                            json_helpers:json(event_helpers:to_json(Event));
-                        To == Uid ->
-                            json_helpers:json(event_helpers:to_json(Event));
-                        true ->
-                            {error, unauthorized}
-                    end
-            end
+     #uce_route{method='GET',
+                regexp="/event/?([^/]+)?",
+                callbacks=[{?MODULE, list,
+                            ["uid",
+                             "sid",
+                             "search",
+                             "type",
+                             "from",
+                             "start",
+                             "end",
+                             "count",
+                             "page",
+                             "order",
+                             "parent",
+                             "_async"],
+                            [required, required, '_', '_', "", 0, infinity, infinity, 1, asc, '_', "no"],
+                            [string,
+                             string,
+                             [string, atom],
+                             [string, atom],
+                             string,
+                             integer,
+                             [integer, atom],
+                             [integer, atom],
+                             integer,
+                             atom,
+                             [string, atom],
+                             string]}]}].
+
+
+add(Domain, [], Params, Arg) ->
+    ?MODULE:add(Domain, [""], Params, Arg);
+add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "event", "add", {Meeting, Domain},
+                                [{"type", Type}, {"to", {To, Domain}}]),
+    {ok, Id} = uce_event:add(#uce_event{domain=Domain,
+                                        location={Meeting, Domain},
+                                        from={Uid, Domain},
+                                        type=Type,
+                                        to={To, Domain},
+                                        parent=Parent,
+                                        metadata=Metadata}),
+    json_helpers:created(Id).
+
+get(Domain, [_, Id], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "event", "get", {"", ""}, [{"id", Id}]),
+    {ok, #uce_event{to=To} = Event} = uce_event:get(Id),
+    case To of
+        {"", _} ->
+            json_helpers:json(event_helpers:to_json(Event));
+        {Uid, Domain} ->
+            json_helpers:json(event_helpers:to_json(Event));
+        _ ->
+            throw({error, unauthorized})
     end.
 
-list([], Match, Arg) ->
-    ?MODULE:list([""], Match, Arg);
-list(Location, [Uid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "event", "list", Location, [{"from", From}]) of
-	{ok, true} ->
-	    Types = case Type of
-			'_' ->
-			    ['_'];
-			_ ->
-			    string:tokens(Type, ",")
-		    end,
-	    Keywords = case Search of
-			   '_' ->
-			       '_';
-			   _ ->
-			       string:tokens(Search, " ")
-		       end,
-	    case uce_event:list(utils:domain(Arg), Location, Keywords, From, Types, Uid, Start, End, Parent) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, []} ->
-		    case Async of
-			"no" ->
-			    json_helpers:json(event_helpers:to_json([]));
-			"lp" ->
-			    uce_async_lp:wait(utils:domain(Arg),
-                                  Location,
-                                  Keywords,
-                                  From,
-                                  Types,
-                                  Uid,
-                                  Start,
-                                  End,
-                                  Parent,
-                                  Arg#arg.clisock);
-                "ws" ->
-                    uce_async_ws:wait(utils:domain(Arg),
-                                      Location,
-                                      Uid,
+list(Domain, [], Params, Arg) ->
+    ?MODULE:list(Domain, [""], Params, Arg);
+list(Domain, [Meeting],
+     [Uid, Sid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
+
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "event", "list", {Meeting, Domain},
+                                [{"from", {From, Domain}}]),
+    Types = case Type of
+                '_' ->
+                    ['_'];
+                _ ->
+                    string:tokens(Type, ",")
+            end,
+    Keywords = case Search of
+                   '_' ->
+                       '_';
+                   _ ->
+                       string:tokens(Search, " ")
+               end,
+    case uce_event:list({Meeting, Domain},
+                        Keywords,
+                        {From, Domain},
+                        Types,
+                        {Uid, Domain},
+                        Start,
+                        End,
+                        Parent) of
+        {ok, []} ->
+            case Async of
+                "no" ->
+                    json_helpers:json(event_helpers:to_json([]));
+                "lp" ->
+                    uce_async_lp:wait({Meeting, Domain},
                                       Keywords,
-                                      Type,
-                                      From,
+                                      {From, Domain},
+                                      Types,
+                                      {Uid, Domain},
                                       Start,
+                                      End,
+                                      Parent,
                                       Arg#arg.clisock);
                 _ ->
                     {error, bad_parameters}
-		    end;
-		{ok, Events} ->
-		    case helpers:paginate(event_helpers:sort(Events), Count, Page, Order) of
-			{error, Reason} ->
-			    {error, Reason};
-			EventPage ->
-			    json_helpers:json(event_helpers:to_json(EventPage))
-		    end
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
-    end.
-
-add([], [Uid, Type, To, Parent, Metadata], Arg) ->
-    add([""], [Uid, Type, To, Parent, Metadata], Arg);
-add(Location, [Uid, Type, To, Parent, Metadata], Arg) ->
-    case uce_acl:check(utils:domain(Arg), Uid, "event", "add", Location, [{"type", Type},
-                                                                          {"to", To}]) of
-	{ok, true} ->
-	    case uce_event:add(utils:domain(Arg), #uce_event{location=Location,
-					  from=Uid,
-					  type=Type,
-					  to=To,
-					  parent=Parent,
-					  metadata=Metadata}) of
-		{error, Reason} ->
-		    {error, Reason};
-		{ok, Id} ->
-		    json_helpers:created(Id)
-	    end;
-	{ok, false} ->
-	    {error, unauthorized}
+            end;
+        {ok, Events} ->
+            EventPage = helpers:paginate(event_helpers:sort(Events), Count, Page, Order),
+            json_helpers:json(event_helpers:to_json(EventPage))
     end.
