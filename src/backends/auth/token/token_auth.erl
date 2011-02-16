@@ -33,8 +33,8 @@ assert(User, Credential) ->
 
 check(User, Credential) ->
     case User#uce_user.credential of
-	Credential ->
-	    true;
-	_ ->
-	    false
+        Credential ->
+            {ok, true};
+        _ ->
+            {ok, false}
     end.
