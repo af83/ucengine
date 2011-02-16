@@ -1,5 +1,5 @@
-.ui-chat .ui-chat-title { 
-    float: left; 
+.ui-chat .ui-chat-title {
+    float: left;
     margin: 0.1em 16px 0.2em 0;
 }
 
@@ -156,7 +156,7 @@
 }
 
 .ui-chat form.ui-chat-message-form {
-    background-color: #EBEBEB;    
+    background-color: #EBEBEB;
     border-top: 1px solid #D7D7D7;
     padding-top: 3px;
     padding-bottom: 3px;
