@@ -100,9 +100,14 @@ $.uce.widget("filesharing", {
             return false;
         });
 
+        var noSharing = $('<p>')
+            .attr('class', 'ui-filesharing-nopreview')
+            .text('There is no shared file for now');
+
         var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
         all.appendTo(content);
         preview.appendTo(content);
+        noSharing.appendTo(content);
         this.hideShare();
         $('<ul>').attr('class', 'ui-filesharing-list').appendTo(all);
         this._listFiles = [];
@@ -150,11 +155,13 @@ $.uce.widget("filesharing", {
         this._shared = null;
         this.element.find('.ui-filesharing-all').hide();
         this.element.find('.ui-filesharing-preview').hide();
+        this.element.find('.ui-filesharing-nopreview').show();
     },
 
     viewShare: function() {
         this.element.find('.ui-filesharing-all').hide();
         this.element.find('.ui-filesharing-preview').show();
+        this.element.find('.ui-filesharing-nopreview').hide();
     },
 
     _setOption: function(key, value) {
@@ -228,6 +235,7 @@ $.uce.widget("filesharing", {
                     };
                     that._refreshSharing();
                     that.viewShare();
+                    that._setTitle(file.metadata.name);
                 }
             }
         );
@@ -253,6 +261,7 @@ $.uce.widget("filesharing", {
             return;
         }
         this.hideShare();
+        this._setTitle(this.options.title);
     },
 
     destroy: function() {

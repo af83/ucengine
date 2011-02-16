@@ -21,9 +21,17 @@
     margin: 1.2em;
 }
 
+.ui-widget .ui-filesharing-nopreview {
+    width: 100%;
+    text-align: center;
+    background-color: #EBEBEB;
+    border-bottom: 1px solid #D7D7D7;
+    height: 24px;
+    line-height: 24px;
+}
+
 .ui-widget .ui-filesharing-preview-page img {
     width: 100%;
-    margin-top: 1em;
 }
 
 .ui-filesharing .ui-download-link {

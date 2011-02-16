@@ -57,6 +57,10 @@
                     });
                 }
             },
+
+            _setTitle: function(title) {
+                this.element.find('.ui-widget-header-title').text(title);
+            }
         }
         $.widget("uce." + name, $.extend(true, base, ucewidget), prototype);
     }
