@@ -99,11 +99,11 @@ UCEngine.run('twitter') do
       end
       
       uce.subscribe([], :type => "twitter.hashtag.add") do |event|
-        twitter.subscribe([event['meeting']], event['metadata']['hashtag'].downcase)
+        twitter.subscribe(event['location'], event['metadata']['hashtag'].downcase)
       end
       
       uce.subscribe([], :type => "twitter.hashtag.del") do |event|
-        twitter.unsubscribe([event['meeting']], event['metadata']['hashtag'].downcase)
+        twitter.unsubscribe(event['location'], event['metadata']['hashtag'].downcase)
       end
     end
   rescue => error
