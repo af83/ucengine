@@ -235,6 +235,7 @@ $.uce.widget("filesharing", {
                     };
                     that._refreshSharing();
                     that.viewShare();
+                    that._setTitle(file.metadata.name);
                 }
             }
         );
@@ -260,6 +261,7 @@ $.uce.widget("filesharing", {
             return;
         }
         this.hideShare();
+        this._setTitle(this.options.title);
     },
 
     destroy: function() {
