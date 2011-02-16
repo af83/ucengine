@@ -93,6 +93,7 @@ $.uce.widget("fileupload", {
         stop.bind('click', function() {
             that.currentPreview = null;
             that.viewAll();
+            that._setTitle(that.options.title);
             return false;
         });
 
@@ -283,9 +284,8 @@ $.uce.widget("fileupload", {
     },
 
     _preview: function(file) {
+        this._setTitle(file.metadata.name);
         var preview = this.element.find('.ui-fileupload-preview');
-        this.element.find('.ui-fileupload-preview-title')
-            .text(file.metadata.name);
         this.element.find('.ui-selector-current')
             .text(file.actualPage + 1);
         this.element.find('.ui-selector-total')
