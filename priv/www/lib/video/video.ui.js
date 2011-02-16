@@ -31,7 +31,7 @@ $.uce.widget("video", {
     labels : {
         "button.publish"     : "Publish",
         "button.stoppublish" : "Stop publish",
-        "content.nostream"   : "No stream is available"
+        "content.nostream"   : "No stream available"
     },
     _getFlashSrc: function() {
         if (this._publish)
