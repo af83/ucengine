@@ -32,24 +32,27 @@
 
 add(#uce_meeting{} = Meeting) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_meeting", to_collection(Meeting)) of
-        {'EXIT', _} ->
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         _ ->
-            {ok, Meeting#uce_meeting.id}
+            {ok, created}
     end.
 
-delete(Id) ->
-    case emongo:delete(?MONGO_POOL, "uce_meeting", [{"id", Id}]) of
-        {'EXIT', _} ->
+delete({Name, Domain}) ->
+    case emongo:delete(?MONGO_POOL, "uce_meeting", [{"name", Name}, {"domain", Domain}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         _ ->
             {ok, deleted}
     end.
 
-get(Id) ->
+get({Name, Domain}) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_meeting",
-                               [{"id", Id}]) of
-        {'EXIT', _} ->
+                               [{"name", Name}, {"domain", Domain}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         [Record] ->
             {ok, from_collection(Record)};
@@ -57,11 +60,12 @@ get(Id) ->
             throw({error, not_found})
     end.
 
-update(#uce_meeting{id=Id} = Meeting) ->
+update(#uce_meeting{id={Name, Domain}} = Meeting) ->
     case catch emongo:update_sync(?MONGO_POOL, "uce_meeting",
-                                  [{"id", Id}],
+                                  [{"name", Name}, {"domain", Domain}],
                                   to_collection(Meeting), false) of
-        {'EXIT', _} ->
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         _ ->
             {ok, updated}
@@ -69,7 +73,8 @@ update(#uce_meeting{id=Id} = Meeting) ->
 
 list(Domain) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_meeting", [{"domain", Domain}]) of
-        {'EXIT', _} ->
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         Collections ->
             {ok, [from_collection(Collection) || Collection <- Collections]}

@@ -32,7 +32,8 @@
 
 add(#uce_user{} = User) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_user", to_collection(User)) of
-        {'EXIT', _} ->
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         _ ->
             {ok, created}
@@ -41,7 +42,8 @@ add(#uce_user{} = User) ->
 delete({Name, Domain}) ->
     case catch emongo:delete(?MONGO_POOL, "uce_user", [{"name", Name},
                                                        {"domain", Domain}]) of
-        {'EXIT', _} ->
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         _ ->
             {ok, deleted}
@@ -50,8 +52,9 @@ delete({Name, Domain}) ->
 update(#uce_user{id={Name, Domain}} = User) ->
     case catch emongo:update(?MONGO_POOL, "uce_user", [{"name", Name},
                                                        {"domain", Domain}],
-                             to_collection(User)) of
-        {'EXIT', _} ->
+                             to_collection(User), false) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         _ ->
             {ok, updated}
@@ -59,7 +62,8 @@ update(#uce_user{id={Name, Domain}} = User) ->
 
 list(Domain) ->
     case catch emongo:find_all(?MONGO_POOL, "uce_user", [{"domain", Domain}]) of
-        {'EXIT', _} ->
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         Collections ->
             Users = lists:map(fun(Collection) ->
@@ -72,7 +76,8 @@ list(Domain) ->
 get({Name, Domain}) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_user", [{"name", Name},
                                                          {"domain", Domain}]) of
-        {'EXIT', _} ->
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         [Collection] ->
             {ok, from_collection(Collection)};

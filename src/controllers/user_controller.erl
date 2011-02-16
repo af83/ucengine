@@ -79,16 +79,14 @@ list(Domain, [], [Uid, Sid], _) ->
 
 get(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "user", "get", {"", Domain},
-                                [{"user", {Name, Domain}}]),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "user", "get", {"", Domain}, [{"user", Name}]),
     {ok, Record} = uce_user:get({Name, Domain}),
     json_helpers:json(user_helpers:to_json(Record)).
 
 update(Domain, [Name], [Uid, Sid, Auth, Credential, Metadata], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "user", "update", {"", Domain},
-                                [{"user", {Name, Domain}},
-                                 {"auth", Auth}]),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "user", "update", {"", Domain}, [{"user", Name},
+                                                                                {"auth", Auth}]),
     {ok, updated} = uce_user:update(#uce_user{id={Name, Domain},
                                               auth=Auth,
                                               credential=Credential,

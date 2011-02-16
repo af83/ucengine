@@ -27,6 +27,9 @@
 
 get(Domain) ->
     case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"domain", Domain}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
+            throw({error, bad_parameters});
         [Record] ->
             {ok, from_collection(Record)};
         [] ->
@@ -36,13 +39,30 @@ get(Domain) ->
     end.
 
 update(#uce_infos{domain=Domain} = Infos) ->
-    case catch emongo:update_sync(?MONGO_POOL, "uce_infos",
-                                  [{"domain", Domain}],
-                                  to_collection(Infos), false) of
-        {'EXIT', _} ->
+    case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"domain", Domain}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
+        [_] ->
+            case catch emongo:update_sync(?MONGO_POOL, "uce_infos",
+                                          [{"domain", Domain}],
+                                          to_collection(Infos), false) of
+                {'EXIT', Reason} ->
+                    ?ERROR_MSG("~p~n", [Reason]),
+                    throw({error, bad_parameters});
+                _ ->
+                    {ok, updated}
+            end;
+        [] ->
+            case catch emongo:insert_sync(?MONGO_POOL, "uce_infos", to_collection(Infos)) of
+                {'EXIT', Reason} ->
+                    ?ERROR_MSG("~p~n", [Reason]),
+                    throw({error, bad_parameters});
+                _ ->
+                    {ok, updated}
+            end;
         _ ->
-            {ok, updated}
+            throw({error, bad_parameters})
     end.
 
 to_collection(#uce_infos{domain=Domain,

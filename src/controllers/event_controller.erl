@@ -71,8 +71,8 @@ add(Domain, [], Params, Arg) ->
     ?MODULE:add(Domain, [""], Params, Arg);
 add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "event", "add", {Meeting, Domain},
-                                [{"type", Type}, {"to", {To, Domain}}]),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "event", "add", {Meeting, Domain}, [{"type", Type},
+                                                                                   {"to", To}]),
     {ok, Id} = uce_event:add(#uce_event{domain=Domain,
                                         location={Meeting, Domain},
                                         from={Uid, Domain},
@@ -101,8 +101,7 @@ list(Domain, [Meeting],
      [Uid, Sid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
 
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "event", "list", {Meeting, Domain},
-                                [{"from", {From, Domain}}]),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "event", "list", {Meeting, Domain}, [{"from", From}]),
     Types = case Type of
                 '_' ->
                     ['_'];

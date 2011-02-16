@@ -42,6 +42,7 @@ add(Domain, [], [Name, Credential, Metadata], _) ->
     {ok, true} = uce_acl:assert(User#uce_user.id, "presence", "add"),
     {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
     {ok, Id} = uce_presence:add(#uce_presence{user=User#uce_user.id,
+                                              domain=Domain,
                                               auth=User#uce_user.auth,
                                               metadata=Metadata}),
     catch uce_event:add(#uce_event{domain=Domain,

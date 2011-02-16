@@ -30,91 +30,96 @@
 
 add(#uce_event{} = Event) ->
     case catch emongo:insert_sync(?MONGO_POOL, "uce_event", to_collection(Event)) of
-	{'EXIT', _} ->
-	    {error, bad_parameters};
-	_ ->
-	    {ok, created}
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
+            throw({error, bad_parameters});
+        _ ->
+            {ok, Event#uce_event.id}
     end.
 
 get(Id) ->
-    case emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
-	[Collection] ->
-	    {ok, from_collection(Collection)};
-	_ ->
-	    {error, not_found}
+    case catch emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
+            throw({error, bad_parameters});
+        [Collection] ->
+            {ok, from_collection(Collection)};
+        _ ->
+            throw({error, not_found})
     end.
 
 list(Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
-			 [""] ->
-			     [];
-			 [Meeting] ->
-			     [{"meeting", Meeting}]
-		     end,
-    SelectFrom = if
-		       From  == '_' ->
-			   [];
-		       true ->
-			   [{"from", From}]
-		   end,
+                         {"", _} ->
+                             [];
+                         {Meeting, _} ->
+                             [{"meeting", Meeting}]
+                     end,
+    SelectFrom = case From of
+                     {"", _} ->
+                         [];
+                     {Uid, _} ->
+                         [{"from", Uid}]
+                 end,
     SelectType = if
-		       Type == '_' ->
-			   [];
-		       true ->
-			   [{"type", Type}]
-		   end,
+                     Type == '_' ->
+                         [];
+                     true ->
+                         [{"type", Type}]
+                 end,
     SelectParent = if
-		       Parent == '_' ->
-			   [];
-		       true ->
-			   [{"parent", Type}]
-		   end,
+                       Parent == '_' ->
+                           [];
+                       true ->
+                           [{"parent", Type}]
+                   end,
     SelectTime = if
-		       Start == 0, End == infinity -> 
-			   [];
-		       Start /= 0, End == infinity ->
-			   [{"datetime", [{'>=', Start}]}];
-		       Start /= 0, End /= infinity ->
-			   [{"datetime", [{'>=', Start},
-					  {'=<', End}]}];
-		       Start == 0, End /= infinity ->
-			   [{"datetime", [{'=<', End}]}];
-		       true ->
-			   []
-	       end,
+                     Start == 0, End == infinity -> 
+                         [];
+                     Start /= 0, End == infinity ->
+                         [{"datetime", [{'>=', Start}]}];
+                     Start /= 0, End /= infinity ->
+                         [{"datetime", [{'>=', Start},
+                                        {'=<', End}]}];
+                     Start == 0, End /= infinity ->
+                         [{"datetime", [{'=<', End}]}];
+                     true ->
+                         []
+                 end,
     Events = lists:map(fun(Collection) ->
-			       from_collection(Collection)
-		       end,
-		       emongo:find_all(?MONGO_POOL,"uce_event",
-				       SelectLocation ++
-					   SelectFrom ++
-					   SelectType ++
-					   SelectParent ++
-					   SelectTime,
-				       [{orderby, [{"this.datetime", asc}]}])),
+                               from_collection(Collection)
+                       end,
+                       emongo:find_all(?MONGO_POOL,"uce_event",
+                                       SelectLocation ++
+                                           SelectFrom ++
+                                           SelectType ++
+                                           SelectParent ++
+                                           SelectTime,
+                                       [{orderby, [{"this.datetime", asc}]}])),
     {ok, Events}.
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		  ["id", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
-	[Id, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
+		  ["id", "domain", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
+	[Id, Domain, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
             #uce_event{id=Id,
+                       domain=Domain,
                        datetime=Datetime,
-                       from=From,
-                       to=To,
-                       location=[Meeting],
+                       from={From, Domain},
+                       to={To, Domain},
+                       location={Meeting, Domain},
                        type=Type,
                        parent=Parent,
                        metadata=Metadata};
         _ ->
-            {error, bad_parameters}
+            throw({error, bad_parameters})
     end.
 
 to_collection(#uce_event{domain=Domain,
                          id=Id,
-                         location=[Meeting],
-                         from=From,
-                         to=To,
+                         location={Meeting, _},
+                         from={From, _},
+                         to={To, _},
                          metadata=Metadata,
                          datetime=Datetime,
                          type=Type,

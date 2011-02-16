@@ -84,7 +84,7 @@ get(Domain, [Name], [], _) ->
 
 update(Domain, [Name], [Uid, Sid, Start, End, Metadata], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "meeting", "update", {"", Domain}, [{"name", Name}]),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "meeting", "update", {Name, Domain}),
     {ok, updated} = uce_meeting:update(#uce_meeting{id={Name, Domain},
                                                     start_date=Start,
                                                     end_date=End,

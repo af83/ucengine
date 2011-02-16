@@ -28,7 +28,7 @@
           %% authification method
           auth,
           %% timeout
-          last_activity = undefined,
+          last_activity = 0,
           %% resource
           resource,
           %% list meetings joined by user
