@@ -190,31 +190,6 @@ test("view preview", function() {
     equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'block');
 });
 
-jackTest("handle roster delete event", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
-    var events =
-        [Factories.createFileEvent({eventId: "id_upload_event"}),
-         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
-                                                                                 "page_2.jpg"]}),
-         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"}),
-         Factories.createFileEvent({id: "page_2.jpg", name: "page_2.jpg", from: "document"})];
-
-    $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $(events).each(function(index, event) {
-           $('#files_uploaded').fileupload('triggerUceEvent', event);
-    });
-
-    $('#files_uploaded').fileupload('triggerUceEvent', Factories.createDocumentShareStartEvent({id : 'norris.pdf'}));
-    $('#files_uploaded').fileupload('triggerUceEvent', Factories.createRosterDeleteEvent({id : 'chuck_in_roster_deletion'}));
-    equals($("#files_uploaded").find(".ui-fileupload-all").css('display'), 'block');
-    equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'none');
-});
-
 jackTest("when click on next, go to the right preview page", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
@@ -266,5 +241,4 @@ test("when click on stop, hide preview", function() {
     $('#files_uploaded .ui-button-stop').click();
 
 });
-
 
