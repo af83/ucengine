@@ -18,7 +18,7 @@ UCEngine.run('translation') do
             next if language == event['metadata']['lang']
             begin
               text = Translate.t(event['metadata']['text'], event['metadata']['lang'], language)
-              uce.publish(:location => [event['org'], event['meeting']],
+              uce.publish(:location => event['location'],
                           :type => "chat.translation.new",
                           :parent => event['id'],
                           :metadata => {:text => text,
