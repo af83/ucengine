@@ -28,7 +28,7 @@
          get/1,
          delete/1,
          update/1,
-         all/1]).
+         all/0]).
 
 -include("uce.hrl").
 
@@ -66,10 +66,10 @@ list(User) ->
             throw({error, bad_parameters})
     end.
 
-all(Domain) ->
+all() ->
     case mnesia:transaction(fun() ->
 				    mnesia:match_object(#uce_presence{id='_',
-                                                      domain=Domain,
+                                                      domain='_',
                                                       user='_',
                                                       auth='_',
                                                       last_activity='_',

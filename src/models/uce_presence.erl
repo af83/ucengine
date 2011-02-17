@@ -19,14 +19,23 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, delete/1, update/1, exists/1, all/1, check/2, assert/2, joinMeeting/3, leaveMeeting/3]).
+-export([add/1,
+         all/0,
+         get/1,
+         delete/1,
+         update/1,
+         exists/1,
+         check/2,
+         assert/2,
+         join/2,
+         leave/2]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
 
 add(#uce_presence{id=none}=Presence) ->
     add(Presence#uce_presence{id=utils:random()});
-add(#uce_presence{last_activity=undefined}=Presence) ->
+add(#uce_presence{last_activity=0}=Presence) ->
     add(Presence#uce_presence{last_activity=utils:now()});
 add(#uce_presence{}=Presence) ->
     ?DB_MODULE:add(Presence).
@@ -34,8 +43,8 @@ add(#uce_presence{}=Presence) ->
 get(Id) ->
     ?DB_MODULE:get(Id).
 
-all(Domain) ->
-    ?DB_MODULE:all(Domain).
+all() ->
+    ?DB_MODULE:all().
 
 delete(Id) ->
     case ?MODULE:exists(Id) of
@@ -81,19 +90,20 @@ check(User, Sid) ->
             {ok, false}
     end.
 
-joinMeeting(Domain, Sid, Meeting) ->
-    {ok, Record} = ?DB_MODULE:get(Domain, Sid),
+join(Sid, Meeting) ->
+    {ok, Record} = ?DB_MODULE:get(Sid),
     case lists:member(Meeting, Record#uce_presence.meetings) of
-        true -> {ok, updated};
+        true ->
+            {ok, updated};
         _ ->
             Meetings = Record#uce_presence.meetings ++ [Meeting],
-            ?DB_MODULE:update(Domain, Record#uce_presence{meetings=Meetings})
+            ?DB_MODULE:update(Record#uce_presence{meetings=Meetings})
     end.
 
-leaveMeeting(Domain, Sid, Meeting) ->
-    {ok, Record} = ?DB_MODULE:get(Domain, Sid),
+leave(Sid, Meeting) ->
+    {ok, Record} = ?DB_MODULE:get(Sid),
     Meetings = del_entry(Record#uce_presence.meetings, Meeting),
-    ?DB_MODULE:update(Domain, Record#uce_presence{meetings=Meetings}).
+    ?DB_MODULE:update(Record#uce_presence{meetings=Meetings}).
 
 del_entry([Entry], Entry) ->
     [];

@@ -26,7 +26,7 @@
          get/1,
          delete/1,
          update/1,
-         all/1]).
+         all/0]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -54,8 +54,8 @@ list({User, Domain}) ->
             {ok, Records}
     end.
 
-all(Domain) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_presence", [{"domain", Domain}]) of
+all() ->
+    case catch emongo:find_all(?MONGO_POOL, "uce_presence", []) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
