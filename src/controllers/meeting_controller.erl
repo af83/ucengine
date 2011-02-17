@@ -95,7 +95,7 @@ join(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "roster", "add", {Name, Domain}),
     {ok, updated} = uce_meeting:join({Name, Domain}, {Uid, Domain}),
-%    uce_presence:joinMeeting(utils:domain(Arg), Sid, Id),
+    uce_presence:join(Sid, {Name, Domain}),
     catch uce_event:add(#uce_event{domain=Domain,
                                    type="internal.roster.add",
                                    location={Name, Domain},
@@ -107,11 +107,11 @@ leave(Domain, [Name, User], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "roster", "delete", {Name, Domain}),
     {ok, updated} = uce_meeting:leave({Name, Domain}, {User, Domain}),
-%    uce_presence:leaveMeeting(Sid, Id),	
-    {ok, _} = uce_event:add(#uce_event{domain=Domain,
-                                       type="internal.roster.delete",
-                                       location={Name, Domain},
-                                       from={User, Domain}}),
+    uce_presence:leave(Sid, {Name, Domain}),
+    catch uce_event:add(#uce_event{domain=Domain,
+                                   type="internal.roster.delete",
+                                   location={Name, Domain},
+                                   from={User, Domain}}),
     json_helpers:ok().
 
 roster(Domain, [Name], [Uid, Sid], _) ->

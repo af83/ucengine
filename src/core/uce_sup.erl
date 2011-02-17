@@ -38,5 +38,8 @@ init(_) ->
     {ok, {{one_for_one, 10, 10},
           [{routes,
             {routes, start_link, []},
-            permanent, brutal_kill, worker, [routes]}] ++
+            permanent, brutal_kill, worker, [routes]},
+           {timeout,
+            {timeout, start_link, []},
+            permanent, brutal_kill, worker, [timeout]}] ++
               PubSubSup}}.
