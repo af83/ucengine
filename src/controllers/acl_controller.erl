@@ -50,11 +50,7 @@ check(Domain, [To, Object, Action], Params, Arg) ->
     check(Domain, [To, Object, Action, ""], Params, Arg);
 check(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "acl", "check", {Meeting, Domain},
-                                [{"user", To},
-                                 {"action", Action},
-                                 {"object", Object},
-                                 {"meeting", Meeting}]),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "acl", "check"),
     case uce_acl:check({To, Domain}, Object, Action, {Meeting, Domain}, Conditions) of
         {ok, true} ->
             json_helpers:true();
@@ -67,8 +63,7 @@ add(Domain, [To, Object, Action], Params, Arg) ->
 add(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "acl", "add", {Meeting, Domain},
-                                [{"user", To},
-                                 {"action", Action},
+                                [{"action", Action},
                                  {"object", Object},
                                  {"meeting", Meeting}]),
     {ok, created} = uce_acl:add(#uce_acl{user={To, Domain},
@@ -76,6 +71,12 @@ add(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
                                          object=Object,
                                          location={Meeting, Domain},
                                          conditions=Conditions}),
+    catch uce_event:add(#uce_event{domain=Domain,
+                                   from={To, Domain},
+                                   type="internal.acl.add",
+                                   location={Meeting, Domain},
+                                   metadata=[{"action", Action},
+                                             {"object", Object}] ++ Conditions}),
     json_helpers:created().
 
 delete(Domain, [To, Object, Action], Params, Arg) ->
@@ -83,9 +84,14 @@ delete(Domain, [To, Object, Action], Params, Arg) ->
 delete(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "acl", "delete", {Meeting, Domain},
-                                [{"user", To},
-                                 {"action", Action},
+                                [{"action", Action},
                                  {"object", Object},
                                  {"meeting", Meeting}]),
     {ok, deleted} = uce_acl:delete({To, Domain}, Object, Action, {Meeting, Domain}, Conditions),
+    catch uce_event:add(#uce_event{domain=Domain,
+                                   from={To, Domain},
+                                   type="internal.acl.delete",
+                                   location={Meeting, Domain},
+                                   metadata=[{"action", Action},
+                                             {"object", Object}] ++ Conditions}),
     json_helpers:ok().
