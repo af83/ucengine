@@ -247,18 +247,12 @@ $.uce.widget("filesharing", {
         if (!this._shared) {
             return;
         }
-        if (this._shared.master != event.from) {
-            return;
-        }
         this._shared.page = parseInt(event.metadata.page);
         this._refreshSharing();
     },
 
     _handleShareStopEvent: function(event) {
         if (!this._shared) {
-            return;
-        }
-        if (this._shared.master != event.from) {
             return;
         }
         this.hideShare();
