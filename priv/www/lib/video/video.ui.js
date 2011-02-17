@@ -56,6 +56,7 @@ $.uce.widget("video", {
             var dock = $('<a>')
                 .attr('class', 'ui-dock-button')
                 .attr('href', '#')
+                .attr('title', this.options.title)
                 .button({
                     text: false,
                     icons: {primary: "ui-icon-person"}
