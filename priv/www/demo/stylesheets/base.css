@@ -652,6 +652,10 @@ section > .ui-widget {
 .ui-widget .ui-widget-header-title {
     font: bold 23px Helvetica;
     color: #424242;
+    max-width: 60%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .ui-widget .ui-widget-header-left {
