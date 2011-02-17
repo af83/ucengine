@@ -409,7 +409,7 @@ $.uce.widget("chat", {
             .appendTo(message);
 
         // Change http URIs into links
-        var httpLinks = /(https?:\/\/[^ ]+)/;
+        var httpLinks = /(https?:\/\/[^ ]+)/g;
         text.html(text.html().replace(httpLinks, '<a href="$1">$1</a>'));
 
         message.appendTo(conversationList);
