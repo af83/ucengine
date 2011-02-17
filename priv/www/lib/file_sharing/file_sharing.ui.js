@@ -120,7 +120,7 @@ $.uce.widget("filesharing", {
                 .attr('href', '#')
                 .button({
                     text: false,
-                    icons: {primary: "ui-icon-document"}
+                    icons: {primary: "ui-icon-transferthick-e-w"}
                 }).click(function() {
                     that.element.effect('bounce');
                     $(window).scrollTop(that.element.offset().top);
