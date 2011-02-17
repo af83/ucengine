@@ -409,7 +409,6 @@ $.sammy("#meeting", function() {
                                  receive: function(event, widget) {
                                      $(widget.item).trigger('received', ['expanded']);
                                  }});
-        $('#reduced, #expanded').disableSelection();
 
         presence.presence.time(function(err, time, xhr) {
             addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
