@@ -59,7 +59,7 @@ jackTest("handle new image upload", function() {
                                                                    mime : 'image/jpeg',
                                                                    datetime : timestamp}));
     equals($('#files_uploaded ul > li').size(), 1);
-    equals($('#files_uploaded ul > li:eq(0)').text(), 'norris_pop.jpg ' + date + ' by test_userDownload | Open in the viewer');
+    equals($('#files_uploaded ul > li:eq(0)').text(), 'norris_pop.jpg ' + date + ' by test_userDownload | Open in the viewer | Share');
 });
 
 jackTest("handle 2 files upload", function() {

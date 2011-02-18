@@ -265,7 +265,6 @@ $.uce.widget("fileupload", {
                     $('<p>').append(downloadLink).append(' | ').append(viewLink).append(' | ').append(shareLink).appendTo(li);
                 }
                 else {
-                        var links = $('<p>').append(downloadLink);
                         if (mime == "image") {
                             viewLink = $('<a>').attr('href', '#')
                                                .text('Open in the viewer')
@@ -282,6 +281,9 @@ $.uce.widget("fileupload", {
                                 .attr('class', 'ui-fileupload ui-share-link');
                             $('<p>').append(downloadLink).append(' | ').append(viewLink).append(' | ').append(shareLink).appendTo(li);
                         }
+                    else {
+                        $('<p>').append(downloadLink).appendTo(li);
+                    }
                 }
                 ul = ul.add(li);
             }
