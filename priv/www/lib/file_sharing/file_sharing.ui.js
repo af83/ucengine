@@ -207,11 +207,22 @@ $.uce.widget("filesharing", {
             .text(this._shared.file.name);
         this.element.find('.ui-selector-current')
             .text(this._shared.page + 1);
-        this.element.find('.ui-selector-total')
-            .text(this._shared.file.pages.length);
+
         var pageImg = this.element.find('.ui-filesharing-preview-page img');
-        var src = this.options.ucemeeting
-            .getFileDownloadUrl(this._shared.file.pages[this._shared.page]);
+
+        if (this._shared.file.pages.length > 0) {
+            this.element.find('.ui-selector-total')
+                .text(this._shared.file.pages.length);
+            var src = this.options.ucemeeting
+                .getFileDownloadUrl(this._shared.file.pages[this._shared.page]);
+        }
+        else {
+            this.element.find('.ui-selector-total')
+                .text("1");
+            var src = this.options.ucemeeting
+                .getFileDownloadUrl(this._shared.file.metadata.id);
+        }
+
         pageImg.attr('src', src);
     },
 

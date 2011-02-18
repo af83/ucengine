@@ -74,18 +74,18 @@ $.uce.widget("fileupload", {
 
         previous.bind('click', function() {
             if (that.currentPreview) {
-                if (that.currentPreview.actualPage>0)
-                    that.currentPreview.actualPage--;
-                var page = that.currentPreview.actualPage;
+                if (that.currentPreview.currentPage>0)
+                    that.currentPreview.currentPage--;
+                var page = that.currentPreview.currentPage;
                 that._preview(that.currentPreview);
             }
             return false;
         });
         next.bind('click', function() {
             if (that.currentPreview) {
-                if (that.currentPreview.actualPage<that.currentPreview.pages.length-1)
-                    that.currentPreview.actualPage++;
-                var page = that.currentPreview.actualPage;
+                if (that.currentPreview.currentPage<that.currentPreview.pages.length-1)
+                    that.currentPreview.currentPage++;
+                var page = that.currentPreview.currentPage;
                 that._preview(that.currentPreview);
             }
             return false;
@@ -248,8 +248,8 @@ $.uce.widget("fileupload", {
                         viewLink = $('<a>').attr('href', '#')
                                            .text('Open in the viewer')
                                            .bind('click', function() {
-                                                if (! file.actualPage)
-                                                    file.actualPage = 0;
+                                                if (! file.currentPage)
+                                                    file.currentPage = 0;
                                                 that._preview(file);
                                                 that.viewPreview(); 
                                                 return false; })
@@ -262,21 +262,26 @@ $.uce.widget("fileupload", {
                                                 return false; })
                                             .attr('class', 'ui-fileupload ui-share-link');
 
-                        $('<p>').append(downloadLink).append(' | ').append(viewLink).append(' | ').append(shareLink).appendTo(li);
+                    $('<p>').append(downloadLink).append(' | ').append(viewLink).append(' | ').append(shareLink).appendTo(li);
                 }
                 else {
                         var links = $('<p>').append(downloadLink);
                         if (mime == "image") {
-                            var link = $('<a>').attr('href', '#')
+                            viewLink = $('<a>').attr('href', '#')
                                                .text('Open in the viewer')
                                                .bind('click', function() {
                                                     that._previewImage(file); 
                                                     that.viewPreview(); 
                                                     return false; })
                                                .attr('class', 'ui-fileupload ui-preview-link');
-                            links.append(' | ').append(link);
+                            shareLink = $('<a>').attr('href', '#')
+                                .text('Share')
+                                .bind('click', function() {
+                                    that.options.ucemeeting.push("document.share.start", {id: file.metadata.id});
+                                    return false; })
+                                .attr('class', 'ui-fileupload ui-share-link');
+                            $('<p>').append(downloadLink).append(' | ').append(viewLink).append(' | ').append(shareLink).appendTo(li);
                         }
-                        links.appendTo(li);
                 }
                 ul = ul.add(li);
             }
@@ -288,20 +293,19 @@ $.uce.widget("fileupload", {
         this._setTitle(file.metadata.name);
         var preview = this.element.find('.ui-fileupload-preview');
         this.element.find('.ui-selector-current')
-            .text(file.actualPage + 1);
+            .text(file.currentPage + 1);
         this.element.find('.ui-selector-total')
             .text(file.pages.length);
         var pageImg = this.element.find('.ui-fileupload-preview-page img');
         var src = this.options.ucemeeting
-            .getFileDownloadUrl(file.pages[file.actualPage]);
+            .getFileDownloadUrl(file.pages[file.currentPage]);
         pageImg.attr('src', src);
         this.currentPreview = file;
     },
 
     _previewImage: function(file) {
+        this._setTitle(file.metadata.name);
         var preview = this.element.find('.ui-fileupload-preview');
-        this.element.find('.ui-fileupload-preview-title')
-            .text(file.metadata.name);
         this.element.find('.ui-selector-current')
             .text(1);
         this.element.find('.ui-selector-total')
