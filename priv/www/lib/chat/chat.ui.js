@@ -461,6 +461,7 @@ $.uce.widget("chat", {
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-chat ui-widget');
+        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });

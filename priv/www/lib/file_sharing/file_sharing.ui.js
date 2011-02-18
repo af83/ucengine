@@ -262,6 +262,7 @@ $.uce.widget("filesharing", {
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-widget ui-filesharing');
+        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });
