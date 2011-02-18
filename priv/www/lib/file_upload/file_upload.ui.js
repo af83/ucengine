@@ -328,6 +328,7 @@ $.uce.widget("fileupload", {
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-widget ui-fileupload');
+        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });

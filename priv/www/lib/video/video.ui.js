@@ -174,6 +174,7 @@ $.uce.widget("video", {
     destroy: function() {
         this.element.children().remove();
         this.element.removeClass('ui-widget ui-video');
+        $(this.options.dock).children().remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 });
