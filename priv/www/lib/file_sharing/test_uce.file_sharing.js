@@ -118,37 +118,6 @@ jackTest("when a 'document.share.goto' event is received, go to the right page",
            .attr('src'), "#", "The image's url");
 });
 
-jackTest("check the from field when a 'document.share.goto' event is received", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
-    var events =
-        [Factories.createFileEvent({eventId: "id_upload_event"}),
-         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
-                                                                                 "page_2.jpg"]}),
-         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"}),
-         Factories.createFileEvent({id: "page_2.jpg", name: "page_2.jpg", from: "document"}),
-         Factories.createDocumentShareStartEvent({id: 'norris.pdf', from: "chuck"}),
-         Factories.createDocumentShareGotoEvent({page: "1", from: "bruce"})];
-
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $(events).each(function(index, event) {
-           $('#files_shared').filesharing('triggerUceEvent', event);
-    });
-
-    equals($("#files_shared").find(".ui-filesharing-preview .ui-selector-current")
-           .text(), "1", "Current page");
-    equals($("#files_shared").find(".ui-filesharing-preview .ui-selector-total")
-           .text(), "2", "Total number of pages");
-    equals($("#files_shared").find(".ui-filesharing-preview-page")
-           .children().size(), 1, "There is one image");
-    equals($("#files_shared .ui-filesharing-preview-page img")
-           .attr('src'), "#", "The image's url");
-});
-
 jackTest("when click on next, go to the right page", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'push', 'getFileUploadUrl', 'getFileDownloadUrl']);
     var events =
@@ -258,30 +227,5 @@ jackTest("when a 'document.share.stop' event is received, stop the file sharing"
     });
 
     equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
-});
-
-jackTest("check the from field when a 'document.share.stop' event is received", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
-    var events =
-        [Factories.createFileEvent({eventId: "id_upload_event"}),
-         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
-                                                                                 "page_2.jpg"]}),
-         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"}),
-         Factories.createFileEvent({id: "page_2.jpg", name: "page_2.jpg", from: "document"}),
-         Factories.createDocumentShareStartEvent({id: 'norris.pdf', from: 'chuck'}),
-         Factories.createDocumentShareStopEvent({id: 'norris.pdf', from: 'bruce'})];
-
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $(events).each(function(index, event) {
-           $('#files_shared').filesharing('triggerUceEvent', event);
-    });
-
-    equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'none');
-    equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'block');
 });
 
