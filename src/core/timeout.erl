@@ -53,8 +53,8 @@ handle_cast(run, State) ->
       fun(#uce_presence{id=Id, last_activity=LastActivity, timeout=Timeout} = Presence) ->
               if
                   LastActivity + (Timeout * 1000) < Now ->
-                      presence_helpers:clean(Presence),
-                      uce_presence:delete(Id);
+                      catch presence_helpers:clean(Presence),
+                      catch uce_presence:delete(Id);
                   true ->
                       nothing
               end

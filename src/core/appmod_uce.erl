@@ -152,7 +152,8 @@ process(Method, Path, Query, Arg) ->
         {ok, Match, Handlers} ->
             ?MODULE:call_handlers(Handlers, Query, Match, Arg);
         {error, not_found} ->
-            ?ERROR_MSG("~p ~p: no route found~n", [Method, Path]);
+            ?ERROR_MSG("~p ~p: no route found~n", [Method, Path]),
+            json_helpers:error(not_found);
         {error, Reason} ->
             json_helpers:error(Reason)
     end.
