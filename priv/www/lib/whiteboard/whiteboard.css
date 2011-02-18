@@ -41,6 +41,13 @@
     height: 24px;
 }
 
+.ui-whiteboard .ui-whiteboard-toolbar .ui-toolbar-button.ui-button-left.ui-state-highlight {
+    background-color: #CCCCCC;
+    border-style: solid;
+    border-color: #AAAAAA;
+    border-width: 1px;
+}
+
 .ui-whiteboard .ui-whiteboard-toolbar .ui-toolbar-button.ui-button-left {
     float: left;
 }
@@ -55,6 +62,11 @@
     height: 16px;
     margin-top: 4px;
     margin-right: 0.5em;
+}
+
+.ui-whiteboard .ui-whiteboard-toolbar .ui-toolbar-button.ui-button-color.ui-state-highlight {
+    border-width: 2px;
+    margin-top: 3px;
 }
 
 .ui-whiteboard .ui-whiteboard-icon-circle {
