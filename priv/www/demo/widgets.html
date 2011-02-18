@@ -26,6 +26,7 @@
         <script type="text/javascript" src="../lib/whiteboard/whiteboard.js"></script>
 
         <script type="text/javascript" src="../lib/jquery.tmpl.min.js"></script>
+        <script type="text/javascript" src="../lib/jquery.strftime-minified.js"></script>
 
         <script type="text/javascript" src="../lib/uce.js"></script>
         <script type="text/javascript" src="../lib/ucewidget.js"></script>
@@ -54,9 +55,8 @@
 
         <script type="text/javascript">
             var meeting = uce.attachPresence({}).meeting('demo');
-            var widgets = ['video', 'player', 'file', 'replay',
-                           'timer', 'search',
-                           'fileupload', 'chat'];
+            var widgets = ['video', 'player', 'replay',
+                           'timer', 'search', 'fileupload', 'chat'];
             $(widgets).each(function(index, widget) {
                $('<h2>').text(widget).appendTo($('.widgets'));
                $('<div>')[widget]({ucemeeting: meeting})
