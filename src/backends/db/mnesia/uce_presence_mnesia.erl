@@ -54,6 +54,7 @@ list(User) ->
                                                       user=User,
                                                       domain='_',
                                                       auth='_',
+                                                      timeout='_',
                                                       last_activity='_',
                                                       resource='_',
                                                       metadata='_'})
@@ -67,20 +68,11 @@ list(User) ->
     end.
 
 all() ->
-    case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_presence{id='_',
-                                                      domain='_',
-                                                      user='_',
-                                                      auth='_',
-                                                      last_activity='_',
-                                                      resource='_',
-                                                      metadata='_'})
-                            end) of
-        {atomic, []} ->
-            {ok, []};
-        {atomic, Records} ->
+    case catch ets:tab2list(uce_presence) of
+        Records when is_list(Records) ->
             {ok, Records};
-        {aborted, _} ->
+        Error ->
+            ?ERROR_MSG("uce_presence:all: ~p~n", [Error]),
             throw({error, bad_parameters})
     end.
 

@@ -26,9 +26,9 @@ init() ->
     [#uce_route{method='POST',
                 regexp="/presence",
                 callbacks=[{?MODULE, add,
-                            ["uid", "credential", "metadata"],
-                            [none, none, []],
-                            [string, string, dictionary]}]},
+                            ["uid", "credential", "timeout", "metadata"],
+                            [none, none, 0, []],
+                            [string, string, integer ,dictionary]}]},
      
      #uce_route{method='DELETE',
                 regexp="/presence/([^/]+)",
@@ -37,12 +37,13 @@ init() ->
                             [required, required],
                             [string, string]}]}].
 
-add(Domain, [], [Name, Credential, Metadata], _) ->
+add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
     {ok, User} = uce_user:get({Name, Domain}),
     {ok, true} = uce_acl:assert(User#uce_user.id, "presence", "add"),
     {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
     {ok, Id} = uce_presence:add(#uce_presence{user=User#uce_user.id,
                                               domain=Domain,
+                                              timeout=Timeout,
                                               auth=User#uce_user.auth,
                                               metadata=Metadata}),
     catch uce_event:add(#uce_event{domain=Domain,
@@ -56,9 +57,9 @@ delete(Domain, [Id], [Uid, Sid], _) ->
     {ok, Record} = uce_presence:get(Id),
     {ok, true} = uce_acl:assert({Uid, Domain}, "presence", "delete", {"", Domain},
                                 [{"id", Record#uce_presence.id}]),
-    {ok, deleted} = uce_presence:delete(Record#uce_presence.id),
 
     catch presence_helpers:clean(Record),
 
-    uce_presence:delete(Id),
+    {ok, deleted} = uce_presence:delete(Record#uce_presence.id),
+
     json_helpers:json(ok).

@@ -37,6 +37,8 @@ add(#uce_presence{id=none}=Presence) ->
     add(Presence#uce_presence{id=utils:random()});
 add(#uce_presence{last_activity=0}=Presence) ->
     add(Presence#uce_presence{last_activity=utils:now()});
+add(#uce_presence{timeout=0}=Presence) ->
+    add(Presence#uce_presence{timeout=config:get(presence_timeout)});
 add(#uce_presence{}=Presence) ->
     ?DB_MODULE:add(Presence).
 
@@ -48,10 +50,10 @@ all() ->
 
 delete(Id) ->
     case ?MODULE:exists(Id) of
-	false ->
-	    throw({error, not_found});
-	true ->
-	    ?DB_MODULE:delete(Id)
+        false ->
+            throw({error, not_found});
+        true ->
+            ?DB_MODULE:delete(Id)
     end.
 
 update(#uce_presence{}=Presence) ->

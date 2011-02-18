@@ -33,8 +33,8 @@ presence_test_() ->
                 
                 ?_test(test_presence_close(BaseUrl)),
                 ?_test(test_presence_close_unauthorized(BaseUrl, Testers)),
-                ?_test(test_presence_close_not_foundsid(BaseUrl))]
-%                ?_test(test_presence_timeout(BaseUrl))]
+                ?_test(test_presence_close_not_foundsid(BaseUrl)),
+                ?_test(test_presence_timeout(BaseUrl))]
       end
     }.
 
@@ -88,7 +88,7 @@ test_presence_close_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
     ParamsDelete = [{"uid", UglyUid},
                     {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} =
-	tests_utils:delete(BaseUrl, "/presence/" ++ UglySid, ParamsDelete).
+        tests_utils:delete(BaseUrl, "/presence/" ++ UglySid, ParamsDelete).
 
 test_presence_close_not_foundsid(BaseUrl) ->
     Uid = "participant.user@af83.com",
@@ -102,11 +102,17 @@ test_presence_close_not_foundsid(BaseUrl) ->
     {struct, [{"error", "not_found"}]} =
         tests_utils:delete(BaseUrl, "/presence/unexistentsid", ParamsDelete).
 
-%% test_presence_timeout(_BaseUrl) ->
-%%     uce_presence:add({uce_presence, "testsid", "test", "password", 1, undefined, [], []}),
-%%     {ok, Initial} = uce_presence:all(),
-%%     presence_controller:timeout(),
-%%     {ok, Final} = uce_presence:all(),
-%%     F = length(Final),
-%%     I = length(Initial) - 1,
-%%     I = F.
+%% XXX: Timeout related tests can fail due to the config file.
+%% Should we have a dedicated config file for the tests?
+test_presence_timeout(BaseUrl) ->
+    DefaultTimeout = 1,
+    Params = [{"uid", "participant.user@af83.com"},
+              {"timeout", integer_to_list(DefaultTimeout)},
+              {"credential", "pwd"}],
+    {struct,[{"result", Sid}]} =
+        tests_utils:post(BaseUrl, "/presence/", Params),
+    timer:sleep(DefaultTimeout * 2000),
+    ParamsDelete = [{"uid", "participant.user@af83.com"},
+                    {"sid", Sid}],
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:delete(BaseUrl, "/presence/" ++ Sid, ParamsDelete).

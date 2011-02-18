@@ -44,15 +44,15 @@ handle_call(_ , _, State) ->
     {reply, ok, State}.
 
 handle_cast(run, State) ->
-    timer:sleep(3000),
+    timer:sleep(config:get(timeout_refresh) * 1000),
     {ok, Presences} = uce_presence:all(),
+
     % delete expired presences
     Now = utils:now(),
-    SessionTimeout = config:get(presence_timeout) * 1000,
     lists:foreach(
-      fun(#uce_presence{id=Id, last_activity=LastActivity} = Presence) ->
+      fun(#uce_presence{id=Id, last_activity=LastActivity, timeout=Timeout} = Presence) ->
               if
-                  LastActivity + SessionTimeout < Now ->
+                  LastActivity + (Timeout * 1000) < Now ->
                       presence_helpers:clean(Presence),
                       uce_presence:delete(Id);
                   true ->

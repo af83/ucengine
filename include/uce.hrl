@@ -27,7 +27,9 @@
           user,
           %% authification method
           auth,
-          %% timeout
+          %% session timeout
+          timeout = 0,
+          %% last ping
           last_activity = 0,
           %% resource
           resource,
