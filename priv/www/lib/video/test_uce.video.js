@@ -22,10 +22,10 @@ test("customize with domain, stream and width/height", function() {
                        stream : 'plop'});
     equals(/server=([^&]+)/.exec($("#video embed").attr('flashvars'))[1], encodeURIComponent('rtmp://example.com/ucengine'), "server param");
     equals(/stream=(\w+)/.exec($("#video embed").attr('flashvars'))[1], 'plop');
-    equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 360);
-    equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], 180);
-    equals($("#video .ui-widget-content embed").attr('width'), 400);
-    equals($("#video .ui-widget-content embed").attr('height'), 200);
+    equals(/width=(\d+)/.exec($("#video embed").attr('flashvars'))[1], "360");
+    equals(/height=(\d+)/.exec($("#video embed").attr('flashvars'))[1], "180");
+    equals($("#video .ui-widget-content embed").attr('width'), "400");
+    equals($("#video .ui-widget-content embed").attr('height'), "200");
 });
 
 test("dynamic updated options", function() {
@@ -105,7 +105,7 @@ jackTest("doesn't desactivate the publish button when a stream started by the sa
     ok(!$("#video .ui-button").button("option", "disabled"), "button should be enabled");
 });
 
-jackTest("show message when no stream is available", function() {
+jackTest("show message when there is no stream available", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind']);
     ucemeeting.uid = 'root';
     $("#video").video({ucemeeting: ucemeeting});
@@ -113,5 +113,5 @@ jackTest("show message when no stream is available", function() {
     $("#video").video("triggerUceEvent", Factories.createStreamStart("root"));
     $("#video").video("triggerUceEvent", Factories.createStreamStop("root"));
     equals($("#video .ui-widget-content embed").size(), 0, "no embed");
-    equals($("#video .ui-widget-content p").text(), "No stream is available", "show text");
+    equals($("#video .ui-widget-content p").text(), "No stream available", "show text");
 });
