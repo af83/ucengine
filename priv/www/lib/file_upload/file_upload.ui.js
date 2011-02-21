@@ -256,7 +256,6 @@ $.uce.widget("fileupload", {
             var date = $.strftime("%m-%d-%y", file.datetime);
 
             var filename = $('<span>')
-                .attr('href', '#')
                 .attr('class', 'ui-fileupload ui-fileupload-filename')
                 .text(file.metadata.name);
             var fileowner = $('<span>')
