@@ -255,9 +255,9 @@ $.uce.widget("fileupload", {
             var mime = (file.metadata.mime in mimes) ? mimes[file.metadata.mime] : 'default';
             var date = $.strftime("%m-%d-%y", file.datetime);
 
-            var filename = $('<a>')
+            var filename = $('<span>')
                 .attr('href', '#')
-                .attr('class', 'ui-fileupload ui-download-link')
+                .attr('class', 'ui-fileupload ui-fileupload-filename')
                 .text(file.metadata.name);
             var fileowner = $('<span>')
                 .attr('class', 'ui-file-owner')

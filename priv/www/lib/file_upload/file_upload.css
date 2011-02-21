@@ -26,6 +26,10 @@
     margin-top: 1em;
 }
 
+.ui-fileupload .ui-fileupload-filename {
+    font-weight: bold;
+}
+
 .ui-fileupload .ui-download-link {
     font-weight: bold;
 }
