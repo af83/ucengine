@@ -16,7 +16,16 @@ UCEngine.run('document') do
   begin
     uce = UCEngine.new(config['host'], config['port'], config['debug'])
       uce.connect(config['uid'], :credential => config['credential']) do |uce|
-      uce.subscribe([], :type => "internal.file.add", :start => uce.time) do |event|
+
+      # Start from the last "document.conversion.done" event
+      events = uce.search("", :type => "document.conversion.done", :count => 1, :order => "desc")
+      if (events.size == 1)
+        start = events[0]['datetime'] + 1
+      else
+        start = uce.time
+      end
+
+      uce.subscribe("", :type => "internal.file.add", :start => start) do |event|
         # TODO: use a thread pool
         Thread.new do
           handle_upload_event(uce, event)
