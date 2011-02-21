@@ -8,8 +8,8 @@ var Factories = {
     createFileEvent: function(params) {
         params = params || {}
 
-        var metadata = $.extend({}, {id       : 'norris.pdf',
-                                     name     : 'norris.pdf'}, params);
+        var metadata = $.extend({}, {id   : 'norris.pdf',
+                                     name : 'norris.pdf'}, params);
         var eventId = params['eventId'] || "upload_event_id";
         var from = params['from'] || "test_user";
 
