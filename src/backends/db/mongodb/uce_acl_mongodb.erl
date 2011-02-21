@@ -38,12 +38,12 @@ add(#uce_acl{}=ACL) ->
     end.
 
 delete({User, Domain}, Object, Action, {Location, _}, Conditions) ->
-    case catch emongo:delete(?MONGO_POOL, "uce_acl", [{"user", User},
-                                                      {"domain", Domain},
-                                                      {"object", Object},
-                                                      {"action", Action},
-                                                      {"location", Location},
-                                                      {"conditions", Conditions}]) of
+    case catch emongo:delete_sync(?MONGO_POOL, "uce_acl", [{"user", User},
+                                                           {"domain", Domain},
+                                                           {"object", Object},
+                                                           {"action", Action},
+                                                           {"location", Location},
+                                                           {"conditions", Conditions}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});

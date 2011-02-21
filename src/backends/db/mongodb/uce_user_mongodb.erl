@@ -40,8 +40,8 @@ add(#uce_user{} = User) ->
     end.
 
 delete({Name, Domain}) ->
-    case catch emongo:delete(?MONGO_POOL, "uce_user", [{"name", Name},
-                                                       {"domain", Domain}]) of
+    case catch emongo:delete_sync(?MONGO_POOL, "uce_user", [{"name", Name},
+                                                            {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});

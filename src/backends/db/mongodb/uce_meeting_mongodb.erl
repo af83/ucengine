@@ -40,7 +40,7 @@ add(#uce_meeting{} = Meeting) ->
     end.
 
 delete({Name, Domain}) ->
-    case emongo:delete(?MONGO_POOL, "uce_meeting", [{"name", Name}, {"domain", Domain}]) of
+    case emongo:delete_sync(?MONGO_POOL, "uce_meeting", [{"name", Name}, {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
