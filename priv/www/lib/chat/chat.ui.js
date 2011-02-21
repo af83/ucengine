@@ -13,7 +13,7 @@ $.uce.widget("chat", {
         "twitter.tweet.new"      : "_handleTweet",
         "internal.roster.add"    : "_handleJoin",
         "internal.roster.delete" : "_handleLeave",
-        "chat.translation.new"   : "_handleMessage",
+        "chat.translation.new"   : "_handleTranslation",
         "chat.message.new"       : "_handleMessage"
     },
     _create: function() {
@@ -236,6 +236,13 @@ $.uce.widget("chat", {
             that._state.hashtags[hashtag] += 1;
         });
         this._updateHashtags();
+    },
+
+    _handleTranslation: function(event) {
+        // Use the 'from' of the metadata as the from of the message
+        event.from = event.metadata.from;
+
+        this._handleMessage(event);
     },
 
     _handleMessage: function(event) {

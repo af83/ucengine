@@ -57,7 +57,8 @@ Factories.newTranslationEvent = function(from, text, lang) {
         from: from,
         metadata: {
             text: text,
-            lang: lang
+            lang: lang,
+            from: "chuck"
         }
     };
 }
