@@ -96,6 +96,9 @@ $.uce.widget("video", {
             this._showReceive = true;
             this._updateEmbed();
         }
+        else if (!this.options.token) {
+            this._button.button("disable");
+        } 
     },
     _onClickButton: function(e) {
         e.preventDefault();
@@ -143,6 +146,8 @@ $.uce.widget("video", {
     onStreamNew: function(event) {
         this.options.stream = event.metadata.channel;
         this.options.token  = event.metadata.token;
+        this._button.button("enable");
+        this._showReceive = false;
         this._updateEmbed();
     },
     onStreamStarted: function(event) {
