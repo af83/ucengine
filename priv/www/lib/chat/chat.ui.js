@@ -94,16 +94,23 @@ $.uce.widget("chat", {
             .attr('class', 'ui-chat-flags');
 
         /* create message block for each language */
+        this._flags = [];
         $.each(this.options.langs, function(i, lang) {
             var flag = $('<span>')
-                .attr('class', 'ui-chat-flag')
+                .addClass('ui-chat-flag')
+                .addClass('ui-chat-lang-' + lang)
                 .button({
                     text: false,
-                    icons: {primary: 'ui-chat-flag-' + lang}
+                    icons: {primary: 'ui-chat-flag-icon'}
                 })
                 .click(function(e) {
                     that._showConversation('all', lang);
+                    $.each(that._flags, function(index, flag) {
+                        flag.removeClass('ui-state-highlight');
+                    });
+                    $(this).addClass('ui-state-highlight');
                 });
+            that._flags.push(flag);
             flag.appendTo(flags);
 
             that._addConversation("all", lang);
@@ -115,6 +122,10 @@ $.uce.widget("chat", {
         var rightButtons = [flags].concat(this.options.buttons.right);
         this._addHeader(this.options.title, {left: this.options.buttons.left,
                                              right: rightButtons});
+
+        /* set highlight to default flag */
+        this.element.find('.ui-chat-flag.ui-chat-lang-' + this.options.lang)
+            .addClass('ui-state-highlight');
 
         /* create dock */
         if (this.options.dock) {

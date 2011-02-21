@@ -201,6 +201,22 @@ test("can show hastag tweet and go back", function() {
        "should not have class ui-chat-current");
 });
 
+test("can change language", function() {
+    $("#chat .ui-chat-flag.ui-chat-lang-fr").click();
+    ok($('#chat .ui-chat-flag.ui-chat-lang-fr').hasClass("ui-state-highlight"), 
+           "should have class ui-state-highlight");
+    ok($('#chat .ui-chat-container[name=conversation:all:fr]').hasClass("ui-chat-current"), 
+           "should have class ui-state-current");
+
+    $("#chat .ui-chat-flag.ui-chat-lang-en").click();
+    ok($('#chat .ui-chat-flag.ui-chat-lang-en').hasClass("ui-state-highlight"), 
+           "should have class ui-state-highlight");
+    ok(!$('#chat .ui-chat-flag.ui-chat-lang-fr').hasClass("ui-state-highlight"), 
+           "should not have class ui-state-highlight");
+    ok($('#chat .ui-chat-container[name=conversation:all:en]').hasClass("ui-chat-current"), 
+           "should have class ui-state-current");
+});
+
 test("clear chat", function() {
     this.callback_hashtag(Factories.newHashTagEvent({hashtag: '#chuck'}));
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#chuck'}));

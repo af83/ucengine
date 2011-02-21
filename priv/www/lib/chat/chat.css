@@ -3,27 +3,39 @@
     margin: 0.1em 16px 0.2em 0;
 }
 
+.ui-chat .ui-chat-flags {
+    float: left;
+}
+
 .ui-chat .ui-chat-flag {
     background: none;
     border: none;
+    height: 25px;
+    border-bottom-style: solid;
+    border-bottom-width: 1px;
+    border-bottom-color: transparent;
+}
+
+.ui-chat .ui-chat-flag.ui-state-highlight {
+    border-bottom-color: #AAAAAA;
 }
 
 .ui-chat .ui-chat-flag .ui-icon {
     margin-top: -4px;
-    margin-left: -9px;
+    margin-left: -8px;
     width: 18px;
     height: 12px;
 }
 
-.ui-chat .ui-icon.ui-chat-flag-fr {
+.ui-chat .ui-chat-flag.ui-chat-lang-fr .ui-icon.ui-chat-flag-icon {
     background-image: url(images/flags/fr.png);
 }
 
-.ui-chat .ui-icon.ui-chat-flag-en {
+.ui-chat .ui-chat-flag.ui-chat-lang-en .ui-icon.ui-chat-flag-icon {
     background-image: url(images/flags/en.png);
 }
 
-.ui-chat .ui-icon.ui-chat-flag-it {
+.ui-chat .ui-chat-flag.ui-chat-lang-it .ui-icon.ui-chat-flag-icon {
     background-image: url(images/flags/it.png);
 }
 
