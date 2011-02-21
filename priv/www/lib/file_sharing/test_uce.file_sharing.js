@@ -8,12 +8,10 @@ test("create basic structure", function() {
     ok($('#files_shared').hasClass('ui-widget'), 'class ui-widget');
     ok($('#files_shared').hasClass('ui-filesharing'), 'class ui-filesharing');
     // XXX: Do we really need ui-filesharing-list and ui-filesharing-all elements?
-    equals($('#files_shared').find('.ui-filesharing-list').size(), 1);
-    equals($('#files_shared').find('.ui-filesharing-list').children().size(), 0);
-    equals($('#files_shared').find('.ui-filesharing-all').children().size(), 1);
-    equals($('#files_shared').find('.ui-filesharing-preview').children().size(), 3);
-    equals($('#files_shared').find('.ui-preview-toolbar').children().size(), 4);
-    equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
+    equals($('#files_shared').find('.ui-widget-content').children().size(), 3);
+    equals($('#files_shared').find('.ui-filesharing-toolbar').children().size(), 4);
+    equals($("#files_shared").find(".ui-filesharing-toolbar").css('display'), 'none');
+    equals($("#files_shared").find(".ui-filesharing-page").css('display'), 'none');
 });
 
 test("destroy everything", function() {
@@ -56,7 +54,8 @@ jackTest("handle roster delete event", function() {
 
     $('#files_shared').filesharing('triggerUceEvent', Factories.createDocumentShareStartEvent({id : 'norris.pdf'}));
     $('#files_shared').filesharing('triggerUceEvent', Factories.createRosterDeleteEvent({id : 'chuck_in_roster_deletion'}));
-    equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
+    equals($("#files_shared").find(".ui-filesharing-toolbar").css('display'), 'none');
+    equals($("#files_shared").find(".ui-filesharing-page").css('display'), 'none');
 });
 
 jackTest("handle new document share start", function() {
@@ -79,12 +78,12 @@ jackTest("handle new document share start", function() {
     });
 
     $('#files_shared').filesharing('triggerUceEvent', Factories.createDocumentShareStartEvent({id : 'norris.pdf'}));
-    equals($("#files_shared").find(".ui-filesharing-all").css('display'), 'none');
-    equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'block');
+    equals($("#files_shared").find(".ui-filesharing-toolbar").css('display'), 'block');
+    equals($("#files_shared").find(".ui-filesharing-page").css('display'), 'block');
     equals($("#files_shared").find(".ui-filesharing .ui-selector-current").text(), "1");
     equals($("#files_shared").find(".ui-filesharing .ui-selector-total").text(), "2");
-    equals($("#files_shared").find(".ui-filesharing-preview-page").children().size(), 1);
-    equals($("#files_shared .ui-filesharing-preview-page img").attr('src'), "#");
+    equals($("#files_shared").find(".ui-filesharing-page").children().size(), 1);
+    equals($("#files_shared .ui-filesharing-page img").attr('src'), "#");
 });
 
 jackTest("when a 'document.share.goto' event is received, go to the right page", function() {
@@ -112,9 +111,9 @@ jackTest("when a 'document.share.goto' event is received, go to the right page",
            .text(), "2", "Current page");
     equals($("#files_shared").find(".ui-filesharing .ui-selector-total")
            .text(), "2", "Total number of pages");
-    equals($("#files_shared").find(".ui-filesharing-preview-page")
+    equals($("#files_shared").find(".ui-filesharing-page")
            .children().size(), 1, "There is one image");
-    equals($("#files_shared .ui-filesharing-preview-page img")
+    equals($("#files_shared .ui-filesharing-page img")
            .attr('src'), "#", "The image's url");
 });
 
@@ -226,6 +225,7 @@ jackTest("when a 'document.share.stop' event is received, stop the file sharing"
            $('#files_shared').filesharing('triggerUceEvent', event);
     });
 
-    equals($("#files_shared").find(".ui-filesharing-preview").css('display'), 'none');
+    equals($("#files_shared").find(".ui-filesharing-toolbar").css('display'), 'none');
+    equals($("#files_shared").find(".ui-filesharing-page").css('display'), 'none');
 });
 

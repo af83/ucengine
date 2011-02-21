@@ -1,27 +1,5 @@
 /* File sharing widget */
-.ui-widget .ui-filesharing-all ul {
-    list-style-type: none;
-}
-
-.ui-widget .ui-filesharing-all ul li {
-    list-style-type: none;
-    padding: 8px;
-    margin-left: 3em;
-}
-
-.ui-widget .ui-filesharing-all ul li.mime.pdf {
-    list-style-image: url("/demo/images/mime/pdf.png");
-}
-.ui-widget .ui-filesharing-all ul li.mime.default {
-    list-style-image: url("/demo/images/mime/default.png");
-}
-
-.ui-widget .ui-filesharing-add {
-    text-align: right;
-    margin: 1.2em;
-}
-
-.ui-widget .ui-filesharing-nopreview {
+.ui-widget .ui-filesharing-nosharing {
     width: 100%;
     text-align: center;
     background-color: #EBEBEB;
@@ -30,40 +8,24 @@
     line-height: 24px;
 }
 
-.ui-widget .ui-filesharing-preview-page img {
+.ui-widget .ui-filesharing-page img {
     width: 100%;
 }
 
-.ui-filesharing .ui-download-link {
-    font-weight: bold;
-}
-
-.ui-filesharing .ui-preview-link {
-    font-weight: bold;
-}
-
-.ui-filesharing .ui-share-link {
-    font-weight: bold;
-}
-
-.ui-filesharing .ui-file-owner {
-    color: #666666;
-}
-
-.ui-filesharing .ui-preview-toolbar {
+.ui-filesharing .ui-filesharing-toolbar {
     padding: 6px;
     background-color: #EBEBEB;
     height: 24px;
 }
 
-.ui-filesharing .ui-preview-toolbar .ui-toolbar-button {
+.ui-filesharing .ui-filesharing-toolbar .ui-toolbar-button {
     background-color: #EBEBEB;
     width: 24px;
     height: 24px;
     float: left;
 }
 
-.ui-filesharing .ui-preview-toolbar .ui-toolbar-button.ui-button-stop {
+.ui-filesharing .ui-filesharing-toolbar .ui-toolbar-button.ui-button-stop {
     float: right;
 }
 
@@ -80,20 +42,4 @@
     height: 24px;
     vertical-align: middle;
     line-height: 2em;
-}
-
-.ui-filesharing-dock .ui-widget-dock-notification {
-    width: 10px;
-    height: 10px;
-    padding: 0;
-    left: 37px;
-    background: red;
-    border: 1px solid red;
-    -moz-border-radius: 8px;
-    border-radius: 8px;
-    text-align: center;
-    font: bold 7px/10px Helvetica;
-    color: #FFF;
-    margin: -9px 0 0 -17px;
-    float: right;
 }
