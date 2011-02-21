@@ -6,9 +6,10 @@
   </types>
   <fields>
     <field name="id" type="string" stored="true"/>
+    <field name="domain" type="string" stored="true"/>
     <field name="datetime" type="integer" indexed="true" stored="true"/>
     <field name="type" type="string" indexed="true" stored="true"/>
-    <field name="meeting" type="string" indexed="true" stored="true"/>
+    <field name="location" type="string" indexed="true" stored="true"/>
     <field name="from" type="string" indexed="true" stored="true"/>
     <field name="metadata" type="string" indexed="true" stored="true"/>
     <dynamicField name="metadata_*" type="string" stored="true"/>
