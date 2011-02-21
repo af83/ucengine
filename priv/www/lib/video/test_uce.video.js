@@ -13,6 +13,7 @@ test("create basic html, and destroy", function() {
     ok(!$("#video").hasClass('ui-widget'), 'has not class ui-widget');
     ok(!$("#video").hasClass('ui-video'), 'has not class ui-video');
     equals($("#video > *").size(), 0, 'the widget has no content');
+    ok($("#video .ui-button").button("option", "disabled"), "the widget has a publish button disabled");
 });
 
 test("customize with domain, stream and width/height", function() {
@@ -73,13 +74,17 @@ jackTest("on receive, handle video.stream.new", function() {
     equals($("#video").video("option", "token"), "123456", "token option should updated");
 });
 
-test("publish then stop a video stream", function() {
-    $("#video").video();
+jackTest("publish then stop a video stream", function() {
+    var ucemeeting = jack.create("ucemeeting", ['bind']);
+    $("#video").video({ucemeeting: ucemeeting});
+    ucemeeting.uid = 'john';
+    $("#video").video("triggerUceEvent", Factories.createStreamNew("john"));
     $("#video .ui-button").click();
     equals($("#video .ui-button").text(), "Stop publish", "label has changed");
     equals($("#video .ui-widget-content embed").attr('src'), '/lib/video/publish_video.swf', 'src is publish_video.swf');
     $("#video .ui-button").click();
     equals($("#video .ui-button").text(), "Publish", "label has changed");
+    $("#video").video("triggerUceEvent", Factories.createStreamStart("root"));
     equals($("#video .ui-widget-content embed").attr('src'), '/lib/video/receive_video.swf', 'src is receive_video.swf');
 });
 
@@ -87,6 +92,7 @@ jackTest("desactivate/activate the publish button when a stream start and stop",
     var ucemeeting = jack.create("ucemeeting", ['bind']);
     ucemeeting.uid = 'john';
     $("#video").video({ucemeeting: ucemeeting});
+    $("#video").video("triggerUceEvent", Factories.createStreamNew());
     $("#video").video("triggerUceEvent", Factories.createStreamStart("root"));
     ok($("#video .ui-button").button("option", "disabled"), "button should be disabled");
     // test click on disabled button
@@ -101,6 +107,7 @@ jackTest("doesn't desactivate the publish button when a stream started by the sa
     var ucemeeting = jack.create("ucemeeting", ['bind']);
     ucemeeting.uid = 'root';
     $("#video").video({ucemeeting: ucemeeting});
+    $("#video").video("triggerUceEvent", Factories.createStreamNew("root"));
     $("#video").video("triggerUceEvent", Factories.createStreamStart("root"));
     ok(!$("#video .ui-button").button("option", "disabled"), "button should be enabled");
 });
