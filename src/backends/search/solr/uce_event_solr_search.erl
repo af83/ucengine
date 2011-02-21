@@ -36,18 +36,15 @@ add(Event) ->
 
 %% Encode event in solrxml format which be used to add solr index
 to_solrxml(#uce_event{id=Id,
+                      domain=Domain,
                       datetime=Datetime,
-                      location=Location,
-                      from=From,
+                      location={Location, _},
+                      from={From, _},
+                      to={To, _},
                       type=Type,
                       metadata=Metadata}) ->
-    LocationElement =
-        case Location of
-            [""] ->
-                [];
-            [Meeting] ->
-                [{field, [{name,"meeting"}], [Meeting]}]
-        end,
+
+    LocationElement = [{field, [{name,"location"}], [Location]}],
 
     MetadataFlattenElement =
         [{field, [{name, "metadata"}], [lists:flatten([Value || {_, Value} <- Metadata])]}],
@@ -59,8 +56,10 @@ to_solrxml(#uce_event{id=Id,
                   Metadata),
 
     DocElements = [{field, [{name,"id"}], [Id]},
+                   {field, [{name,"domain"}], [Domain]},
                    {field, [{name,"datetime"}], [integer_to_list(Datetime)]},
                    {field, [{name,"type"}], [Type]},
+                   {field, [{name,"to"}], [To]},
                    {field, [{name,"from"}], [From]}] ++
         LocationElement ++
         MetadataFlattenElement ++
@@ -82,15 +81,17 @@ params_to_query([{Key, Value}|Tail]) ->
                             " +" ++ params_to_query(Tail)
                     end.
 
-list(Location, Search, From, Type, Start, End, Parent) ->
+list({Location, Domain}, Search, From, Type, Start, End, Parent) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
-    search(Host, Location, Search, From, Type, Start, End, Parent).
 
-search(Host, [Meeting], Search, From, Type, Start, End, _) ->
-    MeetingSelector =
+    DomainSelector = [{"domain", Domain}],
+
+    LocationSelector = [{"location", Location}],
+
+    ParentSelector = 
         if
-            Meeting /= '_' ->
-                [{"meeting", Meeting}];
+            Parent /= '_' ->
+                [{"parent", Parent}];
             true ->
                 []
         end,
@@ -131,7 +132,9 @@ search(Host, [Meeting], Search, From, Type, Start, End, _) ->
                 []
         end,
 
-    Query = [{"q", params_to_query(MeetingSelector ++
+    Query = [{"q", params_to_query(LocationSelector ++
+                                       DomainSelector ++
+                                       ParentSelector ++
                                        FromSelector ++
                                        TypeSelector ++
                                        SearchSelector)}],
@@ -155,8 +158,9 @@ make_list_json_events([]) ->
     [];
 make_list_json_events([{struct, Elems}|Tail]) ->
     case utils:get(Elems,
-                   ["id", "datetime", "meeting","from", "to", "type", "parent"],
+                   ["id", "domain", "datetime", "location","from", "to", "type", "parent"],
                    [none,
+                    none,
                     none,
                     {array, [""]},
                     none,
@@ -164,18 +168,21 @@ make_list_json_events([{struct, Elems}|Tail]) ->
                     none,
                     {array, [""]}]) of
 
-        [none, _, _, _, _, _, _, _] ->
+        [none, _, _, _, _, _, _, _, _] ->
             {error, bad_record};
-        [_, none, _, _, _, _, _, _] ->
+        [_, none, _, _, _, _, _, _, _] ->
             {error, bad_record};
-        [_, _, _, _, none, _, _, _] ->
+        [_, _, none, _, _, _, _, _, _] ->
             {error, bad_record};
-        [_, _, _, _, _, _, none, _] ->
+        [_, _, _, _, _, none, _, _, _] ->
+            {error, bad_record};
+        [_, _, _, _, _, _, _, none, _] ->
             {error, bad_record};
 
         [{array, [Id]},
+         {array, [Domain]},
          {array, [Datetime]},
-         {array, [Meeting]},
+         {array, [Location]},
          {array, [From]},
          {array, [To]},
          {array, [Type]},
@@ -202,10 +209,11 @@ make_list_json_events([{struct, Elems}|Tail]) ->
                                  end,
                                  FlatMetadata),
             [#uce_event{id=Id,
+                        domain=Domain,
                         datetime=list_to_integer(Datetime),
-                        location=[Meeting],
-                        from=From,
-                        to=To,
+                        location={Location, Domain},
+                        from={From, Domain},
+                        to={To, Domain},
                         type=Type,
                         parent=Parent,
                         metadata=Metadata}] ++ make_list_json_events(Tail)
