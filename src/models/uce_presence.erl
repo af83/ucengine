@@ -81,7 +81,7 @@ assert(User, Sid) ->
         {ok, false} ->
             throw({error, unauthorized})
     end.
-        
+
 check(User, Sid) ->
     {ok, Record} = uce_presence:get(Sid),
     case Record#uce_presence.user of
@@ -114,4 +114,4 @@ del_entry([Entry | Tl], Entry) ->
 del_entry([Hd | Tl], Entry) ->
     [Hd] ++ del_entry(Tl, Entry);
 del_entry([], _Entry) ->
-    []. 
+    [].

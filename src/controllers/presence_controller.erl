@@ -29,7 +29,7 @@ init() ->
                             ["uid", "credential", "timeout", "metadata"],
                             [none, none, 0, []],
                             [string, string, integer ,dictionary]}]},
-     
+
      #uce_route{method='DELETE',
                 regexp="/presence/([^/]+)",
                 callbacks=[{?MODULE, delete,
