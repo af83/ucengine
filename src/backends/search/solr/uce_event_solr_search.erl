@@ -78,15 +78,29 @@ params_to_query([{Key, Value}|Tail]) ->
                         [] ->
                             [];
                         _ ->
-                            " +" ++ params_to_query(Tail)
+                            "+" ++ params_to_query(Tail)
                     end.
 
-list({Location, Domain}, Search, From, Type, Start, End, Parent) ->
+list({Location, Domain}, Search, {From, _}, Type, Start, End, Parent) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
 
     DomainSelector = [{"domain", Domain}],
 
-    LocationSelector = [{"location", Location}],
+    LocationSelector =
+        if
+            Location /= "" ->
+                [{"location", Location}];
+            true ->
+                []
+        end,
+
+    FromSelector =
+        if
+            From /= "" ->
+                [{"from", From}];
+            true ->
+                []
+        end,
 
     ParentSelector = 
         if
@@ -100,14 +114,6 @@ list({Location, Domain}, Search, From, Type, Start, End, Parent) ->
         if
             Search /= '_' ->
                 [{"metadata", string:join([Key ++ "*" || Key <- Search], "+")}];
-            true ->
-                []
-        end,
-
-    FromSelector =
-        if
-            From /= '_' ->
-                [{"from", From}];
             true ->
                 []
         end,
@@ -223,3 +229,4 @@ delete(_Domain, Id) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, "<delete><query>"++ Id ++"</query></delete>"),
     {ok, deleted}.
+

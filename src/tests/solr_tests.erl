@@ -43,7 +43,7 @@ test_add(Domain) ->
                                                          metadata=[{"text","This is a test event."}]}).
 
 test_search(Domain) ->
-    ok = case uce_event_solr_search:list({"", Domain}, ["This"], '_', '_', 0, infinity, '_') of
+    ok = case uce_event_solr_search:list({"", Domain}, ["This"], {"", Domain}, '_', 0, infinity, '_') of
              {error, Reason} ->
                  {error, Reason};
              {ok, [_]} ->
