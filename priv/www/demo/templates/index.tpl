@@ -13,7 +13,7 @@
             </div>
             {{/not_connected}}
         </div>
-        
+
         {{#not_connected}}
         <div class="block">
             <div class="block-header">
@@ -40,7 +40,7 @@
         {{^not_connected}}
         <div class="block tweets">
             <div class="block-header">
-                <p><img src="images/image.png" alt="ucengine" /> U.C.Engine</p>
+                <img src="images/image.png" alt="ucengine" /> U.C.Engine
             </div>
             <div class="block-content">
                 <ul id="lastTweets">
@@ -48,9 +48,7 @@
                 </ul>
             </div>
             <div class="block-footer">
-                <ul>
-                    <li><a href="http://twitter.com/ucengine"><img src="images/twitter.png" alt="Twitter" /></a></li>
-                </ul>
+                <a href="http://twitter.com/ucengine"><img src="images/twitter.png" alt="Twitter" /></a>
             </div>
         </div>
         {{/not_connected}}
@@ -81,7 +79,7 @@
             <div class="block-footer">
             </div>
         </div>
-        
+
         <div class="block events">
             <div class="block-header">
                 <h2>Last events</h2>
@@ -106,7 +104,7 @@
             <div class="block-footer">
             </div>
         </div>
-        
+
         <div class="block events last">
             <div class="block-header">
                 <h2>Upcoming events</h2>

@@ -29,7 +29,7 @@
                 </form>
             </div>
         </div>
-    </section>    
+    </section>
     <section>
         <h1>Users</h1>
         <div class="block user">
@@ -55,10 +55,10 @@
                     <fieldset>
                         <label>Name</label>
                         <input type="text" name="name" /><br /> <!-- TODO: learn HTML -->
-		        <label>Password</label>
-		        <input type="password" name="password" /><br />
-		        <label>Nickname</label>
-		        <input type="text" name="nickname" /><br />
+                        <label>Password</label>
+                        <input type="password" name="password" /><br />
+                        <label>Nickname</label>
+                        <input type="text" name="nickname" /><br />
                         <input type="submit" value="Create" />
                     </fieldset>
                 </form>

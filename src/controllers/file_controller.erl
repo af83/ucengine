@@ -30,21 +30,21 @@ init() ->
                             ["uid", "sid", "_filename", "_uri", "metadata"],
                             [required, required, required, required, []],
                             [string, string, string, string, dictionary]}]},
-     
+
      #uce_route{method='GET',
                 regexp="/file/([^/]+)",
                 callbacks=[{?MODULE, list,
                             ["uid", "sid"],
                             [required, required],
                             [string, string]}]},
-     
+
      #uce_route{method='GET',
                 regexp="/file/([^/]+)/([^/]+)",
                 callbacks=[{?MODULE, get,
                             ["uid", "sid"],
                             [required, required],
                             [string, string]}]},
-     
+
      #uce_route{method='DELETE',
                 regexp="/file/([^/]+)/([^/]+)",
                 callbacks=[{?MODULE, delete,
