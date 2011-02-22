@@ -63,6 +63,7 @@ event_test_() ->
                  ?_test(test_get_with_keywords_without_meeting(BaseUrl, Testers)),
                  ?_test(test_get_with_keywords_with_from(BaseUrl, Testers)),
                  ?_test(test_get_with_keywords_in_metadata(BaseUrl, Testers)),
+                 ?_test(test_get_with_keywords_and_timestart_and_timeend(BaseUrl, Testers)),
                  ?_test(test_get_with_type(BaseUrl, Testers)),
                  ?_test(test_get_with_types(BaseUrl, Testers)),
                  ?_test(test_get_with_type_and_timestart(BaseUrl, Testers)),
@@ -312,6 +313,60 @@ test_get_with_keywords_in_metadata(BaseUrl, [{RootUid, RootSid}, _]) ->
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "lonely happy event"}]}}
                                     ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet).
+
+test_get_with_keywords_and_timestart_and_timeend(BaseUrl, [{RootUid, RootSid}, _]) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct, [{"result", {array,
+                          [ {struct, [{"type", "test_event_1"}
+                                      , {"domain", _}
+                                      , {"datetime", _}
+                                      , {"id", _}
+                                      , {"location", "testmeeting"}
+                                      , {"from", "participant.user@af83.com"}
+                                      , {"metadata", {struct, []}}
+                                     ]},
+                            {struct, [{"type", "test_event_2"}
+                                      , {"domain", _}
+                                      , {"datetime", _}
+                                      , {"id", _}
+                                      , {"location", "testmeeting"}
+                                      , {"from", "user_2"}
+                                      , {"metadata", {struct, []}}
+                                     ]},
+                            {struct, [{"type", "test_event_3"}
+                                      , {"domain", _}
+                                      , {"datetime", Third}
+                                      , {"id", _}
+                                      , {"location", "testmeeting"}
+                                      , {"from", "user_3"}
+                                      , {"metadata", {struct, [{"description", "test"}]}}
+                                     ]}|_]
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
+    ParamsGetStart = [{"uid", RootUid},
+                      {"sid", RootSid},
+                      {"type", "test_event_3"},
+                      {"search", "test"},
+                      {"start", integer_to_list(Third)},
+                      {"end", integer_to_list(Third + 1)}],
+    {struct, [{"result", {array,
+                          [ {struct, [{"type", "test_event_3"}
+                                      , {"domain", _}
+                                      , {"datetime", Third}
+                                      , {"id", _}
+                                      , {"location", "testmeeting"}
+                                      , {"from", "user_3"}
+                                      , {"metadata", {struct, [{"description", "test"}]}}
+                                     ]}|_]
+                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart),
+    ParamsGetNothing = [{"uid", RootUid},
+                        {"sid", RootSid},
+                        {"type", "test_event_3"},
+                        {"search", "test"},
+                        {"start", integer_to_list(Third - 2)},
+                        {"end", integer_to_list(Third - 1)}],
+    {struct, [{"result", {array,[]}}]} =
+        tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetNothing).
 
 test_get_with_type(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},

@@ -126,14 +126,22 @@ list({Location, Domain}, Search, {From, _}, Type, Start, End, Parent) ->
                 []
         end,
 
-    TimeSelector =
+    TimeRange =
         if
             Start /= 0, End /= infinity ->
-                [{"date", "[" ++ integer_to_list(Start) ++ " TO " ++ integer_to_list(End) ++ "]"}];
+                "[" ++ integer_to_list(Start) ++ " TO " ++ integer_to_list(End) ++ "]";
             Start /= 0 ->
-                [{"date", "[" ++ integer_to_list(Start) ++ " TO *"}];
+                "[" ++ integer_to_list(Start) ++ " TO *]";
             End /= infinity ->
-                [{"date", "* TO " ++ integer_to_list(End) ++ "]"}];
+                "[* TO " ++ integer_to_list(End) ++ "]";
+            true ->
+                []
+        end,
+
+    TimeSelector =
+        if
+            Start /= 0; End /= infinity ->
+                 [{"facet", "on"}, {"facet.field", "datetime"}, {"fq", "datetime:" ++ TimeRange}];
             true ->
                 []
         end,
