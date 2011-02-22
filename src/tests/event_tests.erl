@@ -236,6 +236,8 @@ test_get_with_keywords(BaseUrl, [{RootUid, RootSid}, _]) ->
               {"metadata[description]", "lonely event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
 
+    timer:sleep(1000),
+
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
                  {"search", "lonely"},
@@ -257,6 +259,8 @@ test_get_with_keywords_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
               {"metadata[description]", "lonely hungry event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
 
+    timer:sleep(1000),
+
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
                  {"search", "hungry"},
@@ -277,6 +281,8 @@ test_get_with_keywords_with_from(BaseUrl, [{RootUid, RootSid}, _]) ->
               {"type", "search_event"},
               {"metadata[description]", "lonely event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+
+    timer:sleep(1000),
 
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
@@ -300,6 +306,8 @@ test_get_with_keywords_in_metadata(BaseUrl, [{RootUid, RootSid}, _]) ->
               {"metadata[description]", "lonely happy event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
     
+    timer:sleep(1000),
+
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
                  {"search", "happy"},
@@ -343,6 +351,9 @@ test_get_with_keywords_and_timestart_and_timeend(BaseUrl, [{RootUid, RootSid}, _
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
+
+    timer:sleep(1000),
+
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_3"},

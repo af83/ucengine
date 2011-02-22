@@ -19,12 +19,12 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/1, list/7, delete/2]).
+-export([add/1, commit/0, list/7, delete/2]).
 
 -include("uce.hrl").
 
 -define(DEFAULT_HOST, "http://localhost:8983/solr").
--define(SOLR_UPDATE, "/update?commit=true").
+-define(SOLR_UPDATE, "/update").
 -define(SOLR_SELECT, "/select?").
 
 -define(META_PREFIX, "metadata_").
@@ -33,6 +33,12 @@ add(Event) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, to_solrxml(Event)),
     {ok, created}.
+
+commit() ->
+    [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
+    Commit = lists:flatten(xmerl:export_simple_element({commit, []}, xmerl_xml)),
+    ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, Commit),
+    {ok, commited}.
 
 %% Encode event in solrxml format which be used to add solr index
 to_solrxml(#uce_event{id=Id,

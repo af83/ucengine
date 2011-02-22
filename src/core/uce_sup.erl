@@ -35,6 +35,14 @@ init(_) ->
                           {amqp_pubsub, start_link, []},
                           permanent, brutal_kill, worker, [amqp_pubsub]}]
                 end,
+    SolrSup = case config:get(search) of
+                  solr ->
+                      [{uce_solr_commiter,
+                        {uce_solr_commiter, start_link, []},
+                        permanent, brutal_kill, worker, [uce_solr_commiter]}];
+                  _ ->
+                      []
+              end,
     {ok, {{one_for_one, 10, 10},
           [{routes,
             {routes, start_link, []},
@@ -42,4 +50,4 @@ init(_) ->
            {timeout,
             {timeout, start_link, []},
             permanent, brutal_kill, worker, [timeout]}] ++
-              PubSubSup}}.
+              PubSubSup ++ SolrSup}}.
