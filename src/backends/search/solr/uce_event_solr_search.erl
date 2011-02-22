@@ -47,7 +47,7 @@ to_solrxml(#uce_event{id=Id,
     LocationElement = [{field, [{name,"location"}], [Location]}],
 
     MetadataFlattenElement =
-        [{field, [{name, "metadata"}], [lists:flatten([Value || {_, Value} <- Metadata])]}],
+        [{field, [{name, "metadata"}], [lists:flatten([Value ++ " " || {_, Value} <- Metadata])]}],
 
     MetadataElement =
         lists:map(fun({Key, Value}) ->
@@ -78,7 +78,7 @@ params_to_query([{Key, Value}|Tail]) ->
                         [] ->
                             [];
                         _ ->
-                            "+" ++ params_to_query(Tail)
+                            " +" ++ params_to_query(Tail)
                     end.
 
 list({Location, Domain}, Search, {From, _}, Type, Start, End, Parent) ->
@@ -113,7 +113,7 @@ list({Location, Domain}, Search, {From, _}, Type, Start, End, Parent) ->
     SearchSelector =
         if
             Search /= '_' ->
-                [{"metadata", string:join([Key ++ "*" || Key <- Search], "+")}];
+                [{"metadata", string:join([Key || Key <- Search], "+")}];
             true ->
                 []
         end,
