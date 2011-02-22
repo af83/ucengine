@@ -77,10 +77,7 @@ header {
     height: 94px;
     z-index: 10000;
     background: #474648;
-}
-
-header p {
-    margin: 0;
+    color: white;
 }
 
 #logoPartner {
@@ -90,17 +87,16 @@ header p {
 }
 
 header p {
+    margin: 0;
     position: absolute;
     top: 16px;
     right: 0;
-    color: #3A383A;
-    font-weight: bold;
 }
 
 header p a {
     padding: 0 0 0 5px;
     font: bold 12px Helvetica;
-    color: #222;
+    color: white;
     text-decoration: underline;
 }
 
