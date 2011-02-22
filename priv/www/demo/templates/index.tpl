@@ -40,7 +40,7 @@
         {{^not_connected}}
         <div class="block tweets">
             <div class="block-header">
-                <p><img src="images/image.png" alt="ucengine" /> U.C.Engine</p>
+                <img src="images/image.png" alt="ucengine" /> U.C.Engine
             </div>
             <div class="block-content">
                 <ul id="lastTweets">
@@ -48,9 +48,7 @@
                 </ul>
             </div>
             <div class="block-footer">
-                <ul>
-                    <li><a href="http://twitter.com/ucengine"><img src="images/twitter.png" alt="Twitter" /></a></li>
-                </ul>
+                <a href="http://twitter.com/ucengine"><img src="images/twitter.png" alt="Twitter" /></a>
             </div>
         </div>
         {{/not_connected}}
