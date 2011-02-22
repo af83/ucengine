@@ -1,18 +1,18 @@
 /* File upload widget */
-.ui-widget .ui-fileupload-all ul {
+.ui-widget .ui-fileupload-files ul {
     list-style-type: none;
 }
 
-.ui-widget .ui-fileupload-all ul li {
+.ui-widget .ui-fileupload-files ul li {
     list-style-type: none;
     padding: 8px;
     padding-left: 3em;
 }
 
-.ui-widget .ui-fileupload-all ul li.mime.pdf {
+.ui-widget .ui-fileupload-files ul li.mime.pdf {
     background: url("/demo/images/mime/pdf.png") no-repeat scroll 1em 1em transparent;
 }
-.ui-widget .ui-fileupload-all ul li.mime.default {
+.ui-widget .ui-fileupload-files ul li.mime.default {
     background: url("/demo/images/mime/default.png") no-repeat scroll 1em 1em transparent;
 }
 
@@ -21,9 +21,13 @@
     margin: 1.2em;
 }
 
-.ui-widget .ui-fileupload-preview-page img {
+.ui-widget .ui-fileupload-page img {
     width: 100%;
     margin-top: 1em;
+}
+
+.ui-fileupload .ui-fileupload-filename {
+    font-weight: bold;
 }
 
 .ui-fileupload .ui-download-link {

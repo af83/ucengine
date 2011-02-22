@@ -9,11 +9,11 @@ test("create basic structure", function() {
     ok($('#files_uploaded').hasClass('ui-fileupload'), 'class ui-fileupload');
     equals($('#files_uploaded').find('.ui-fileupload-list').size(), 1);
     equals($('#files_uploaded').find('.ui-fileupload-list').children().size(), 0);
-    equals($('#files_uploaded').find('.ui-fileupload-all').children().size(), 2);
+    equals($('#files_uploaded').find('.ui-fileupload-files').children().size(), 2);
     equals($('#files_uploaded > div .ui-fileupload-add').size(), 1);
-    equals($('#files_uploaded').find('.ui-fileupload-preview').children().size(), 3);
+    equals($('#files_uploaded').find('.ui-fileupload-preview').children().size(), 2);
     equals($('#files_uploaded').find('.ui-preview-toolbar').children().size(), 4);
-    equals($("#files_uploaded").find(".ui-fileupload-all").css('display'), 'block');
+    equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'block');
     equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'none');
 });
 
@@ -74,8 +74,7 @@ jackTest("handle 2 files upload", function() {
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
     $([Factories.createFileEvent({datetime: timestamp}),
        Factories.createFileEvent({id: 'lee.pdf', name: 'lee.pdf', datetime: timestamp})]).each(function(i, item) {
-        
-        $('#files_uploaded').fileupload('triggerUceEvent', item);
+           $('#files_uploaded').fileupload('triggerUceEvent', item);
     });
     equals($('#files_uploaded').find('ul > li').size(), 2);
     equals($('#files_uploaded').find('ul > li:eq(0)').text(), 'norris.pdf ' + date + ' by test_userDownload');
@@ -92,7 +91,7 @@ test("handle conversion done event", function() {
         .returnValue('#');
 
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
-    $([Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
+    $([Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp, mime: 'application/pdf'}),
        Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: {"0": "page_1.jpg"}}),
        Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"})]).each(function(i, item) {
            $('#files_uploaded').fileupload('triggerUceEvent', item);
@@ -143,7 +142,7 @@ test("when clicking the view link, launch preview", function() {
     });
 
     $('#files_uploaded').find('ul > li a.ui-fileupload.ui-view-link').click(function() {
-        equals($("#files_uploaded").find(".ui-fileupload-all").css('display'), 'none');
+        equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'none');
         equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'block');
     });
 });
@@ -177,16 +176,16 @@ test("clear file to share", function() {
 test("view all", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
-    $('#files_uploaded').fileupload("viewAll");
-    equals($("#files_uploaded").find(".ui-fileupload-all").css('display'), 'block');
+    $('#files_uploaded').fileupload("stopPreview");
+    equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'block');
     equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'none');
 });
 
 test("view preview", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
-    $('#files_uploaded').fileupload("viewPreview");
-    equals($("#files_uploaded").find(".ui-fileupload-all").css('display'), 'none');
+    $('#files_uploaded').fileupload("startPreview");
+    equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'none');
     equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'block');
 });
 
