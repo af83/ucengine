@@ -3,15 +3,28 @@
   <types>
     <fieldType name="string" class="solr.StrField" sortMissingLast="true" omitNorms="true"/>
     <fieldType name="integer" class="solr.IntField" omitNorms="true" positionIncrementGap="0"/>
+    <fieldtype class="solr.TextField" positionIncrementGap="100" name="text">
+      <analyzer>
+        <tokenizer class="solr.StandardTokenizerFactory"/>
+        <filter class="solr.StandardFilterFactory"/>
+        <filter class="solr.LowerCaseFilterFactory"/>
+        <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
+        <filter class="solr.ISOLatin1AccentFilterFactory"/>
+        <filter class="solr.TrimFilterFactory" />
+      </analyzer>
+    </fieldtype>
   </types>
+
+
   <fields>
     <field name="id" type="string" stored="true"/>
     <field name="domain" type="string" stored="true"/>
+    <field name="to" type="string" stored="true"/>
     <field name="datetime" type="integer" indexed="true" stored="true"/>
     <field name="type" type="string" indexed="true" stored="true"/>
     <field name="location" type="string" indexed="true" stored="true"/>
     <field name="from" type="string" indexed="true" stored="true"/>
-    <field name="metadata" type="string" indexed="true" stored="true"/>
+    <field name="metadata" type="text" indexed="true" stored="true"/>
     <dynamicField name="metadata_*" type="string" stored="true"/>
   </fields>
  <uniqueKey>id</uniqueKey>
