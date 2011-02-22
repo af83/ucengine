@@ -10,7 +10,10 @@
         <filter class="solr.LowerCaseFilterFactory"/>
         <filter class="solr.StopFilterFactory" words="stopwords.txt" ignoreCase="true"/>
         <filter class="solr.ISOLatin1AccentFilterFactory"/>
-        <filter class="solr.TrimFilterFactory" />
+        <filter class="solr.TrimFilterFactory"/>
+        <filter class="solr.SynonymFilterFactory" synonyms="synonyms.txt" ignoreCase="true" expand="false"/>
+        <filter class="solr.LengthFilterFactory" min="3"/>
+        <filter class="solr.WordDelimiterFilterFactory"/>
       </analyzer>
     </fieldtype>
   </types>
