@@ -44,9 +44,9 @@ collection_member_to_list(Value) when is_binary(Value) ->
 
 collection_to_list(Collection) ->
     lists:map(fun({Key, Value}) ->
-		      {binary_to_list(Key), collection_member_to_list(Value)}
-	      end,
-	      Collection).
+                      {binary_to_list(Key), collection_member_to_list(Value)}
+              end,
+              Collection).
 
 get_item_from_collection(Key, Collection) ->
     {_Key, Item} = lists:keyfind(list_to_binary(Key), 1, Collection),
