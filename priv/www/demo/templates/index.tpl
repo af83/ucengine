@@ -13,7 +13,7 @@
             </div>
             {{/not_connected}}
         </div>
-        
+
         {{#not_connected}}
         <div class="block">
             <div class="block-header">
@@ -81,7 +81,7 @@
             <div class="block-footer">
             </div>
         </div>
-        
+
         <div class="block events">
             <div class="block-header">
                 <h2>Last events</h2>
@@ -106,7 +106,7 @@
             <div class="block-footer">
             </div>
         </div>
-        
+
         <div class="block events last">
             <div class="block-header">
                 <h2>Upcoming events</h2>
