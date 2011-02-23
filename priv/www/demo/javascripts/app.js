@@ -283,10 +283,6 @@ function sammyapp() {
     this.bind('connected', function(event, data) {
         presence.presence = data.presence;
         presence.user    = data.me;
-        //data.me.can(data.presence, "all", "all", [], function(user) {
-        // add admin menu
-        //$('<li><a href="#/admin">Admin</a></li>').insertBefore($("nav .page ul:first  li:last"));
-        //}, function(user) {});
         var p = $('<p>')
             .attr('class', 'signout')
             .appendTo('header .page');
