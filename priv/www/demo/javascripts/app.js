@@ -287,7 +287,17 @@ function sammyapp() {
         // add admin menu
         //$('<li><a href="#/admin">Admin</a></li>').insertBefore($("nav .page ul:first  li:last"));
         //}, function(user) {});
-        $('header .page').append('<p><span>'+ presence.user +'</span> <a href="#/user/logout">Sign out</a></p>');
+        var p = $('<p>')
+            .attr('class', 'signout')
+            .appendTo('header .page');
+        var span = $('<span>')
+            .text(presence.user)
+            .appendTo(p);
+        var a = $('<a>')
+            .attr('href', '#/user/logout')
+            .text('Sign out')
+            .appendTo(p);
+
         this.app.runRoute('get', '#/');
     });
     this.bind('disconnect', function(event, data) {
