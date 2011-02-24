@@ -52,7 +52,18 @@ init() ->
                              "order",
                              "parent",
                              "_async"],
-                            [required, required, '_', '_', "", 0, infinity, infinity, 1, asc, '_', "no"],
+                            [required,
+                             required,
+                             "",
+                             "",
+                             "",
+                             0,
+                             infinity,
+                             infinity,
+                             1,
+                             asc,
+                             "",
+                             "no"],
                             [string,
                              string,
                              [string, atom],
@@ -65,7 +76,6 @@ init() ->
                              atom,
                              [string, atom],
                              string]}]}].
-
 
 add(Domain, [], Params, Arg) ->
     ?MODULE:add(Domain, [""], Params, Arg);
@@ -102,18 +112,10 @@ list(Domain, [Meeting],
 
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "event", "list", {Meeting, Domain}, [{"from", From}]),
-    Types = case Type of
-                '_' ->
-                    ['_'];
-                _ ->
-                    string:tokens(Type, ",")
-            end,
-    Keywords = case Search of
-                   '_' ->
-                       '_';
-                   _ ->
-                       string:tokens(Search, " ")
-               end,
+
+    Keywords = string:tokens(Search, ","),
+    Types = string:tokens(Type, ","),
+
     case uce_event:list({Meeting, Domain},
                         Keywords,
                         {From, Domain},

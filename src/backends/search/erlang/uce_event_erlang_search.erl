@@ -48,7 +48,8 @@ search_metadata([{_, Value}|Tail], Words) ->
         false ->
             search_metadata(Tail, Words)
     end.
-search(Events, Words) ->
+
+filter(Events, Words) ->
     lists:filter(fun(#uce_event{metadata=Metadata}) ->
 			 search_metadata(Metadata, Words)
 		 end,
@@ -56,5 +57,4 @@ search(Events, Words) ->
 
 list(Location, Search, From, Type, Start, End, Parent) ->
     {ok, Events} = ?EVENT_DBMOD:list(Location, From, Type, Start, End, Parent),
-    {ok, search(Events, Search)}.
-
+    {ok, filter(Events, Search)}.

@@ -48,7 +48,7 @@ get(Id) ->
             throw({error, not_found})
     end.
 
-list(Location, From, Type, Start, End, Parent) ->
+list(Location, From, Types, Start, End, Parent) ->
     SelectLocation = case Location of
                          {"", _} ->
                              [];
@@ -61,17 +61,17 @@ list(Location, From, Type, Start, End, Parent) ->
                      {Uid, _} ->
                          [{"from", Uid}]
                  end,
-    SelectType = if
-                     Type == '_' ->
+    SelectTypes = if
+                     Types == [] ->
                          [];
                      true ->
-                         [{"type", Type}]
+                         [{"type", [{in, Types}]}]
                  end,
     SelectParent = if
-                       Parent == '_' ->
+                       Parent == "" ->
                            [];
                        true ->
-                           [{"parent", Type}]
+                           [{"parent", Parent}]
                    end,
     SelectTime = if
                      Start == 0, End == infinity -> 
@@ -92,7 +92,7 @@ list(Location, From, Type, Start, End, Parent) ->
                        emongo:find_all(?MONGO_POOL,"uce_event",
                                        SelectLocation ++
                                            SelectFrom ++
-                                           SelectType ++
+                                           SelectTypes ++
                                            SelectParent ++
                                            SelectTime,
                                        [{orderby, [{"this.datetime", asc}]}])),

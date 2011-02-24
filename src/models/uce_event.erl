@@ -67,17 +67,19 @@ exists(Id) ->
             end
     end.
 
-list(_, _, _, [], _, _, _, _) ->
-    {ok, []};
-list(Location, Search, From, '_', Uid, Start, End, Parent) ->
-    ?MODULE:list(Location, Search, From, ['_'], Uid, Start, End, Parent);
-list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
+list(Location, Search, From, Types, Uid, Start, End, Parent) ->
     {ok, AllEvents} =
         case Search of
-            '_' ->
-                ?DB_MODULE:list(Location, From, Type, Start, End, Parent);
+            [] ->
+                ?DB_MODULE:list(Location, From, Types, Start, End, Parent);
             _ ->
-                ?SEARCH_MODULE:list(Location, Search, From, Type, Start, End, Parent)
+                uce_event_erlang_search:list(Location,
+                                             Search,
+                                             From,
+                                             Types,
+                                             Start,
+                                             End,
+                                             Parent)
 		end,
     FilteredEvents = lists:filter(fun(#uce_event{to=To}) ->
                                           case To of
@@ -90,5 +92,4 @@ list(Location, Search, From, [Type|Tail], Uid, Start, End, Parent) ->
                                           end
                                   end,
                                   AllEvents),
-    {ok, RemainingEvents} = ?MODULE:list(Location, Search, From, Tail, Uid, Start, End, Parent),
-    {ok, FilteredEvents ++ RemainingEvents}.
+    {ok, FilteredEvents}.

@@ -57,7 +57,9 @@ get(Id) ->
             {ok, Event}
     end.
 
-list(Location, From, Type, Start, End, Parent) ->
+list(Location, From, [], Start, End, Parent) ->
+    ?MODULE:list(Location, From, [""], Start, End, Parent);
+list(Location, From, Types, Start, End, Parent) ->
     {SelectLocation, ResultLocation} =
         case Location of
             {"", _} ->
@@ -72,14 +74,8 @@ list(Location, From, Type, Start, End, Parent) ->
             _ ->
                 {From, {From}}
         end,
-    SelectType = if
-                     Type == '_' ->
-                         '$7';
-                     true ->
-                         Type
-                 end,			  
     SelectParent = if
-                       Parent == '_' ->
+                       Parent == "" ->
                            '$8';
                        true ->
                            Parent
@@ -97,18 +93,31 @@ list(Location, From, Type, Start, End, Parent) ->
                 true ->
                     []
             end,
-    Match = #uce_event{id='$1',
-                       domain='$2',
-                       datetime='$3',
-                       location=SelectLocation,
-                       from=SelectFrom,
-                       to='$6',
-                       type=SelectType,
-                       parent=SelectParent,
-                       metadata='$9'},
-    Result = {{'uce_event', '$1', '$2', '$3', ResultLocation,
-               ResultFrom, '$6', SelectType, SelectParent, '$9'}},
-    {ok, mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])}.
+
+    Events =
+        lists:map(fun(Type) ->
+                          SelectType = if
+                                           Type == "" ->
+                                               '$7';
+                                           true ->
+                                               Type
+                                       end,
+                          
+                          Match = #uce_event{id='$1',
+                                             domain='$2',
+                                             datetime='$3',
+                                             location=SelectLocation,
+                                             from=SelectFrom,
+                                             to='$6',
+                                             type=SelectType,
+                                             parent=SelectParent,
+                                             metadata='$9'},
+                          Result = {{'uce_event', '$1', '$2', '$3', ResultLocation,
+                                     ResultFrom, '$6', SelectType, SelectParent, '$9'}},
+                          mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])
+                  end,
+                  Types),
+    {ok, lists:flatten(Events)}.
 
 drop() ->
     mnesia:clear_table(uce_event).
