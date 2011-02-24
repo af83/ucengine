@@ -80,8 +80,9 @@ setup_controllers() ->
                    search_controller]).
 
 setup_server() ->
-    yaws:start_embedded(config:get(root),
-                        [{servername, "ucengine"},
+    [{DefaultHost, _Config}|Hosts] = config:get(hosts),
+    yaws:start_embedded(config:get(DefaultHost, root),
+                        [{servername, DefaultHost},
                          {listen, {0,0,0,0}},
                          {port, config:get(port)},
                          {appmods, [{"/api/" ++ config:get(version), appmod_uce}]}],
@@ -91,6 +92,13 @@ setup_server() ->
                          {debug, false},
                          {copy_error_log, false},
                          {max_connections, nolimit}]),
+    lists:foreach(fun({Vhost, _}) ->
+                          yaws:add_server(config:get(Vhost, root),
+                                          [{servername, Vhost},
+                                           {listen, {0,0,0,0}},
+                                           {port, config:get(port)},
+                                           {appmods, [{"/api/" ++ config:get(version), appmod_uce}]}])
+                  end, Hosts),
     {ok, GConf, SConfs} = yaws_api:getconf(),
     yaws_api:setconf(GConf#gconf{cache_refresh_secs=config:get(cache_refresh)}, SConfs).
 
