@@ -52,21 +52,21 @@
           metadata = []}).
 
 -record(uce_file, {
-	      % file id
+          % file id
           id = none,
           % domain
           domain,
-	      % name
-	      name,
-	      % {Meeting, Domain}
-	      location = {"", ""},
-	      % path
-	      uri = [],
-	      % mime type
-	      mime = "text/plain",
-	      % name as send by the browser
-	      metadata = []
-	 }).
+          % name
+          name,
+          % {Meeting, Domain}
+          location = {"", ""},
+          % path
+          uri = [],
+          % mime type
+          mime = "text/plain",
+          % name as send by the browser
+          metadata = []
+         }).
 
 -record(uce_user, {
           %% User (name, domain)
