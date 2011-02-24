@@ -110,8 +110,8 @@ setup_controllers() ->
                    file_controller,
                    acl_controller,
                    time_controller,
-                   infos_controller
-                  ]).
+                   infos_controller,
+                   search_controller]).
 
 setup_server() ->
     yaws:start_embedded(config:get(root),
