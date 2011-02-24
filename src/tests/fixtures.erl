@@ -22,7 +22,7 @@
 -export([setup/0, teardown/1]).
 
 setup() ->
-    Domain = config:get(default_domain),
+    {Domain, _Config} = hd(config:get(hosts)),
     Port = config:get(port),
     setup_meetings(Domain),
     setup_users(Domain),
@@ -63,7 +63,7 @@ setup_users(Domain) ->
                          object="presence",
                          location={"", Domain},
                          conditions=[{"user", "participant.user@af83.com"}]}),
-    
+
     AnonymousId = {"anonymous.user@af83.com", Domain},
     catch uce_user:add(#uce_user{id=AnonymousId,
                                  auth="none"}),
@@ -80,7 +80,7 @@ setup_users(Domain) ->
     catch uce_user:add(#uce_user{id={"token.user@af83.com", Domain},
                                  auth="token",
                                  credential="4444"}),
-    
+
     catch uce_user:add(#uce_user{id={"user_2", Domain},
                                  auth="password",
                                  credential="pwd"}),

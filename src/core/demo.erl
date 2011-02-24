@@ -21,10 +21,13 @@
 
 -include("uce.hrl").
 
-
 start() ->
-    Domain = config:get(default_domain),
+    Domains = config:get(hosts),
+    lists:foreach(fun({Domain, _Config}) ->
+                          fill_domain(Domain)
+                  end, Domains).
 
+fill_domain(Domain) ->
     uce_infos:update(#uce_infos{domain=Domain,
                                 metadata=[{"description", "U.C.Engine is a publish/subscribe server with persistence. It allows you to build real time applications like collaboration based services, live meetings, games or anything that fits well in an event driven philosophy."},
                                           {"logo", "ucengine.png"},
