@@ -21,54 +21,20 @@
 
 -include("uce.hrl").
 
--export([sort/1, sort/2, to_json/1, to_xml/1, from_json/1, feed/2, feed/3]).
+-export([sort/1, sort/2, to_json/1, from_json/1, feed/2, feed/3]).
 
 sort(Events) ->
     ?MODULE:sort(Events, asc).
 sort(Events, asc) ->
     lists:sort(fun(Event1, Event2) ->
-		       Event1#uce_event.datetime < Event2#uce_event.datetime
-	       end,
-	       Events);
+                       Event1#uce_event.datetime < Event2#uce_event.datetime
+               end,
+               Events);
 sort(Events, desc) ->
     lists:sort(fun(Event1, Event2) ->
-		       Event1#uce_event.datetime > Event2#uce_event.datetime
-	       end,
-	       Events).
-
-to_xml(#uce_event{id=Id,
-		  location=Location,
-		  from=From,
-		  type=Type,
-		  metadata=Metadata,
-		  parent=Parent,
-		  datetime=Datetime}) ->
-    XMLLocation = case Location of
-		      [""] ->
-			  [];
-		      [Meeting] ->
-			  [{meeting, Meeting}]
-		      end,
-    XMLParent = case Parent of
-		    "" ->
-			[];
-		    _ ->
-			[{parent, Parent}]
-		end,
-    xmerl:export_simple_element({event,
-				 [{'xsi:schemaLocation',
-				   ?BASE_URL ++ "/ucengine/" ++ ?UCE_SCHEMA_LOCATION},
-				  {xmlns, ?UCE_XMLNS},
-				  {type, Type},
-				  {datetime, integer_to_list(Datetime)}] ++
-				     XMLLocation ++
-				     [{from, From},
-				      {id, Id}] ++
-				     XMLParent,
-				 [{metadata, lists:map(fun({Key, Value}) ->
-							       {list_to_atom(Key), [Value]}
-						       end,
-						       Metadata)}]}, xmerl_xml).
+                       Event1#uce_event.datetime > Event2#uce_event.datetime
+               end,
+               Events).
 
 to_json(#uce_event{id=Id,
                    domain=Domain,
@@ -83,7 +49,7 @@ to_json(#uce_event{id=Id,
                            [];
                        {Meeting, Domain} ->
                            [{location, Meeting}]
-		   end,
+                   end,
     JSONParent = case Parent of
                      "" ->
                          [];

@@ -93,11 +93,7 @@
 
 -define(TIMEOUT, 5000).
 
--define(VERSION, config:get(version)).
-
--define(HOST, config:get(host)).
--define(PORT, config:get(port)).
--define(BASE_URL, "http://" ++ ?HOST ++ ":" ++ integer_to_list(?PORT) ++ "/api/" ++ config:get(version)).
+-define(VERSION, "0.3").
 
 -define(SESSION_TIMEOUT, (config:get(presence_timeout) * 1000)).
 

@@ -85,7 +85,7 @@ setup_server() ->
                         [{servername, DefaultHost},
                          {listen, {0,0,0,0}},
                          {port, config:get(port)},
-                         {appmods, [{"/api/" ++ config:get(version), appmod_uce}]}],
+                         {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}],
                         [{auth_log, false},
                          {access_log, false},
                          {copy_errlog, false},
@@ -97,7 +97,7 @@ setup_server() ->
                                           [{servername, Vhost},
                                            {listen, {0,0,0,0}},
                                            {port, config:get(port)},
-                                           {appmods, [{"/api/" ++ config:get(version), appmod_uce}]}])
+                                           {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}])
                   end, Hosts),
     {ok, GConf, SConfs} = yaws_api:getconf(),
     yaws_api:setconf(GConf#gconf{cache_refresh_secs=config:get(cache_refresh)}, SConfs).
