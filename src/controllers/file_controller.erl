@@ -83,7 +83,7 @@ list(Domain, [Meeting], [Uid, Sid], _) ->
 %% @spec (Uri::list) -> list
 %%
 get_path(Uri) ->
-    re:replace(Uri, "file\:\/", config:get(datas), [{return, list}]).
+    re:replace(Uri, "file\:\/\/", "", [{return, list}]).
 
 get(Domain, [Meeting, Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),

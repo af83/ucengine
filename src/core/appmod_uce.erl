@@ -22,7 +22,7 @@
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 
--export([out/1, call_handlers/4]).
+-export([out/1]).
 
 convert(Param, Type)
   when is_atom(Type) ->
@@ -77,20 +77,12 @@ validate(Query, [{Name, Default, Types}|ParamsSpecList]) ->
             [convert(RawValue, Types)] ++ validate(Query, ParamsSpecList)
     end.
 
-call_handlers({Module, Function, ParamsSpecList}, Query, Match, Arg) ->
+call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
     case catch validate(Query, ParamsSpecList) of
         {error, Reason} ->
             json_helpers:error(Reason);
         Params ->
             ?DEBUG("~p~n", [Params]),
-            Domain =
-                case catch string:sub_word(Arg#arg.headers#headers.host, 1, $:) of
-                    Result when is_list(Result) ->
-                        Result;
-                    _ ->
-                        config:get(default_domain)
-                end,
-
             ?DEBUG("~p: call ~p:~p matching ~p with ~p~n", [Domain, Module, Function, Match, Params]),
             case catch Module:Function(Domain, Match, Params, Arg) of
                 {error, Reason} ->
@@ -113,24 +105,73 @@ call_handlers({Module, Function, ParamsSpecList}, Query, Match, Arg) ->
     end.
 
 out(#arg{} = Arg) ->
-    case uce_http:parse(Arg) of
+    case get_host(Arg) of
+        {ok, Host} ->
+            case uce_http:parse(Host, Arg) of
+                {error, Reason} ->
+                    json_helpers:error(Reason);
+                {get_more, _, _} = State ->
+                    State;
+                {Method, Path, Query} ->
+                    process(Host, Method, Path, Query, Arg);
+                _ ->
+                    json_helpers:unexpected_error()
+            end;
         {error, Reason} ->
-            json_helpers:error(Reason);
-        {get_more, _, _} = State ->
-            State;  
-      {Method, Path, Query} ->
-            process(Method, Path, Query, Arg);
-        _ ->
-            json_helpers:unexpected_error()
+            json_helpers:error(Reason)
     end.
 
-process(Method, Path, Query, Arg) ->
+process(Host, Method, Path, Query, Arg) ->
     case routes:get(Method, Path) of
         {ok, Match, Handlers} ->
-            ?MODULE:call_handlers(Handlers, Query, Match, Arg);
+            call_handlers(Host, Handlers, Query, Match, Arg);
         {error, not_found} ->
             ?ERROR_MSG("~p ~p: no route found~n", [Method, Path]),
             json_helpers:error(not_found);
         {error, Reason} ->
             json_helpers:error(Reason)
     end.
+
+get_host(#arg{} = Arg) ->
+    case extract_host(Arg) of
+        {ok, Host} ->
+            valid_host(Host, config:get(hosts));
+        {error, Reason} ->
+            {error, Reason}
+    end.
+
+extract_host(#arg{headers = Headers}) ->
+    case catch string:sub_word(Headers#headers.host, 1, $:) of
+        Host when is_list(Host) ->
+            {ok, Host};
+        _ ->
+            {error, "no host"}
+    end.
+
+valid_host(Host, Hosts) ->
+    case proplists:lookup(Host, Hosts) of
+        none ->
+            {error, "Unknown Host"};
+        _ ->
+            {ok, Host}
+    end.
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+create_headers() ->
+    #arg{}.
+create_headers(Host) ->
+    #arg{headers = #headers{host=Host}}.
+
+extract_host_test() ->
+    ?assertEqual({ok, "localhost"}, extract_host(create_headers("localhost"))),
+    ?assertEqual({ok, "localhost"}, extract_host(create_headers("localhost:5280"))),
+    ?assertEqual({error, "no host"}, extract_host(create_headers())).
+
+host_valid_test() ->
+    ?assertEqual({ok, "localhost"}, valid_host("localhost", [{"localhost", []}, {"demo", []}])),
+    ?assertEqual({ok, "demo"}, valid_host("demo", [{"localhost", []}, {"demo", []}])),
+    ?assertEqual({error, "Unknown Host"}, valid_host("localhost", [{"demo", []}])).
+
+-endif.

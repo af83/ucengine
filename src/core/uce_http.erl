@@ -22,39 +22,39 @@
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 
--export([parse/1]).
+-export([parse/2]).
 
 -record(upload, {fd, filename, uri, last}).
 
-add_file_chunk(Arg, [{part_body, Data}|Res], State) ->
-    add_file_chunk(Arg, [{body, Data}|Res], State);
-add_file_chunk(Arg, [], State) when State#upload.last==true,
-                                    State#upload.filename /= undefined,
-                                    State#upload.fd /= undefined ->
+add_file_chunk(Host, Arg, [{part_body, Data}|Res], State) ->
+    add_file_chunk(Host, Arg, [{body, Data}|Res], State);
+add_file_chunk(_Host, Arg, [], State) when State#upload.last==true,
+                                          State#upload.filename /= undefined,
+                                          State#upload.fd /= undefined ->
 
     file:close(State#upload.fd),
     Query = yaws_api:parse_query(Arg) ++ [{"_uri", State#upload.uri},
                                           {"_filename", State#upload.filename}],
     {done, {'POST', Arg#arg.pathinfo, parse_query(Query)}};
 
-add_file_chunk(_Arg, [], State) when State#upload.last==true ->
+add_file_chunk(_Host, _Arg, [], State) when State#upload.last==true ->
     {done, {error, unexpected_error}};
 
-add_file_chunk(_Arg, [], State) ->
+add_file_chunk(_Host, _Arg, [], State) ->
     {cont, State};
 
-add_file_chunk(Arg, [{head, {_Name, Opts}}|Res], State ) ->
-    case lists:keysearch(filename, 1, Opts) of
-        {value, {_, Fname}} ->
-            Id = utils:random(),
-            Dir = utils:random(3),
-            file:make_dir(config:get(datas) ++ "/" ++ Dir),
-            case file:open(config:get(datas) ++ "/" ++ Dir ++ "/" ++ Id ,[write]) of
+add_file_chunk(Host, Arg, [{head, {_Name, Opts}}|Res], State) ->
+    case lists:keyfind(filename, 1, Opts) of
+        {_, Fname} ->
+            Dir = lists:concat([config:get(Host, datas), "/", utils:random(3)]),
+            FilePath = lists:concat([Dir, "/", utils:random()]),
+            file:make_dir(Dir),
+            case file:open(FilePath,[write]) of
                 {ok, Fd} ->
                     S2 = State#upload{filename = Fname,
-                                      uri="file://" ++ Dir ++ "/" ++ Id,
+                                      uri = "file://"++ FilePath,
                                       fd = Fd},
-                    add_file_chunk(Arg, Res, S2);
+                    add_file_chunk(Host, Arg, Res, S2);
                 Err ->
                     ?ERROR_MSG("Upload error: ~p.~n", [Err]),
                     {done, {error, unexpected_error}}
@@ -64,17 +64,17 @@ add_file_chunk(Arg, [{head, {_Name, Opts}}|Res], State ) ->
             {done, {error, unexpected_error}}
     end;
 
-add_file_chunk(Arg, [{body, Data}|Res], State)
+add_file_chunk(Host, Arg, [{body, Data}|Res], State)
   when State#upload.filename /= undefined ->
     case file:write(State#upload.fd, Data) of
         ok ->
-            add_file_chunk(Arg, Res, State);
+            add_file_chunk(Host, Arg, Res, State);
         Err ->
             ?ERROR_MSG("Upload error: ~p.~n", [Err]),
             {done, {error, unexpected_error}}
     end.
 
-extract(Arg, State) ->
+extract(Host, Arg, State) ->
     Request = Arg#arg.req,
     case Request#http_request.method of
         'GET' ->
@@ -84,14 +84,14 @@ extract(Arg, State) ->
                 "multipart/form-data;"++ _Boundary ->
                     case yaws_api:parse_multipart_post(Arg) of
                         {cont, Cont, Res} ->
-                            case add_file_chunk(Arg, Res, State) of
+                            case add_file_chunk(Host, Arg, Res, State) of
                                 {done, Result} ->
                                     Result;
                                 {cont, NewState} ->
                                     {get_more, Cont, NewState}
                             end;
                         {result, Res} ->
-                            case add_file_chunk(Arg, Res, State#upload{last=true}) of
+                            case add_file_chunk(Host, Arg, Res, State#upload{last=true}) of
                                 {done, Result} ->
                                     Result;
                                 {cont, _} ->
@@ -112,12 +112,12 @@ extract(Arg, State) ->
             end
     end.
 
-parse(#arg{} = Arg)
+parse(Host, #arg{} = Arg)
   when Arg#arg.state == undefined ->
-    extract(Arg, #upload{});
+    extract(Host, Arg, #upload{});
 
-parse(#arg{} = Arg) ->
-    extract(Arg, Arg#arg.state).
+parse(Host, #arg{} = Arg) ->
+    extract(Host, Arg, Arg#arg.state).
 
 extract_dictionary([], _) ->
     [];
