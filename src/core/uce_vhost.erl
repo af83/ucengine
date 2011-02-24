@@ -42,7 +42,7 @@ start_link(Domain) ->
 
 init([Domain]) ->
     setup_bricks(Domain),
-    setup_root(Domain),
+    setup_admin(Domain),
     {ok, Domain}.
 
 handle_call(_, _From, State) ->
@@ -78,11 +78,11 @@ setup_bricks(Domain) ->
                   config:get(Domain, bricks)).
 
 
-setup_root(Domain) ->
+setup_admin(Domain) ->
     Admin = config:get(Domain, admin),
-    Uid = proplists:lookup(uid, Admin),
-    Auth = proplists:lookup(auth, Admin),
-    Credential = proplists:lookup(credential, Admin),
+    Uid = proplists:get_value(uid, Admin),
+    Auth = proplists:get_value(auth, Admin),
+    Credential = proplists:get_value(credential, Admin),
     Metadata = proplists:get_value(metadata, Admin, []),
     catch uce_user:add(#uce_user{id={Uid, Domain},
                                  auth=Auth,
