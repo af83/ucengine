@@ -34,14 +34,13 @@ name(Domain) ->
     list_to_atom(lists:concat([?MODULE, "_", Domain])).
 
 start_link(Domain) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [Domain], []).
+    gen_server:start_link({local, name(Domain)}, ?MODULE, [Domain], []).
 
 %%
 %% gen_server callbacks
 %%
 
 init([Domain]) ->
-    io:format("start ~p~n", [Domain]),
     setup_bricks(Domain),
     setup_root(Domain),
     {ok, Domain}.
@@ -103,6 +102,7 @@ setup_root(Domain) ->
 -include_lib("eunit/include/eunit.hrl").
 
 name_test() ->
-    ?assertEqual(uce_vhost_localhost, name(localhost)).
+    ?assertEqual(uce_vhost_localhost, name(localhost)),
+    ?assertEqual('uce_vhost_example.com', name('example.com')).
 
 -endif.
