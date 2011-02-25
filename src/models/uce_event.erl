@@ -19,7 +19,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, exists/1, list/8]).
+-export([add/1, get/1, exists/1, list/11, search/11]).
 
 -include("uce.hrl").
 -include("uce_models.hrl").
@@ -58,7 +58,7 @@ exists(Id) ->
             true;
         _ ->
             case catch ?MODULE:get(Id) of
-                {error, not_found} -> 
+                {error, not_found} ->
                    false;
                 {error, Reason} ->
                     throw({error, Reason});
@@ -67,29 +67,42 @@ exists(Id) ->
             end
     end.
 
-list(Location, Search, From, Types, Uid, Start, End, Parent) ->
-    {ok, AllEvents} =
-        case Search of
-            [] ->
-                ?DB_MODULE:list(Location, From, Types, Start, End, Parent);
-            _ ->
-                uce_event_erlang_search:list(Location,
-                                             Search,
-                                             From,
-                                             Types,
-                                             Start,
-                                             End,
-                                             Parent)
-		end,
-    FilteredEvents = lists:filter(fun(#uce_event{to=To}) ->
-                                          case To of
-                                              {"", _} -> % all
-                                                  true;
-                                              Uid ->
-                                                  true;
-                                              _ ->
-                                                  false
-                                          end
-                                  end,
-                                  AllEvents),
-    {ok, FilteredEvents}.
+filter_private(Events, Uid) ->
+    lists:filter(fun(#uce_event{to=To}) ->
+                         case To of
+                             {"", _} -> % all
+                                 true;
+                             Uid ->
+                                 true;
+                             _ ->
+                                 false
+                         end
+                 end,
+                 Events).
+
+search(Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
+    {ok, Events} = ?SEARCH_MODULE:list(Location,
+                                       Search,
+                                       From,
+                                       Types,
+                                       DateStart,
+                                       DateEnd,
+                                       Parent,
+                                       Start,
+                                       Max,
+                                       Order),
+    {ok, filter_private(Events, Uid)}.
+
+list(Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
+    {ok, Events} =
+        uce_event_erlang_search:list(Location,
+                                     Search,
+                                     From,
+                                     Types,
+                                     DateStart,
+                                     DateEnd,
+                                     Parent,
+                                     Start,
+                                     Max,
+                                     Order),
+    {ok, filter_private(Events, Uid)}.

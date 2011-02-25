@@ -19,7 +19,7 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/1, commit/0, list/7, delete/2]).
+-export([add/1, commit/0, list/10, delete/2]).
 
 -include("uce.hrl").
 
@@ -87,7 +87,7 @@ params_to_query([{Key, Value}|Tail]) ->
                             " +" ++ params_to_query(Tail)
                     end.
 
-list({Location, Domain}, Search, {From, _}, Type, Start, End, Parent) ->
+list({Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, Start, Rows, Order) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
 
     DomainSelector = [{"domain", Domain}],
@@ -110,7 +110,7 @@ list({Location, Domain}, Search, {From, _}, Type, Start, End, Parent) ->
 
     ParentSelector = 
         if
-            Parent /= '_' ->
+            Parent /= "" ->
                 [{"parent", Parent}];
             true ->
                 []
@@ -118,35 +118,35 @@ list({Location, Domain}, Search, {From, _}, Type, Start, End, Parent) ->
 
     SearchSelector =
         if
-            Search /= '_' ->
+            Search /= [] ->
                 [{"metadata", string:join([Key || Key <- Search], "+")}];
             true ->
                 []
         end,
 
-    TypeSelector =
-        if
-            Type /= '_' ->
+    TypesSelector =
+        case Types of
+            [Type|_] ->
                 [{"type", Type}];
-            true ->
+            _ ->
                 []
         end,
 
     TimeRange =
         if
-            Start /= 0, End /= infinity ->
-                "[" ++ integer_to_list(Start) ++ " TO " ++ integer_to_list(End) ++ "]";
-            Start /= 0 ->
-                "[" ++ integer_to_list(Start) ++ " TO *]";
-            End /= infinity ->
-                "[* TO " ++ integer_to_list(End) ++ "]";
+            DateStart /= 0, DateEnd /= infinity ->
+                "[" ++ integer_to_list(DateStart) ++ " TO " ++ integer_to_list(DateEnd) ++ "]";
+            DateStart /= 0 ->
+                "[" ++ integer_to_list(DateStart) ++ " TO *]";
+            DateEnd /= infinity ->
+                "[* TO " ++ integer_to_list(DateEnd) ++ "]";
             true ->
                 []
         end,
 
     TimeSelector =
         if
-            Start /= 0; End /= infinity ->
+            DateStart /= 0; DateEnd /= infinity ->
                  [{"facet", "on"}, {"facet.field", "datetime"}, {"fq", "datetime:" ++ TimeRange}];
             true ->
                 []
@@ -156,11 +156,21 @@ list({Location, Domain}, Search, {From, _}, Type, Start, End, Parent) ->
                                        DomainSelector ++
                                        ParentSelector ++
                                        FromSelector ++
-                                       TypeSelector ++
+                                       TypesSelector ++
                                        SearchSelector)}],
 
-    EncodedParams = [yaws_api:url_encode(Elem) ++ "=" ++ yaws_api:url_encode(Value) ||
-                        {Elem, Value} <- Query ++ TimeSelector ++ [{"wt", "json"}]],
+    Params = Query ++ TimeSelector ++ [{"wt", "json"},
+                                       {"start", integer_to_list(Start)},
+                                       {"rows", integer_to_list(Rows)},
+                                       {"sort", lists:concat(["datetime ", Order])}],
+    EncodedParams = lists:map(fun({Elem, Value}) ->
+                                      lists:concat([yaws_api:url_encode(Elem),
+                                                    "=",
+                                                    yaws_api:url_encode(Value)])
+                              end,
+                              Params),
+
+    io:format(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")),
 
     case ibrowse:send_req(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&"), [], get) of
         {ok, _, _, JSON} ->

@@ -77,17 +77,16 @@ test_push(BaseUrl, [{RootUid, RootSid}, _]) ->
               {"sid", RootSid},
               {"type", "test_push_1"},
               {"metadata[description]", "pushed_event"}],
-    {struct, [{"result", Id}]} =
-        tests_utils:post(BaseUrl, "/event/testmeeting", Params),
-    {struct, [{"result",
-               {struct, [{"type", "test_push_1"},
-                         {"domain", _},
-                         {"datetime", _},
-                         {"id", Id},
-                         {"location", "testmeeting"},
-                         {"from", RootUid},
-                         {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
-        tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params).
+    {struct, [{"result", Id}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+    ?assertMatch({struct, [{"result",
+                            {struct, [{"type", "test_push_1"},
+                                      {"domain", _},
+                                      {"datetime", _},
+                                      {"id", Id},
+                                      {"location", "testmeeting"},
+                                      {"from", RootUid},
+                                      {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]},
+                 tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params)).
 
 test_push_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
@@ -202,7 +201,8 @@ test_push_not_found_to(BaseUrl, [{RootUid, RootSid}, _]) ->
 test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct, [{"result", {array,
+
+    ?assertMatch({struct, [{"result", {array,
                           [ {struct, [{"type", "test_event_1"}
                                       , {"domain", _}
                                       , {"datetime", _}
@@ -227,7 +227,7 @@ test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
                                       , {"from", "user_3"}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params).
+                         }}]}, tests_utils:get(BaseUrl, "/event/testmeeting", Params)).
 
 test_get_with_keywords(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
@@ -242,7 +242,7 @@ test_get_with_keywords(BaseUrl, [{RootUid, RootSid}, _]) ->
                  {"sid", RootSid},
                  {"search", "lonely"},
                  {"count", "1"}],
-    {struct, [{"result", {array,
+    ?assertMatch({struct, [{"result", {array,
                           [{struct, [{"type", "search_event"}
                                      , {"domain", _}
                                      , {"datetime", _}
@@ -250,7 +250,8 @@ test_get_with_keywords(BaseUrl, [{RootUid, RootSid}, _]) ->
                                      , {"location", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "lonely event"}]}}
-                                    ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet).
+                                    ]}]}}]}, 
+                 tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet)).
 
 test_get_with_keywords_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
@@ -265,7 +266,7 @@ test_get_with_keywords_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
                  {"sid", RootSid},
                  {"search", "hungry"},
                  {"count", "1"}],
-    {struct, [{"result", {array,
+    ?assertMatch({struct, [{"result", {array,
                           [{struct, [{"type", "search_event"}
                                      , {"domain", _}
                                      , {"datetime", _}
@@ -273,7 +274,7 @@ test_get_with_keywords_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
                                      , {"location", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "lonely hungry event"}]}}
-                                    ]}]}}]} = tests_utils:get(BaseUrl, "/event/", ParamsGet).
+                                    ]}]}}]}, tests_utils:get(BaseUrl, "/event/", ParamsGet)).
 
 test_get_with_keywords_with_from(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
@@ -289,7 +290,7 @@ test_get_with_keywords_with_from(BaseUrl, [{RootUid, RootSid}, _]) ->
                  {"from", RootUid},
                  {"search", "lonely"},
                  {"count", "1"}],
-    {struct, [{"result", {array,
+    ?assertMatch({struct, [{"result", {array,
                           [{struct, [{"type", "search_event"}
                                      , {"domain", _}
                                      , {"datetime", _}
@@ -297,7 +298,8 @@ test_get_with_keywords_with_from(BaseUrl, [{RootUid, RootSid}, _]) ->
                                      , {"location", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "lonely event"}]}}
-                                    ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet).
+                                    ]}]}}]}, 
+                 tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet)).
 
 test_get_with_keywords_in_metadata(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
@@ -312,15 +314,16 @@ test_get_with_keywords_in_metadata(BaseUrl, [{RootUid, RootSid}, _]) ->
                  {"sid", RootSid},
                  {"search", "happy"},
                  {"count", "1"}],
-    {struct, [{"result", {array,
-                          [{struct, [{"type", "search_event"}
-                                     , {"domain", _}
-                                     , {"datetime", _}
-                                     , {"id", _}
-                                     , {"location", "testmeeting"}
-                                     , {"from", RootUid}
-                                     , {"metadata", {struct, [{"description", "lonely happy event"}]}}
-                                    ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet).
+    ?assertMatch({struct, [{"result", {array,
+                                       [{struct, [{"type", "search_event"}
+                                                  , {"domain", _}
+                                                  , {"datetime", _}
+                                                  , {"id", _}
+                                                  , {"location", "testmeeting"}
+                                                  , {"from", RootUid}
+                                                  , {"metadata", {struct, [{"description", "lonely happy event"}]}}
+                                                 ]}]}}]}, 
+                 tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet)).
 
 test_get_with_keywords_and_timestart_and_timeend(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
@@ -351,8 +354,6 @@ test_get_with_keywords_and_timestart_and_timeend(BaseUrl, [{RootUid, RootSid}, _
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
-
-    timer:sleep(1000),
 
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
@@ -411,16 +412,17 @@ test_get_with_type(BaseUrl, [{RootUid, RootSid}, _]) ->
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_3"}],
-    {struct, [{"result", {array,
-                          [ {struct, [{"type", "test_event_3"}
-                                      , {"domain", _}
-                                      , {"datetime", Third}
-                                      , {"id", _}
-                                      , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
-                                      , {"metadata", {struct, [{"description", "test"}]}}
-                                     ]}|_]
-                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).
+    ?assertMatch({struct, [{"result", {array,
+                                       [ {struct, [{"type", "test_event_3"}
+                                                   , {"domain", _}
+                                                   , {"datetime", Third}
+                                                   , {"id", _}
+                                                   , {"location", "testmeeting"}
+                                                   , {"from", "user_3"}
+                                                   , {"metadata", {struct, [{"description", "test"}]}}
+                                                  ]}|_]
+                                      }}]},
+                 tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart)).
 
 test_get_with_types(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
@@ -454,24 +456,25 @@ test_get_with_types(BaseUrl, [{RootUid, RootSid}, _]) ->
     ParamsGetStart = [{"uid", RootUid},
                       {"sid", RootSid},
                       {"type", "test_event_3,test_event_1"}],
-    {struct, [{"result", {array,
-                          [ {struct, [{"type", "test_event_1"}
-                                      , {"domain", _}
-                                      , {"datetime", _}
-                                      , {"id", _}
-                                      , {"location", "testmeeting"}
-                                      , {"from", "participant.user@af83.com"}
-                                      , {"metadata", {struct, []}}
-                                     ]},
-                            {struct, [{"type", "test_event_3"}
-                                      , {"domain", _}
-                                      , {"datetime", Third}
-                                      , {"id", _}
-                                      , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
-                                      , {"metadata", {struct, [{"description", "test"}]}}
-                                     ]}|_]
-                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).
+    ?assertMatch({struct, [{"result", {array,
+                                       [ {struct, [{"type", "test_event_1"}
+                                                   , {"domain", _}
+                                                   , {"datetime", _}
+                                                   , {"id", _}
+                                                   , {"location", "testmeeting"}
+                                                   , {"from", "participant.user@af83.com"}
+                                                   , {"metadata", {struct, []}}
+                                                  ]},
+                                         {struct, [{"type", "test_event_3"}
+                                                   , {"domain", _}
+                                                   , {"datetime", Third}
+                                                   , {"id", _}
+                                                   , {"location", "testmeeting"}
+                                                   , {"from", "user_3"}
+                                                   , {"metadata", {struct, [{"description", "test"}]}}
+                                                  ]}|_]
+                                      }}]},
+                 tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart)).
 
 test_get_with_type_and_timestart(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},
@@ -506,16 +509,17 @@ test_get_with_type_and_timestart(BaseUrl, [{RootUid, RootSid}, _]) ->
                       {"sid", RootSid},
                       {"type", "test_event_3"},
                       {"start", integer_to_list(Third)}],
-    {struct, [{"result", {array,
-                          [ {struct, [{"type", "test_event_3"}
-                                      , {"domain", _}
-                                      , {"datetime", Third}
-                                      , {"id", _}
-                                      , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
-                                      , {"metadata", {struct, [{"description", "test"}]}}
-                                     ]}|_]
-                         }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).
+    ?assertMatch({struct, [{"result", {array,
+                                       [ {struct, [{"type", "test_event_3"}
+                                                   , {"domain", _}
+                                                   , {"datetime", Third}
+                                                   , {"id", _}
+                                                   , {"location", "testmeeting"}
+                                                   , {"from", "user_3"}
+                                                   , {"metadata", {struct, [{"description", "test"}]}}
+                                                  ]}|_]
+                                      }}]},
+                 tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart)).
 
 test_get_with_type_and_timestart_and_timeend(BaseUrl, [{RootUid, RootSid}, _]) ->
     Params = [{"uid", RootUid},

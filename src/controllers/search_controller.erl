@@ -32,8 +32,8 @@ init() ->
                              "startIndex",
                              "startPage",
                              "count"],
-                            [required, required, "", 0, 1, infinity],
-                            [string, string, string, integer, integer, [integer, atom]]}]}].
+                            [required, required, "", 0, 1, 10],
+                            [string, string, string, integer, integer, integer]}]}].
 
 extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
     {ok, Regexp} = re:compile("(^|.* )" ++ Term ++ ":([^ ]+)(.*)"),
@@ -49,12 +49,12 @@ extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
 extract_terms(SearchTerms, [], []) ->
     [{"keywords", string:tokens(SearchTerms, " ")}].
 
-search(Domain, [_Type], [Uid, _Sid, SearchTerms, StartIndex, StartPage, Count], Arg) ->
+search(Domain, [_RecordName], [Uid, _Sid, SearchTerms, StartIndex, StartPage, Count], Arg) ->
 %    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
 
     [{"type", Type},
-     {"start", Start},
-     {"end", End},
+     {"start", DateStart},
+     {"end", DateEnd},
      {"location", Location},
      {"from", From},
      {"to", _To},
@@ -62,36 +62,38 @@ search(Domain, [_Type], [Uid, _Sid, SearchTerms, StartIndex, StartPage, Count], 
      {"keywords", Keywords}] =
         extract_terms(SearchTerms,
                       ["type", "start", "end", "location", "from", "to", "parent"],
-                      ["", 0, infinity, "", "", "", ""]),
-    
-    {ok, Events} = uce_event:list({Location, Domain},
-                                  Keywords,
-                                  {From, Domain},
-                                  string:tokens(Type, ","),
-                                  {Uid, Domain},
-                                  Start,
-                                  End,
-                                  Parent),
+                      ["", "0", infinity, "", "", "", ""]),
 
-    ItemsPerPage =
-        case Count of
-            infinity ->
-                length(Events);
-            _ ->
-                Count
-        end,
+    DateEndInt = case DateEnd of
+                     infinity ->
+                         infinity;
+                     A when is_list(A) ->
+                         list_to_integer(A)
+                 end,
 
-    EventPage = helpers:paginate(event_helpers:sort(Events),
-                                  ItemsPerPage,
-                                  StartPage,
-                                  asc),
+    Start = paginate:index(Count, StartIndex, StartPage),
+    {ok, Events} = uce_event:search({Location, Domain},
+                                    Keywords,
+                                    {From, Domain},
+                                    string:tokens(Type, ","),
+                                    {Uid, Domain},
+                                    list_to_integer(DateStart),
+                                    DateEndInt,
+                                    Parent,
+                                    Start,
+                                    Count,
+                                    asc),
 
     {abs_path, Path} = Arg#arg.req#http_request.path,
-    Link = lists:flatten("http://" ++ Arg#arg.headers#headers.host ++ Path),
-    atom_helpers:atom(Link,
-                      "",
-                      SearchTerms,
-                      StartIndex,
-                      StartPage,
-                      ItemsPerPage,
-                      EventPage).
+    Link = lists:concat(["http://", Arg#arg.headers#headers.host, Path]),
+
+    Entries = event_helpers:to_json(Events),
+    Feed = {struct, [{'link', Link},
+                     {'totalResults', length(Events)},
+                     {'startIndex', StartIndex},
+                     {'itemsPerPage', Count},
+                     {'Query', {struct, [{role, "request"},
+                                         {searchTerms, SearchTerms},
+                                         {startPage, StartPage}]}},
+                     {'entries', Entries}]},
+    json_helpers:json(Feed).

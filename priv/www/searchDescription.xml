@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>U.C.Engine Search</ShortName>
+  <Description>Search events in U.C.Engine</Description>
+  <Tags>meeting conferences erlang ruby javascript</Tags>
+  <Contact>ucengine@googlegroups.com</Contact>
+  <Url type="application/atom+xml" template="http://demo.ucengine.org/api/0.3/search/event?searchIndex={searchIndex}&amp;count={count}&amp;searchTerms={searchTerms}&amp;startPage={startPage?}&amp;format=json"/>
+</OpenSearchDescription>

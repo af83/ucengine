@@ -108,7 +108,7 @@ get(Domain, [_, Id], [Uid, Sid], _) ->
 list(Domain, [], Params, Arg) ->
     ?MODULE:list(Domain, [""], Params, Arg);
 list(Domain, [Meeting],
-     [Uid, Sid, Search, Type, From, Start, End, Count, Page, Order, Parent, Async], Arg) ->
+     [Uid, Sid, Search, Type, From, DateStart, DateEnd, Count, Page, Order, Parent, Async], Arg) ->
 
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "event", "list", {Meeting, Domain}, [{"from", From}]),
@@ -116,14 +116,18 @@ list(Domain, [Meeting],
     Keywords = string:tokens(Search, ","),
     Types = string:tokens(Type, ","),
 
+    Start = paginate:index(Count, 0, Page),
     case uce_event:list({Meeting, Domain},
                         Keywords,
                         {From, Domain},
                         Types,
                         {Uid, Domain},
+                        DateStart,
+                        DateEnd,
+                        Parent,
                         Start,
-                        End,
-                        Parent) of
+                        Count,
+                        Order) of
         {ok, []} ->
             case Async of
                 "no" ->
@@ -134,14 +138,12 @@ list(Domain, [Meeting],
                                       {From, Domain},
                                       Types,
                                       {Uid, Domain},
-                                      Start,
-                                      End,
+                                      DateStart,
+                                      DateEnd,
                                       Parent,
                                       Arg#arg.clisock);
                 _ ->
                     {error, bad_parameters}
             end;
-        {ok, Events} ->
-            EventPage = helpers:paginate(event_helpers:sort(Events), Count, Page, Order),
-            json_helpers:json(event_helpers:to_json(EventPage))
+        {ok, Events} -> json_helpers:json(event_helpers:to_json(Events))
     end.
