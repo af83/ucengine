@@ -74,6 +74,10 @@ search_test_() ->
         end
       , fun([_, BaseUrl, Testers, Events]) ->
                 [?_test(test_search(BaseUrl, Testers, Events)),
+                 ?_test(test_search_first(BaseUrl, Testers, Events)),
+                 ?_test(test_search_second(BaseUrl, Testers, Events)),
+                 ?_test(test_search_second_page(BaseUrl, Testers, Events)),
+                 ?_test(test_search_overflow(BaseUrl, Testers, Events)),
                  ?_test(test_search_with_keywords(BaseUrl, Testers, Events)),
                  ?_test(test_search_with_keywords_without_meeting(BaseUrl, Testers, Events)),
                  ?_test(test_search_with_keywords_with_from(BaseUrl, Testers, Events)),
@@ -128,6 +132,65 @@ test_search(BaseUrl, [{RootUid, RootSid}, _], _) ->
                                                              , {"metadata", {struct, [{"description", "test"}]}}
                                                             ]}]
                                           },
+                          tests_utils:get(BaseUrl, "/search/event", Params)).
+
+test_search_first(BaseUrl, [{RootUid, RootSid}, _], _) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"count", "1"}],
+
+    ?MATCH_SEARCH_RESULTS(1, 0, 1, "", 1, {array, [{struct, [{"type", "test_event_1"}
+                                                             , {"domain", _}
+                                                             , {"datetime", _}
+                                                             , {"id", _}
+                                                             , {"location", "testmeeting"}
+                                                             , {"from", "participant.user@af83.com"}
+                                                             , {"metadata", {struct, []}}
+                                                            ]}]},
+                          tests_utils:get(BaseUrl, "/search/event", Params)).
+
+test_search_second(BaseUrl, [{RootUid, RootSid}, _], _) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"count", "1"},
+              {"startIndex", "1"}],
+
+    ?MATCH_SEARCH_RESULTS(1, 1, 1, "", 1, {array, [{struct, [{"type", "test_event_2"}
+                                                             , {"domain", _}
+                                                             , {"datetime", _}
+                                                             , {"id", _}
+                                                             , {"location", "testmeeting"}
+                                                             , {"from", "user_2"}
+                                                             , {"metadata", {struct, []}}
+                                                            ]}]},
+                          tests_utils:get(BaseUrl, "/search/event", Params)).
+
+test_search_second_page(BaseUrl, [{RootUid, RootSid}, _], _) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"count", "1"},
+              {"startPage", "2"}],
+
+    ?MATCH_SEARCH_RESULTS(1, 0, 1, "", 2, {array, [{struct, [{"type", "test_event_2"}
+                                                             , {"domain", _}
+                                                             , {"datetime", _}
+                                                             , {"id", _}
+                                                             , {"location", "testmeeting"}
+                                                             , {"from", "user_2"}
+                                                             , {"metadata", {struct, []}}
+                                                            ]}]},
+                          tests_utils:get(BaseUrl, "/search/event", Params)).
+
+test_search_overflow(BaseUrl, [{RootUid, RootSid}, _], _) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"count", "2"},
+              {"startPage", "2"},
+              {"startIndex", "1"}],
+
+    ?DEBUG("~p~n", [tests_utils:get(BaseUrl, "/search/event", Params)]),
+
+    ?MATCH_SEARCH_RESULTS(0, 1, 2, "", 2, {array, []},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
 test_search_with_keywords(BaseUrl, [{RootUid, RootSid}, _], _) ->
