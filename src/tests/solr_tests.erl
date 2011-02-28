@@ -44,7 +44,7 @@ test_add(Domain) ->
 
 test_search(Domain) ->
     timer:sleep(1000),
-    ok = case uce_event_solr_search:list({"", Domain}, ["This"], {"", Domain}, '_', 0, infinity, '_') of
+    ok = case uce_event_solr_search:list({"", Domain}, ["This"], {"", Domain}, [], 0, infinity, "", 0, 1, asc) of
              {error, Reason} ->
                  {error, Reason};
              {ok, [_]} ->
