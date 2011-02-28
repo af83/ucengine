@@ -178,8 +178,6 @@ list({Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, S
                               end,
                               Params),
 
-    io:format("REQ: ~p~n", [Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")]),
-
     case ibrowse:send_req(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&"), [], get) of
         {ok, _, _, JSON} ->
             {ok, json_to_events(mochijson:decode(JSON))};
