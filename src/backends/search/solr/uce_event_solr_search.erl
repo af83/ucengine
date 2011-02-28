@@ -84,8 +84,16 @@ params_to_query([{Key, Value}|Tail]) ->
                         [] ->
                             [];
                         _ ->
-                            " +" ++ params_to_query(Tail)
-                    end.
+                            " AND " ++ params_to_query(Tail)
+                    end;
+params_to_query([Value|Tail])
+  when is_list(Value) ->
+    Value ++ case Tail of
+                 [] ->
+                     [];
+                 _ ->
+                     " AND " ++ params_to_query(Tail)
+             end.
 
 list({Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, Start, Rows, Order) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
@@ -119,17 +127,17 @@ list({Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, S
     SearchSelector =
         if
             Search /= [] ->
-                [{"metadata", string:join([Key || Key <- Search], "+")}];
+                [{"metadata", string:join(Search, "+")}];
             true ->
                 []
         end,
 
     TypesSelector =
-        case Types of
-            [Type|_] ->
-                [{"type", Type}];
-            _ ->
-                []
+        if
+            Types == [] ->
+                [];
+            true ->
+                [" (" ++ string:join(["type:" ++ Type || Type <- Types], " OR ") ++ ") "]
         end,
 
     TimeRange =
@@ -170,13 +178,13 @@ list({Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, S
                               end,
                               Params),
 
-    io:format(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")),
+    io:format("REQ: ~p~n", [Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&")]),
 
     case ibrowse:send_req(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&"), [], get) of
         {ok, _, _, JSON} ->
             {ok, json_to_events(mochijson:decode(JSON))};
         {error, _} ->
-            {error, bad_parameters}
+            throw({error, bad_parameters})
     end.
 
 json_to_events({struct, JSON}) ->
@@ -211,7 +219,7 @@ make_list_json_events([{struct, Elems}|Tail]) ->
 
         [{array, [Id]},
          {array, [Domain]},
-         {array, [Datetime]},
+         Datetime,
          {array, [Location]},
          {array, [From]},
          {array, [To]},
@@ -240,7 +248,7 @@ make_list_json_events([{struct, Elems}|Tail]) ->
                                  FlatMetadata),
             [#uce_event{id=Id,
                         domain=Domain,
-                        datetime=list_to_integer(Datetime),
+                        datetime=Datetime,
                         location={Location, Domain},
                         from={From, Domain},
                         to={To, Domain},
