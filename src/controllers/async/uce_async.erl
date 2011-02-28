@@ -35,7 +35,10 @@ listen(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
                                       Uid,
                                       Start,
                                       End,
-                                      Parent) of
+                                      Parent,
+                                      0,
+                                      infinity,
+                                      asc) of
                       {error, Reason} ->
                           throw({error, Reason});
                       {ok, Events} ->

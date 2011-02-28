@@ -50,14 +50,16 @@ publish(#uce_event{location=Location, type=Type, from=From, id=Id}) ->
     case Location of
         {"", _} ->
             gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
-            gen_server:call(?MODULE, {publish, Location, '_', From, Id});
+            gen_server:call(?MODULE, {publish, Location, [], From, Id});
         {_, Domain} ->
             gen_server:call(?MODULE, {publish, Location, Type, From, Id}),
-            gen_server:call(?MODULE, {publish, Location, '_', From, Id}),
+            gen_server:call(?MODULE, {publish, Location, [], From, Id}),
             gen_server:call(?MODULE, {publish, {"", Domain}, Type, From, Id}),
-            gen_server:call(?MODULE, {publish, {"", Domain}, '_', From, Id})
+            gen_server:call(?MODULE, {publish, {"", Domain}, [], From, Id})
     end.
 
+subscribe(Pid, Location, Search, From, "", Uid, Start, End, Parent) ->
+    subscribe(Pid, Location, Search, From, [""], Uid, Start, End, Parent);
 subscribe(Pid, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
     [gen_server:cast(?MODULE, {subscribe,
                                Location,
@@ -93,7 +95,7 @@ get_subscribers(Location, Type, From) ->
                                              _ ->
                                                  false
                                          end;
-                                     SubType == '_' ->
+                                     SubType == [] ->
                                          case SubFrom of
                                              {"", _} ->
                                                  true;
