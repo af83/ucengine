@@ -137,7 +137,7 @@ test_search_with_keywords(BaseUrl, [{RootUid, RootSid}, _], _) ->
               {"metadata[description]", "lonely event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
 
-    timer:sleep(1000),
+    timer:sleep(2000),
 
     SearchTerms = lists:concat([" type:search_event",
                                 " location:testmeeting",
@@ -164,7 +164,7 @@ test_search_with_keywords_without_meeting(BaseUrl, [{RootUid, RootSid}, _], _) -
               {"metadata[description]", "lonely hungry event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
 
-    timer:sleep(1000),
+    timer:sleep(2000),
 
     SearchTerms = lists:concat([" type:search_event",
                                 " hungry"]),
@@ -192,7 +192,7 @@ test_search_with_keywords_with_from(BaseUrl, [{RootUid, RootSid}, _], _) ->
               {"metadata[description]", "lonely event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
 
-    timer:sleep(1000),
+    timer:sleep(2000),
 
     SearchTerms = lists:concat([" from:", RootUid,
                                 " lonely"]),
@@ -216,8 +216,6 @@ test_search_with_keywords_with_from(BaseUrl, [{RootUid, RootSid}, _], _) ->
 test_search_with_keywords_and_timestart_and_timeend(BaseUrl,
                                                     [{RootUid, RootSid}, _],
                                                     [_, _, #uce_event{datetime = Datetime}]) ->
-    timer:sleep(1000),
-
     SearchTerms = lists:concat([" start:", Datetime,
                                 " end:", Datetime + 1,
                                 " test"]),
