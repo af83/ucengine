@@ -151,10 +151,11 @@ replace_conditions([{Key, Value}|Tail], Variables) ->
     Condition ++ replace_conditions(Tail, Variables).
 
 trigger(#uce_event{type=Type,
+                   domain=Domain,
                    location=Location,
                    from=From,
                    metadata=UnsecureMetadata}) ->
-    case lists:keyfind(Type, 1, config:get(acl)) of
+    case lists:keyfind(Type, 1, config:get(Domain, acl)) of
         {Type, Rules} ->
             lists:foreach(fun({Object, Action, Conditions}) ->
                                   Metadata =
