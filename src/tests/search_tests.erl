@@ -188,8 +188,6 @@ test_search_overflow(BaseUrl, [{RootUid, RootSid}, _], _) ->
               {"startPage", "2"},
               {"startIndex", "1"}],
 
-    ?DEBUG("~p~n", [tests_utils:get(BaseUrl, "/search/event", Params)]),
-
     ?MATCH_SEARCH_RESULTS(0, 1, 2, "", 2, {array, []},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
