@@ -107,19 +107,19 @@
 -define(SESSION_TIMEOUT, (config:get(presence_timeout) * 1000)).
 
 -define(DEBUG(Format, Args),
-		error_logger:info_msg("DEBUG: ~p:~p: " ++ Format, [?MODULE, ?LINE] ++ Args)).
+        uce_log:debug(Format, [?MODULE, ?LINE], Args)).
 
 -define(INFO_MSG(Format, Args),
-		error_logger:info_msg("~p:~p: " ++ Format, [?MODULE, ?LINE] ++ Args)).
+        error_logger:info_msg(Format, [?MODULE, ?LINE] ++ Args)).
 
 -define(WARNING_MSG(Format, Args),
-		error_logger:warning_msg("~p:~p: " ++ Format, [?MODULE, ?LINE] ++ Args)).
+        error_logger:warning_msg(Format, [?MODULE, ?LINE] ++ Args)).
 
 -define(ERROR_MSG(Format, Args),
-		error_logger:error_msg("~p:~p: " ++ Format, [?MODULE, ?LINE] ++ Args)).
+        error_logger:error_msg(Format, [?MODULE, ?LINE] ++ Args)).
 
 -define(CRITICAL_MSG(Format, Args),
-		error_logger:critical_msg("~p:~p: " ++ Format, [?MODULE, ?LINE] ++ Args)).
+        error_logger:critical_msg(Format, [?MODULE, ?LINE] ++ Args)).
 
 -define(UCE_SCHEMA_LOCATION, "uce_schema_v1.xsd").
 -define(UCE_XMLNS, "http://ucengine.org").
