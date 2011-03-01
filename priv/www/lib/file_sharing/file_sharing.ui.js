@@ -218,12 +218,17 @@ $.uce.widget("filesharing", {
 
     _handleShareStartEvent: function(event) {
         var that = this;
+        var page = 0;
+
+        if (event.metadata.page) {
+            page = parseInt(event.metadata.page);
+        }
         $(this._files).each(
             function(i, file) {
                 if (file.metadata.id == event.metadata.id) {
                     that._shared = {
                         master : event.from,
-                        page   : 0,
+                        page   : page,
                         file   : file
                     };
                     that._refreshPage();

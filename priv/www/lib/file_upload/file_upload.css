@@ -23,7 +23,6 @@
 
 .ui-widget .ui-fileupload-page img {
     width: 100%;
-    margin-top: 1em;
 }
 
 .ui-fileupload .ui-fileupload-filename {
@@ -57,6 +56,12 @@
     width: 24px;
     height: 24px;
     float: left;
+}
+
+.ui-fileupload .ui-preview-toolbar .ui-share-link {
+    line-height: 24px;
+    margin-right: 1em;
+    float: right;
 }
 
 .ui-fileupload .ui-preview-toolbar .ui-toolbar-button.ui-button-stop {

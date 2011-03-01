@@ -35,12 +35,15 @@ var Factories = {
     },
     createDocumentShareStartEvent: function(params) {
         var from = params['from'] || "chuck";
+        var metadata = {id: params.id};
+
+        if (params.page) {
+            metadata.page = params.page;
+        }
         return {
             type: "document.share.start",
             from: from,
-            metadata: {
-                id: params.id
-            }
+            metadata: metadata
         };
     },
     createDocumentShareGotoEvent: function(params) {

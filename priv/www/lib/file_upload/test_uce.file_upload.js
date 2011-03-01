@@ -12,7 +12,7 @@ test("create basic structure", function() {
     equals($('#files_uploaded').find('.ui-fileupload-files').children().size(), 2);
     equals($('#files_uploaded > div .ui-fileupload-add').size(), 1);
     equals($('#files_uploaded').find('.ui-fileupload-preview').children().size(), 2);
-    equals($('#files_uploaded').find('.ui-preview-toolbar').children().size(), 4);
+    equals($('#files_uploaded').find('.ui-preview-toolbar').children().size(), 5);
     equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'block');
     equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'none');
 });
@@ -124,7 +124,7 @@ jackTest("when clicking the share link, fire an event", function() {
     $('#files_uploaded').find('ul > li a.ui-fileupload.ui-share-link').click();
 });
 
-test("when clicking the view link, launch preview", function() {
+jackTest("when clicking the share link in toolbar, fire an event", function() {
     var timestamp = new Date().getTime();
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
     var events =
@@ -141,10 +141,65 @@ test("when clicking the view link, launch preview", function() {
            $('#files_uploaded').fileupload('triggerUceEvent', event);
     });
 
-    $('#files_uploaded').find('ul > li a.ui-fileupload.ui-view-link').click(function() {
+    $('#files_uploaded').find('ul > li a.ui-fileupload.ui-preview-link').click();
+
+    jack.expect("ucemeeting.push")
+        .exactly("1 time")
+        .returnValue('#');
+
+    $('#files_uploaded').find('.ui-preview-toolbar .ui-share-link').click();
+});
+
+test("when clicking the view link, launch preview of document", function() {
+    expect(3);
+    var timestamp = new Date().getTime();
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
+    var events =
+        [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
+         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
+         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document", datetime: timestamp})];
+
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .atLeast("1 time")
+        .returnValue('#');
+
+    $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
+    $(events).each(function(index, event) {
+           $('#files_uploaded').fileupload('triggerUceEvent', event);
+    });
+
+    $('#files_uploaded').find('ul > li a.ui-fileupload.ui-preview-link').click(function() {
         equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'none');
         equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'block');
+        equals($('#files_uploaded .ui-fileupload.ui-selector-current').text(), "1", "The current page");
     });
+    $('#files_uploaded').find('ul > li a.ui-fileupload.ui-preview-link').click();
+});
+
+test("when clicking the view link, launch preview of image", function() {
+    expect(3);
+    var timestamp = new Date().getTime();
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
+    var event =
+        Factories.createFileEvent({id: "page_1.jpg",
+                                   name: "page_1.jpg",
+                                   mime: 'image/jpeg',
+                                   from: "chuck",
+                                   datetime: timestamp});
+
+    jack.expect("ucemeeting.getFileDownloadUrl")
+        .atLeast("1 time")
+        .returnValue('#');
+
+    $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
+    $('#files_uploaded').fileupload('triggerUceEvent', event);
+
+    $('#files_uploaded').find('ul > li a.ui-fileupload.ui-preview-link').click(function() {
+        equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'none');
+        equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'block');
+        equals($('#files_uploaded .ui-fileupload.ui-selector-current').text(), "1", "The current page");
+    });
+    $('#files_uploaded').find('ul > li a.ui-fileupload.ui-preview-link').click();
 });
 
 test("can hide upload button", function() {
@@ -189,7 +244,7 @@ test("view preview", function() {
     equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'block');
 });
 
-jackTest("when click on next, go to the right preview page", function() {
+jackTest("when click on next, go to the right page", function() {
     var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
@@ -237,7 +292,16 @@ test("when click on previous, go to the right preview page", function() {
 });
 
 test("when click on stop, hide preview", function() {
-    $('#files_uploaded .ui-button-stop').click();
+    expect(2);
 
+    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl']);
+    $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
+
+    $('#files_uploaded .ui-button-stop').click(function() {
+        equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'block');
+        equals($("#files_uploaded").find(".ui-fileupload-preview").css('display'), 'none');
+    });
+
+    $('#files_uploaded .ui-button-stop').click();
 });
 
