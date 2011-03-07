@@ -41,9 +41,9 @@ function sammyapp() {
     /**
      * Is infos loaded before anything else ?
      */
-    function isLoaded(callback) {
+    function load_infos(callback) {
         if (!infos) {
-            uce.infos.get(function(err, result, xhr) {
+            presence.presence.infos.get(function(err, result, xhr) {
                 if (err) {
                     return;
                 }
@@ -57,11 +57,10 @@ function sammyapp() {
     }
 
     this.around(selectMenu);
-    this.around(isLoaded);
     function build_home(callback) {
         var c = {welcome         : 'Welcome To U.C.Engine by af83',
                  description     : infos.description,
-                 not_connected   : (presence.presence == null),
+                 not_connected   : (presence.presence == null || presence.user == "anonymous"),
                  format: function() {
                      return function(text, render) {
                          var timestamp = render(text);
@@ -82,7 +81,7 @@ function sammyapp() {
         var waiter = uce.getWaiter(3, function() {
             callback(c);
         });
-        uce.meetings.opened(function(err, result, xhr) {
+        presence.presence.meetings.opened(function(err, result, xhr) {
             if (err) {
                 return;
             }
@@ -105,9 +104,26 @@ function sammyapp() {
 
     this.get('#/', function(context) {
         this.title('Home');
-        build_home(function(c) {
-            context.loadPage('templates/index.tpl', c);
-        });
+        if (presence.presence == null) {
+            uce.presence.create("", "anonymous", "Anonymous",
+                                function(err, result, xhr) {
+                                    if (err) {
+                                        return;
+                                    }
+                                    presence.presence = uce.attachPresence(result);
+                                    presence.user    = "anonymous";
+                                    load_infos(function(c) {
+                                        build_home(function(c) {
+                                            context.loadPage('templates/index.tpl', c);
+                                        });
+                                    });
+                                });
+        }
+        else {
+            build_home(function(c) {
+                context.loadPage('templates/index.tpl', c);
+            });
+        }
     });
     this.post('#/user/login', function() {
         var name     = this.params['email'];
@@ -416,7 +432,7 @@ $.sammy("#meeting", function() {
                                      $(widget.item).trigger('received', ['expanded']);
                                  }});
 
-        presence.presence.time(function(err, time, xhr) {
+        presence.presence.time.get(function(err, time, xhr) {
             addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
         });
 
