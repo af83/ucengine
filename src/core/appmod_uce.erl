@@ -145,13 +145,13 @@ extract_host(#arg{headers = Headers}) ->
         Host when is_list(Host) ->
             {ok, Host};
         _ ->
-            {error, "no host"}
+            {error, not_found}
     end.
 
 valid_host(Host, Hosts) ->
     case proplists:lookup(Host, Hosts) of
         none ->
-            {error, "Unknown Host"};
+            {error, not_found};
         _ ->
             {ok, Host}
     end.
