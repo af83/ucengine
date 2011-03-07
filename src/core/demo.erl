@@ -60,6 +60,22 @@ start() ->
                                                action="add",
                                                object="presence"})
                   end, Users),
+    % anonymous account
+    catch uce_user:add(#uce_user{id={"anonymous", Domain},
+                                 auth="none"}),
+    uce_acl:add(#uce_acl{user={"anonymous", Domain},
+                         action="add",
+                         object="presence"}),
+    uce_acl:add(#uce_acl{user={"anonymous", Domain},
+                         action="get",
+                         object="infos"}),
+    uce_acl:add(#uce_acl{user={"anonymous", Domain},
+                         action="get",
+                         object="meeting"}),
+    uce_acl:add(#uce_acl{user={"anonymous", Domain},
+                         action="list",
+                         object="meeting"}),
+
     Hashtags = ["#TED", "#sinek", "#simonsinek", "#ucengine"],
     lists:foreach(fun(HashTag) ->
                           uce_event:add(#uce_event{domain=Domain,
