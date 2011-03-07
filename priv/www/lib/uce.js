@@ -67,12 +67,6 @@
                 };
                 return waiter;
             },
-            time: function(callback) {
-                get("/time", {}, function(err, result, xhr) {
-                    callback(err, result.result, xhr);
-                });
-                return this;
-            },
             presence: {
                 /**
                  * Create user presence
@@ -117,7 +111,7 @@
                  * Get infos
                  */
                 get: function(callback) {
-                    get("/infos/", {}, function(err, result, xhr) {
+                    get("/infos/", presence, function(err, result, xhr) {
                         if (!err) {
                             callback(err, result.result, xhr);
                         } else {
@@ -147,7 +141,7 @@
                     name: meetingname,
                     uid: (presence || {}).uid,
                     get: function(callback) {
-                        get("/meeting/all/" + meetingname, {}, function(err, result, xhr) {
+                        get("/meeting/all/" + meetingname, presence, function(err, result, xhr) {
                             if (!err) {
                                 callback(err, result.result, xhr);
                             } else {
@@ -386,7 +380,7 @@
                     return this._getCollection("all", callback);
                 },
                 _getCollection: function(type, callback) {
-                    getCollection("/meeting/"+ type, {}, callback);
+                    getCollection("/meeting/"+ type, presence, callback);
                     return this;
                 }
             },
@@ -417,6 +411,14 @@
             users: {
                 get: function(callback) {
                     getCollection("/user/", presence, callback);
+                    return this;
+                }
+            },
+            time: {
+                get: function(callback) {
+                    get("/time", presence, function(err, result, xhr) {
+                        callback(err, result.result, xhr);
+                    });
                     return this;
                 }
             }

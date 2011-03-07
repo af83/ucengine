@@ -180,8 +180,8 @@ jackTest("can close a presence", function() {
 
 jackTest("can get current domain informations", function() {
     stop();
-    addUceApiCall("get", "/api/0.3/infos/", {}, 200, '{"result" : {"domain": "localhost", "metadata": {"name": "myuser", "plop": "plip"}}}');
-    uce.infos.get(function(err, r, xhr) {
+    addUceApiCall("get", "/api/0.3/infos/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : {"domain": "localhost", "metadata": {"name": "myuser", "plop": "plip"}}}');
+    uce.attachPresence(Factories.createPresence()).infos.get(function(err, r, xhr) {
         start();
         equals(err, null);
         same(r, {"domain": "localhost", "metadata": {name: 'myuser', plop: 'plip'}});
@@ -210,8 +210,8 @@ jackTest("can list users", function() {
 
 jackTest("can get opened meetings", function() {
     stop();
-    addUceApiCall("get", "/api/0.3/meeting/opened", {}, 200, '{"result" : [{"name": "mymeeting"}, {}]}');
-    uce.meetings.opened(function(err, r, xhr) {
+    addUceApiCall("get", "/api/0.3/meeting/opened", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}, {}]}');
+    uce.attachPresence(Factories.createPresence()).meetings.opened(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.length, 2);
@@ -220,8 +220,8 @@ jackTest("can get opened meetings", function() {
 
 jackTest("can get closed meetings", function() {
     stop();
-    addUceApiCall("get", "/api/0.3/meeting/closed", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
-    uce.meetings.closed(function(err, r, xhr) {
+    addUceApiCall("get", "/api/0.3/meeting/closed", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    uce.attachPresence(Factories.createPresence()).meetings.closed(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.length, 1);
@@ -230,8 +230,8 @@ jackTest("can get closed meetings", function() {
 
 jackTest("can get upcoming meetings", function() {
     stop();
-    addUceApiCall("get", "/api/0.3/meeting/upcoming", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
-    uce.meetings.upcoming(function(err, r, xhr) {
+    addUceApiCall("get", "/api/0.3/meeting/upcoming", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    uce.attachPresence(Factories.createPresence()).meetings.upcoming(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.length, 1);
@@ -240,8 +240,8 @@ jackTest("can get upcoming meetings", function() {
 
 jackTest("can get all meetings", function() {
     stop();
-    addUceApiCall("get", "/api/0.3/meeting/all", {}, 200, '{"result" : [{"name": "mymeeting"}]}');
-    uce.meetings.all(function(err, r, xhr) {
+    addUceApiCall("get", "/api/0.3/meeting/all", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    uce.attachPresence(Factories.createPresence()).meetings.all(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.length, 1);
@@ -250,8 +250,8 @@ jackTest("can get all meetings", function() {
 
 jackTest("can get meeting", function() {
     stop();
-    addUceApiCall("get", "/api/0.3/meeting/all/mymeeting", {}, 200, '{"result" : {"name": "mymeeting"}}');
-    uce.meeting("mymeeting").get(function(err, r, xhr) {
+    addUceApiCall("get", "/api/0.3/meeting/all/mymeeting", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : {"name": "mymeeting"}}');
+    uce.attachPresence(Factories.createPresence()).meeting("mymeeting").get(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.name, "mymeeting");
@@ -507,8 +507,8 @@ test("get download file url", function() {
 
 jackTest("uce.time",  function() {
     stop();
-    addUceApiCall("get", "/api/0.3/time",  {}, 200, '{"result": "4"}');
-    uce.time(function(err, result, xhr) {
+    addUceApiCall("get", "/api/0.3/time",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": "4"}');
+    uce.attachPresence(Factories.createPresence()).time.get(function(err, result, xhr) {
         start();
         equals(null, err);
         equals(result, 4);
