@@ -82,11 +82,13 @@ add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
 
 list(Domain, [Status], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "meeting", "list"),
     {ok, Meetings} = uce_meeting:list(Domain, Status),
     json_helpers:json({array, [meeting_helpers:to_json(Meeting) || Meeting <- Meetings]}).
 
 get(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "meeting", "get"),
     {ok, Meeting} = uce_meeting:get({Name, Domain}),
     json_helpers:json(meeting_helpers:to_json(Meeting)).
 

@@ -42,6 +42,7 @@ init() ->
 %%
 get(Domain, _UrlParams, [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert({Uid, Domain}, "infos", "get"),
     {ok, #uce_infos{domain=Domain, metadata=Metadata}} = uce_infos:get(Domain),
     json_helpers:json({struct, [{domain, Domain},
                                 {metadata, {struct, Metadata}}]}).
