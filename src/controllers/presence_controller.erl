@@ -27,7 +27,7 @@ init() ->
                 regexp="/presence",
                 callbacks=[{?MODULE, add,
                             ["uid", "credential", "timeout", "metadata"],
-                            [none, none, 0, []],
+                            [required, required, 0, []],
                             [string, string, integer ,dictionary]}]},
 
      #uce_route{method='DELETE',

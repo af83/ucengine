@@ -31,11 +31,17 @@ init() ->
      
      #uce_route{method='GET',
                 regexp="/meeting/([^/]+)",
-                callbacks=[{?MODULE, list, [], [], []}]},
+                callbacks=[{?MODULE, list,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]},
      
      #uce_route{method='GET',
                 regexp="/meeting/all/([^/]+)",
-                callbacks=[{?MODULE, get, [], [], []}]},
+                callbacks=[{?MODULE, get,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]},
      
      #uce_route{method='PUT',
                 regexp="/meeting/all/([^/]+)",
@@ -74,11 +80,13 @@ add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
                                                  metadata=Metadata}),
     json_helpers:created().
 
-list(Domain, [Status], [], _) ->
+list(Domain, [Status], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, Meetings} = uce_meeting:list(Domain, Status),
     json_helpers:json({array, [meeting_helpers:to_json(Meeting) || Meeting <- Meetings]}).
 
-get(Domain, [Name], [], _) ->
+get(Domain, [Name], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, Meeting} = uce_meeting:get({Name, Domain}),
     json_helpers:json(meeting_helpers:to_json(Meeting)).
 

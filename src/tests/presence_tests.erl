@@ -48,7 +48,7 @@ test_presence_create_password(BaseUrl) ->
 test_presence_create_missing_credential(BaseUrl) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
               {"uid", "participant.user@af83.com"}],
-    {struct,[{"error", "bad_credentials"}]} =
+    {struct,[{"error", "missing_parameters"}]} =
         tests_utils:post(BaseUrl, "/presence/", Params).
 
 test_presence_create_bad_password(BaseUrl) ->

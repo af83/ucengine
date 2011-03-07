@@ -24,7 +24,10 @@
 init() ->
     [#uce_route{method='GET',
                 regexp="/infos",
-                callbacks=[{?MODULE, get, [], [], []}]},
+                callbacks=[{?MODULE, get,
+                            ["uid", "sid"],
+                            [required, required],
+                            [string, string]}]},
 
      #uce_route{method='PUT',
                 regexp="/infos",
@@ -37,7 +40,8 @@ init() ->
 %% Get domain informations
 %% Return a json object containing the domain's metadata. Can be empty.
 %%
-get(Domain, _UrlParams, _Params, _) ->
+get(Domain, _UrlParams, [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, #uce_infos{domain=Domain, metadata=Metadata}} = uce_infos:get(Domain),
     json_helpers:json({struct, [{domain, Domain},
                                 {metadata, {struct, Metadata}}]}).

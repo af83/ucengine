@@ -49,8 +49,8 @@ extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
 extract_terms(SearchTerms, [], []) ->
     [{"keywords", string:tokens(SearchTerms, " ")}].
 
-search(Domain, [_RecordName], [Uid, _Sid, SearchTerms, StartIndex, StartPage, Count], Arg) ->
-%    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count], Arg) ->
+    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
 
     [{"type", Type},
      {"start", DateStart},
