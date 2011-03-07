@@ -29,8 +29,8 @@ wait(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
                             {ok, YawsPid} ->
                                 case uce_async:listen(Location,
                                                       Search,
-                                                      From, 
-                                                      Types, 
+                                                      From,
+                                                      Types,
                                                       Uid,
                                                       Start,
                                                       End,
@@ -48,7 +48,7 @@ wait(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
                                         JSONError =
                                             list_to_binary(mochijson:encode({struct,
                                                                              [{error, Error}]})),
-                                        yaws_api:stream_process_deliver_final_chunk(Socket, JSONError)
+                                        yaws_api:stream_chunk_end(Socket, JSONError)
                                 end,
                                 yaws_api:stream_process_end(Socket, YawsPid);
                             {discard, YawsPid}->
