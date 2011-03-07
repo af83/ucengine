@@ -208,8 +208,7 @@ test_user_get_not_found(Domain) ->
 
 test_user_update(Domain) ->
     {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
-                   auth="anonymous",
-                   credential=""}} =
+                   auth="none"}} =
         uce_user:get({"anonymous.user@af83.com", Domain}),
     Params = [ {"domain", [Domain]}
              , {"uid", ["anonymous.user@af83.com"]}

@@ -66,8 +66,7 @@ setup_users(Domain) ->
     
     AnonymousId = {"anonymous.user@af83.com", Domain},
     catch uce_user:add(#uce_user{id=AnonymousId,
-                                 auth="anonymous",
-                                 credential=""}),
+                                 auth="none"}),
     uce_acl:add(#uce_acl{user=AnonymousId,
                          action="add",
                          object="presence",
