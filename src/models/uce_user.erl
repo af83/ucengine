@@ -22,7 +22,6 @@
 -export([add/1, delete/1, update/1, list/1, get/1, exists/1]).
 
 -include("uce.hrl").
--include("uce_models.hrl").
 
 add(#uce_user{id=Id} = User) ->
     case exists(Id) of

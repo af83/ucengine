@@ -30,7 +30,6 @@
          exists/1]).
 
 -include("uce.hrl").
--include("uce_models.hrl").
 
 add(#uce_meeting{id=Id} = Meeting) ->
     case ?MODULE:exists(Id) of

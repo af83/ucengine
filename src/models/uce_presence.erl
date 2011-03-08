@@ -31,7 +31,6 @@
          leave/2]).
 
 -include("uce.hrl").
--include("uce_models.hrl").
 
 add(#uce_presence{id=none}=Presence) ->
     add(Presence#uce_presence{id=utils:random()});

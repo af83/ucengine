@@ -22,7 +22,6 @@
 -export([add/1, list/1, get/1, delete/1]).
 
 -include("uce.hrl").
--include("uce_models.hrl").
 
 add(#uce_file{location=Location, name=Name} = File) ->
     case location_helpers:exists(Location) of

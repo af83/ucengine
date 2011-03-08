@@ -30,7 +30,6 @@
          trigger/1]).
 
 -include("uce.hrl").
--include("uce_models.hrl").
 
 add(#uce_acl{user=User, location=Location} = ACL) ->
     case location_helpers:exists(Location) of

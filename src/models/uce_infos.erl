@@ -18,7 +18,6 @@
 -module(uce_infos).
 
 -include("uce.hrl").
--include("uce_models.hrl").
 
 -export([get/1, update/1]).
 
