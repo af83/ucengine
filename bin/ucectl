@@ -26,7 +26,7 @@ ERL_ARGS="+K true +P 65535 +A 2 -pa ebin -run uce_app  \
 ERL_COMMANDS=""
 PIDFILE=tmp/ucengine.pid
 
-export ERL_LIBS=deps:/usr/lib/yaws/
+export ERL_LIBS=deps:/usr/lib/yaws/:/usr/local/lib/erlang/lib/:/usr/lib/erlang/lib/
 
 run()
 {

@@ -26,15 +26,21 @@
 
 -include("uce.hrl").
 
-default_node() ->
-    NodeDomain =
-        case re:run(atom_to_list(node()), "@(.*)", [{capture, all, list}]) of
-            {match, [_, Domain]} ->
-                Domain;
-            _ ->
-                "localhost"
-        end,
-    list_to_atom("ucengine@" ++ NodeDomain).
+get_node() ->
+    Command = init:get_arguments(),
+    case utils:get(Command, ['-node']) of
+        [none] ->
+            NodeDomain =
+                case re:run(atom_to_list(node()), "@(.*)", [{capture, all, list}]) of
+                    {match, [_, Domain]} ->
+                        Domain;
+                    _ ->
+                        "localhost"
+                end,
+            list_to_atom("ucengine@" ++ NodeDomain);
+        [[Node]] ->
+            list_to_atom(Node)
+    end.
 
 args_to_dictionary([]) ->
     [];
@@ -218,7 +224,7 @@ display(json, Record, Fields) ->
 
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
-    case catch rpc:call(default_node(), Module, Action, Args) of
+    case catch rpc:call(get_node(), Module, Action, Args) of
         {badrpc, Reason} ->
             throw({error, Reason});
         {error, Reason} ->
@@ -505,8 +511,9 @@ action(infos, update, Args) ->
 %%
 %% Utils
 %%
-action(demo, start, Args) ->
-    rpc:call(default_node(), demo, start, Args);
+action(demo, start, _) ->
+    rpc:call(get_node(), demo, start, []),
+    success(started);
 
 action(Object, _, _) ->
     usage(Object).
