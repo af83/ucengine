@@ -24,10 +24,9 @@
 init() ->
     [#uce_route{method='GET',
                 regexp="/time",
-                callbacks=[{?MODULE, get,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]}].
+                callback={?MODULE, get,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}}].
 
 get(Domain, _, [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),

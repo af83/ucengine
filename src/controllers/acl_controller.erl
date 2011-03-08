@@ -24,26 +24,24 @@
 init() ->
     [#uce_route{method='GET',
                 regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
-                types=[user, any, any, meeting],
-                callbacks=[{?MODULE, check,
-                            ["uid", "sid", "conditions"],
-                            [required, required, []],
-                            [string, string, dictionary]}]},
+                callback={?MODULE, check,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"conditions", [], dictionary}]}},
      
      #uce_route{method='PUT',
                 regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
-                types=[user, any, any, meeting],
-                callbacks=[{?MODULE, add,
-                            ["uid", "sid", "conditions"],
-                            [required, required, []],
-                            [string, string, dictionary]}]},
+                callback={?MODULE, add,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"conditions", [], dictionary}]}},
      
      #uce_route{method='DELETE',
                 regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
-                callbacks=[{?MODULE, delete,
-                            ["uid", "sid", "conditions"],
-                            [required, required, []],
-                            [string, string, dictionary]}]}].
+                callback={?MODULE, delete,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"conditions", [], dictionary}]}}].
 
 
 check(Domain, [To, Object, Action], Params, Arg) ->

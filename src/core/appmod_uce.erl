@@ -22,14 +22,14 @@
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 
--export([out/1, call_handlers/4, convert_param/2]).
+-export([out/1, call_handlers/4]).
 
-convert_param(Param, Type)
+convert(Param, Type)
   when is_atom(Type) ->
-    convert_param(Param, [Type]);
-convert_param(_, []) ->
-    {error, bad_parameters};
-convert_param(Param, [Type|Tail]) ->
+    convert(Param, [Type]);
+convert(_, []) ->
+    throw({error, bad_parameters});
+convert(Param, [Type|Tail]) ->
     Result = if
                  Type == string ->
                      Param;
@@ -60,52 +60,29 @@ convert_param(Param, [Type|Tail]) ->
              end,
     case Result of
         {error, _} ->
-            convert_param(Param, Tail);
+            convert(Param, Tail);
         _ ->
             Result
     end.
 
-convert([], []) ->
+validate(_, []) ->
     [];
-convert([RawParam|ParamTail], [Types|TypeTail]) ->
-    case convert_param(RawParam, Types) of
+validate(Query, [{Name, Default, Types}|ParamsSpecList]) ->
+    case utils:get(Query, [Name], [Default]) of
         {error, Reason} ->
-            {error, Reason};
-        Param ->
-            case convert(ParamTail, TypeTail) of
-                {error, Reason} ->
-                    {error, Reason};
-                Remaining ->
-                    [Param] ++ Remaining
-            end
+            throw({error, Reason});
+        [required] ->
+            throw({error, missing_parameters});
+        [RawValue] ->
+            [convert(RawValue, Types)] ++ validate(Query, ParamsSpecList)
     end.
 
-validate(Query, ParamsList, ParamsDefault, Types) ->
-    case utils:get(Query, ParamsList, ParamsDefault) of
-        {error, Reason} ->
-            {error, Reason};
-        RawParams ->
-            case lists:member(required, RawParams) of
-                true ->
-                    {error, missing_parameters};
-                false ->
-                    case convert(RawParams, Types) of
-                        {error, Reason} ->
-                            {error, Reason};
-                        Params ->
-                            {ok, Params}
-                    end
-            end
-    end.
-
-call_handlers([], _, _, _) ->
-    json_helpers:error(not_found);
-call_handlers([{Module, Function, ParamsList, ParamsDefault, Types}|_Tl], Query, Match, Arg) ->
-    case validate(Query, ParamsList, ParamsDefault, Types) of
+call_handlers({Module, Function, ParamsSpecList}, Query, Match, Arg) ->
+    case catch validate(Query, ParamsSpecList) of
         {error, Reason} ->
             json_helpers:error(Reason);
-        {ok, Params} ->
-
+        Params ->
+            ?DEBUG("~p~n", [Params]),
             Domain =
                 case catch string:sub_word(Arg#arg.headers#headers.host, 1, $:) of
                     Result when is_list(Result) ->

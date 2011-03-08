@@ -25,17 +25,17 @@
 init() ->
     [#uce_route{method='POST',
                 regexp="/presence",
-                callbacks=[{?MODULE, add,
-                            ["uid", "credential", "timeout", "metadata"],
-                            [required, "", 0, []],
-                            [string, string, integer ,dictionary]}]},
+                callback={?MODULE, add,
+                          [{"uid", required, string},
+                           {"credential", "", string},
+                           {"timeout", 0, integer},
+                           {"metadata", [], dictionary}]}},
 
      #uce_route{method='DELETE',
                 regexp="/presence/([^/]+)",
-                callbacks=[{?MODULE, delete,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]}].
+                callback={?MODULE, delete,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}}].
 
 add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
     {ok, User} = uce_user:get({Name, Domain}),

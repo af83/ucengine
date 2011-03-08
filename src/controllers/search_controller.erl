@@ -25,15 +25,13 @@
 init() ->
     [#uce_route{method='GET',
                 regexp="/search/([^/]+)",
-                callbacks=[{?MODULE, search,
-                            ["uid",
-                             "sid",
-                             "searchTerms",
-                             "startIndex",
-                             "startPage",
-                             "count"],
-                            [required, required, "", 0, 1, 10],
-                            [string, string, string, integer, integer, integer]}]}].
+                callback={?MODULE, search,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"searchTerms", "", string},
+                           {"startIndex", 0, integer},
+                           {"startPage", 1, integer},
+                           {"count", 10, integer}]}}].
 
 extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
     {ok, Regexp} = re:compile("(^|.* )" ++ Term ++ ":([^ ]+)(.*)"),

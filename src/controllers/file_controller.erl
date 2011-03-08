@@ -26,31 +26,31 @@
 init() ->
     [#uce_route{method='POST',
                 regexp="/file/([^/]+)",
-                callbacks=[{?MODULE, add,
-                            ["uid", "sid", "_filename", "_uri", "metadata"],
-                            [required, required, required, required, []],
-                            [string, string, string, string, dictionary]}]},
+                callback={?MODULE, add,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"_filename", required, string},
+                           {"_uri", required, string},
+                           {"metadata", [], dictionary}]}},
 
      #uce_route{method='GET',
                 regexp="/file/([^/]+)",
-                callbacks=[{?MODULE, list,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]},
+                callback={?MODULE, list,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}},
 
      #uce_route{method='GET',
                 regexp="/file/([^/]+)/([^/]+)",
-                callbacks=[{?MODULE, get,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]},
+                callback={?MODULE, get,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}},
 
      #uce_route{method='DELETE',
                 regexp="/file/([^/]+)/([^/]+)",
-                callbacks=[{?MODULE, delete,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]}].
+                callback={?MODULE, delete,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}}].
+
 
 add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),

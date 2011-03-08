@@ -24,17 +24,16 @@
 init() ->
     [#uce_route{method='GET',
                 regexp="/infos",
-                callbacks=[{?MODULE, get,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]},
+                callback={?MODULE, get,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}},
 
      #uce_route{method='PUT',
                 regexp="/infos",
-                callbacks=[{?MODULE, update,
-                            ["uid", "sid", "metadata"],
-                            [required, required, []],
-                            [string, string, dictionary]}]}].
+                callback={?MODULE, update,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"metadata", [], dictionary}]}}].
 
 %%
 %% Get domain informations

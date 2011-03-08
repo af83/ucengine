@@ -51,13 +51,13 @@ init([]) ->
 
 route(_, _, []) ->
     {error, not_found};
-route(Method, Path, [{PathRoute, #uce_route{method=RouteMethod, callbacks=Handlers}}|Routes]) ->
+route(Method, Path, [{PathRoute, #uce_route{method=RouteMethod, callback=Handler}}|Routes]) ->
     if
         Method == RouteMethod ->
             case re:run(Path, PathRoute, [{capture, all, list}]) of
                 {match, Match} ->
                     [_|Tail] = Match,
-                    {ok, Tail, Handlers};
+                    {ok, Tail, Handler};
                 _ ->
                     route(Method, Path, Routes)
             end;

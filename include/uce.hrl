@@ -87,14 +87,9 @@
           conditions=[]}).
 
 -record(uce_route, {
-          module = [],
-          title = [],
-          desc = [],
-          path = [],
-          types = [],
           method,
           regexp,
-          callbacks}).
+          callback}).
 
 -define(TIMEOUT, 5000).
 

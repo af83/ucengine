@@ -24,38 +24,38 @@
 init() ->
     [#uce_route{method='POST',
                 regexp="/user",
-                callbacks=[{?MODULE, add,
-                            ["uid", "auth", "credential", "metadata"],
-                            [required, required, required, []],
-                            [string, string, string, dictionary]}]},
+                callback={?MODULE, add,
+                          [{"uid", required, string},
+                           {"auth", required, string},
+                           {"credential", required, string},
+                           {"metadata", [], dictionary}]}},
      
      #uce_route{method='GET',
                 regexp="/user",
-                callbacks=[{?MODULE, list,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]},
+                callback={?MODULE, list,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}},
 
      #uce_route{method='GET',
                 regexp="/user/([^/]+)",
-                callbacks=[{?MODULE, get,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]},
+                callback={?MODULE, get,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}},
      
      #uce_route{method='PUT',
                 regexp="/user/([^/]+)",
-                callbacks=[{?MODULE, update,
-                            ["uid", "sid", "auth", "credential", "metadata"],
-                            [required, required, required, required, []],
-                            [string, string, string, string, dictionary]}]},
+                callback={?MODULE, update,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"auth", required, string},
+                           {"credential", required, string},
+                           {"metadata", [], dictionary}]}},
      
      #uce_route{method='DELETE',
                 regexp="/user/([^/]+)",
-                callbacks=[{?MODULE, delete,
-                            ["uid", "sid"],
-                            [required, required],
-                            [string, string]}]}].
+                callback={?MODULE, delete,
+                          [{"uid", required, string},
+                           {"sid", required, string}]}}].
 
 
 add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
