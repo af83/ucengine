@@ -167,11 +167,11 @@ create_headers(Host) ->
 extract_host_test() ->
     ?assertEqual({ok, "localhost"}, extract_host(create_headers("localhost"))),
     ?assertEqual({ok, "localhost"}, extract_host(create_headers("localhost:5280"))),
-    ?assertEqual({error, "no host"}, extract_host(create_headers())).
+    ?assertEqual({error, not_found}, extract_host(create_headers())).
 
 host_valid_test() ->
     ?assertEqual({ok, "localhost"}, valid_host("localhost", [{"localhost", []}, {"demo", []}])),
     ?assertEqual({ok, "demo"}, valid_host("demo", [{"localhost", []}, {"demo", []}])),
-    ?assertEqual({error, "Unknown Host"}, valid_host("localhost", [{"demo", []}])).
+    ?assertEqual({error, not_found}, valid_host("localhost", [{"demo", []}])).
 
 -endif.
