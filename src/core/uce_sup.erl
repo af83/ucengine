@@ -40,7 +40,7 @@ init(ConfigPath) ->
                   {?PUBSUB_MODULE, start_link, []},
                   permanent, brutal_kill, worker, [?PUBSUB_MODULE]}],
     Vhost = [{uce_vhost_sup, {uce_vhost_sup, start_link, []},
-              permanent, brutal_kill, supervisor, [uce_vhost_sup]}],
+              permanent, infinity, supervisor, [uce_vhost_sup]}],
 
     %%    SolrSup = case config:get(search) of
     SolrSup = case df of
