@@ -24,54 +24,61 @@
          false/0,
          created/0,
          created/1,
-         json/1,
-         xml/1]).
+         json/1]).
+
+format_response(Status, Content) ->
+    format_response(Status, "application/json", Content).
+
+format_response(Status, ContentType, Content) ->
+    format_response(Status, ContentType, [], Content).
+
+format_response(Status, "application/json" = ContentType, Headers, Content) ->
+    Body = mochijson:encode(Content),
+    [{status, Status},
+     {content, ContentType, lists:flatten(Body)}] ++ Headers;
+
+format_response(Status, ContentType, Headers, Body) ->
+    [{status, Status},
+     {content, ContentType, lists:flatten(Body)}] ++ Headers.
 
 unexpected_error() ->
-    Content = mochijson:encode({struct, [{error, unexpected_error}]}),
-    [{status, 500},
-     {content, "application/json", lists:flatten(Content)}].
+    format_response(500, {struct, [{error, unexpected_error}]}).
 
 error(Reason) ->
-    case http_helpers:error_to_code(Reason) of
-	500 ->
-	    ?MODULE:unexpected_error();
-	Code ->
-	    Content = mochijson:encode({struct, [{error, Reason}]}),
-	    [{status, Code},
-	     {content, "application/json", lists:flatten(Content)}]
-    end.
+    Code = http_helpers:error_to_code(Reason),
+    format_response(Code, {struct, [{error, Reason}]}).
 
 ok() ->
-    Content = mochijson:encode({struct, [{result, ok}]}),
-    [{status, 200},
-     {content, "application/json", lists:flatten(Content)}].
+    format_response(200, {struct, [{result, ok}]}).
 
 true() ->
-    Content = mochijson:encode({struct, [{result, "true"}]}),
-    [{status, 200},
-     {content, "application/json", lists:flatten(Content)}].
+    format_response(200, {struct, [{result, "true"}]}).
 
 false() ->
-    Content = mochijson:encode({struct, [{result, "false"}]}),
-    [{status, 200},
-     {content, "application/json", lists:flatten(Content)}].
+    format_response(200, {struct, [{result, "false"}]}).
 
 created() ->
-    Content = mochijson:encode({struct, [{result, created}]}),
-    [{status, 201},
-     {content, "application/json", lists:flatten(Content)}].
+    format_response(201, {struct, [{result, created}]}).
 
 created(Id) ->
-    Content = mochijson:encode({struct, [{result, Id}]}),
-    [{status, 201},
-     {content, "application/json", lists:flatten(Content)}].
-
-xml(Content) ->
-    [{status, 200},
-     {content, "application/xml", lists:flatten(Content)}].
+    format_response(201, {struct, [{result, Id}]}).
 
 json(Content) ->
-    JSONContent = mochijson:encode({struct, [{result, Content}]}),
-    [{status, 200},
-     {content, "application/json", lists:flatten(JSONContent)}].
+    format_response(201, {struct, [{result, Content}]}).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+unexpected_error_test() ->
+    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"unexpected_error\"}"}], unexpected_error()).
+
+error_test() ->
+    ?assertMatch([{status, 400}, {content, "application/json", "{\"error\":\"bad_parameters\"}"}], error(bad_parameters)),
+    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"hello_world\"}"}], error("hello_world")).
+
+format_response_test() ->
+    ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}], format_response(200, "{}")),
+    ?assertMatch([{status, 200}, {content, "text/plain", "{}"}], format_response(200, "text/plain", "{}")),
+    ?assertMatch([{status, 200}, {content, "text/plain", "{}"}, {header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], format_response(200, "text/plain", [{header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], "{}")).
+
+-endif.
