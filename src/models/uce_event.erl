@@ -22,7 +22,6 @@
 -export([add/1, get/1, exists/1, list/11, search/11]).
 
 -include("uce.hrl").
--include("uce_async.hrl").
 
 add(#uce_event{id=none}=Event) ->
     ?MODULE:add(Event#uce_event{id=utils:random()});

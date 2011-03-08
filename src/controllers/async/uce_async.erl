@@ -22,7 +22,6 @@
 -export([listen/9]).
 
 -include("uce.hrl").
--include("uce_async.hrl").
 
 listen(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
     ?PUBSUB_MODULE:subscribe(self(), Location, Search, From, Types, Uid, Start, End, Parent),

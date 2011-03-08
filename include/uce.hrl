@@ -127,6 +127,7 @@
 
 % Backends
 
+-define(PUBSUB_MODULE, mnesia_pubsub).
 -define(AUTH_MODULE(Module),
         (fun() ->
                  list_to_atom(Module ++ "_auth")
