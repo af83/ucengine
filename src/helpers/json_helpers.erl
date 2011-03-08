@@ -19,12 +19,12 @@
 
 -export([unexpected_error/0,
          error/1,
-         ok/0,
-         true/0,
-         false/0,
-         created/0,
+         ok/1,
+         true/1,
+         false/1,
          created/1,
-         json/1]).
+         created/2,
+         json/2]).
 
 format_response(Status, Content) ->
     format_response(Status, [], Content).
@@ -41,23 +41,23 @@ error(Reason) ->
     Code = http_helpers:error_to_code(Reason),
     format_response(Code, {struct, [{error, Reason}]}).
 
-ok() ->
-    format_response(200, {struct, [{result, ok}]}).
+ok(_Domain) ->
+    format_response(200, [], {struct, [{result, ok}]}).
 
-true() ->
-    format_response(200, {struct, [{result, "true"}]}).
+true(_Domain) ->
+    format_response(200, [], {struct, [{result, "true"}]}).
 
-false() ->
-    format_response(200, {struct, [{result, "false"}]}).
+false(_Domain) ->
+    format_response(200, [], {struct, [{result, "false"}]}).
 
-created() ->
-    format_response(201, {struct, [{result, created}]}).
+created(_Domain) ->
+    format_response(201, [], {struct, [{result, created}]}).
 
-created(Id) ->
-    format_response(201, {struct, [{result, Id}]}).
+created(_Domain, Id) ->
+    format_response(201, [], {struct, [{result, Id}]}).
 
-json(Content) ->
-    format_response(201, {struct, [{result, Content}]}).
+json(_Domain, Content) ->
+    format_response(201, [], {struct, [{result, Content}]}).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

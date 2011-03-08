@@ -51,9 +51,9 @@ check(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_acl:assert({Uid, Domain}, "acl", "check"),
     case uce_acl:check({To, Domain}, Object, Action, {Meeting, Domain}, Conditions) of
         {ok, true} ->
-            json_helpers:true();
+            json_helpers:true(Domain);
         {ok, false} ->
-            json_helpers:false()
+            json_helpers:false(Domain)
     end.
 
 add(Domain, [To, Object, Action], Params, Arg) ->
@@ -75,7 +75,7 @@ add(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
                                    location={Meeting, Domain},
                                    metadata=[{"action", Action},
                                              {"object", Object}] ++ Conditions}),
-    json_helpers:created().
+    json_helpers:created(Domain).
 
 delete(Domain, [To, Object, Action], Params, Arg) ->
     delete(Domain, [To, Object, Action, "", ""], Params, Arg);
@@ -92,4 +92,4 @@ delete(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
                                    location={Meeting, Domain},
                                    metadata=[{"action", Action},
                                              {"object", Object}] ++ Conditions}),
-    json_helpers:ok().
+    json_helpers:ok(Domain).

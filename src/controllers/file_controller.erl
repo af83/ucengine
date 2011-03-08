@@ -70,13 +70,13 @@ add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
                                         {"name", File#uce_file.name},
                                         {"size", integer_to_list(FileInfo#file_info.size)},
                                         {"mime", File#uce_file.mime}]}),
-    file_helpers:upload(File#uce_file.id).
+    json_helpers:created(Domain, File#uce_file.id).
 
 list(Domain, [Meeting], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "file", "list", {Meeting, Domain}),
     {ok, Files} = uce_file:list({Meeting, Domain}),
-    json_helpers:json({array, [file_helpers:to_json(File) || File <- Files]}).
+    json_helpers:json(Domain, {array, [file_helpers:to_json(File) || File <- Files]}).
 
 %%
 %% @doc Get real path from encoded uri of record uce_file
@@ -94,11 +94,11 @@ get(Domain, [Meeting, Id], [Uid, Sid], _) ->
         {error, Reason} ->
             throw({error, Reason});
         {ok, Content} ->
-            file_helpers:download(File#uce_file.id, Content)
+            file_helpers:download(Domain, File#uce_file.id, Content)
     end.
 
 delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "file", "delete", {Meeting, Domain}, [{"id", Id}]),
     {ok, deleted} = uce_file:delete(Id),
-    json_helpers:ok().
+    json_helpers:ok(Domain).

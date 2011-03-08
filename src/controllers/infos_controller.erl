@@ -43,8 +43,8 @@ get(Domain, _UrlParams, [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "infos", "get"),
     {ok, #uce_infos{domain=Domain, metadata=Metadata}} = uce_infos:get(Domain),
-    json_helpers:json({struct, [{domain, Domain},
-                                {metadata, {struct, Metadata}}]}).
+    json_helpers:json(Domain, {struct, [{domain, Domain},
+                                        {metadata, {struct, Metadata}}]}).
 
 %%
 %% Update domain informations
@@ -54,4 +54,4 @@ update(Domain, _UrlParams, [Uid, Sid, Metadata], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
     {ok, true} = uce_acl:assert({Uid, Domain}, "infos", "update"),
     {ok, updated} = uce_infos:update(#uce_infos{domain=Domain, metadata=Metadata}),
-    json_helpers:ok().
+    json_helpers:ok(Domain).

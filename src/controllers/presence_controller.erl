@@ -49,7 +49,7 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                    from=User#uce_user.id,
                                    location={"", Domain},
                                    type="internal.presence.add"}),
-    json_helpers:created(Id).
+    json_helpers:created(Domain, Id).
 
 delete(Domain, [Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
@@ -61,4 +61,4 @@ delete(Domain, [Id], [Uid, Sid], _) ->
 
     {ok, deleted} = uce_presence:delete(Record#uce_presence.id),
 
-    json_helpers:json(ok).
+    json_helpers:ok(Domain).
