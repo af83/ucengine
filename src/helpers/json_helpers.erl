@@ -27,19 +27,12 @@
          json/1]).
 
 format_response(Status, Content) ->
-    format_response(Status, "application/json", Content).
+    format_response(Status, [], Content).
 
-format_response(Status, ContentType, Content) ->
-    format_response(Status, ContentType, [], Content).
-
-format_response(Status, "application/json" = ContentType, Headers, Content) ->
+format_response(Status, Headers, Content) ->
     Body = mochijson:encode(Content),
     [{status, Status},
-     {content, ContentType, lists:flatten(Body)}] ++ Headers;
-
-format_response(Status, ContentType, Headers, Body) ->
-    [{status, Status},
-     {content, ContentType, lists:flatten(Body)}] ++ Headers.
+     {content, "application/json", lists:flatten(Body)}] ++ Headers.
 
 unexpected_error() ->
     format_response(500, {struct, [{error, unexpected_error}]}).
@@ -78,7 +71,6 @@ error_test() ->
 
 format_response_test() ->
     ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}], format_response(200, "{}")),
-    ?assertMatch([{status, 200}, {content, "text/plain", "{}"}], format_response(200, "text/plain", "{}")),
-    ?assertMatch([{status, 200}, {content, "text/plain", "{}"}, {header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], format_response(200, "text/plain", [{header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], "{}")).
+    ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}, {header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], format_response(200, [{header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], "{}")).
 
 -endif.
