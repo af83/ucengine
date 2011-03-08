@@ -72,7 +72,7 @@
           %% User (name, domain)
           id = none,
           auth,
-          credential,
+          credential = "",
           metadata = []}).
 
 -record(uce_infos, {
