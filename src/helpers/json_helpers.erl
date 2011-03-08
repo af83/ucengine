@@ -18,7 +18,9 @@
 -module(json_helpers).
 
 -export([unexpected_error/0,
+         unexpected_error/1,
          error/1,
+         error/2,
          ok/1,
          true/1,
          false/1,
@@ -37,7 +39,14 @@ format_response(Status, Headers, Content) ->
 unexpected_error() ->
     format_response(500, {struct, [{error, unexpected_error}]}).
 
+unexpected_error(_Domain) ->
+    format_response(500, {struct, [{error, unexpected_error}]}).
+
 error(Reason) ->
+    Code = http_helpers:error_to_code(Reason),
+    format_response(Code, {struct, [{error, Reason}]}).
+
+error(_Domain, Reason) ->
     Code = http_helpers:error_to_code(Reason),
     format_response(Code, {struct, [{error, Reason}]}).
 
