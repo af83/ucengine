@@ -124,3 +124,10 @@
 -define(NEVER_ENDING_MEETING, 0).
 
 -define(PRESENCE_EXPIRED_EVENT, "internal.presence.expired").
+
+% Backends
+
+-define(AUTH_MODULE(Module),
+        (fun() ->
+                 list_to_atom(Module ++ "_auth")
+         end())).

@@ -20,7 +20,6 @@
 -export([init/0, delete/4, add/4]).
 
 -include("uce.hrl").
--include("uce_auth.hrl").
 
 init() ->
     [#uce_route{method='POST',
