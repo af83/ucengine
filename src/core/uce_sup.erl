@@ -19,22 +19,18 @@
 
 -behaviour(supervisor).
 
+-include("uce.hrl").
+
 -export([start_link/0, init/1]).
 
 start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init(_) ->
-    PubSubSup = case config:get(pubsub) of
-                    mnesia ->
-                        [{mnesia_pubsub,
-                          {mnesia_pubsub, start_link, []},
-                          permanent, brutal_kill, worker, [mnesia_pubsub]}];
-                    amqp ->
-                        [{amqp_pubsub,
-                          {amqp_pubsub, start_link, []},
-                          permanent, brutal_kill, worker, [amqp_pubsub]}]
-                end,
+    % TODO: Use the PUBSUB_MODULE macro
+    PubSubSup = [{?PUBSUB_MODULE,
+                  {?PUBSUB_MODULE, start_link, []},
+                  permanent, brutal_kill, worker, [?PUBSUB_MODULE]}],
     SolrSup = case config:get(search) of
                   solr ->
                       [{uce_solr_commiter,
