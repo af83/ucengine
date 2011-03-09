@@ -2,6 +2,10 @@ module('app', {
     setup: function() {
         this.app = $.sammy('#sammy_anchor', sammyapp);
         $.mockjax({
+            url : '/api/0.3/presence/',
+            responseText: { "result": "409832095702309473209" }
+        });
+        $.mockjax({
             url : '/api/0.3/infos/',
             responseText: {"result": {"domain": "localhost",
                                       "metadata": {"description":"af83m\u00e9dia specializes in digital communication. Our mission is to design and manage online content and communities.",
