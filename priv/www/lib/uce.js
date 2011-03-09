@@ -53,8 +53,46 @@
         return uce_api_call("post", url, data, callback);
     }
 
-    function Uce(presence) {
+    function UCEngine() {
+        var presence = null;
         return {
+            connected : false,
+            uid: null,
+            /**
+             * Create user presence
+             */
+            auth: function(uid, credential, metadata, callback) {
+                var params = {uid: uid};
+                if (credential) {
+                    params.credential = credential;
+                }
+                if (!callback) {
+                    callback = metadata;
+                } else {
+                    params.metadata = metadata;
+                }
+                var that = this;
+                post("/presence/", params, function(err, result, xhr) {
+                    if (err) {
+                        callback(err, result, xhr);
+                    } else {
+                        var p = {"uid": uid, "sid": result.result};
+                        that.attachPresence(p);
+                        callback(err, p, xhr);
+                    }
+                });
+                return this;
+            },
+            /**
+             * Close user presence
+             */
+            close: function(callback) {
+                del("/presence/" + presence.sid, presence, callback);
+                this.uid = null;
+                this.connected = false;
+                presence = null;
+                return this;
+            },
             getWaiter : function(calls_needed, callback) {
                 if(calls_needed == 0)
                     callback();
@@ -67,42 +105,15 @@
                 };
                 return waiter;
             },
-            presence: {
-                /**
-                 * Create user presence
-                 */
-                create: function(credential, name, nickname, callback)
-                {
-                    var params = {"metadata" : {"nickname": nickname}};
-                    if (credential) {
-                        params.credential = credential;
-                    }
-                    params.uid = name;
-                    post("/presence/", params, function(err, result, xhr) {
-                        if (err) {
-                            callback(err, result, xhr);
-                        } else {
-                            var presence = {"uid": name, "sid": result.result};
-                            callback(err, presence, xhr);
-                        }
-                    });
-                    return this;
-                },
-                /**
-                 * Close user presence
-                 */
-                close: function(callback) {
-                    del("/presence/" + presence.sid, presence, callback);
-                    return this;
-                }
-            },
             /**
              * Attach presence to a new uce object
              */
-            attachPresence : function(presence) {
-                return new Uce(presence);
+            attachPresence : function(p) {
+                presence = p;
+                this.connected = true;
+                this.uid = p.uid;
+                return this;
             },
-
             /**
              * Domain infos
              */
@@ -424,6 +435,22 @@
             }
         };
     }
-    g.uce = Uce();
+    g.uce = {
+        createClient : function() {
+            return new UCEngine();
+        },
+        getWaiter : function(calls_needed, callback) {
+            if(calls_needed == 0)
+                callback();
+            var ok = true;
+            var waiter = function(){
+                --calls_needed;
+                if (calls_needed == 0 && ok)
+                    callback();
+                // XXX: should we raise an error if waiter called too many times?
+            };
+            return waiter;
+        }
+    };
 
 })(window);

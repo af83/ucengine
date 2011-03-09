@@ -2,13 +2,7 @@ function sammyapp() {
     this.use('Mustache', 'tpl');
     this.use('NestedParams');
     this.use('Title');
-    /**
-     * State of user presence
-     */
-    var presence = {
-        presence: null,
-        user: null
-    };
+    var client = uce.createClient();
     var infos = null;
 
     this.setTitle(function(title) {
@@ -41,9 +35,9 @@ function sammyapp() {
     /**
      * Is infos loaded before anything else ?
      */
-    function load_infos(callback) {
+    function loadInfos(callback) {
         if (!infos) {
-            presence.presence.infos.get(function(err, result, xhr) {
+            client.infos.get(function(err, result, xhr) {
                 if (err) {
                     return;
                 }
@@ -56,11 +50,27 @@ function sammyapp() {
         }
     }
 
+    function connectUser(callback) {
+        if (!client.connected) {
+            client.auth("anonymous", "", function(err, result, xhr) {
+                if (err) {
+                    return;
+                }
+                callback();
+            });
+        } else {
+            callback();
+        }
+    }
+
     this.around(selectMenu);
-    function build_home(callback) {
+    this.around(connectUser);
+    this.around(loadInfos);
+
+    function buildHome(callback) {
         var c = {welcome         : 'Welcome To U.C.Engine by af83',
                  description     : infos.description,
-                 not_connected   : (presence.presence == null || presence.user == "anonymous"),
+                 not_connected   : (client.uid == "anonymous" || !client.connected),
                  format: function() {
                      return function(text, render) {
                          var timestamp = render(text);
@@ -81,7 +91,7 @@ function sammyapp() {
         var waiter = uce.getWaiter(3, function() {
             callback(c);
         });
-        presence.presence.meetings.opened(function(err, result, xhr) {
+        client.meetings.opened(function(err, result, xhr) {
             if (err) {
                 return;
             }
@@ -104,26 +114,9 @@ function sammyapp() {
 
     this.get('#/', function(context) {
         this.title('Home');
-        if (presence.presence == null) {
-            uce.presence.create("", "anonymous", "Anonymous",
-                                function(err, result, xhr) {
-                                    if (err) {
-                                        return;
-                                    }
-                                    presence.presence = uce.attachPresence(result);
-                                    presence.user    = "anonymous";
-                                    load_infos(function(c) {
-                                        build_home(function(c) {
-                                            context.loadPage('templates/index.tpl', c);
-                                        });
-                                    });
-                                });
-        }
-        else {
-            build_home(function(c) {
-                context.loadPage('templates/index.tpl', c);
-            });
-        }
+        buildHome(function(c) {
+            context.loadPage('templates/index.tpl', c);
+        });
     });
     this.post('#/user/login', function() {
         var name     = this.params['email'];
@@ -133,24 +126,23 @@ function sammyapp() {
             return false;
         }
         var that = this;
-        uce.presence.create(password, name, nickname,
-                            function(err, result, xhr) {
-                                if (err) {
-                                    return;
-                                }
-                                var presence = uce.attachPresence(result);
-                                that.trigger('connected', {me:name, presence:presence});
-                            });
+        client.auth(name, password, {nickname: nickname},
+                    function(err, result, xhr) {
+                        if (err) {
+                            return;
+                        }
+                        that.trigger('connected', {me:name});
+                    });
     });
     this.get('#/user/logout', function() {
         var that = this;
-        presence.presence.presence.close(function () {
+        client.close(function () {
             that.trigger('disconnect');
             that.redirect('#/');
         });
     });
     this.get('#/meeting/:name/quit', function(context) {
-        presence.presence.meeting(this.params['name']).leave(function(err) {
+        client.meeting(this.params['name']).leave(function(err) {
             if (err) {
                 return;
             }
@@ -158,12 +150,12 @@ function sammyapp() {
         });
     });
     this.get('#/meeting/:name', function(context) {
-        if (!presence.presence)
+        if (!client.connected || client.uid == 'anonymous')
         {
             return this.redirect('#/');
         }
         this.title('Meeting');
-        var meeting = presence.presence.meeting(this.params['name']);
+        var meeting = client.meeting(this.params['name']);
 
         var that = this;
         meeting.join(function(err, result, xhr) {})
@@ -171,7 +163,7 @@ function sammyapp() {
 
                 /* Make the user leave the meeting on window unload */
                 window.onbeforeunload = function() {
-                    presence.presence.meeting(that.params['name'])
+                    client.meeting(that.params['name'])
                         .leave(function(err, result, xhr) {});
                 };
 
@@ -179,7 +171,7 @@ function sammyapp() {
                          meeting_desc  : result.metadata.description,
                          meeting_users : ""};
                 context.loadPage('templates/meeting.tpl', c, function() {
-                    $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, presence]);
+                    $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, client]);
                 });
             });
     });
@@ -211,82 +203,19 @@ function sammyapp() {
         }
         else {
             var that = this;
-            uce.user.registerWithPassword(this.params['email'],
-                                          this.params['pwd1'],
-                                          {'nickname': this.params['nickname'],
-                                           'company': this.params['company']},
-                                          function(err, result) {
-                                              if (err) {
-                                                  context.loadPage('templates/register.tpl', {'errors': ['Email conflict'],
-                                                                                              'has_error': true});
-                                                  return;
-                                              }
-                                              that.redirect("#/");
-                                          });
+            client.user.registerWithPassword(this.params['email'],
+                                             this.params['pwd1'],
+                                             {'nickname': this.params['nickname'],
+                                              'company': this.params['company']},
+                                             function(err, result) {
+                                                 if (err) {
+                                                     context.loadPage('templates/register.tpl', {'errors': ['Email conflict'],
+                                                                                                 'has_error': true});
+                                                     return;
+                                                 }
+                                                 that.redirect("#/");
+                                             });
         }
-    });
-
-    this.before('#/admin', function() {
-        if (!presence.user)
-            this.redirect('#/');
-    });
-    this.get('#/admin', function(context) {
-        this.title('Admin');
-        var c = {users: []};
-        var waiter = uce.getWaiter(2, function() {
-            context.loadPage('templates/admin.tpl', c);
-        });
-        presence.presence.users.get(function(err, users) {
-            waiter();
-            if (err) throw err;
-            c.users = users;
-        });
-    });
-
-    this.post('#/admin/meeting', function() {
-        var meeting = new EncreMeeting(this.params['name'],
-                                       this.params['start'],
-                                       this.params['end'],
-                                       {description: this.params['description']});
-        var that = this;
-        meeting.create(presence.presence,
-                       function() { that.app.runRoute('get', that.app.getLocation()); },
-                       function() {});
-    });
-
-    this.get('#/admin/meeting/:meeting', function(context) {
-        var meeting = presence.presence.meeting(this.params['meeting']);
-        meeting.get(function(err, meeting) {
-            context.loadPage("templates/meeting.tpl", meeting);
-        });
-    });
-
-    this.del('#/admin/meeting/:meeting', function() {
-
-    });
-
-    this.del("#/admin/user/:user/acl/:action/:object/", function(e) {
-
-    });
-
-    this.del("#/admin/user/:user/acl/:action/:object/:domain", function(e) {
-
-    });
-
-    this.del('#/admin/user/:user', function(e) {
-
-    });
-
-    this.post('#/admin/user/:user', function(e) {
-
-    });
-
-    this.post('#/admin/user', function(e) {
-
-    });
-
-    this.get('#/admin/user/:user', function(e) {
-
     });
 
     this.get('#/about', function() {
@@ -297,13 +226,11 @@ function sammyapp() {
         this.loadPage('templates/tests.tpl');
     });
     this.bind('connected', function(event, data) {
-        presence.presence = data.presence;
-        presence.user    = data.me;
         var p = $('<p>')
             .attr('class', 'signout')
             .appendTo('header .page');
         var span = $('<span>')
-            .text(presence.user)
+            .text(client.uid)
             .appendTo(p);
         var a = $('<a>')
             .attr('href', '#/user/logout')
@@ -313,8 +240,6 @@ function sammyapp() {
         this.app.runRoute('get', '#/');
     });
     this.bind('disconnect', function(event, data) {
-        presence.presence = null;
-        presence.user    = null;
         $('header .page p').remove();
     });
     this.notFound = function() {
@@ -327,6 +252,8 @@ $.sammy("#meeting", function() {
     this.use('NestedParams');
 
     var meeting = null;
+    var result_meeting = null;
+    var client = null;
     var loop = null;
     var inReplay = false;
 
@@ -338,7 +265,7 @@ $.sammy("#meeting", function() {
     this.bind('connect-meeting', function(e, data) {
         meeting = data[0];
         result_meeting = data[1];
-        presence = data[2];
+        client = data[2];
 
         var start = parseInt(result_meeting.start_date, 10);
 
@@ -432,7 +359,7 @@ $.sammy("#meeting", function() {
                                      $(widget.item).trigger('received', ['expanded']);
                                  }});
 
-        presence.presence.time.get(function(err, time, xhr) {
+        client.time.get(function(err, time, xhr) {
             addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
         });
 
