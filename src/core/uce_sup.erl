@@ -27,7 +27,6 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init(_) ->
-    % TODO: Use the PUBSUB_MODULE macro
     PubSubSup = [{?PUBSUB_MODULE,
                   {?PUBSUB_MODULE, start_link, []},
                   permanent, brutal_kill, worker, [?PUBSUB_MODULE]}],
