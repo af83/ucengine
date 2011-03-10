@@ -32,32 +32,32 @@
 -define(HTTP_TIMEOUT, 30000).
 
 get_raw(BaseUrl, Path, Params) ->
-    httpc:request(BaseUrl ++ Path ++ "?" ++ url_encode(Params), httpc:default_profile()).
+    ibrowse:send_req(BaseUrl ++ Path ++ "?" ++ url_encode(Params), [], get).
 
 get(BaseUrl, Path) ->
-    {ok, {_, _, JSON}} = httpc:request(BaseUrl ++ Path, httpc:default_profile()),
+    {ok, _, _, JSON} = ibrowse:send_req(BaseUrl ++ Path, [], get),
     mochijson:decode(JSON).
 get(BaseUrl, Path, Params) ->
-    {ok, {_, _, JSON}} =
-        httpc:request(BaseUrl ++ Path ++ "?" ++ url_encode(Params), httpc:default_profile()),
+    {ok, _, _, JSON} =
+        ibrowse:send_req(BaseUrl ++ Path ++ "?" ++ url_encode(Params), [], get),
     mochijson:decode(JSON).
 
 post(BaseUrl, Path, Params) ->
-    {ok, {_, _, JSON}} =
+    {ok, _, _, JSON} =
         request(BaseUrl, Path, post, [], "application/x-www-form-urlencoded", url_encode(Params)),
     mochijson:decode(JSON).
 
 post(BaseUrl, Path, Params, ContentType, Body) ->
-    {ok, {_, _, JSON}} = request(BaseUrl, Path, post, Params, ContentType, Body),
+    {ok, _, _, JSON} = request(BaseUrl, Path, post, Params, ContentType, Body),
     mochijson:decode(JSON).
 
 put(BaseUrl, Path, Params) ->
-    {ok, {_, _, JSON}} = request(BaseUrl, Path, put, Params, "application/x-www-form-urlencoded", []),
+    {ok, _, _, JSON} = request(BaseUrl, Path, put, Params, "application/x-www-form-urlencoded", []),
     mochijson:decode(JSON).
 
 delete(BaseUrl, Path, Params) ->
-    {ok, {_, _, JSON}} =
-        httpc:request(delete, {BaseUrl ++ Path ++ "?" ++ url_encode(Params), []}, [], []),
+    {ok, _, _, JSON} =
+        ibrowse:send_req(BaseUrl ++ Path ++ "?" ++ url_encode(Params), [], delete),
     mochijson:decode(JSON).
 
 request(BaseUrl, Path, Method, Params, ContentType, Body) ->
@@ -67,11 +67,7 @@ request(BaseUrl, Path, Method, Params, ContentType, Body) ->
                 _ ->
                     "?" ++ url_encode(Params)
             end,
-    Request = httpc:request(Method, {BaseUrl ++ Path ++ Query,
-                                     [], ContentType,
-                                     Body}, [{timeout, ?HTTP_TIMEOUT}], []),
-    {Return, {{_RVersion, RCode, RComment}, _RHeaders, RBody}} = Request,
-    {Return, {RCode, RComment, RBody}}.
+   ibrowse:send_req(BaseUrl ++ Path ++ Query, [{"Content-type", ContentType}], Method, Body, [{content_type, ContentType}]).
 
 url_encode(Params) ->
     UrlEncodedParams = [yaws_api:url_encode(Elem) ++ "=" ++
