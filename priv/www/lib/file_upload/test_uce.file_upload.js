@@ -3,7 +3,7 @@ module("uce.file_upload", {teardown: function() {
 }});
 
 test("create basic structure", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
     ok($('#files_uploaded').hasClass('ui-widget'), 'class ui-widget');
     ok($('#files_uploaded').hasClass('ui-fileupload'), 'class ui-fileupload');
@@ -28,7 +28,7 @@ test("destroy everything", function() {
 jackTest("handle new file upload", function() {
     var timestamp = new Date().getTime();
     var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
 
     jack.expect("ucemeeting.getFileDownloadUrl")
         .atLeast("1 time")
@@ -46,7 +46,7 @@ jackTest("handle new file upload", function() {
 jackTest("handle new image upload", function() {
     var timestamp = new Date().getTime();
     var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
 
     jack.expect("ucemeeting.getFileDownloadUrl")
         .atLeast("1 time")
@@ -65,7 +65,7 @@ jackTest("handle new image upload", function() {
 jackTest("handle 2 files upload", function() {
     var timestamp = new Date().getTime();
     var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
 
     jack.expect("ucemeeting.getFileDownloadUrl")
         .atLeast("1 time")
@@ -84,7 +84,7 @@ jackTest("handle 2 files upload", function() {
 test("handle conversion done event", function() {
     var timestamp = new Date().getTime();
     var date = $.strftime('%m-%d-%y', timestamp);
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
 
     jack.expect("ucemeeting.getFileDownloadUrl")
         .atLeast("1 time")
@@ -102,7 +102,7 @@ test("handle conversion done event", function() {
 
 jackTest("when clicking the share link, fire an event", function() {
     var timestamp = new Date().getTime();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
@@ -126,7 +126,7 @@ jackTest("when clicking the share link, fire an event", function() {
 
 jackTest("when clicking the share link in toolbar, fire an event", function() {
     var timestamp = new Date().getTime();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
@@ -153,7 +153,7 @@ jackTest("when clicking the share link in toolbar, fire an event", function() {
 test("when clicking the view link, launch preview of document", function() {
     expect(3);
     var timestamp = new Date().getTime();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event", datetime: timestamp}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg"]}),
@@ -179,7 +179,7 @@ test("when clicking the view link, launch preview of document", function() {
 test("when clicking the view link, launch preview of image", function() {
     expect(3);
     var timestamp = new Date().getTime();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl', 'push']);
     var event =
         Factories.createFileEvent({id: "page_1.jpg",
                                    name: "page_1.jpg",
@@ -208,7 +208,7 @@ test("can hide upload button", function() {
 });
 
 test("can hide upload button after init", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
     equals($('#files_uploaded .ui-fileupload-add').size(), 1);
     $('#files_uploaded').fileupload("option", "upload", false);
@@ -218,7 +218,7 @@ test("can hide upload button after init", function() {
 });
 
 test("clear file to share", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
     jack.expect("ucemeeting.getFileDownloadUrl")
         .atLeast("1 time")
         .returnValue('toto');
@@ -229,7 +229,7 @@ test("clear file to share", function() {
 });
 
 test("view all", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
     $('#files_uploaded').fileupload("stopPreview");
     equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'block');
@@ -237,7 +237,7 @@ test("view all", function() {
 });
 
 test("view preview", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
     $('#files_uploaded').fileupload("startPreview");
     equals($("#files_uploaded").find(".ui-fileupload-files").css('display'), 'none');
@@ -245,7 +245,7 @@ test("view preview", function() {
 });
 
 jackTest("when click on next, go to the right page", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -267,7 +267,7 @@ jackTest("when click on next, go to the right page", function() {
 });
 
 test("when click on previous, go to the right preview page", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -294,7 +294,7 @@ test("when click on previous, go to the right preview page", function() {
 test("when click on stop, hide preview", function() {
     expect(2);
 
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl']);
     $('#files_uploaded').fileupload({ucemeeting: ucemeeting});
 
     $('#files_uploaded .ui-button-stop').click(function() {

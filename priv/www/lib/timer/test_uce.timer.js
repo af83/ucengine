@@ -1,9 +1,11 @@
-module("uce.timer", {teardown: function() {
-    $('#timer').timer('destroy');
-}});
+module("uce.timer", {
+    teardown: function() {
+        $('#timer').timer('destroy');
+    }
+});
 
 jackTest("create basic structure", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'get']);
     $('#timer').timer({ucemeeting: ucemeeting});
     ok($('#timer').hasClass('ui-widget'), 'class ui-widget');
     ok($('#timer').hasClass('ui-timer'), 'class ui-timer');
@@ -12,9 +14,8 @@ jackTest("create basic structure", function() {
 
 jackTest("the widget retrieves the meeting's informations", function () {
     stop();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
-
-    jack.expect("ucemeeting.get")
+    var ucemeeting = jack.create("ucemeeting", ['on', 'get']);
+   jack.expect("ucemeeting.get")
         .exactly("1 time")
         .mock(function(callback) {
             callback(undefined, Factories.createMeeting(0, "never"), undefined);
@@ -26,7 +27,7 @@ jackTest("the widget retrieves the meeting's informations", function () {
 
 jackTest("test widget default state", function () {
     stop();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'get']);
 
     jack.expect("ucemeeting.get")
         .exactly("1 time")
@@ -42,7 +43,7 @@ jackTest("test widget default state", function () {
 jackTest("test widget increment every second", function () {
     expect(4);
     stop();
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'get']);
 
     jack.expect("ucemeeting.get")
         .exactly("1 time")
@@ -63,7 +64,7 @@ jackTest("test widget increment every second", function () {
 });
 
 jackTest("test remaining time before open", function () {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'get']);
 
     jack.expect("ucemeeting.get")
         .exactly("1 time")
@@ -76,7 +77,7 @@ jackTest("test remaining time before open", function () {
 });
 
 jackTest("test time elapsed after close", function () {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'get']);
 
     jack.expect("ucemeeting.get")
         .exactly("1 time")
@@ -89,7 +90,7 @@ jackTest("test time elapsed after close", function () {
 });
 
 jackTest("test meeting infinity", function () {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'get']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'get']);
 
     jack.expect("ucemeeting.get")
         .exactly("1 time")

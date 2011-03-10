@@ -90,7 +90,7 @@ test("toggle to big mode", function() {
 });
 
 jackTest("add hashtag", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'push']);
     jack.expect("ucemeeting.push")
         .exactly("1 time")
         .mock(function(eventname, metadata) {
@@ -109,7 +109,7 @@ module("uce.chat", {
     setup: function() {
         var that = this;
         var ucemeeting = {
-            bind: function(eventName, callback) {
+            on: function(eventName, callback) {
                 if (eventName == "twitter.hashtag.add") {
                     that.callback_hashtag = callback;
                 } else if (eventName == "twitter.tweet.new") {

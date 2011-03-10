@@ -483,7 +483,22 @@ test("startLoop widgets/whatever can bind event handler with special type", func
     var client = this.client.attachPresence(Factories.createPresence());
     longPollingTest([{type: "chuck_norris", datetime : 14}, {type: "plop"}],
                     function(longPolling) {
-        longPolling.xhr = client.meeting("mymeeting").bind("chuck_norris", function(event) {
+                        longPolling.xhr = client.meeting("mymeeting").on("chuck_norris", function(event) {
+                            same(event, {type : "chuck_norris", datetime: 14});
+                            equals(longPolling.ajaxcall, 1);
+                            longPolling.xhr.stop();
+                            start();
+                        }).startLoop(1213);
+                    });
+});
+
+test("startLoop with 'bind', alias of 'on'", function() {
+    stop()
+    expect(2);
+    var client = this.client.attachPresence(Factories.createPresence());
+    longPollingTest([{type: "chuck_norris", datetime : 14}, {type: "plop"}],
+                    function(longPolling) {
+        longPolling.xhr = client.meeting("mymeeting").on("chuck_norris", function(event) {
             same(event, {type : "chuck_norris", datetime: 14});
             equals(longPolling.ajaxcall, 1);
             longPolling.xhr.stop();

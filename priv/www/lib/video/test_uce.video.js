@@ -65,7 +65,7 @@ test("receive video", function() {
 });
 
 jackTest("on receive, handle video.stream.new", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind']);
+    var ucemeeting = jack.create("ucemeeting", ['on']);
     $("#video").video({ucemeeting: ucemeeting,
                        "domain": "example.org"});
     equals($("#video .ui-widget-content embed").size(), 0);
@@ -75,7 +75,7 @@ jackTest("on receive, handle video.stream.new", function() {
 });
 
 jackTest("publish then stop a video stream", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind']);
+    var ucemeeting = jack.create("ucemeeting", ['on']);
     $("#video").video({ucemeeting: ucemeeting});
     ucemeeting.uid = 'john';
     $("#video").video("triggerUceEvent", Factories.createStreamNew("john"));
@@ -89,7 +89,7 @@ jackTest("publish then stop a video stream", function() {
 });
 
 jackTest("desactivate/activate the publish button when a stream start and stop", function () {
-    var ucemeeting = jack.create("ucemeeting", ['bind']);
+    var ucemeeting = jack.create("ucemeeting", ['on']);
     ucemeeting.uid = 'john';
     $("#video").video({ucemeeting: ucemeeting});
     $("#video").video("triggerUceEvent", Factories.createStreamNew());
@@ -104,7 +104,7 @@ jackTest("desactivate/activate the publish button when a stream start and stop",
 });
 
 jackTest("doesn't desactivate the publish button when a stream started by the same uid", function () {
-    var ucemeeting = jack.create("ucemeeting", ['bind']);
+    var ucemeeting = jack.create("ucemeeting", ['on']);
     ucemeeting.uid = 'root';
     $("#video").video({ucemeeting: ucemeeting});
     $("#video").video("triggerUceEvent", Factories.createStreamNew("root"));
@@ -113,7 +113,7 @@ jackTest("doesn't desactivate the publish button when a stream started by the sa
 });
 
 jackTest("show message when there is no stream available", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind']);
+    var ucemeeting = jack.create("ucemeeting", ['on']);
     ucemeeting.uid = 'root';
     $("#video").video({ucemeeting: ucemeeting});
     $("#video").video("triggerUceEvent", Factories.createStreamNew());

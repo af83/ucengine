@@ -3,7 +3,7 @@ module("uce.file_sharing", {teardown: function() {
 }});
 
 test("create basic structure", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
     $('#files_shared').filesharing({ucemeeting: ucemeeting});
     ok($('#files_shared').hasClass('ui-widget'), 'class ui-widget');
     ok($('#files_shared').hasClass('ui-filesharing'), 'class ui-filesharing');
@@ -22,7 +22,7 @@ test("destroy everything", function() {
 });
 
 test("clear file to share", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileDownloadUrl', 'getFileUploadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileDownloadUrl', 'getFileUploadUrl']);
     jack.expect("ucemeeting.getFileDownloadUrl")
         .atLeast("1 time")
         .returnValue('toto');
@@ -33,7 +33,7 @@ test("clear file to share", function() {
 });
 
 jackTest("handle roster delete event", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -58,7 +58,7 @@ jackTest("handle roster delete event", function() {
 });
 
 jackTest("handle new document share start", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -86,7 +86,7 @@ jackTest("handle new document share start", function() {
 });
 
 jackTest("handle new document share start with a starting page number", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -117,7 +117,7 @@ jackTest("handle new document share start with a starting page number", function
 });
 
 jackTest("when a 'document.share.goto' event is received, go to the right page", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -148,7 +148,7 @@ jackTest("when a 'document.share.goto' event is received, go to the right page",
 });
 
 jackTest("when click on next, go to the right page", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'push', 'getFileUploadUrl', 'getFileDownloadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'push', 'getFileUploadUrl', 'getFileDownloadUrl']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -177,7 +177,7 @@ jackTest("when click on next, go to the right page", function() {
 });
 
 jackTest("when click on previous, go to the right page", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'push', 'getFileUploadUrl', 'getFileDownloadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'push', 'getFileUploadUrl', 'getFileDownloadUrl']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -207,7 +207,7 @@ jackTest("when click on previous, go to the right page", function() {
 });
 
 jackTest("when click on stop, send a 'document.share.stop' event", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'push', 'getFileUploadUrl', 'getFileDownloadUrl']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'push', 'getFileUploadUrl', 'getFileDownloadUrl']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
@@ -235,7 +235,7 @@ jackTest("when click on stop, send a 'document.share.stop' event", function() {
 });
 
 jackTest("when a 'document.share.stop' event is received, stop the file sharing", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
+    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
         [Factories.createFileEvent({eventId: "id_upload_event"}),
          Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",

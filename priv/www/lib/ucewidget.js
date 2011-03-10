@@ -17,7 +17,7 @@
                         var method = this.meetingsEvents[ucevent];
                         if (method) {
                             method = $.proxy(this[method], this);
-                            this.options.ucemeeting.bind(ucevent, method);
+                            this.options.ucemeeting.on(ucevent, method);
                         }
                     }
                 }

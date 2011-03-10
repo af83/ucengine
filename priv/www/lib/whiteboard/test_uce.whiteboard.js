@@ -32,8 +32,8 @@ test("hide/show controls after init", function() {
 });
 
 jackTest("bind event handler", function() {
-    var ucemeeting = jack.create("ucemeeting", ['bind']);
-    jack.expect("ucemeeting.bind")
+    var ucemeeting = jack.create("ucemeeting", ['on']);
+    jack.expect("ucemeeting.on")
         .exactly("2 times");
     $('#whiteboard').whiteboard({ucemeeting: ucemeeting});
 });
@@ -47,17 +47,17 @@ function emptyCanvas() {
 
 jackTest("when performing action, send event to ucengine", function() {
     expect(9);
-    var ucemeeting = jack.create("ucemeeting", ['push', 'bind']);
+    var ucemeeting = jack.create("ucemeeting", ['push', 'on']);
     jack.expect("ucemeeting.push")
         .exactly("1 time")
         .mock(function(type, metadata, callback) {
             equals(type, "whiteboard.shape.draw");
             ok(metadata.tool);
-	    ok(metadata.color);
-	    ok(metadata.x1);
-	    ok(metadata.y1);
-	    ok(metadata.x2);
-	    ok(metadata.y2);
+            ok(metadata.color);
+            ok(metadata.x1);
+            ok(metadata.y1);
+            ok(metadata.x2);
+            ok(metadata.y2);
             ok($('#whiteboard canvas').get(0).toDataURL("image/png") ==
                emptyCanvas().toDataURL("image/png"), "should be a empty canvas");
         });
@@ -71,7 +71,7 @@ jackTest("when performing action, send event to ucengine", function() {
 });
 
 jackTest("on clear, send special event to ucengine", function() {
-    var ucemeeting = jack.create("ucemeeting", ['push', 'bind']);
+    var ucemeeting = jack.create("ucemeeting", ['push', 'on']);
     jack.expect("ucemeeting.push")
         .exactly("1 time")
         .mock(function(type, metadata, callback) {
@@ -89,12 +89,12 @@ test("handle draw/clear events", function() {
     ok(($('#whiteboard canvas').get(0).toDataURL("image/png") ==
         emptyCanvas().toDataURL("image/png")), "should be a empty canvas");
     $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard.shape.draw",
-						    metadata: {'tool': 'pencil',
-							       'color': '#000000',
-							       'x1': '1',
-							       'y1': '1',
-							       'x2': '2',
-							       'y2': '2'}});
+                                                    metadata: {'tool': 'pencil',
+                                                               'color': '#000000',
+                                                               'x1': '1',
+                                                               'y1': '1',
+                                                               'x2': '2',
+                                                               'y2': '2'}});
     ok(!($('#whiteboard canvas').get(0).toDataURL("image/png") ==
          emptyCanvas().toDataURL("image/png")), "should not be a empty canvas");
     $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard.drawing.clear", metadata: {}});
@@ -106,24 +106,24 @@ test("clear method", function() {
     $('#whiteboard').whiteboard({width: 300, height: 240});
 
     $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard.shape.draw",
-						    metadata: {'tool': 'pencil',
-							       'color': '#000000',
-							       'x1': '1',
-							       'y1': '1',
-							       'x2': '2',
-							       'y2': '2'}});
-    
+                                                    metadata: {'tool': 'pencil',
+                                                               'color': '#000000',
+                                                               'x1': '1',
+                                                               'y1': '1',
+                                                               'x2': '2',
+                                                               'y2': '2'}});
+
     $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard.drawing.clear", metadata: {}});
     ok(($('#whiteboard canvas').get(0).toDataURL("image/png") ==
         emptyCanvas().toDataURL("image/png")), "should be a empty canvas");
 
     $('#whiteboard').whiteboard("triggerUceEvent", {type: "whiteboard.shape.draw",
-						    metadata: {'tool': 'pencil',
-							       'color': '#000000',
-							       'x1': '1',
-							       'y1': '1',
-							       'x2': '2',
-							       'y2': '2'}});
+                                                    metadata: {'tool': 'pencil',
+                                                               'color': '#000000',
+                                                               'x1': '1',
+                                                               'y1': '1',
+                                                               'x2': '2',
+                                                               'y2': '2'}});
 
     $('#whiteboard').whiteboard("clear");
     ok(($('#whiteboard canvas').get(0).toDataURL("image/png") ==
@@ -131,7 +131,7 @@ test("clear method", function() {
 });
 
 jackTest("when disabled, no event are send to ucengine", function() {
-    var ucemeeting = jack.create("ucemeeting", ['push', 'bind']);
+    var ucemeeting = jack.create("ucemeeting", ['push', 'on']);
     jack.expect("ucemeeting.push")
         .exactly("0 time");
     $('#whiteboard').whiteboard({
@@ -144,7 +144,7 @@ jackTest("when disabled, no event are send to ucengine", function() {
 });
 
 jackTest("dynanic disabled, no event are send to ucengine", function() {
-    var ucemeeting = jack.create("ucemeeting", ['push', 'bind']);
+    var ucemeeting = jack.create("ucemeeting", ['push', 'on']);
     jack.expect("ucemeeting.push")
         .exactly("0 time");
     $('#whiteboard').whiteboard({

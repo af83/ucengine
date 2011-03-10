@@ -361,12 +361,20 @@
                     },
 
                     /**
+                     * Alias of on
+                     */
+                    bind: function() {
+                        var args = Array.prototype.slice.call(arguments);
+                        return this.on.apply(this, args);
+                    },
+
+                    /**
                      * Bind event handler
                      * use it with startLoop
                      * [@param String type]
                      * @param Function callback
                      */
-                    bind: function(type, callback) {
+                    on: function(type, callback) {
                         if (!callback) {
                             callback  = type;
                             type = null;

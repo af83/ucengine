@@ -27,8 +27,8 @@ test("create html, and destroy", function() {
 
 test("customize with src and width/height", function() {
     $("#player").player({width  : 400,
-			 height : 200,
-			 src    : videourl});
+                         height : 200,
+                         src    : videourl});
     equals($("#player video source[name=mp4]").attr('src'), videourl+'.mp4');
     equals($("#player video source[name=webm]").attr('src'), videourl +'.webm');
     equals($("#player video").attr('width'), 400);
@@ -48,8 +48,8 @@ test("dynamic updated options", function() {
 
 test("can play video", function() {
     $("#player").player({width : 400,
-			height : 200,
-			src    : videourl});
+                        height : 200,
+                        src    : videourl});
     equals($("#player video").get(0).paused, true);
     $('#player').player("play");
     equals($("#player video").get(0).paused, false);
@@ -57,8 +57,8 @@ test("can play video", function() {
 
 test("can pause video", function() {
     $("#player").player({width : 400,
-			height : 200,
-			src    : videourl});
+                        height : 200,
+                        src    : videourl});
     equals($("#player video")[0].paused, true);
     $('#player').player("play");
     equals($("#player video")[0].paused, false);
@@ -85,15 +85,15 @@ test("can seek video", function() {
     expect(1);
     stop();
     $("#player").player({width  : 400,
-			 height : 200,
-			 src    : videourl});
+                         height : 200,
+                         src    : videourl});
     $("#player video").bind("canplay", function() {
         $("#player video").unbind("canplay");
         $('#player').player("play");
-	$('#player').player("seek", 12000);
+        $('#player').player("seek", 12000);
         $('#player video').bind('timeupdate', function() {
             $('#player video').unbind('timeupdate');
-	    equals($("#player video").get(0).currentTime, 12);
+            equals($("#player video").get(0).currentTime, 12);
             start();
         });
     });

@@ -1,18 +1,16 @@
-$.widget("uce.results", {
+$.uce.widget("results", {
     options: {
         ucemeeting : null,
         start      : 0
     },
+    meetingsEvents : {
+        "internal.search.result" : 'handleSearchResultsEvent'
+    },
     _create: function() {
         this.element.addClass('ui-widget ui-results');
-        if (this.options.ucemeeting) {
-            var that = this;
-            this.options.ucemeeting.bind("internal.search.result", function(event) {
-                that.handleSearchResultsEvent(event.metadata.events);
-            });
-        }
     },
-    handleSearchResultsEvent: function(results) {
+    handleSearchResultsEvent: function(event) {
+        var results = event.metadata.events;
         var that = this;
         this.clear();
         $('<div>').attr('class', 'ui-widget-header').text("Related events").appendTo(this.element);
