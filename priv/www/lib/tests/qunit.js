@@ -19,7 +19,7 @@ var defined = {
 			return false;
 		}
   })()
-}
+};
 
 var testId = 0;
 
@@ -40,18 +40,26 @@ Test.prototype = {
 				b.innerHTML = "Running " + this.name;
 			var li = document.createElement("li");
 				li.appendChild( b );
+				li.className = "running";
 				li.id = this.id = "test-output" + testId++;
 			tests.appendChild( li );
 		}
 	},
 	setup: function() {
 		if (this.module != config.previousModule) {
-			if ( this.previousModule ) {
-				QUnit.moduleDone( this.module, config.moduleStats.bad, config.moduleStats.all );
+			if ( config.previousModule ) {
+				QUnit.moduleDone( {
+					name: config.previousModule,
+					failed: config.moduleStats.bad,
+					passed: config.moduleStats.all - config.moduleStats.bad,
+					total: config.moduleStats.all
+				} );
 			}
 			config.previousModule = this.module;
 			config.moduleStats = { all: 0, bad: 0 };
-			QUnit.moduleStart( this.module, this.moduleTestEnvironment );
+			QUnit.moduleStart( {
+				name: this.module
+			} );
 		}
 
 		config.current = this;
@@ -63,7 +71,9 @@ Test.prototype = {
 			extend(this.testEnvironment, this.testEnvironmentArg);
 		}
 
-		QUnit.testStart( this.testName, this.testEnvironment );
+		QUnit.testStart( {
+			name: this.testName
+		} );
 
 		// allow utility functions to access the current test environment
 		// TODO why??
@@ -76,8 +86,7 @@ Test.prototype = {
 
 			this.testEnvironment.setup.call(this.testEnvironment);
 		} catch(e) {
-			// TODO use testName instead of name for no-markup message?
-			QUnit.ok( false, "Setup failed on " + this.name + ": " + e.message );
+			QUnit.ok( false, "Setup failed on " + this.testName + ": " + e.message );
 		}
 	},
 	run: function() {
@@ -85,11 +94,14 @@ Test.prototype = {
 			QUnit.stop();
 		}
 
+		if ( config.notrycatch ) {
+			this.callback.call(this.testEnvironment);
+			return;
+		}
 		try {
 			this.callback.call(this.testEnvironment);
 		} catch(e) {
-			// TODO use testName instead of name for no-markup message?
-			fail("Test " + this.name + " died, exception and test follows", e, this.callback);
+			fail("Test " + this.testName + " died, exception and test follows", e, this.callback);
 			QUnit.ok( false, "Died on test #" + (this.assertions.length + 1) + ": " + e.message + " - " + QUnit.jsDump.parse(e) );
 			// else next test will carry the responsibility
 			saveGlobal();
@@ -105,8 +117,7 @@ Test.prototype = {
 			checkPollution();
 			this.testEnvironment.teardown.call(this.testEnvironment);
 		} catch(e) {
-			// TODO use testName instead of name for no-markup message?
-			QUnit.ok( false, "Teardown failed on " + this.name + ": " + e.message );
+			QUnit.ok( false, "Teardown failed on " + this.testName + ": " + e.message );
 		}
 	},
 	finish: function() {
@@ -141,7 +152,7 @@ Test.prototype = {
 			}
 
 			// store result when possible
-			defined.sessionStorage && sessionStorage.setItem("qunit-" + this.testName, bad);
+			QUnit.config.reorder && defined.sessionStorage && sessionStorage.setItem("qunit-" + this.testName, bad);
 
 			if (bad == 0) {
 				ol.style.display = "none";
@@ -150,8 +161,13 @@ Test.prototype = {
 			var b = document.createElement("strong");
 			b.innerHTML = this.name + " <b class='counts'>(<b class='failed'>" + bad + "</b>, <b class='passed'>" + good + "</b>, " + this.assertions.length + ")</b>";
 			
+			var a = document.createElement("a");
+			a.innerHTML = "Rerun";
+			a.href = QUnit.url({ filter: getText([b]).replace(/\([^)]+\)$/, "").replace(/(^\s*|\s*$)/g, "") });
+			
 			addEvent(b, "click", function() {
-				var next = b.nextSibling, display = next.style.display;
+				var next = b.nextSibling.nextSibling,
+					display = next.style.display;
 				next.style.display = display === "none" ? "block" : "none";
 			});
 			
@@ -161,24 +177,16 @@ Test.prototype = {
 					target = target.parentNode;
 				}
 				if ( window.location && target.nodeName.toLowerCase() === "strong" ) {
-					window.location.search = "?" + encodeURIComponent(getText([target]).replace(/\(.+\)$/, "").replace(/(^\s*|\s*$)/g, ""));
+					window.location = QUnit.url({ filter: getText([target]).replace(/\([^)]+\)$/, "").replace(/(^\s*|\s*$)/g, "") });
 				}
 			});
 
 			var li = id(this.id);
 			li.className = bad ? "fail" : "pass";
-			li.style.display = resultDisplayStyle(!bad);
 			li.removeChild( li.firstChild );
 			li.appendChild( b );
+			li.appendChild( a );
 			li.appendChild( ol );
-
-			if ( bad ) {
-				var toolbar = id("qunit-testrunner-toolbar");
-				if ( toolbar ) {
-					toolbar.style.display = "block";
-					id("qunit-filter-pass").disabled = null;
-				}
-			}
 
 		} else {
 			for ( var i = 0; i < this.assertions.length; i++ ) {
@@ -193,11 +201,15 @@ Test.prototype = {
 		try {
 			QUnit.reset();
 		} catch(e) {
-			// TODO use testName instead of name for no-markup message?
-			fail("reset() failed, following Test " + this.name + ", exception and reset fn follows", e, QUnit.reset);
+			fail("reset() failed, following Test " + this.testName + ", exception and reset fn follows", e, QUnit.reset);
 		}
 
-		QUnit.testDone( this.testName, bad, this.assertions.length );
+		QUnit.testDone( {
+			name: this.testName,
+			failed: bad,
+			passed: this.assertions.length - bad,
+			total: this.assertions.length
+		} );
 	},
 	
 	queue: function() {
@@ -221,7 +233,7 @@ Test.prototype = {
 			});
 		}
 		// defer when previous test run passed, if storage is available
-		var bad = defined.sessionStorage && +sessionStorage.getItem("qunit-" + this.testName);
+		var bad = QUnit.config.reorder && defined.sessionStorage && +sessionStorage.getItem("qunit-" + this.testName);
 		if (bad) {
 			run();
 		} else {
@@ -229,13 +241,12 @@ Test.prototype = {
 		};
 	}
 	
-}
+};
 
 var QUnit = {
 
 	// call on start of module test to prepend name to all tests
 	module: function(name, testEnvironment) {
-		config.previousModule = config.currentModule;
 		config.currentModule = name;
 		config.currentModuleTestEnviroment = testEnvironment;
 	},
@@ -271,7 +282,6 @@ var QUnit = {
 		}
 		
 		var test = new Test(name, testName, expected, testEnvironmentArg, async, callback);
-		test.previousModule = config.previousModule;
 		test.module = config.currentModule;
 		test.moduleTestEnvironment = config.currentModuleTestEnviroment;
 		test.queue();
@@ -295,7 +305,7 @@ var QUnit = {
 			message: msg
 		};
 		msg = escapeHtml(msg);
-		QUnit.log(a, msg, details);
+		QUnit.log(details);
 		config.current.assertions.push({
 			result: a,
 			message: msg
@@ -408,8 +418,18 @@ var QUnit = {
 				QUnit.start();
 			}, timeout);
 		}
-	}
+	},
 
+	url: function( params ) {
+		params = extend( extend( {}, QUnit.urlParams ), params );
+		var querystring = "?",
+			key;
+		for ( key in params ) {
+			querystring += encodeURIComponent( key ) + "=" +
+				encodeURIComponent( params[ key ] ) + "&";
+		}
+		return window.location.pathname + querystring.slice( 0, -1 );
+	}
 };
 
 // Backwards compatibility, deprecated
@@ -422,29 +442,40 @@ var config = {
 	queue: [],
 
 	// block until document ready
-	blocking: true
+	blocking: true,
+	
+	// by default, run previously failed tests first
+	// very useful in combination with "Hide passed tests" checked
+	reorder: true,
+
+	noglobals: false,
+	notrycatch: false
 };
 
 // Load paramaters
 (function() {
 	var location = window.location || { search: "", protocol: "file:" },
-		GETParams = location.search.slice(1).split('&');
+		params = location.search.slice( 1 ).split( "&" ),
+		length = params.length,
+		urlParams = {},
+		current;
 
-	for ( var i = 0; i < GETParams.length; i++ ) {
-		GETParams[i] = decodeURIComponent( GETParams[i] );
-		if ( GETParams[i] === "noglobals" ) {
-			GETParams.splice( i, 1 );
-			i--;
-			config.noglobals = true;
-		} else if ( GETParams[i].search('=') > -1 ) {
-			GETParams.splice( i, 1 );
-			i--;
+	if ( params[ 0 ] ) {
+		for ( var i = 0; i < length; i++ ) {
+			current = params[ i ].split( "=" );
+			current[ 0 ] = decodeURIComponent( current[ 0 ] );
+			// allow just a key to turn on a flag, e.g., test.html?noglobals
+			current[ 1 ] = current[ 1 ] ? decodeURIComponent( current[ 1 ] ) : true;
+			urlParams[ current[ 0 ] ] = current[ 1 ];
+			if ( current[ 0 ] in config ) {
+				config[ current[ 0 ] ] = current[ 1 ];
+			}
 		}
 	}
-	
-	// restrict modules/tests by get parameters
-	config.filters = GETParams;
-	
+
+	QUnit.urlParams = urlParams;
+	config.filter = urlParams.filter;
+
 	// Figure out if we're running the tests from a server or not
 	QUnit.isLocal = !!(location.protocol === 'file:');
 })();
@@ -473,14 +504,14 @@ extend(QUnit, {
 			blocking: false,
 			autostart: true,
 			autorun: false,
-			filters: [],
+			filter: "",
 			queue: [],
 			semaphore: 0
 		});
 
-		var tests = id("qunit-tests"),
-			banner = id("qunit-banner"),
-			result = id("qunit-testresult");
+		var tests = id( "qunit-tests" ),
+			banner = id( "qunit-banner" ),
+			result = id( "qunit-testresult" );
 
 		if ( tests ) {
 			tests.innerHTML = "";
@@ -492,6 +523,14 @@ extend(QUnit, {
 
 		if ( result ) {
 			result.parentNode.removeChild( result );
+		}
+		
+		if ( tests ) {
+			result = document.createElement( "p" );
+			result.id = "qunit-testresult";
+			result.className = "result";
+			tests.parentNode.insertBefore( result, tests );
+			result.innerHTML = 'Running...<br/>&nbsp;';
 		}
 	},
 	
@@ -596,7 +635,7 @@ extend(QUnit, {
 		}
 		output += "</table>";
 		
-		QUnit.log(result, message, details);
+		QUnit.log(details);
 		
 		config.current.assertions.push({
 			result: !!result,
@@ -604,14 +643,21 @@ extend(QUnit, {
 		});
 	},
 	
-	// Logging callbacks
+	// Logging callbacks; all receive a single argument with the listed properties
+	// run test/logs.html for any related changes
 	begin: function() {},
-	done: function(failures, total) {},
-	log: function(result, message) {},
-	testStart: function(name, testEnvironment) {},
-	testDone: function(name, failures, total) {},
-	moduleStart: function(name, testEnvironment) {},
-	moduleDone: function(name, failures, total) {}
+	// done: { failed, passed, total, runtime }
+	done: function() {},
+	// log: { result, actual, expected, message }
+	log: function() {},
+	// testStart: { name }
+	testStart: function() {},
+	// testDone: { name, failed, passed, total }
+	testDone: function() {},
+	// moduleStart: { name }
+	moduleStart: function() {},
+	// moduleDone: { name, failed, passed, total }
+	moduleDone: function() {}
 });
 
 if ( typeof document === "undefined" || document.readyState === "complete" ) {
@@ -619,7 +665,7 @@ if ( typeof document === "undefined" || document.readyState === "complete" ) {
 }
 
 addEvent(window, "load", function() {
-	QUnit.begin();
+	QUnit.begin({});
 	
 	// Initialize the config, saving the execution queue
 	var oldconfig = extend({}, config);
@@ -634,34 +680,38 @@ addEvent(window, "load", function() {
 	}
 	var banner = id("qunit-header");
 	if ( banner ) {
-		var paramsIndex = location.href.lastIndexOf(location.search);
-		if ( paramsIndex > -1 ) {
-			var mainPageLocation = location.href.slice(0, paramsIndex);
-			if ( mainPageLocation == location.href ) {
-				banner.innerHTML = '<a href=""> ' + banner.innerHTML + '</a> ';
-			} else {
-				var testName = decodeURIComponent(location.search.slice(1));
-				banner.innerHTML = '<a href="' + mainPageLocation + '">' + banner.innerHTML + '</a> &#8250; <a href="">' + testName + '</a>';
-			}
-		}
+		banner.innerHTML = '<a href="' + QUnit.url({ filter: undefined }) + '"> ' + banner.innerHTML + '</a> ' +
+			'<label><input name="noglobals" type="checkbox"' + ( config.noglobals ? ' checked="checked"' : '' ) + '>noglobals</label>' +
+			'<label><input name="notrycatch" type="checkbox"' + ( config.notrycatch ? ' checked="checked"' : '' ) + '>notrycatch</label>';
+		addEvent( banner, "change", function( event ) {
+			var params = {};
+			params[ event.target.name ] = event.target.checked ? true : undefined;
+			window.location = QUnit.url( params );
+		});
 	}
 	
 	var toolbar = id("qunit-testrunner-toolbar");
 	if ( toolbar ) {
-		toolbar.style.display = "none";
-		
 		var filter = document.createElement("input");
 		filter.type = "checkbox";
 		filter.id = "qunit-filter-pass";
-		filter.disabled = true;
 		addEvent( filter, "click", function() {
-			var li = document.getElementsByTagName("li");
-			for ( var i = 0; i < li.length; i++ ) {
-				if ( li[i].className.indexOf("pass") > -1 ) {
-					li[i].style.display = filter.checked ? "none" : "";
-				}
+			var ol = document.getElementById("qunit-tests");
+			if ( filter.checked ) {
+				ol.className = ol.className + " hidepass";
+			} else {
+				var tmp = " " + ol.className.replace( /[\n\t\r]/g, " " ) + " ";
+				ol.className = tmp.replace(/ hidepass /, " ");
+			}
+			if ( defined.sessionStorage ) {
+				sessionStorage.setItem("qunit-filter-passed-tests", filter.checked ? "true" : "");
 			}
 		});
+		if ( defined.sessionStorage && sessionStorage.getItem("qunit-filter-passed-tests") ) {
+			filter.checked = true;
+			var ol = document.getElementById("qunit-tests");
+			ol.className = ol.className + " hidepass";
+		}
 		toolbar.appendChild( filter );
 
 		var label = document.createElement("label");
@@ -685,58 +735,66 @@ function done() {
 
 	// Log the last module results
 	if ( config.currentModule ) {
-		QUnit.moduleDone( config.currentModule, config.moduleStats.bad, config.moduleStats.all );
+		QUnit.moduleDone( {
+			name: config.currentModule,
+			failed: config.moduleStats.bad,
+			passed: config.moduleStats.all - config.moduleStats.bad,
+			total: config.moduleStats.all
+		} );
 	}
 
 	var banner = id("qunit-banner"),
 		tests = id("qunit-tests"),
-		html = ['Tests completed in ',
-		+new Date - config.started, ' milliseconds.<br/>',
-		'<span class="passed">', config.stats.all - config.stats.bad, '</span> tests of <span class="total">', config.stats.all, '</span> passed, <span class="failed">', config.stats.bad,'</span> failed.'].join('');
+		runtime = +new Date - config.started,
+		passed = config.stats.all - config.stats.bad,
+		html = [
+			'Tests completed in ',
+			runtime,
+			' milliseconds.<br/>',
+			'<span class="passed">',
+			passed,
+			'</span> tests of <span class="total">',
+			config.stats.all,
+			'</span> passed, <span class="failed">',
+			config.stats.bad,
+			'</span> failed.'
+		].join('');
 
 	if ( banner ) {
 		banner.className = (config.stats.bad ? "qunit-fail" : "qunit-pass");
 	}
 
 	if ( tests ) {	
-		var result = id("qunit-testresult");
-
-		if ( !result ) {
-			result = document.createElement("p");
-			result.id = "qunit-testresult";
-			result.className = "result";
-			tests.parentNode.insertBefore( result, tests.nextSibling );
-		}
-
-		result.innerHTML = html;
+		id( "qunit-testresult" ).innerHTML = html;
 	}
 
-	QUnit.done( config.stats.bad, config.stats.all );
+	QUnit.done( {
+		failed: config.stats.bad,
+		passed: passed, 
+		total: config.stats.all,
+		runtime: runtime
+	} );
 }
 
 function validTest( name ) {
-	var i = config.filters.length,
+	var filter = config.filter,
 		run = false;
 
-	if ( !i ) {
+	if ( !filter ) {
 		return true;
 	}
-	
-	while ( i-- ) {
-		var filter = config.filters[i],
-			not = filter.charAt(0) == '!';
 
-		if ( not ) {
-			filter = filter.slice(1);
-		}
+	not = filter.charAt( 0 ) === "!";
+	if ( not ) {
+		filter = filter.slice( 1 );
+	}
 
-		if ( name.indexOf(filter) !== -1 ) {
-			return !not;
-		}
+	if ( name.indexOf( filter ) !== -1 ) {
+		return !not;
+	}
 
-		if ( not ) {
-			run = true;
-		}
+	if ( not ) {
+		run = true;
 	}
 
 	return run;
@@ -756,10 +814,6 @@ function sourceFromStacktrace() {
 			return e.stack.split("\n")[4];
 		}
 	}
-}
-
-function resultDisplayStyle(passed) {
-	return passed && id("qunit-filter-pass") && id("qunit-filter-pass").checked ? 'none' : '';
 }
 
 function escapeHtml(s) {
@@ -858,7 +912,11 @@ function fail(message, exception, callback) {
 
 function extend(a, b) {
 	for ( var prop in b ) {
-		a[prop] = b[prop];
+		if ( b[prop] === undefined ) {
+			delete a[prop];
+		} else {
+			a[prop] = b[prop];
+		}
 	}
 
 	return a;
@@ -1149,7 +1207,7 @@ QUnit.jsDump = (function() {
 			error:'[ERROR]', //when no parser is found, shouldn't happen
 			unknown: '[Unknown]',
 			'null':'null',
-			undefined:'undefined',
+			'undefined':'undefined',
 			'function':function( fn ) {
 				var ret = 'function',
 					name = 'name' in fn ? fn.name : (reName.exec(fn)||[])[1];//functions never have name in IE
