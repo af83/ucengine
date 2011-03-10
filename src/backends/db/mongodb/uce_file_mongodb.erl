@@ -31,7 +31,7 @@
 -include("mongodb.hrl").
 
 add(#uce_file{domain=Domain} = File) ->
-    case catch emongo:insert_sync(list_to_atom(Domain), "uce_file", to_collection(File)) of
+    case catch emongo:insert_sync(Domain, "uce_file", to_collection(File)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -40,7 +40,7 @@ add(#uce_file{domain=Domain} = File) ->
     end.
 
 list({Location, Domain}) ->
-    case catch emongo:find_all(list_to_atom(Domain), "uce_file", [{"location", Location},
+    case catch emongo:find_all(Domain, "uce_file", [{"location", Location},
                                                                   {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -50,7 +50,7 @@ list({Location, Domain}) ->
     end.
 
 all(Domain) ->
-    case catch emongo:find_all(list_to_atom(Domain), "uce_file", [{"domain", Domain}]) of
+    case catch emongo:find_all(Domain, "uce_file", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -60,7 +60,7 @@ all(Domain) ->
 
 get(Id) ->
     {Pk, Domain} = Id,
-    case catch emongo:find_one(list_to_atom(Domain), "uce_file", [{"id", Pk}]) of
+    case catch emongo:find_one(Domain, "uce_file", [{"id", Pk}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -72,7 +72,7 @@ get(Id) ->
 
 delete(Id) ->
     {Pk, Domain} = Id,
-    case catch emongo:delete_sync(list_to_atom(Domain), "uce_file", [{"id", Pk}]) of
+    case catch emongo:delete_sync(Domain, "uce_file", [{"id", Pk}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});

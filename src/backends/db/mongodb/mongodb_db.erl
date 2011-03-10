@@ -38,10 +38,11 @@ init({Pool, MongoPoolInfos}) ->
 drop() ->
     [fun() ->
         case proplists:get_value(db, HostConfig) of
-            mongodb -> emongo:drop_database(list_to_atom(Host));
+            mongodb -> emongo:drop_database(Host);
             _ -> nothing
         end  
      end || {Host, HostConfig} <- config:get('hosts')].
 
 terminate() ->
     ok.
+

@@ -29,7 +29,7 @@
 -include("mongodb.hrl").
 
 add(#uce_event{domain=Domain} = Event) ->
-    case catch emongo:insert_sync(list_to_atom(Domain), "uce_event", to_collection(Event)) of
+    case catch emongo:insert_sync(Domain, "uce_event", to_collection(Event)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -38,7 +38,7 @@ add(#uce_event{domain=Domain} = Event) ->
     end.
 
 get(Domain, Id) ->
-    case catch emongo:find_one(list_to_atom(Domain), "uce_event", [{"id", Id}]) of
+    case catch emongo:find_one(Domain, "uce_event", [{"id", Id}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -89,7 +89,7 @@ list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
     Events = lists:map(fun(Collection) ->
                                from_collection(Collection)
                        end,
-                       emongo:find_all(list_to_atom(Domain),"uce_event",
+                       emongo:find_all(Domain,"uce_event",
                                        SelectLocation ++
                                            SelectFrom ++
                                            SelectTypes ++
@@ -106,7 +106,7 @@ from_collection(Collection) ->
                        domain=Domain,
                        datetime=Datetime,
                        from={From, Domain},
-                       to=To,
+                       to={To, Domain},
                        location={Meeting, Domain},
                        type=Type,
                        parent=Parent,
@@ -117,9 +117,9 @@ from_collection(Collection) ->
 
 to_collection(#uce_event{domain=Domain,
                          id=Id,
-                         location={Meeting, _},
-                         from={From, _},
-                         to=To,
+                         location={Meeting, Domain},
+                         from={From, Domain},
+                         to={To, _},
                          metadata=Metadata,
                          datetime=Datetime,
                          type=Type,

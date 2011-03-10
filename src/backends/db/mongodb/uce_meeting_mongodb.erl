@@ -31,7 +31,7 @@
 -include("mongodb.hrl").
 
 add(#uce_meeting{id={_Name,Domain}} = Meeting) ->
-    case catch emongo:insert_sync(list_to_atom(Domain), "uce_meeting", to_collection(Meeting)) of
+    case catch emongo:insert_sync(Domain, "uce_meeting", to_collection(Meeting)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -40,7 +40,7 @@ add(#uce_meeting{id={_Name,Domain}} = Meeting) ->
     end.
 
 delete({Name, Domain}) ->
-    case emongo:delete_sync(list_to_atom(Domain), "uce_meeting", [{"name", Name}, {"domain", Domain}]) of
+    case emongo:delete_sync(Domain, "uce_meeting", [{"name", Name}, {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -49,7 +49,7 @@ delete({Name, Domain}) ->
     end.
 
 get({Name, Domain}) ->
-    case catch emongo:find_one(list_to_atom(Domain), "uce_meeting",
+    case catch emongo:find_one(Domain, "uce_meeting",
                                [{"name", Name}, {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -61,7 +61,7 @@ get({Name, Domain}) ->
     end.
 
 update(#uce_meeting{id={Name, Domain}} = Meeting) ->
-    case catch emongo:update_sync(list_to_atom(Domain), "uce_meeting",
+    case catch emongo:update_sync(Domain, "uce_meeting",
                                   [{"name", Name}, {"domain", Domain}],
                                   to_collection(Meeting), false) of
         {'EXIT', Reason} ->
@@ -72,7 +72,7 @@ update(#uce_meeting{id={Name, Domain}} = Meeting) ->
     end.
 
 list(Domain) ->
-    case catch emongo:find_all(list_to_atom(Domain), "uce_meeting", [{"domain", Domain}]) of
+    case catch emongo:find_all(Domain, "uce_meeting", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
