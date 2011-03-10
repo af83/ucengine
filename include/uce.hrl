@@ -41,9 +41,6 @@
 -record(uce_meeting, {
           %% uce meeting id
           id = {"", ""},
-          domain,
-          %% name
-          name,
           %% start_date and end_date format : ms since epoch
           start_date = none,
           end_date = none,

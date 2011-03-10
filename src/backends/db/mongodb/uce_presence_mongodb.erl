@@ -23,16 +23,16 @@
 
 -export([add/1,
          list/1,
-         get/1,
-         delete/1,
+         get/2,
+         delete/2,
          update/1,
-         all/0]).
+         all/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_presence{}=Presence) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_presence", to_collection(Presence)) of
+add(#uce_presence{domain=Domain}=Presence) ->
+    case catch emongo:insert_sync(list_to_atom(Domain), "uce_presence", to_collection(Presence)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -41,7 +41,7 @@ add(#uce_presence{}=Presence) ->
     end.
 
 list({User, Domain}) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_presence", [{"user", User},
+    case catch emongo:find_all(list_to_atom(Domain), "uce_presence", [{"user", User},
                                                              {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -54,8 +54,8 @@ list({User, Domain}) ->
             {ok, Records}
     end.
 
-all() ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_presence", []) of
+all(Domain) ->
+    case catch emongo:find_all(list_to_atom(Domain), "uce_presence", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -67,8 +67,8 @@ all() ->
             {ok, Records}
     end.
 
-get(Id) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_presence", [{"id", Id}]) of
+get(Domain, Id) ->
+    case catch emongo:find_one(list_to_atom(Domain), "uce_presence", [{"id", Id}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -78,8 +78,8 @@ get(Id) ->
             throw({error, not_found})
     end.
 
-delete(Id) ->
-    case catch emongo:delete_sync(?MONGO_POOL, "uce_presence", [{"id", Id}]) of
+delete(Domain, Id) ->
+    case catch emongo:delete_sync(list_to_atom(Domain), "uce_presence", [{"id", Id}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -87,8 +87,8 @@ delete(Id) ->
             {ok, deleted}
     end.
 
-update(#uce_presence{}=Presence) ->
-    case catch emongo:update_sync(?MONGO_POOL, "uce_presence",
+update(#uce_presence{domain=Domain}=Presence) ->
+    case catch emongo:update_sync(list_to_atom(Domain), "uce_presence",
                                   [{"id", Presence#uce_presence.id}],
                                   to_collection(Presence), false) of
         {'EXIT', Reason} ->

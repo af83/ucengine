@@ -19,43 +19,42 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, get/1, exists/1, list/11, search/11]).
+-export([add/2, get/2, exists/2, list/12, search/12]).
 
 -include("uce.hrl").
 
-add(#uce_event{id=none}=Event) ->
-    ?MODULE:add(Event#uce_event{id=utils:random()});
-add(#uce_event{datetime=undefined}=Event) ->
-    ?MODULE:add(Event#uce_event{datetime=utils:now()});
-add(#uce_event{location=Location, from=From, to=To, parent=Parent} = Event) ->
-    LocationExists = uce_meeting:exists(Location),
-    FromExists = uce_user:exists(From),
-    ToExists = uce_user:exists(To),
-    ParentExists = uce_event:exists(Parent),
+add(Domain, #uce_event{id=none}=Event) ->
+    ?MODULE:add(Domain, Event#uce_event{id=utils:random()});
+add(Domain, #uce_event{datetime=undefined}=Event) ->
+    ?MODULE:add(Domain, Event#uce_event{datetime=utils:now()});
+add(Domain, #uce_event{location=Location, domain=Domain, from=From, to=To, parent=Parent} = Event) ->
+    LocationExists = uce_meeting:exists(Domain, Location),
+    FromExists = uce_user:exists(Domain, From),
+    ToExists = uce_user:exists(Domain, To),
+    ParentExists = uce_event:exists(Domain, Parent),
 
     if
         LocationExists == true,
         FromExists == true,
         ToExists == true,
         ParentExists == true ->
-            {ok, Id} = ?DB_MODULE:add(Event),
+            {ok, Id} = apply(db:get(?MODULE, Domain), add, [Event]),
             catch ?PUBSUB_MODULE:publish(Event),
             catch ?SEARCH_MODULE:add(Event),
-            catch uce_acl:trigger(Event),
+            catch uce_acl:trigger(Domain, Event),
             {ok, Id};
         true ->
             throw({error, not_found})
     end.
 
-get(Id) ->
-    ?DB_MODULE:get(Id).
+get(Domain, Id) ->
+    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
 
-exists(Id) ->
+exists(Domain, Id) ->
     case Id of
-        "" -> % "" is the root of the event hierarchy
-            true;
+        "" -> true;
         _ ->
-            case catch ?MODULE:get(Id) of
+            case catch ?MODULE:get(Domain, Id) of
                 {error, not_found} ->
                    false;
                 {error, Reason} ->
@@ -78,8 +77,9 @@ filter_private(Events, Uid) ->
                  end,
                  Events).
 
-search(Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
-    {ok, Events} = ?SEARCH_MODULE:list(Location,
+search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
+    {ok, Events} = ?SEARCH_MODULE:list(Domain,
+                                       Location,
                                        Search,
                                        From,
                                        Types,
@@ -91,9 +91,10 @@ search(Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Ma
                                        Order),
     {ok, filter_private(Events, Uid)}.
 
-list(Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
+list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
     {ok, Events} =
-        uce_event_erlang_search:list(Location,
+        uce_event_erlang_search:list(Domain,
+                                     Location,
                                      Search,
                                      From,
                                      Types,

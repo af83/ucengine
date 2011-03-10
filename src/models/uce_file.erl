@@ -19,12 +19,12 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1, list/1, get/1, delete/1]).
+-export([add/2, list/2, get/2, delete/2]).
 
 -include("uce.hrl").
 
-add(#uce_file{location=Location, name=Name} = File) ->
-    case location_helpers:exists(Location) of
+add(Domain, #uce_file{location=Location, name=Name} = File) ->
+    case location_helpers:exists(Domain, Location) of
         false ->
             throw({error, not_found});
         true ->
@@ -36,24 +36,24 @@ add(#uce_file{location=Location, name=Name} = File) ->
                     _ ->
                         {Name ++ "_" ++ utils:random(), "text/plain"}
                 end,
-            ?DB_MODULE:add(File#uce_file{id=Id, mime=Mime})
+            apply(db:get(?MODULE, Domain), add, [File#uce_file{id=Id, mime=Mime}])
     end.
 
-list(Location) ->
-    case location_helpers:exists(Location) of
+list(Domain, Location) ->
+    case location_helpers:exists(Domain, Location) of
         false ->
             throw({error, not_found});
         true ->
-            ?DB_MODULE:list(Location)
+            apply(db:get(?MODULE, Domain), list, [Location])
     end.
 
-get(Id) ->
-    ?DB_MODULE:get(Id).
+get(Domain, Id) ->
+    apply(db:get(?MODULE, Domain), get, [Id]).
 
-delete(Id) ->
-    case ?MODULE:get(Id) of
+delete(Domain, Id) ->
+    case ?MODULE:get(Domain, Id) of
         {error, Reason} ->
             {error, Reason};
         {ok, _} ->
-            ?DB_MODULE:delete(Id)
+            apply(db:get(?MODULE, Domain), delete, [Id])
     end.

@@ -17,6 +17,8 @@
 %%
 -module(json_helpers).
 
+-compile({no_auto_import,[error/1]}).
+
 -export([unexpected_error/0,
          unexpected_error/1,
          error/1,

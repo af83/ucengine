@@ -48,7 +48,7 @@ extract_terms(SearchTerms, [], []) ->
     [{"keywords", string:tokens(SearchTerms, " ")}].
 
 search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count], Arg) ->
-    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
 
     [{"type", Type},
      {"start", DateStart},
@@ -62,7 +62,7 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
                       ["type", "start", "end", "location", "from", "to", "parent"],
                       ["", "0", infinity, "", "", "", ""]),
 
-    {ok, true} = uce_acl:assert({Uid, Domain}, "event", "list", {Location, Domain}, [{"from", From}]),
+    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "event", "list", {Location, Domain}, [{"from", From}]),
 
     DateEndInt = case DateEnd of
                      infinity ->
@@ -72,7 +72,8 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
                  end,
 
     Start = paginate:index(Count, StartIndex, StartPage),
-    {ok, Events} = uce_event:search({Location, Domain},
+    {ok, Events} = uce_event:search(Domain,
+                                    {Location, Domain},
                                     Keywords,
                                     {From, Domain},
                                     string:tokens(Type, ","),
@@ -96,4 +97,4 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
                                          {searchTerms, SearchTerms},
                                          {startPage, StartPage}]}},
                      {'entries', Entries}]},
-    json_helpers:json(Feed).
+    json_helpers:json(Domain, Feed).

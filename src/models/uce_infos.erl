@@ -19,10 +19,10 @@
 
 -include("uce.hrl").
 
--export([get/1, update/1]).
+-export([get/1, update/2]).
 
 get(Domain) ->
-    ?DB_MODULE:get(Domain).
+    apply(db:get(?MODULE, Domain), get, [Domain]).
 
-update(#uce_infos{} = Infos) ->
-    ?DB_MODULE:update(Infos).
+update(Domain, #uce_infos{} = Infos) ->
+    apply(db:get(?MODULE, Domain), update, [Infos]).

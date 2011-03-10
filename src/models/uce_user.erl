@@ -19,46 +19,46 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1, delete/1, update/1, list/1, get/1, exists/1]).
+-export([add/2, delete/2, update/2, list/1, get/2, exists/2]).
 
 -include("uce.hrl").
 
-add(#uce_user{id=Id} = User) ->
-    case exists(Id) of
+add(Domain, #uce_user{id=Id} = User) ->
+    case exists(Domain, Id) of
         true ->
             throw({error, conflict});
         false ->
-            ?DB_MODULE:add(User)
+            apply(db:get(?MODULE, Domain), add, [User])
     end.
 
-delete(Id) ->
-    case exists(Id) of
+delete(Domain, Id) ->
+    case exists(Domain, Id) of
         true ->
-            ?DB_MODULE:delete(Id);
+            apply(db:get(?MODULE, Domain), delete, [Id]);
         false ->
             throw({error, not_found})
     end.
 
-update(#uce_user{id=Id} = User) ->
-    case ?MODULE:exists(Id) of
+update(Domain, #uce_user{id=Id} = User) ->
+    case ?MODULE:exists(Domain, Id) of
         true ->
-            ?DB_MODULE:update(User);
+            apply(db:get(?MODULE, Domain), update, [User]);
         false ->
             throw({error, not_found})
     end.
 
 list(Domain) ->
-    ?DB_MODULE:list(Domain).
+    apply(db:get(?MODULE, Domain), list, [Domain]).
 
-get(Id) ->
-    ?DB_MODULE:get(Id).
+get(Domain, User) ->
+    apply(db:get(?MODULE, Domain), get, [User]).
 
-exists(Id) ->
+exists(Domain, Id) ->
     case Id of
         {"", _} -> % all
             true;
         _ ->
-            case catch ?MODULE:get(Id) of
+            case catch ?MODULE:get(Domain, Id) of
                 {error, not_found} ->
                     false;
                 {error, Reason} ->

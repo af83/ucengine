@@ -37,28 +37,30 @@ init() ->
                            {"sid", required, string}]}}].
 
 add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
-    {ok, User} = uce_user:get({Name, Domain}),
-    {ok, true} = uce_acl:assert(User#uce_user.id, "presence", "add"),
+    {ok, User} = uce_user:get(Domain, {Name, Domain}),
+    {ok, true} = uce_acl:assert(Domain, User#uce_user.id, "presence", "add"),
     {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
-    {ok, Id} = uce_presence:add(#uce_presence{user=User#uce_user.id,
+    {ok, Id} = uce_presence:add(Domain,
+                                #uce_presence{user=User#uce_user.id,
                                               domain=Domain,
                                               timeout=Timeout,
                                               auth=User#uce_user.auth,
                                               metadata=Metadata}),
-    catch uce_event:add(#uce_event{domain=Domain,
+    catch uce_event:add(Domain,
+                        #uce_event{domain=Domain,
                                    from=User#uce_user.id,
                                    location={"", Domain},
                                    type="internal.presence.add"}),
     json_helpers:created(Domain, Id).
 
 delete(Domain, [Id], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, Record} = uce_presence:get(Id),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "presence", "delete", {"", Domain},
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, Record} = uce_presence:get(Domain, Id),
+    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "presence", "delete", {"", Domain},
                                 [{"id", Record#uce_presence.id}]),
 
-    catch presence_helpers:clean(Record),
+    catch presence_helpers:clean(Domain, Record),
 
-    {ok, deleted} = uce_presence:delete(Record#uce_presence.id),
+    {ok, deleted} = uce_presence:delete(Domain, Record#uce_presence.id),
 
     json_helpers:ok(Domain).

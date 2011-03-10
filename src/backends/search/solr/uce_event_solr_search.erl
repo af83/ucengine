@@ -46,7 +46,7 @@ to_solrxml(#uce_event{id=Id,
                       datetime=Datetime,
                       location={Location, _},
                       from={From, _},
-                      to={To, _},
+                      to=To,
                       type=Type,
                       metadata=Metadata}) ->
 
@@ -249,7 +249,7 @@ make_list_json_events([{struct, Elems}|Tail]) ->
                         datetime=Datetime,
                         location={Location, Domain},
                         from={From, Domain},
-                        to={To, Domain},
+                        to=To,
                         type=Type,
                         parent=Parent,
                         metadata=Metadata}] ++ make_list_json_events(Tail)

@@ -19,52 +19,52 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/1,
-         all/0,
-         get/1,
-         delete/1,
-         update/1,
-         exists/1,
-         check/2,
-         assert/2,
-         join/2,
-         leave/2]).
+-export([add/2,
+         all/1,
+         get/2,
+         delete/2,
+         update/2,
+         exists/2,
+         check/3,
+         assert/3,
+         join/3,
+         leave/3]).
 
 -include("uce.hrl").
 
-add(#uce_presence{id=none}=Presence) ->
-    add(Presence#uce_presence{id=utils:random()});
-add(#uce_presence{last_activity=0}=Presence) ->
-    add(Presence#uce_presence{last_activity=utils:now()});
-add(#uce_presence{timeout=0}=Presence) ->
-    add(Presence#uce_presence{timeout=config:get(presence_timeout)});
-add(#uce_presence{}=Presence) ->
-    ?DB_MODULE:add(Presence).
+add(Domain, #uce_presence{id=none}=Presence) ->
+    add(Domain, Presence#uce_presence{id=utils:random()});
+add(Domain, #uce_presence{last_activity=0}=Presence) ->
+    add(Domain, Presence#uce_presence{last_activity=utils:now()});
+add(Domain, #uce_presence{timeout=0}=Presence) ->
+    add(Domain, Presence#uce_presence{timeout=config:get(presence_timeout)});
+add(Domain, #uce_presence{}=Presence) ->
+    apply(db:get(?MODULE, Domain), add, [Presence]).
 
-get(Id) ->
-    ?DB_MODULE:get(Id).
+get(Domain, Id) ->
+    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
 
-all() ->
-    ?DB_MODULE:all().
+all(Domain) ->
+    apply(db:get(?MODULE, Domain), all, [Domain]).
 
-delete(Id) ->
-    case ?MODULE:exists(Id) of
+delete(Domain, Id) ->
+    case ?MODULE:exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            ?DB_MODULE:delete(Id)
+            apply(db:get(?MODULE, Domain), delete, [Domain, Id])
     end.
 
-update(#uce_presence{}=Presence) ->
-    case ?MODULE:exists(Presence#uce_presence.id) of
+update(Domain, #uce_presence{}=Presence) ->
+    case ?MODULE:exists(Domain, Presence#uce_presence.id) of
         false ->
             throw({error, not_found});
         true ->
-            ?DB_MODULE:update(Presence)
+            apply(db:get(?MODULE, Domain), update, [Presence])
     end.
 
-exists(Id) ->
-    case catch ?MODULE:get(Id) of
+exists(Domain, Id) ->
+    case catch ?MODULE:get(Domain, Id) of
         {error, not_found} ->
             false;
         {error, Reason} ->
@@ -73,38 +73,38 @@ exists(Id) ->
             true
     end.
 
-assert(User, Sid) ->
-    case check(User, Sid) of
+assert(Domain, User, Sid) ->
+    case check(Domain, User, Sid) of
         {ok, true} ->
             {ok, true};
         {ok, false} ->
             throw({error, unauthorized})
     end.
 
-check(User, Sid) ->
-    {ok, Record} = uce_presence:get(Sid),
+check(Domain, User, Sid) ->
+    {ok, Record} = uce_presence:get(Domain, Sid),
     case Record#uce_presence.user of
         User ->
-            uce_presence:update(Record#uce_presence{last_activity=utils:now()}),
+            uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
             {ok, true};
         _ ->
             {ok, false}
     end.
 
-join(Sid, Meeting) ->
-    {ok, Record} = ?DB_MODULE:get(Sid),
+join(Domain, Sid, Meeting) ->
+    {ok, Record} = apply(db:get(?MODULE, Domain), get, [Domain, Sid]),
     case lists:member(Meeting, Record#uce_presence.meetings) of
         true ->
             {ok, updated};
         _ ->
             Meetings = Record#uce_presence.meetings ++ [Meeting],
-            ?DB_MODULE:update(Record#uce_presence{meetings=Meetings})
+            apply(db:get(?MODULE, Domain), update, [Record#uce_presence{meetings=Meetings}])
     end.
 
-leave(Sid, Meeting) ->
-    {ok, Record} = ?DB_MODULE:get(Sid),
+leave(Domain, Sid, Meeting) ->
+    {ok, Record} = apply(db:get(?MODULE, Domain), get, [Domain, Sid]),
     Meetings = del_entry(Record#uce_presence.meetings, Meeting),
-    ?DB_MODULE:update(Record#uce_presence{meetings=Meetings}).
+    apply(db:get(?MODULE, Domain), update, [Record#uce_presence{meetings=Meetings}]).
 
 del_entry([Entry], Entry) ->
     [];

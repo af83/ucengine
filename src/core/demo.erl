@@ -23,28 +23,34 @@
 
 start() ->
     Domains = config:get(hosts),
+    ?DEBUG("Domains : ~p~n", [Domains]),
     lists:foreach(fun({Domain, _Config}) ->
                           fill_domain(Domain)
                   end, Domains).
 
 fill_domain(Domain) ->
-    uce_infos:update(#uce_infos{domain=Domain,
+    ?DEBUG("fill_domain Domain : ~p~n", [Domain]),
+    uce_infos:update(Domain,
+                     #uce_infos{domain=Domain,
                                 metadata=[{"description", "U.C.Engine is a publish/subscribe server with persistence. It allows you to build real time applications like collaboration based services, live meetings, games or anything that fits well in an event driven philosophy."},
                                           {"logo", "ucengine.png"},
                                           {"htags", "ucengine"}]}),
 
-    catch uce_meeting:add(#uce_meeting{id={"demo", Domain},
+    catch uce_meeting:add(Domain,
+                          #uce_meeting{id={"demo", Domain},
                                        metadata=[{"description", "U.C.Engine demo meetup"}],
                                        start_date=utils:now(),
                                        end_date=?NEVER_ENDING_MEETING}),
 
-    catch uce_meeting:add(#uce_meeting{id={"demo2", Domain},
+    catch uce_meeting:add(Domain,
+                          #uce_meeting{id={"demo2", Domain},
                                        metadata=[{"description", "Meeting R&D"},
                                                  {"video", "/test"}],
                                        start_date=utils:now(),
                                        end_date=?NEVER_ENDING_MEETING}),
 
-    catch uce_meeting:add(#uce_meeting{id={"agoroom", Domain},
+    catch uce_meeting:add(Domain,
+                          #uce_meeting{id={"agoroom", Domain},
                                        metadata=[{"description", "Meeting agoroom"},
                                                  {"video", "http://encre.2metz.fr/simonsinek_2009x"}],
                                        start_date=1287738533649,
@@ -55,33 +61,37 @@ fill_domain(Domain) ->
              "romain.gauthier@af83.com", "participant"],
 
     lists:foreach(fun(User) ->
-                          catch uce_user:add(#uce_user{id={User, Domain},
+                          catch uce_user:add(Domain,
+                                             #uce_user{id={User, Domain},
                                                        auth="password",
                                                        credential="pwd",
                                                        metadata=[]}),
-                          uce_acl:add(#uce_acl{user={User, Domain},
+                          uce_acl:add(Domain,
+                                      #uce_acl{user={User, Domain},
+                                               location={"", Domain},
                                                action="add",
                                                object="presence"})
                   end, Users),
-    % anonymous account
-    catch uce_user:add(#uce_user{id={"anonymous", Domain},
-                                 auth="none"}),
-    uce_acl:add(#uce_acl{user={"anonymous", Domain},
-                         action="add",
-                         object="presence"}),
-    uce_acl:add(#uce_acl{user={"anonymous", Domain},
-                         action="get",
-                         object="infos"}),
-    uce_acl:add(#uce_acl{user={"anonymous", Domain},
-                         action="get",
-                         object="meeting"}),
-    uce_acl:add(#uce_acl{user={"anonymous", Domain},
-                         action="list",
-                         object="meeting"}),
+                                                % anonymous account
+    catch uce_user:add(Domain, #uce_user{id={"anonymous", Domain},
+                                         auth="none"}),
+    uce_acl:add(Domain, #uce_acl{user={"anonymous", Domain},
+                                 action="add",
+                                 object="presence"}),
+    uce_acl:add(Domain, #uce_acl{user={"anonymous", Domain},
+                                 action="get",
+                                 object="infos"}),
+    uce_acl:add(Domain, #uce_acl{user={"anonymous", Domain},
+                                 action="get",
+                                 object="meeting"}),
+    uce_acl:add(Domain, #uce_acl{user={"anonymous", Domain},
+                                 action="list",
+                                 object="meeting"}),
 
     Hashtags = ["#TED", "#sinek", "#simonsinek", "#ucengine"],
     lists:foreach(fun(HashTag) ->
-                          uce_event:add(#uce_event{domain=Domain,
+                          uce_event:add(Domain,
+                                        #uce_event{domain=Domain,
                                                    type="twitter.hashtag.add",
                                                    location={"demo", Domain},
                                                    from={"participant", Domain},

@@ -22,14 +22,14 @@
 -behaviour(gen_uce_event).
 
 -export([add/1,
-         get/1,
+         get/2,
          list/6]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_event{} = Event) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_event", to_collection(Event)) of
+add(#uce_event{domain=Domain} = Event) ->
+    case catch emongo:insert_sync(list_to_atom(Domain), "uce_event", to_collection(Event)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -37,8 +37,8 @@ add(#uce_event{} = Event) ->
             {ok, Event#uce_event.id}
     end.
 
-get(Id) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_event", [{"id", Id}]) of
+get(Domain, Id) ->
+    case catch emongo:find_one(list_to_atom(Domain), "uce_event", [{"id", Id}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -48,11 +48,11 @@ get(Id) ->
             throw({error, not_found})
     end.
 
-list(Location, From, Types, Start, End, Parent) ->
+list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
-                         {"", _} ->
+                         {"", Domain} ->
                              [];
-                         {Meeting, _} ->
+                         {Meeting, Domain} ->
                              [{"meeting", Meeting}]
                      end,
     SelectFrom = case From of
@@ -62,10 +62,10 @@ list(Location, From, Types, Start, End, Parent) ->
                          [{"from", Uid}]
                  end,
     SelectTypes = if
-                     Types == [] ->
+                     Type == [] ->
                          [];
                      true ->
-                         [{"type", [{in, Types}]}]
+                         [{"type", [{in, Type}]}]
                  end,
     SelectParent = if
                        Parent == "" ->
@@ -89,7 +89,7 @@ list(Location, From, Types, Start, End, Parent) ->
     Events = lists:map(fun(Collection) ->
                                from_collection(Collection)
                        end,
-                       emongo:find_all(?MONGO_POOL,"uce_event",
+                       emongo:find_all(list_to_atom(Domain),"uce_event",
                                        SelectLocation ++
                                            SelectFrom ++
                                            SelectTypes ++
@@ -106,7 +106,7 @@ from_collection(Collection) ->
                        domain=Domain,
                        datetime=Datetime,
                        from={From, Domain},
-                       to={To, Domain},
+                       to=To,
                        location={Meeting, Domain},
                        type=Type,
                        parent=Parent,
@@ -119,7 +119,7 @@ to_collection(#uce_event{domain=Domain,
                          id=Id,
                          location={Meeting, _},
                          from={From, _},
-                         to={To, _},
+                         to=To,
                          metadata=Metadata,
                          datetime=Datetime,
                          type=Type,

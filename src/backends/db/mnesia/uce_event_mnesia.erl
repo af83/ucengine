@@ -24,7 +24,7 @@
 -export([init/0, drop/0]).
 
 -export([add/1,
-         get/1,
+         get/2,
          list/6]).
 
 -include("uce.hrl").
@@ -45,7 +45,7 @@ add(#uce_event{} = Event) ->
             throw({error, bad_parameters})
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:read(uce_event, Id)
                             end) of

@@ -25,10 +25,10 @@
 
 -export([add/1,
          list/1,
-         get/1,
-         delete/1,
+         get/2,
+         delete/2,
          update/1,
-         all/0]).
+         all/1]).
 
 -include("uce.hrl").
 
@@ -67,16 +67,23 @@ list(User) ->
             throw({error, bad_parameters})
     end.
 
-all() ->
-    case catch ets:tab2list(uce_presence) of
+all(Domain) ->
+    case  mnesia:dirty_match_object(#uce_presence{id='_',
+                                            user='_',
+                                            domain=Domain,
+                                            auth='_',
+                                            timeout='_',
+                                            last_activity='_',
+                                            resource='_',
+                                            metadata='_'}) of
         Records when is_list(Records) ->
             {ok, Records};
         Error ->
-            ?ERROR_MSG("uce_presence:all: ~p~n", [Error]),
+            ?ERROR_MSG("uce_presence:all on domain ~s : ~p~n", [Domain, Error]),
             throw({error, bad_parameters})
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:read(uce_presence, Id)
                             end) of
@@ -88,7 +95,7 @@ get(Id) ->
             throw({error, bad_parameters})
     end.
 
-delete(Id) ->
+delete(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:delete({uce_presence, Id})
                             end) of

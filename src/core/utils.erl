@@ -28,6 +28,7 @@
 
          random/0,
          random/1,
+         get_values/2,
          get/2,
          get/3]).
 
@@ -54,6 +55,7 @@ get(Params, Key) when is_atom(Key) ->
     Result;
 get(Params, Keys) ->
     get(Params, Keys, none).
+
 get(Params, Keys, Default) when is_atom(Default) ->
     get(Params, Keys, lists:map(fun(_Elem) ->
                                         Default
@@ -69,4 +71,18 @@ get(Params, [Key|Keys], [Default|Defaults]) ->
                         [Default]
                 end,
     ValueList ++ ?MODULE:get(Params, Keys, Defaults).
+
+get_values(Proplist, Keys) ->
+    lists:map(fun({Name, Default}) ->
+                proplists:get_value(Name, Proplist, Default)
+              end, Keys).
+
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+get_values_test() ->
+    ?assertEqual(["chuck", "norris", rocks], get_values([{firstname, "chuck"}, {lastname, "norris"}], [{firstname, ""}, {lastname, ""}, {def, rocks}])).
+
+-endif.
 

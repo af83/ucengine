@@ -20,20 +20,23 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--export([send_long_polling_event/2]).
+-compile(export_all).
 
 setup_events(Domain) ->
-    uce_event:add(#uce_event{ domain=Domain,
+    uce_event:add(Domain,
+                  #uce_event{ domain=Domain,
                               type="test_event_1",
                               location={"testmeeting", Domain},
                               from={"participant.user@af83.com", Domain}}),
     timer:sleep(10),
-    uce_event:add(#uce_event{ domain=Domain,
+    uce_event:add(Domain,
+                  #uce_event{ domain=Domain,
                               type="test_event_2",
                               location={"testmeeting", Domain},
                               from={"user_2", Domain}}),
     timer:sleep(10),
-    uce_event:add(#uce_event{ domain=Domain,
+    uce_event:add(Domain,
+                  #uce_event{ domain=Domain,
                               type="test_event_3",
                               location={"testmeeting", Domain},
                               from={"user_3", Domain},

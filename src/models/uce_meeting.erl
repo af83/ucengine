@@ -19,47 +19,48 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1,
-         delete/1,
-         update/1,
-         get/1,
+-export([add/2,
+         delete/2,
+         update/2,
+         get/2,
          list/2,
-         join/2,
-         leave/2,
-         roster/1,
-         exists/1]).
+         join/3,
+         leave/3,
+         roster/2,
+         exists/2]).
 
 -include("uce.hrl").
 
-add(#uce_meeting{id=Id} = Meeting) ->
-    case ?MODULE:exists(Id) of
+
+add(Domain, #uce_meeting{id=Id} = Meeting) ->
+    case ?MODULE:exists(Domain, Id) of
         true ->
             throw({error, conflict});
         false ->
-            ?DB_MODULE:add(Meeting)
+            apply(db:get(?MODULE, Domain), add, [Meeting])
     end.
 
-delete(Id) ->
-    case ?MODULE:exists(Id) of
+delete(Domain, Id) ->
+    case ?MODULE:exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            ?DB_MODULE:delete(Id)
+            apply(db:get(?MODULE, Domain), delete, [Id])
     end.
 
-get(Id) ->
-    ?DB_MODULE:get(Id).
+get(Domain, Id) ->
+    apply(db:get(?MODULE, Domain), get, [Id]).
 
-update(#uce_meeting{id=Id} = Meeting) ->
-    case ?MODULE:exists(Id) of
+update(Domain, #uce_meeting{id=Id} = Meeting) ->
+    case ?MODULE:exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            ?DB_MODULE:update(Meeting)
+            apply(db:get(?MODULE, Domain), update, [Meeting])
     end.
 
 list(Domain, Status) ->
-    {ok, Meetings} = ?DB_MODULE:list(Domain),
+    {ok, Meetings} = apply(db:get(?MODULE, Domain), list, [Domain]),
     if
         Status == "all";
         Status == "upcoming";
@@ -106,12 +107,12 @@ list(Domain, Status) ->
             throw({error, bad_parameters})
     end.
 
-exists(Id) ->
+exists(Domain, Id) ->
     case Id of
         {"", _} -> % root
             true;
         _ ->
-            case catch ?MODULE:get(Id) of
+            case catch ?MODULE:get(Domain, Id) of
                 {error, not_found} ->
                     false;
                 {error, Reason} ->
@@ -121,36 +122,36 @@ exists(Id) ->
             end
     end.
 
-join(Id, User) ->
-    case uce_user:exists(User) of
+join(Domain, Id, User) ->
+    case uce_user:exists(Domain, User) of
         false ->
             throw({error, not_found});
         true ->
-            {ok, Meeting} = ?MODULE:get(Id),
+            {ok, Meeting} = ?MODULE:get(Domain, Id),
             case lists:member(User, Meeting#uce_meeting.roster) of
                 false ->
-                    ?MODULE:update(Meeting#uce_meeting{roster=Meeting#uce_meeting.roster ++ [User]});
+                    ?MODULE:update(Domain, Meeting#uce_meeting{roster=Meeting#uce_meeting.roster ++ [User]});
                 true ->
                     {ok, updated}
             end
     end.
 
-leave(Id, User) ->
-    case uce_user:exists(User) of
+leave(Domain, Id, User) ->
+    case uce_user:exists(Domain, User) of
         false ->
             throw({error, not_found});
         true ->
-            {ok, Meeting} = ?MODULE:get(Id),
+            {ok, Meeting} = ?MODULE:get(Domain, Id),
             case lists:member(User, Meeting#uce_meeting.roster) of
                 false ->
                     throw({error, not_found});
                 true ->
                     Roster = lists:subtract(Meeting#uce_meeting.roster, [User]),
-                    ?MODULE:update(Meeting#uce_meeting{roster=Roster})
+                    ?MODULE:update(Domain, Meeting#uce_meeting{roster=Roster})
             end
     end.
 
-roster(Id) ->
-    {ok, Meeting} = ?MODULE:get(Id),
+roster(Domain, Id) ->
+    {ok, Meeting} = ?MODULE:get(Domain, Id),
     {ok, Meeting#uce_meeting.roster}.
 

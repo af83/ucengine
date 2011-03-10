@@ -26,7 +26,7 @@
 -export([get/1, update/1]).
 
 get(Domain) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"domain", Domain}]) of
+    case catch emongo:find_one(list_to_atom(Domain), "uce_infos", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -39,12 +39,12 @@ get(Domain) ->
     end.
 
 update(#uce_infos{domain=Domain} = Infos) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_infos", [{"domain", Domain}]) of
+    case catch emongo:find_one(list_to_atom(Domain), "uce_infos", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         [_] ->
-            case catch emongo:update_sync(?MONGO_POOL, "uce_infos",
+            case catch emongo:update_sync(list_to_atom(Domain), "uce_infos",
                                           [{"domain", Domain}],
                                           to_collection(Infos), false) of
                 {'EXIT', Reason} ->
@@ -54,7 +54,7 @@ update(#uce_infos{domain=Domain} = Infos) ->
                     {ok, updated}
             end;
         [] ->
-            case catch emongo:insert_sync(?MONGO_POOL, "uce_infos", to_collection(Infos)) of
+            case catch emongo:insert_sync(list_to_atom(Domain), "uce_infos", to_collection(Infos)) of
                 {'EXIT', Reason} ->
                     ?ERROR_MSG("~p~n", [Reason]),
                     throw({error, bad_parameters});

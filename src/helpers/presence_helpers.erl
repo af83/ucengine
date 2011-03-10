@@ -21,20 +21,20 @@
 
 -include("uce.hrl").
 
--export([clean/1]).
+-export([clean/2]).
 
-clean(#uce_presence{domain=Domain,
+clean(Domain, #uce_presence{
                     user=User,
                     meetings=Meetings}) ->
     lists:foreach(fun(Meeting) ->
-                          uce_event:add(#uce_event{domain=Domain,
-                                                   from=User,
-                                                   type="internal.roster.delete",
-                                                   location=Meeting}),
-                          uce_meeting:leave(Meeting, User)
+                          uce_event:add(Domain, #uce_event{domain=Domain,
+                                                           from=User,
+                                                           type="internal.roster.delete",
+                                                           location=Meeting}),
+                          uce_meeting:leave(Domain, Meeting, User)
                   end,
                   Meetings),
-    uce_event:add(#uce_event{domain=Domain,
-                             from=User,
-                             type="internal.presence.delete"}),
+    uce_event:add(Domain, #uce_event{domain=Domain,
+                                     from=User,
+                                     type="internal.presence.delete"}),
     ok.

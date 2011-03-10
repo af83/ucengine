@@ -98,13 +98,13 @@ ctl_infos_test_() ->
 %%
 
 test_meeting_add(Domain) ->
-    false = uce_meeting:exists({"newmeeting", Domain}),
+    false = uce_meeting:exists(Domain, {"newmeeting", Domain}),
     Params = [{"domain", [Domain]}, {"name", ["newmeeting"]}, {"description", [""]}],
     ok = uce_ctl:action(meeting, add, Params),
     Expected = {ok, #uce_meeting{id={"newmeeting", Domain},
                                  start_date=0, end_date=0,
                                  metadata=[{"description", ""}]}},
-    Expected = uce_meeting:get({"newmeeting", Domain}).
+    Expected = uce_meeting:get(Domain, {"newmeeting", Domain}).
 test_meeting_add_missing_parameter() ->
     error = uce_ctl:action(meeting, add, []).
 
@@ -122,7 +122,7 @@ test_meeting_update(Domain) ->
                      , start_date=Start
                      , end_date=End
                      , metadata=[{"description", _Description}]
-                     }} = uce_meeting:get({"testmeeting", Domain}),
+                     }} = uce_meeting:get(Domain, {"testmeeting", Domain}),
     StartDate = uce_ctl:timestamp_to_iso(Start),
     EndDate = uce_ctl:timestamp_to_iso(End),
     Params = [{"domain", [Domain]}
@@ -137,7 +137,7 @@ test_meeting_update(Domain) ->
                                 , end_date=uce_ctl:parse_date(EndDate)
                                 , metadata=[{"description", "A new description"}]
                                 }},
-    Expected = uce_meeting:get({"testmeeting", Domain}).
+    Expected = uce_meeting:get(Domain, {"testmeeting", Domain}).
 test_meeting_update_missing_parameter() ->
     error = uce_ctl:action(meeting, update, []).
 test_meeting_update_not_found(Domain) ->
@@ -149,10 +149,10 @@ test_meeting_delete(Domain) ->
                      , start_date=_Start
                      , end_date=_End
                      , metadata=[{"description", _Description}]
-                     }} = uce_meeting:get({"testmeeting", Domain}),
+                     }} = uce_meeting:get(Domain, {"testmeeting", Domain}),
     Params = [{"domain", [Domain]}, {"name", ["testmeeting"]}],
     ok = uce_ctl:action(meeting, delete, Params),
-    false = uce_meeting:exists({"testmeeting", Domain}).
+    false = uce_meeting:exists(Domain, {"testmeeting", Domain}).
 test_meeting_delete_missing_parameter() ->
     error = uce_ctl:action(meeting, delete, []).
 test_meeting_delete_not_found(Domain) ->
@@ -170,7 +170,7 @@ test_meeting_list_missing_parameter() ->
 %%
 
 test_user_add(Domain) ->
-    false = uce_user:exists({"test.user@af83.com", Domain}),
+    false = uce_user:exists(Domain, {"test.user@af83.com", Domain}),
     Params = [ {"domain", [Domain]}
              , {"uid", ["test.user@af83.com"]}
              , {"auth", ["password"]}
@@ -180,7 +180,7 @@ test_user_add(Domain) ->
     {ok, #uce_user{id={"test.user@af83.com", Domain},
                    auth="password",
                    credential="pwd",
-                   metadata=[]}} = uce_user:get({"test.user@af83.com", Domain}).
+                   metadata=[]}} = uce_user:get(Domain, {"test.user@af83.com", Domain}).
 test_user_add_missing_parameter() ->
     Params = [ {"auth", ["password"]}
              , {"credential", ["pwd"]}
@@ -209,7 +209,7 @@ test_user_get_not_found(Domain) ->
 test_user_update(Domain) ->
     {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
                    auth="none"}} =
-        uce_user:get({"anonymous.user@af83.com", Domain}),
+        uce_user:get(Domain, {"anonymous.user@af83.com", Domain}),
     Params = [ {"domain", [Domain]}
              , {"uid", ["anonymous.user@af83.com"]}
              , {"auth", ["password"]}
@@ -219,7 +219,7 @@ test_user_update(Domain) ->
     {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
                    auth="password",
                    credential="pwd"}} =
-        uce_user:get({"anonymous.user@af83.com", Domain}).
+        uce_user:get(Domain, {"anonymous.user@af83.com", Domain}).
 test_user_update_missing_parameter() ->
     error = uce_ctl:action(user, update, []).
 test_user_update_not_found(Domain) ->
@@ -233,10 +233,10 @@ test_user_update_not_found(Domain) ->
 test_user_delete(Domain) ->
     {ok, #uce_user{id={"participant.user@af83.com", Domain},
                    auth="password",
-                   credential="pwd"}} = uce_user:get({"participant.user@af83.com", Domain}),
+                   credential="pwd"}} = uce_user:get(Domain, {"participant.user@af83.com", Domain}),
     Params = [{"domain", [Domain]}, {"uid", ["participant.user@af83.com"]}],
     ok = uce_ctl:action(user, delete, Params),
-    false = uce_user:exists({"participant.user@af83.com", Domain}).
+    false = uce_user:exists(Domain, {"participant.user@af83.com", Domain}).
 test_user_delete_missing_parameter() ->
     error = uce_ctl:action(user, delete, []).
 test_user_delete_not_found(Domain) ->
@@ -261,14 +261,14 @@ test_acl_add(Domain) ->
              , {"", ""}
              , []
              ],
-    {ok, false} = erlang:apply(uce_acl, check, Params),
+    {ok, false} = erlang:apply(uce_acl, check, [Domain] ++ Params),
     ACL = [ {"domain", [Domain]}
             , {"uid", ["participant.user@af83.com"]}
             , {"action", ["add"]}
             , {"object", ["user"]}
           ],
     ok = uce_ctl:action(acl, add, ACL),
-    {ok, true} = erlang:apply(uce_acl, check, Params).
+    {ok, true} = erlang:apply(uce_acl, check, [Domain] ++ Params).
 test_acl_add_missing_parameter() ->
     Params = [ {"action", ["add"]}
              , {"object", ["user"]}

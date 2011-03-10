@@ -19,67 +19,69 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1,
-         delete/5,
-         assert/3,
+-export([add/2,
+         delete/6,
          assert/4,
          assert/5,
-         check/3,
+         assert/6,
          check/4,
          check/5,
-         trigger/1]).
+         check/6,
+         trigger/2]).
 
 -include("uce.hrl").
 
-add(#uce_acl{user=User, location=Location} = ACL) ->
-    case location_helpers:exists(Location) of
+add(Domain, #uce_acl{user=User, location=Location} = ACL) ->
+    ?DEBUG("acl : ~p~nlocation : ~p~nuser : ~p~n", [ACL, Location, User]),
+    case location_helpers:exists(Domain, Location) of
         false ->
             throw({error, not_found});
         true ->
-            case uce_user:exists(User) of
+            case uce_user:exists(Domain, User) of
                 true ->
-                    ?DB_MODULE:add(ACL);
+                    apply(db:get(?MODULE, Domain), add, [ACL]);
                 false ->
                     throw({error, not_found})
             end
     end.
 
-delete(User, Object, Action, Location, Conditions) ->
-    MeetingExists = uce_meeting:exists(Location),
-    UserExists = uce_user:exists(User),
+delete(Domain, User, Object, Action, Location, Conditions) ->
+    MeetingExists = uce_meeting:exists(Domain, Location),
+    UserExists = uce_user:exists(Domain, User),
 
     if
         MeetingExists,
         UserExists ->
             case Location of
                 {"", _} ->
-                    ?DB_MODULE:delete(User, Object, Action, Location, Conditions),
-                    ?DB_MODULE:delete(User, Object, Action, {"", ""}, Conditions);
+                    apply(db:get(?MODULE, Domain), delete, [User, Object, Action, Location, Conditions]),
+                    apply(db:get(?MODULE, Domain), delete, [User, Object, Action, {"", ""}, Conditions]);
                 _ ->
-                    ?DB_MODULE:delete(User, Object, Action, Location, Conditions)
+                    apply(db:get(?MODULE, Domain), delete, [User, Object, Action, Location, Conditions])
             end;
         true ->
             throw({error, not_found})
     end.
 
-assert(User, Object, Action) ->
-    assert(User, Object, Action, {"", ""}).
-assert(User, Object, Action, Location) ->
-    assert(User, Object, Action, Location, []).
-assert(User, Object, Action, Location, Conditions) ->
-    case check(User, Object, Action, Location, Conditions) of
+assert(Domain, User, Object, Action) ->
+    assert(Domain, User, Object, Action, {"", ""}).
+assert(Domain, User, Object, Action, Location) ->
+    assert(Domain, User, Object, Action, Location, []).
+assert(Domain, User, Object, Action, Location, Conditions) ->
+    case check(Domain, User, Object, Action, Location, Conditions) of
         {ok, false} ->
             throw({error, unauthorized});
         {ok, true} ->
             {ok, true}
     end.
 
-check(User, Object, Action) ->
-    check(User, Object, Action, {"", ""}).
-check(User, Object, Action, Location) ->
-    check(User, Object, Action, Location, []).
-check(User, Object, Action, Location, Conditions) ->
-    case ?DB_MODULE:list(User, Object, Action) of
+check(Domain, User, Object, Action) ->
+    check(Domain, User, Object, Action, {"", ""}).
+check(Domain, User, Object, Action, Location) ->
+    check(Domain, User, Object, Action, Location, []).
+check(Domain, User, Object, Action, Location, Conditions) ->
+    ?DEBUG("uce_acl:check with domain : ~p~n", [Domain]),
+    case apply(db:get(?MODULE, Domain), list, [User, Object, Action]) of
         {error, Reason} ->
             throw({error, Reason});
         {ok, ACL} ->
@@ -133,11 +135,53 @@ check_conditions([#uce_acl{conditions=Conditions}|Tail], Required) ->
             end
     end.
 
-trigger(#uce_event{type=Type, domain=Domain, from=From}) ->
-    case lists:keyfind(Type, 1, config:get(Domain, acl)) of
+replace_conditions([], _) ->
+    [];
+replace_conditions([{Key, Value}|Tail], Variables) ->
+    Condition = case is_atom(Value) of
+                    true ->
+                        case lists:keyfind(atom_to_list(Value), 1, Variables) of
+                            false ->
+                                ?DEBUG("Cannot set ACL: unknown key: ~p~n", [Key]),
+                                [];
+                            NewCondition ->
+                                [NewCondition]
+                        end;
+                    false ->
+                        [{Key, Value}]
+                end,
+    Condition ++ replace_conditions(Tail, Variables).
+
+trigger(Domain, 
+        #uce_event{type=Type,
+                   location=Location,
+                   from=From,
+                   metadata=UnsecureMetadata}) ->
+    Acl = case config:get(Domain, acl) of
+            undefined -> config:get(acl);
+            Val -> Val
+          end, 
+    case lists:keyfind(Type, 1, Acl) of
         {Type, Rules} ->
-            lists:foreach(fun({Object, Action}) ->
-                                  uce_acl:add(#uce_acl{object=Object,
+            lists:foreach(fun({Object, Action, Conditions}) ->
+                                  Metadata =
+                                      lists:filter(fun({Key, _}) ->
+                                                           case Key of
+                                                               "location" ->
+                                                                   false;
+                                                               "from" ->
+                                                                   false;
+                                                               _ ->
+                                                                   true
+                                                           end
+                                                   end,
+                                                   UnsecureMetadata),
+                                  _NewConditions =
+                                      replace_conditions(Conditions, Metadata ++
+                                                             [{"location", Location},
+                                                              {"from", From}]),
+                                  uce_acl:add(Domain, 
+                                              #uce_acl{object=Object,
                                                        action=Action,
                                                        conditions=[],
                                                        user=From})

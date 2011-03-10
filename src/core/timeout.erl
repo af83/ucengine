@@ -45,16 +45,16 @@ handle_call(_ , _, State) ->
 
 handle_cast(run, State) ->
     timer:sleep(config:get(timeout_refresh) * 1000),
-    {ok, Presences} = uce_presence:all(),
+    {ok, Presences} = get_all_presences(),
 
     % delete expired presences
     Now = utils:now(),
     lists:foreach(
-      fun(#uce_presence{id=Id, last_activity=LastActivity, timeout=Timeout} = Presence) ->
+      fun(#uce_presence{id=Id, last_activity=LastActivity, timeout=Timeout, domain=Domain} = Presence) ->
               if
                   LastActivity + (Timeout * 1000) < Now ->
-                      catch presence_helpers:clean(Presence),
-                      catch uce_presence:delete(Id);
+                      catch presence_helpers:clean(Domain, Presence),
+                      catch uce_presence:delete(Domain, Id);
                   true ->
                       nothing
               end
@@ -75,3 +75,10 @@ handle_info(_Info, State) ->
 terminate(_Reason, _State) ->
     ok.
 
+get_all_presences() ->
+    {ok, get_all_presences(config:get(hosts))}.
+
+get_all_presences([{Host, _} | TlHost]) ->
+    {ok, Presences} = uce_presence:all(Host),
+    Presences ++ get_all_presences(TlHost);
+get_all_presences([]) -> [].

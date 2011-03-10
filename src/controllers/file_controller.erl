@@ -53,16 +53,17 @@ init() ->
 
 
 add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
-    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "file", "add", {Meeting, Domain}),
-    {ok, Id} = uce_file:add(#uce_file{location={Meeting, Domain},
-                                      domain=Domain,
-                                      name=Name,
-                                      uri=Uri,
-                                      metadata=Metadata}),
-    {ok, File} = uce_file:get(Id),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "file", "add", {Meeting, Domain}),
+    {ok, Id} = uce_file:add(Domain, #uce_file{location={Meeting, Domain},
+                                              domain=Domain,
+                                              name=Name,
+                                              uri=Uri,
+                                              metadata=Metadata}),
+    {ok, File} = uce_file:get(Domain, Id),
     {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
-    uce_event:add(#uce_event{domain=Domain,
+    uce_event:add(Domain,
+                  #uce_event{domain=Domain,
                              location={Meeting, Domain},
                              from={Uid, Domain},
                              type="internal.file.add",
@@ -73,9 +74,9 @@ add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
     json_helpers:created(Domain, File#uce_file.id).
 
 list(Domain, [Meeting], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "file", "list", {Meeting, Domain}),
-    {ok, Files} = uce_file:list({Meeting, Domain}),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "file", "list", {Meeting, Domain}),
+    {ok, Files} = uce_file:list(Domain, {Meeting, Domain}),
     json_helpers:json(Domain, {array, [file_helpers:to_json(File) || File <- Files]}).
 
 %%
@@ -86,9 +87,9 @@ get_path(Uri) ->
     re:replace(Uri, "file\:\/\/", "", [{return, list}]).
 
 get(Domain, [Meeting, Id], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "file", "get", {Meeting, Domain}, [{"id", Id}]),
-    {ok, File} = uce_file:get(Id),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "file", "get", {Meeting, Domain}, [{"id", Id}]),
+    {ok, File} = uce_file:get(Domain, Id),
     Path = get_path(File#uce_file.uri),
     case file:read_file(Path) of
         {error, Reason} ->
@@ -98,7 +99,7 @@ get(Domain, [Meeting, Id], [Uid, Sid], _) ->
     end.
 
 delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert({Uid, Domain}, "file", "delete", {Meeting, Domain}, [{"id", Id}]),
-    {ok, deleted} = uce_file:delete(Id),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "file", "delete", {Meeting, Domain}, [{"id", Id}]),
+    {ok, deleted} = uce_file:delete(Domain, Id),
     json_helpers:ok(Domain).

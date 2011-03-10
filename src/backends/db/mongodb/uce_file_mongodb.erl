@@ -30,8 +30,8 @@
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_file{} = File) ->
-    case catch emongo:insert_sync(?MONGO_POOL, "uce_file", to_collection(File)) of
+add(#uce_file{domain=Domain} = File) ->
+    case catch emongo:insert_sync(list_to_atom(Domain), "uce_file", to_collection(File)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -40,8 +40,8 @@ add(#uce_file{} = File) ->
     end.
 
 list({Location, Domain}) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_file", [{"location", Location},
-                                                         {"domain", Domain}]) of
+    case catch emongo:find_all(list_to_atom(Domain), "uce_file", [{"location", Location},
+                                                                  {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -50,7 +50,7 @@ list({Location, Domain}) ->
     end.
 
 all(Domain) ->
-    case catch emongo:find_all(?MONGO_POOL, "uce_file", [{"domain", Domain}]) of
+    case catch emongo:find_all(list_to_atom(Domain), "uce_file", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -59,7 +59,8 @@ all(Domain) ->
     end.
 
 get(Id) ->
-    case catch emongo:find_one(?MONGO_POOL, "uce_file", [{"id", Id}]) of
+    {Pk, Domain} = Id,
+    case catch emongo:find_one(list_to_atom(Domain), "uce_file", [{"id", Pk}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -70,7 +71,8 @@ get(Id) ->
     end.
 
 delete(Id) ->
-    case catch emongo:delete_sync(?MONGO_POOL, "uce_file", [{"id", Id}]) of
+    {Pk, Domain} = Id,
+    case catch emongo:delete_sync(list_to_atom(Domain), "uce_file", [{"id", Pk}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});

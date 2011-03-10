@@ -51,6 +51,7 @@ get(Domain) ->
     end.
 
 update(Infos) ->
+    ?DEBUG("Infos : ~p~n", [Infos]),
     case mnesia:transaction(fun() ->
                                     mnesia:write(Infos)
                             end) of
