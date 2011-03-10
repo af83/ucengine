@@ -20,6 +20,8 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+-export([send_long_polling_event/2]).
+
 setup_events(Domain) ->
     uce_event:add(#uce_event{ domain=Domain,
                               type="test_event_1",
@@ -69,7 +71,8 @@ event_test_() ->
                  ?_test(test_get_with_type_and_timestart(BaseUrl, Testers)),
                  ?_test(test_get_with_type_and_timestart_and_timeend(BaseUrl, Testers)),
                  ?_test(test_get_with_type_and_timeend(BaseUrl, Testers)),
-                 ?_test(test_last(BaseUrl, Testers))]
+                 ?_test(test_last(BaseUrl, Testers)),
+                 ?_test(test_long_polling(BaseUrl, Testers))]
         end}.
 
 test_push(BaseUrl, [{RootUid, RootSid}, _]) ->
@@ -259,8 +262,6 @@ test_get_with_keywords_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
               {"type", "search_event"},
               {"metadata[description]", "lonely hungry event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
-
-    timer:sleep(1000),
 
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
@@ -637,3 +638,48 @@ test_last(BaseUrl, [{RootUid, RootSid}, _]) ->
                                   , {"from", _}
                                   , {"metadata", {struct, [{"description", "pushed_event"}]}}
                                  ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetLast).
+
+send_long_polling_event(BaseUrl, {RootUid, RootSid}) ->
+    timer:sleep(4000),
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"type", "long_polling_event"},
+              {"metadata[description]", "relax, don't do it"}],
+    {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params).
+
+test_long_polling(BaseUrl, [{RootUid, RootSid}, _]) ->
+    Now = utils:now(),
+    ParamsGet = [{"uid", RootUid},
+                 {"sid", RootSid},
+                 {"start", integer_to_list(Now)},
+                 {"type", "long_polling_event"},
+                 {"_async", "lp"}],
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, {RootUid, RootSid}]),
+    {struct, [{"result", {array,
+                          [{struct, [{"type", "long_polling_event"}
+                                     , {"domain", _}
+                                     , {"datetime", Datetime}
+                                     , {"id", _}
+                                     , {"location", "testmeeting"}
+                                     , {"from", RootUid}
+                                     , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
+                                    ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
+    LongPollingDelay = utils:now() - Now,
+    EventDelay = Datetime - Now,
+    % both should be around 2000
+    if
+        LongPollingDelay < 3700 ->
+            throw({error, too_fast});
+        LongPollingDelay > 4700 ->
+            throw({error, too_much_delay});
+        true ->
+            nothing
+    end,
+    if
+        EventDelay < 3700 ->
+            throw({error, too_fast});
+        EventDelay > 4700 ->
+            throw({error, too_much_delay});
+        true ->
+            nothing
+    end.
