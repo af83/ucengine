@@ -68,15 +68,16 @@ setup_db() ->
     setup_db(HostsConfig).
 
 setup_db([{Host, Config} | TlHostsConfig ]) ->
-    DBBackend = case proplists:get_value(db, Config) of 
-                    undefined -> config:get(db);
-                    _ = Value -> Value
-                end,
+    {DBBackend, GoodConfig} = case proplists:get_value(db, Config) of 
+                                  undefined -> Key = config:get(db),
+                                               {Key, [{Key, config:get(Key)}]};
+                                  _ = Value -> {Value, Config}
+                              end,
     case DBBackend of
         undefined -> throw({error, no_database});
         mnesia -> catch mnesia_db:init([]);
         _ ->
-            case proplists:get_value(DBBackend, Config) of
+            case proplists:get_value(DBBackend, GoodConfig) of
                 undefined -> nothing;
                 {_, PoolConfig} ->
                     DBBackendModule = list_to_atom(atom_to_list(DBBackend) ++ "_db"),
