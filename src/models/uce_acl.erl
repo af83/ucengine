@@ -135,55 +135,24 @@ check_conditions([#uce_acl{conditions=Conditions}|Tail], Required) ->
             end
     end.
 
-replace_conditions([], _) ->
-    [];
-replace_conditions([{Key, Value}|Tail], Variables) ->
-    Condition = case is_atom(Value) of
-                    true ->
-                        case lists:keyfind(atom_to_list(Value), 1, Variables) of
-                            false ->
-                                ?DEBUG("Cannot set ACL: unknown key: ~p~n", [Key]),
-                                [];
-                            NewCondition ->
-                                [NewCondition]
-                        end;
-                    false ->
-                        [{Key, Value}]
-                end,
-    Condition ++ replace_conditions(Tail, Variables).
-
 trigger(Domain, 
         #uce_event{type=Type,
                    location=Location,
-                   from=From,
-                   metadata=UnsecureMetadata}) ->
+                   from=From}) ->
     Acl = case config:get(Domain, acl) of
-            undefined -> config:get(acl);
-            Val -> Val
+            undefined ->
+                  config:get(acl);
+            Val ->
+                  Val
           end, 
     case lists:keyfind(Type, 1, Acl) of
         {Type, Rules} ->
-            lists:foreach(fun({Object, Action, Conditions}) ->
-                                  Metadata =
-                                      lists:filter(fun({Key, _}) ->
-                                                           case Key of
-                                                               "location" ->
-                                                                   false;
-                                                               "from" ->
-                                                                   false;
-                                                               _ ->
-                                                                   true
-                                                           end
-                                                   end,
-                                                   UnsecureMetadata),
-                                  _NewConditions =
-                                      replace_conditions(Conditions, Metadata ++
-                                                             [{"location", Location},
-                                                              {"from", From}]),
+            lists:foreach(fun({Object, Action}) ->
                                   uce_acl:add(Domain, 
                                               #uce_acl{object=Object,
                                                        action=Action,
                                                        conditions=[],
+                                                       location=Location,
                                                        user=From})
                           end,
                           Rules),
