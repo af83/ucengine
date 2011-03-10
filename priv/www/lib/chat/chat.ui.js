@@ -62,7 +62,7 @@ $.uce.widget("chat", {
             .appendTo(selectors);
 
         /* create form to add hashtags */
-        this._hashtagForm = form = $('<form>')
+        this._hashtagForm = $('<form>')
             .attr({'action': '#', 'method': 'post', 'class': 'ui-chat-hashtag-form'});
 
         var dash = $('<span>').text("#").appendTo(this._hashtagForm);
@@ -129,7 +129,7 @@ $.uce.widget("chat", {
 
         /* create dock */
         if (this.options.dock) {
-            this._dock = dock = $('<a>')
+            this._dock = $('<a>')
                 .attr('class', 'ui-dock-button')
                 .attr('href', '#')
                 .attr('title', this.options.title)
@@ -329,7 +329,7 @@ $.uce.widget("chat", {
             $(container).removeClass('ui-chat-current');
         });
     },
-    
+
     _addConversation: function(name, language) {
         var conversation = this._addContainer('conversation:' + name + ":" + language);
 
