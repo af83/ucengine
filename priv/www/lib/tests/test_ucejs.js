@@ -440,20 +440,12 @@ jackTest("waitEvents, callback is called on each events", function() {
     }, true);
 });
 
-test("startLoop with bind", function() {
-    stop();
-    var client = this.client;
+function longPollingTest(events, test) {
     var env = {
         ajaxcall : 0,
         start: function() {
             this.mock();
-            var that = this;
-            this.xhr = client.attachPresence(Factories.createPresence()).meeting("mymeeting").bind(function(event) {
-                start();
-                same(event, {datetime : "14"});
-                equals(that.ajaxcall, 1);
-                that.xhr.stop();
-            }).startLoop(1213);
+            test(this);
         },
         mock : function() {
             var that = this;
@@ -462,7 +454,7 @@ test("startLoop with bind", function() {
                 responseTime: 1,
                 response: function() {
                     this.responseText = {
-                        result: [{"datetime":"14"}]
+                        result: events
                     };
                     that.ajaxcall++;
                 }
@@ -470,39 +462,34 @@ test("startLoop with bind", function() {
         }
     };
     env.start();
+}
+
+test("startLoop with bind", function() {
+    stop();
+    var client = this.client.attachPresence(Factories.createPresence());
+    longPollingTest([{type: "chuck_norris", datetime : 14}], function(longPolling) {
+        longPolling.xhr = client.meeting("mymeeting").bind(function(event) {
+            same(event, {type: "chuck_norris", datetime : 14});
+            equals(longPolling.ajaxcall, 1);
+            longPolling.xhr.stop();
+            start();
+        }).startLoop(1213);
+    });
 });
 
 test("startLoop widgets/whatever can bind event handler with special type", function() {
     stop();
     expect(2);
-    var client = this.client;
-    var env = {
-        ajaxcall : 0,
-        start: function() {
-            this.mock();
-            var that = this;
-            this.xhr = client.attachPresence(Factories.createPresence()).meeting("mymeeting").bind("chuck_norris", function(event) {
-                start();
-                same(event, {type : "chuck_norris"});
-                equals(that.ajaxcall, 1);
-                that.xhr.stop();
-            }).startLoop(1213);
-        },
-        mock : function() {
-            var that = this;
-            $.mockjax({
-                url: '/api/0.3/event/mymeeting',
-                responseTime: 1,
-                response: function() {
-                    this.responseText = {
-                        result: [{type: "chuck_norris"}, {type: "plop"}]
-                    };
-                    that.ajaxcall++;
-                }
-            });
-        }
-    };
-    env.start();
+    var client = this.client.attachPresence(Factories.createPresence());
+    longPollingTest([{type: "chuck_norris", datetime : 14}, {type: "plop"}],
+                    function(longPolling) {
+        longPolling.xhr = client.meeting("mymeeting").bind("chuck_norris", function(event) {
+            same(event, {type : "chuck_norris", datetime: 14});
+            equals(longPolling.ajaxcall, 1);
+            longPolling.xhr.stop();
+            start();
+        }).startLoop(1213);
+    });
 });
 
 test("get upload url", function() {
