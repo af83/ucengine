@@ -80,16 +80,16 @@ list(Location, From, Types, Start, End, Parent) ->
                        true ->
                            Parent
                    end,
-    Guard = if 
+    Guard = if
                 Start /= 0, End /= infinity ->
                     [{'>=', '$3', Start}, {'=<', '$3', End}];
-                
+
                 Start /= 0 ->
                     [{'>=', '$3', Start}];
-                
+
                 End /= infinity ->
                     [{'=<', '$3', End}];
-                
+
                 true ->
                     []
             end,
@@ -102,7 +102,7 @@ list(Location, From, Types, Start, End, Parent) ->
                                            true ->
                                                Type
                                        end,
-                          
+
                           Match = #uce_event{id='$1',
                                              domain='$2',
                                              datetime='$3',

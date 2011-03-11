@@ -24,8 +24,8 @@
 -include("uce.hrl").
 
 -define(EVENT_DBMOD, (fun() ->
-			      list_to_atom("uce_event_" ++ atom_to_list(config:get(db)))
-		      end())).
+                              list_to_atom("uce_event_" ++ atom_to_list(config:get(db)))
+                      end())).
 
 add(_) ->
     {ok, created}.
@@ -38,7 +38,7 @@ search_value(Value, [Word|Words]) ->
             false;
         _ ->
             search_value(Value, Words)
-    end. 
+    end.
 search_metadata([], _) ->
     false;
 search_metadata([{_, Value}|Tail], Words) ->

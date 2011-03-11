@@ -74,7 +74,7 @@ list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
                            [{"parent", Parent}]
                    end,
     SelectTime = if
-                     Start == 0, End == infinity -> 
+                     Start == 0, End == infinity ->
                          [];
                      Start /= 0, End == infinity ->
                          [{"datetime", [{'>=', Start}]}];
@@ -100,8 +100,8 @@ list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		  ["id", "domain", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
-	[Id, Domain, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
+                  ["id", "domain", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
+        [Id, Domain, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
             #uce_event{id=Id,
                        domain=Domain,
                        datetime=Datetime,
