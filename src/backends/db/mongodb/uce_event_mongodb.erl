@@ -117,7 +117,7 @@ from_collection(Collection) ->
 
 to_collection(#uce_event{domain=Domain,
                          id=Id,
-                         location={Meeting, Domain},
+                         location={Meeting, _},
                          from={From, Domain},
                          to={To, _},
                          metadata=Metadata,
