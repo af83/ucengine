@@ -49,10 +49,10 @@ wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
                                         JSONError =
                                             list_to_binary(mochijson:encode({struct,
                                                                              [{error, Error}]})),
-                                        yaws_api:stream_process_deliver(Socket, JSONError)
+                                        yaws_api:stream_process_deliver_final_chunk(Socket, JSONError)
                                 end,
                                 yaws_api:stream_process_end(Socket, YawsPid);
-                            {discard, YawsPid}->
+                            {discard, YawsPid} ->
                                 yaws_api:stream_process_end(Socket, YawsPid)
                         end
                 end),

@@ -45,8 +45,8 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent, Socket) -
                           JSONEvents = mochijson:encode({struct,
                                                          [{result,
                                                            event_helpers:to_json(Events)}]}),
-                          yaws_api:stream_process_deliver(Socket,
-                                                        list_to_binary(JSONEvents)),
+                          yaws_api:stream_process_deliver_final_chunk(Socket,
+                                                                      list_to_binary(JSONEvents)),
                           ok
                   end;
               _ ->
@@ -54,8 +54,8 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent, Socket) -
           after
               config:get(long_polling_timeout) * 1000 ->
                   JSONEmpty = mochijson:encode({struct, [{result, {array, []}}]}),
-                  yaws_api:stream_process_deliver(Socket,
-                                                  list_to_binary(JSONEmpty)),
+                  yaws_api:stream_process_deliver_final_chunk(Socket,
+                                                              list_to_binary(JSONEmpty)),
                   ok
           end,
     ?PUBSUB_MODULE:unsubscribe(self()),
