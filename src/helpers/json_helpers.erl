@@ -68,7 +68,7 @@ created(_Domain, Id) ->
     format_response(201, [], {struct, [{result, Id}]}).
 
 json(_Domain, Content) ->
-    format_response(201, [], {struct, [{result, Content}]}).
+    format_response(200, [], {struct, [{result, Content}]}).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
