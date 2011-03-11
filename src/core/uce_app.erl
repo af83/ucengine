@@ -53,7 +53,6 @@ start(_, _) ->
 
 setup() ->
     save_pid(),
-    setup_db(),
     setup_controllers(),
     setup_server(),
     ok.
@@ -61,27 +60,6 @@ setup() ->
 stop(State) ->
     remove_pid(),
     State.
-
-setup_db() ->
-    HostsConfig = config:get('hosts'),
-    setup_db(HostsConfig).
-
-setup_db([{Host, _Config} | TlHostsConfig ]) ->
-    DBBackend = config:get(Host, db),
-    DBConfig = config:get(Host, DBBackend),
-    case DBBackend of
-        undefined -> throw({error, no_database});
-        mnesia -> catch mnesia_db:init([]);
-        _ ->
-            case DBConfig of
-                undefined -> nothing;
-                {_, PoolConfig} ->
-                    DBBackendModule = list_to_atom(atom_to_list(DBBackend) ++ "_db"),
-                    DBBackendModule:init({Host, PoolConfig}) %% we use Hostname as the pool name.
-            end
-    end,
-    setup_db(TlHostsConfig);
-setup_db([]) -> ok.
 
 setup_controllers() ->
     lists:foreach(fun(Controller) ->

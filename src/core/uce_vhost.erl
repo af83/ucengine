@@ -41,6 +41,7 @@ start_link(Domain) ->
 %%
 
 init([Domain]) ->
+    setup_db(Domain),
     setup_bricks(Domain),
     setup_admin(Domain),
     {ok, Domain}.
@@ -63,6 +64,21 @@ terminate(_Reason, _State) ->
 %%
 %% Private functions
 %%
+
+setup_db(Domain) ->
+    DBBackend = config:get(Domain, db),
+    DBConfig = config:get(Domain, DBBackend),
+    case DBBackend of
+        undefined -> throw({error, no_database});
+        mnesia -> catch mnesia_db:init([]);
+        _ ->
+            case DBConfig of
+                undefined -> nothing;
+                {_, PoolConfig} ->
+                    DBBackendModule = list_to_atom(atom_to_list(DBBackend) ++ "_db"),
+                    DBBackendModule:init({Domain, PoolConfig}) %% we use Hostname as the pool name.
+            end
+    end.
 
 setup_bricks(Domain) ->
     lists:foreach(fun({Name, Token}) ->
