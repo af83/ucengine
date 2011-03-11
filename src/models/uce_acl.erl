@@ -32,7 +32,6 @@
 -include("uce.hrl").
 
 add(Domain, #uce_acl{user=User, location=Location} = ACL) ->
-    ?DEBUG("acl : ~p~nlocation : ~p~nuser : ~p~n", [ACL, Location, User]),
     case location_helpers:exists(Domain, Location) of
         false ->
             throw({error, not_found});
@@ -80,7 +79,6 @@ check(Domain, User, Object, Action) ->
 check(Domain, User, Object, Action, Location) ->
     check(Domain, User, Object, Action, Location, []).
 check(Domain, User, Object, Action, Location, Conditions) ->
-    ?DEBUG("uce_acl:check with domain : ~p~n", [Domain]),
     case apply(db:get(?MODULE, Domain), list, [User, Object, Action]) of
         {error, Reason} ->
             throw({error, Reason});

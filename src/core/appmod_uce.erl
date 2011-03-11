@@ -136,7 +136,6 @@ process(Host, Method, Path, Query, Arg) ->
 get_host(#arg{} = Arg) ->
     case extract_host(Arg) of
         {ok, Host} ->
-            ?DEBUG("get_host Host : ~p~n", [Host]),
             valid_host(Host, config:get(hosts));
         {error, Reason} ->
             {error, Reason}
@@ -151,7 +150,6 @@ extract_host(#arg{headers = Headers}) ->
     end.
 
 valid_host(Host, Hosts) ->
-    ?DEBUG("valid_host Hosts : ~p~n", [Hosts]),
     case proplists:lookup(Host, Hosts) of
         none ->
             {error, not_found};
