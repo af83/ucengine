@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([init/1,
+-export([init/2,
          drop/0,
          terminate/0]).
 
@@ -31,8 +31,8 @@ call_mnesia_modules(Fun) ->
                   end,
                   [uce_acl, uce_user, uce_meeting, uce_file, uce_event, uce_presence, uce_infos]).
 
-init(_) ->
-    call_mnesia_modules(init),
+init(_Domain, undefined) ->
+    catch call_mnesia_modules(init),
     ok.
 
 drop() ->
