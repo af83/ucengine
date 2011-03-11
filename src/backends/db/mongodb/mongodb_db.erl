@@ -36,12 +36,10 @@ init(Domain, MongoPoolInfos) ->
     emongo:add_pool(Domain, Host, Port, Name, Size).
 
 drop() ->
-    [fun() ->
-        case proplists:get_value(db, HostConfig) of
-            mongodb -> emongo:drop_database(Host);
-            _ -> nothing
-        end
-     end || {Host, HostConfig} <- config:get('hosts')].
+    lists:foreach(fun({Domain, _}) ->
+                          catch emongo:drop_database(Domain)
+                  end,
+                  config:get('hosts')).
 
 terminate() ->
     ok.
