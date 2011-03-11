@@ -29,5 +29,5 @@ init() ->
                            {"sid", required, string}]}}].
 
 get(Domain, _, [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert({Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
     json_helpers:json(Domain, utils:now()).
