@@ -128,7 +128,7 @@ handle_cast({subscribe, Location, Uid, Search, Type, From, Pid}, State) ->
                                                                location=Location,
                                                                uid=Uid,
                                                                search=Search,
-                                                               type=Type, 
+                                                               type=Type,
                                                                from=From})
                        end),
     {noreply, State};
