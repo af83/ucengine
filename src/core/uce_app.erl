@@ -45,7 +45,6 @@ start(_, _) ->
     [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),
     case uce_sup:start_link(ConfigurationPath) of
         {ok, Pid} ->
-            ?DEBUG("uce_sup:start_link ok!~n", []), 
             setup(),
             {ok, Pid};
         Error ->
@@ -67,17 +66,14 @@ setup_db() ->
     HostsConfig = config:get('hosts'),
     setup_db(HostsConfig).
 
-setup_db([{Host, Config} | TlHostsConfig ]) ->
-    {DBBackend, GoodConfig} = case proplists:get_value(db, Config) of 
-                                  undefined -> Key = config:get(db),
-                                               {Key, [{Key, config:get(Key)}]};
-                                  _ = Value -> {Value, Config}
-                              end,
+setup_db([{Host, _Config} | TlHostsConfig ]) ->
+    DBBackend = config:get(Host, db),
+    DBConfig = config:get(Host, DBBackend),
     case DBBackend of
         undefined -> throw({error, no_database});
         mnesia -> catch mnesia_db:init([]);
         _ ->
-            case proplists:get_value(DBBackend, GoodConfig) of
+            case DBConfig of
                 undefined -> nothing;
                 {_, PoolConfig} ->
                     DBBackendModule = list_to_atom(atom_to_list(DBBackend) ++ "_db"),
@@ -86,7 +82,6 @@ setup_db([{Host, Config} | TlHostsConfig ]) ->
     end,
     setup_db(TlHostsConfig);
 setup_db([]) -> ok.
-
 
 setup_controllers() ->
     lists:foreach(fun(Controller) ->
