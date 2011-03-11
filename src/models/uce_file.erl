@@ -48,12 +48,12 @@ list(Domain, Location) ->
     end.
 
 get(Domain, Id) ->
-    apply(db:get(?MODULE, Domain), get, [Id]).
+    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
 
 delete(Domain, Id) ->
     case ?MODULE:get(Domain, Id) of
         {error, Reason} ->
             {error, Reason};
         {ok, _} ->
-            apply(db:get(?MODULE, Domain), delete, [Id])
+            apply(db:get(?MODULE, Domain), delete, [Domain, Id])
     end.

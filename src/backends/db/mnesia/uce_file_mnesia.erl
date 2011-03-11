@@ -23,7 +23,7 @@
 
 -export([init/0, drop/0]).
 
--export([add/1, list/1, get/1, all/1, delete/1]).
+-export([add/1, list/1, get/2, all/1, delete/2]).
 
 -include("uce.hrl").
 
@@ -73,7 +73,7 @@ all(Domain) ->
                 throw({error, bad_parameters})
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:read(uce_file, Id)
                             end) of
@@ -85,7 +85,7 @@ get(Id) ->
             throw({error, bad_parameters})
     end.
 
-delete(Id) ->
+delete(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:delete({uce_file, Id})
                             end) of
