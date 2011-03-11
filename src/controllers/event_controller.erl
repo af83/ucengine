@@ -112,7 +112,8 @@ list(Domain, [Meeting],
                 "no" ->
                     json_helpers:json(Domain, event_helpers:to_json([]));
                 "lp" ->
-                    uce_async_lp:wait({Meeting, Domain},
+                    uce_async_lp:wait(Domain,
+                                      {Meeting, Domain},
                                       Keywords,
                                       {From, Domain},
                                       Types,

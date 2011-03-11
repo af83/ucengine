@@ -21,17 +21,17 @@
 -include_lib("eunit/include/eunit.hrl").
 
 setup_events(Domain) ->
-    uce_event:add(#uce_event{ domain=Domain,
+    uce_event:add(Domain, #uce_event{ domain=Domain,
                               type="test_event_1",
                               location={"testmeeting", Domain},
                               from={"participant.user@af83.com", Domain}}),
     timer:sleep(10),
-    uce_event:add(#uce_event{ domain=Domain,
+    uce_event:add(Domain, #uce_event{ domain=Domain,
                               type="test_event_2",
                               location={"testmeeting", Domain},
                               from={"user_2", Domain}}),
     timer:sleep(10),
-    uce_event:add(#uce_event{ domain=Domain,
+    uce_event:add(Domain, #uce_event{ domain=Domain,
                               type="test_event_3",
                               location={"testmeeting", Domain},
                               from={"user_3", Domain},
@@ -39,21 +39,24 @@ setup_events(Domain) ->
 
     timer:sleep(2000),
 
-    {ok, [Event1]} = uce_event:list({"", Domain},
+    {ok, [Event1]} = uce_event:list(Domain,
+                                    {"", Domain},
                                     [],
                                     {"", Domain},
                                     ["test_event_1"],
                                     {"", Domain},
                                     0, infinity, "", 0, 1, asc),
 
-    {ok, [Event2]} = uce_event:list({"", Domain},
+    {ok, [Event2]} = uce_event:list(Domain,
+                                    {"", Domain},
                                     [],
                                     {"", Domain},
                                     ["test_event_2"],
                                     {"", Domain},
                                     0, infinity, "", 0, 1, asc),
 
-    {ok, [Event3]} = uce_event:list({"", Domain},
+    {ok, [Event3]} = uce_event:list(Domain,
+                                    {"", Domain},
                                     [],
                                     {"", Domain},
                                     ["test_event_3"],

@@ -19,15 +19,16 @@
 
 -author('victor.goya@af83.com').
 
--export([wait/9]).
+-export([wait/10]).
 
 -include("uce.hrl").
 
-wait(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
+wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
     Pid = spawn(fun() ->
                         receive
                             {ok, YawsPid} ->
-                                case uce_async:listen(Location,
+                                case uce_async:listen(Domain,
+                                                      Location,
                                                       Search,
                                                       From,
                                                       Types,
@@ -48,7 +49,7 @@ wait(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
                                         JSONError =
                                             list_to_binary(mochijson:encode({struct,
                                                                              [{error, Error}]})),
-                                        yaws_api:stream_chunk_end(Socket, JSONError)
+                                        yaws_api:stream_process_deliver(Socket, JSONError)
                                 end,
                                 yaws_api:stream_process_end(Socket, YawsPid);
                             {discard, YawsPid}->

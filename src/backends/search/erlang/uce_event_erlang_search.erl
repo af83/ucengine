@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1, list/10]).
+-export([add/1, list/11]).
 
 -include("uce.hrl").
 
@@ -57,7 +57,7 @@ filter(Events, Words) ->
                  end,
                  Events).
 
-list(Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Max, Order) ->
+list(_Domain, Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Max, Order) ->
     {ok, Events} = ?EVENT_DBMOD:list(Location, From, Type, DateStart, DateEnd, Parent),
 
     FilteredEvents = filter(Events, Search),

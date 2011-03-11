@@ -19,15 +19,16 @@
 
 -author('victor.goya@af83.com').
 
--export([listen/9]).
+-export([listen/10]).
 
 -include("uce.hrl").
 
-listen(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
+listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
     ?PUBSUB_MODULE:subscribe(self(), Location, Search, From, Types, Uid, Start, End, Parent),
     Res = receive
               {message, _} ->
-                  case uce_event:list(Location,
+                  case uce_event:list(Domain,
+                                      Location,
                                       Search,
                                       From,
                                       Types,
@@ -44,8 +45,8 @@ listen(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
                           JSONEvents = mochijson:encode({struct,
                                                          [{result,
                                                            event_helpers:to_json(Events)}]}),
-                          yaws_api:stream_chunk_end(Socket,
-                                                    list_to_binary(JSONEvents)),
+                          yaws_api:stream_process_deliver(Socket,
+                                                        list_to_binary(JSONEvents)),
                           ok
                   end;
               _ ->
@@ -53,8 +54,8 @@ listen(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
           after
               config:get(long_polling_timeout) * 1000 ->
                   JSONEmpty = mochijson:encode({struct, [{result, {array, []}}]}),
-                  yaws_api:stream_chunck_end(Socket,
-                                             list_to_binary(JSONEmpty)),
+                  yaws_api:stream_process_deliver(Socket,
+                                                  list_to_binary(JSONEmpty)),
                   ok
           end,
     ?PUBSUB_MODULE:unsubscribe(self()),

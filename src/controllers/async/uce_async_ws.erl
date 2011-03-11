@@ -19,15 +19,16 @@
 
 -author('victor.goya@af83.com').
 
--export([wait/9]).
+-export([wait/10]).
 
 -include("uce.hrl").
 
-wait(Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
+wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent, Socket) ->
     Pid = spawn(fun() ->
                         receive
                             {ok, WebSocket} ->
-                                case uce_async:listen(Location,
+                                case uce_async:listen(Domain,
+                                                      Location,
                                                       Search,
                                                       From,
                                                       Types,
