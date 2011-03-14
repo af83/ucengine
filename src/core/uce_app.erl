@@ -53,6 +53,7 @@ start(_, _) ->
 
 setup() ->
     save_pid(),
+    setup_search(),
     setup_controllers(),
     setup_server(),
     ok.
@@ -60,6 +61,17 @@ setup() ->
 stop(State) ->
     remove_pid(),
     State.
+
+setup_search() ->
+    case config:get(search) of
+        solr ->
+            ChildSpec = {uce_solr_commiter,
+                         {uce_solr_commiter, start_link, []},
+                         permanent, brutal_kill, worker, [uce_solr_commiter]},
+            {ok, _Pid} = supervisor:start_child(uce_sup, ChildSpec);
+        _ ->
+            []
+    end.
 
 setup_controllers() ->
     lists:foreach(fun(Controller) ->

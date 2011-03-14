@@ -41,15 +41,5 @@ init(ConfigPath) ->
                   permanent, brutal_kill, worker, [?PUBSUB_MODULE]}],
     Vhost = [{uce_vhost_sup, {uce_vhost_sup, start_link, []},
               permanent, infinity, supervisor, [uce_vhost_sup]}],
-
-    %%    SolrSup = case config:get(search) of
-    SolrSup = case df of
-                  solr ->
-                      [{uce_solr_commiter,
-                        {uce_solr_commiter, start_link, []},
-                        permanent, brutal_kill, worker, [uce_solr_commiter]}];
-                  _ ->
-                      []
-              end,
     {ok, {{one_for_one, 10, 10},
-          Config ++ Routes ++ Timeout ++ PubSubSup ++ Vhost ++ SolrSup}}.
+          Config ++ Routes ++ Timeout ++ PubSubSup ++ Vhost}}.
