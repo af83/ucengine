@@ -114,7 +114,7 @@ config_test() ->
     Configs = [{bricks, [{"erlyvideo", "2"}]},
                {root, "/var/www"},
                {hosts, [{"localhost", [{bricks, [{"translation", "1"}]}]},
-                        {"example.com", [{datas, "/var/spool"}]}]}],
+                        {"example.com", [{data, "/var/spool"}]}]}],
     gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []),
     ?assertEqual([{"translation", "1"}], config:get("localhost", bricks)),
     ?assertEqual([{"erlyvideo", "2"}], config:get("example.com", bricks)),

@@ -46,7 +46,7 @@ add_file_chunk(_Host, _Arg, [], State) ->
 add_file_chunk(Host, Arg, [{head, {_Name, Opts}}|Res], State) ->
     case lists:keyfind(filename, 1, Opts) of
         {_, Fname} ->
-            Dir = lists:concat([config:get(Host, datas), "/", utils:random(3)]),
+            Dir = lists:concat([config:get(Host, data), "/", utils:random(3)]),
             FilePath = lists:concat([Dir, "/", utils:random()]),
             file:make_dir(Dir),
             case file:open(FilePath,[write]) of

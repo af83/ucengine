@@ -1,4 +1,4 @@
-DIRS          = datas/files
+DIRS          = data/files
 
 all: compile
 
@@ -38,7 +38,7 @@ tests: compile
 .PHONY: deepclean
 clean:
 	-@rm -v tmp/* -fr
-	-@rm -v datas/* -fr
+	-@rm -v data/* -fr
 	-@rm -v erl_crash.dump -f
 
 deepclean: clean

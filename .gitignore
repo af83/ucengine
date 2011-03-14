@@ -2,6 +2,6 @@ ebin/*
 tmp/*
 ucengine.access
 *.log
-datas/*
+data/*
 deps/*
 .eunit
