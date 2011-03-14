@@ -571,6 +571,20 @@ jackTest("get user", function() {
     });
 });
 
+jackTest("custom api url", function() {
+    stop();
+    addUceApiCall("get", "http://example.com/api/0.3/user/test@example.net",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": {}}');
+    var client = uce.createClient('http://example.com');
+    var meeting = client.attachPresence(Factories.createPresence()).meeting("mymeeting");
+    var url = meeting.getFileDownloadUrl('mydoc.pdf');
+    equals(url, "http://example.com/api/0.3/file/mymeeting/mydoc.pdf?uid=myuid&sid=mysid");
+    var url = meeting.getFileUploadUrl();
+    equals(url, "http://example.com/api/0.3/file/mymeeting?uid=myuid&sid=mysid");
+    client.attachPresence(Factories.createPresence()).user.get('test@example.net', function(err, result) {
+        start();
+    });
+});
+
 module("ucejs.replay", {
     setup:function() {
         this.meeting = Factories.getDefaultMeeting();

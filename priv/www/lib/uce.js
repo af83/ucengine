@@ -1,59 +1,60 @@
 /**
- * UCengine library
+ * U.C.Engine library
  * http://ucengine.org/
- * (c) 2010 af83
+ * (c) 2011 af83
  */
 (function(g) {
     var VERSION = "0.3";
 
-    function getCollection(url, params, callback) {
-        get(url, params, function(err, result, xhr) {
-            if (!err) {
-                callback(err, result.result, xhr);
-            } else {
-                callback(err, result, xhr);
-            }
-        });
-    }
+    function UCEngine(baseUrl) {
 
-    function uce_api_call(method, url, data, callback) {
-        var call_back = callback || $.noop;
-        url = '/api/' + VERSION + url;
-        return $.ajax({
-            type     : method,
-            dataType : "json",
-            url      : url,
-            data     : data,
-            complete : function(xhr, textStatus) {
-                var response = jQuery.parseJSON(xhr.responseText);
-                if (xhr.status >= 400) {
-                    call_back(xhr.status, response, xhr);
+        function getCollection(url, params, callback) {
+            get(url, params, function(err, result, xhr) {
+                if (!err) {
+                    callback(err, result.result, xhr);
                 } else {
-                    call_back(null, response, xhr);
+                    callback(err, result, xhr);
                 }
-            }
-        });
-    }
+            });
+        }
 
-    function get(url, data, callback) {
-        return uce_api_call("get", url, data, callback);
-    }
+        function uce_api_call(method, url, data, callback) {
+            var call_back = callback || $.noop;
+            url = baseUrl +'/api/' + VERSION + url;
+            return $.ajax({
+                type     : method,
+                dataType : "json",
+                url      : url,
+                data     : data,
+                complete : function(xhr, textStatus) {
+                    var response = jQuery.parseJSON(xhr.responseText);
+                    if (xhr.status >= 400) {
+                        call_back(xhr.status, response, xhr);
+                    } else {
+                        call_back(null, response, xhr);
+                    }
+                }
+            });
+        }
 
-     function post(url, data, callback) {
-        return uce_api_call("post", url, data, callback);
-    }
+        function get(url, data, callback) {
+            return uce_api_call("get", url, data, callback);
+        }
 
-    function put(url, data, callback) {
-        data = $.extend({"_method": "put"}, data);
-        return uce_api_call("post", url, data, callback);
-    }
+        function post(url, data, callback) {
+            return uce_api_call("post", url, data, callback);
+        }
 
-    function del(url, data, callback) {
-        data = $.extend({"_method": "delete"}, data);
-        return uce_api_call("post", url, data, callback);
-    }
+        function put(url, data, callback) {
+            data = $.extend({"_method": "put"}, data);
+            return uce_api_call("post", url, data, callback);
+        }
 
-    function UCEngine() {
+        function del(url, data, callback) {
+            data = $.extend({"_method": "delete"}, data);
+            return uce_api_call("post", url, data, callback);
+        }
+
         var presence = null;
         return {
             connected : false,
@@ -195,14 +196,14 @@
                      * Get file upload url for this meeting
                      */
                     getFileUploadUrl: function() {
-                        return "/api/"+ VERSION +"/file/"+meetingname+"?uid="+presence.uid+"&sid="+presence.sid;
+                        return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"?uid="+presence.uid+"&sid="+presence.sid;
                     },
                     /**
                      * Get file download url
                      * @param String filename
                      */
                     getFileDownloadUrl: function(filename) {
-                        return "/api/"+ VERSION +"/file/"+meetingname+"/"+ filename +"?uid="+presence.uid+"&sid="+presence.sid;
+                        return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"/"+ filename +"?uid="+presence.uid+"&sid="+presence.sid;
                     },
                     /**
                      * @param Object params
@@ -444,8 +445,8 @@
         };
     }
     g.uce = {
-        createClient : function() {
-            return new UCEngine();
+        createClient : function(baseUrl) {
+            return new UCEngine(baseUrl || '');
         },
         getWaiter : function(calls_needed, callback) {
             if(calls_needed == 0)
