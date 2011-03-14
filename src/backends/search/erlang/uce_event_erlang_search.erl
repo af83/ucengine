@@ -23,10 +23,6 @@
 
 -include("uce.hrl").
 
--define(EVENT_DBMOD, (fun() ->
-                              list_to_atom("uce_event_" ++ atom_to_list(config:get(db)))
-                      end())).
-
 add(_) ->
     {ok, created}.
 
@@ -39,6 +35,7 @@ search_value(Value, [Word|Words]) ->
         _ ->
             search_value(Value, Words)
     end.
+
 search_metadata([], _) ->
     false;
 search_metadata([{_, Value}|Tail], Words) ->
@@ -57,13 +54,9 @@ filter(Events, Words) ->
                  end,
                  Events).
 
-list(_Domain, Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Max, Order) ->
-    {ok, Events} = ?EVENT_DBMOD:list(Location, From, Type, DateStart, DateEnd, Parent),
-
+list(Domain, Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Max, Order) ->
+    {ok, Events} = apply(db:get(uce_event, Domain), list, [Location, From, Type, DateStart, DateEnd, Parent]),
     FilteredEvents = filter(Events, Search),
-
     OrderedEvents = event_helpers:sort(FilteredEvents, Order),
-
     EventPage = paginate:paginate(OrderedEvents, Start, Max),
-
     {ok, EventPage}.
