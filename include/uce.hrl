@@ -98,16 +98,16 @@
         uce_log:debug(Format, [?MODULE, ?LINE], Args)).
 
 -define(INFO_MSG(Format, Args),
-        error_logger:info_msg(Format, [?MODULE, ?LINE] ++ Args)).
+        uce_log:info(Format, [?MODULE, ?LINE], Args)).
 
 -define(WARNING_MSG(Format, Args),
-        error_logger:warning_msg(Format, [?MODULE, ?LINE] ++ Args)).
+        uce_log:warning(Format, [?MODULE, ?LINE], Args)).
 
 -define(ERROR_MSG(Format, Args),
-        error_logger:error_msg(Format, [?MODULE, ?LINE] ++ Args)).
+        uce_log:error(Format, [?MODULE, ?LINE], Args)).
 
 -define(CRITICAL_MSG(Format, Args),
-        error_logger:critical_msg(Format, [?MODULE, ?LINE] ++ Args)).
+        uce_log:critical(Format, [?MODULE, ?LINE], Args)).
 
 -define(UCE_SCHEMA_LOCATION, "uce_schema_v1.xsd").
 -define(UCE_XMLNS, "http://ucengine.org").
