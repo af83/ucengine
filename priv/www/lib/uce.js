@@ -55,7 +55,7 @@
             return uce_api_call("post", url, data, callback);
         }
 
-        var presence = null;
+        var _presence = null;
         return {
             connected : false,
             uid: null,
@@ -77,7 +77,7 @@
                     if (err) {
                         callback(err, result, xhr);
                     } else {
-                        var p = {"uid": uid, "sid": result.result};
+                        var p = {"user": uid, "id": result.result};
                         that.attachPresence(p);
                         callback(err, p, xhr);
                     }
@@ -85,13 +85,24 @@
                 return this;
             },
             /**
+             * Get user presence
+             */
+            presence: function(callback) {
+                get("/presence/" + _presence.id, {'uid': _presence.user,
+                                                  'sid': _presence.id},
+                    callback);
+                return this;
+            },
+            /**
              * Close user presence
              */
             close: function(callback) {
-                del("/presence/" + presence.sid, presence, callback);
+                del("/presence/" + _presence.id, {'uid': _presence.user,
+                                                  'sid': _presence.id},
+                    callback);
                 this.uid = null;
                 this.connected = false;
-                presence = null;
+                _presence = null;
                 return this;
             },
             getWaiter : function(calls_needed, callback) {
@@ -110,9 +121,9 @@
              * Attach presence to a new uce object
              */
             attachPresence : function(p) {
-                presence = p;
+                _presence = p;
                 this.connected = true;
-                this.uid = p.uid;
+                this.uid = p.user;
                 return this;
             },
             /**
@@ -123,20 +134,25 @@
                  * Get infos
                  */
                 get: function(callback) {
-                    get("/infos/", presence, function(err, result, xhr) {
-                        if (!err) {
-                            callback(err, result.result, xhr);
-                        } else {
-                            callback(err, result, xhr);
-                        }
-                    });
+                    get("/infos/", {'uid': _presence.user,
+                                    'sid': _presence.id},
+                        function(err, result, xhr) {
+                            if (!err) {
+                                callback(err, result.result, xhr);
+                            } else {
+                                callback(err, result, xhr);
+                            }
+                        });
                     return this;
                 },
                 /**
                  * Update infos
                  */
                 update: function(metadata, callback) {
-                    put("/infos/", $.extend({}, presence, {metadata: metadata}), function(err, result, xhr) {
+                    put("/infos/", {'uid': _presence.user,
+                                    'sid': _presence.id,
+                                    metadata: metadata},
+                        function(err, result, xhr) {
                         if (!err) {
                             callback(err, result, xhr);
                         } else {
@@ -151,9 +167,11 @@
                 var handlers = [];
                 return {
                     name: meetingname,
-                    uid: (presence || {}).uid,
+                    uid: (_presence || {}).user,
                     get: function(callback) {
-                        get("/meeting/all/" + meetingname, presence, function(err, result, xhr) {
+                        get("/meeting/all/" + meetingname, {'uid': _presence.user,
+                                                            'sid': _presence.id},
+                            function(err, result, xhr) {
                             if (!err) {
                                 callback(err, result.result, xhr);
                             } else {
@@ -164,17 +182,22 @@
                     },
                     join: function(callback) {
                         post("/meeting/all/" + meetingname + "/roster/",
-                            presence,
+                            {'uid': _presence.user,
+                             'sid': _presence.id},
                             callback);
                         return this;
                     },
                     leave: function(callback) {
-                        del("/meeting/all/" + meetingname + "/roster/" + presence.uid, presence, callback);
+                        del("/meeting/all/" + meetingname + "/roster/" + _presence.user,
+                            {'uid': _presence.user,
+                             'sid': _presence.id},
+                            callback);
                         return this;
                     },
                     getRoster: function(callback) {
                         get("/meeting/all/" + meetingname + "/roster",
-                            presence,
+                            {'uid': _presence.user,
+                             'sid': _presence.id},
                             function (err, result, xhr) {
                                 if (!callback) {
                                     return;
@@ -188,7 +211,10 @@
                      */
                     push: function(type, metadata, callback) {
                         post("/event/" + meetingname,
-                            $.extend({}, presence, {type: type, metadata: metadata}),
+                            {'uid': _presence.user,
+                             'sid': _presence.id,
+                             'type': type,
+                             'metadata': metadata},
                             callback);
                         return this;
                     },
@@ -196,14 +222,14 @@
                      * Get file upload url for this meeting
                      */
                     getFileUploadUrl: function() {
-                        return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"?uid="+presence.uid+"&sid="+presence.sid;
+                        return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"?uid="+_presence.user+"&sid="+_presence.id;
                     },
                     /**
                      * Get file download url
                      * @param String filename
                      */
                     getFileDownloadUrl: function(filename) {
-                        return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"/"+ filename +"?uid="+presence.uid+"&sid="+presence.sid;
+                        return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"/"+ filename +"?uid="+_presence.user+"&sid="+_presence.id;
                     },
                     /**
                      * @param Object params
@@ -217,7 +243,9 @@
                      */
                     waitEvents: function(params, callback, one_shot) {
                         function startLongPolling(p, callback) {
-                            var getParams = $.extend({}, presence, {"_async": "lp"}, p);
+                            var getParams = $.extend({}, {'uid': _presence.user,
+                                                          'sid': _presence.id,
+                                                          '_async': 'lp'}, params);
                             return get("/event/" + meetingname,
                                        getParams,
                                        callback);
@@ -266,7 +294,8 @@
                      */
                     getEvents: function(params, callback, onEachEvent) {
                         var that = this;
-                        params = $.extend({}, presence, params);
+                        params = $.extend({}, {'uid': _presence.user,
+                                               'sid': _presence.id}, params);
                         get("/event/" + meetingname,
                             params,
                             function(err, result, xhr) {
@@ -400,7 +429,8 @@
                     return this._getCollection("all", callback);
                 },
                 _getCollection: function(type, callback) {
-                    getCollection("/meeting/"+ type, presence, callback);
+                    getCollection("/meeting/"+ type, {'uid': _presence.user,
+                                                      'sid': _presence.id}, callback);
                     return this;
                 }
             },
@@ -415,30 +445,37 @@
                     return this.register(uid, "password", credential, metadata, callback);
                 },
                 get: function(uid, callback) {
-                     get("/user/"+ uid, $.extend({}, presence), function(err, result, xhr) {
-                        callback(err, result, xhr);
-                    });
+                    get("/user/"+ uid, $.extend({}, {'uid': _presence.user,
+                                                     'sid': _presence.id}),
+                        function(err, result, xhr) {
+                            callback(err, result, xhr);
+                        });
                 },
                 can: function(uid, object, action, callback) {
-                    get("/user/"+ uid +"/acl/"+ action +"/"+ action, presence, function(err, result) {
-                        if (err)
-                            callback(err, result);
-                        else
-                            callback(err, result.result === "true");
-                    });
+                    get("/user/"+ uid +"/acl/"+ action +"/"+ action, {'uid': _presence.user,
+                                                                      'sid': _presence.id},
+                        function(err, result) {
+                            if (err)
+                                callback(err, result);
+                            else
+                                callback(err, result.result === "true");
+                        });
                 }
             },
             users: {
                 get: function(callback) {
-                    getCollection("/user/", presence, callback);
+                    getCollection("/user/", {'uid': _presence.user,
+                                             'sid': _presence.id}, callback);
                     return this;
                 }
             },
             time: {
                 get: function(callback) {
-                    get("/time", presence, function(err, result, xhr) {
-                        callback(err, result.result, xhr);
-                    });
+                    get("/time", {'uid': _presence.user,
+                                  'sid': _presence.id},
+                        function(err, result, xhr) {
+                            callback(err, result.result, xhr);
+                        });
                     return this;
                 }
             }

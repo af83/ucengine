@@ -80,7 +80,7 @@ var Factories = {
         };
     },
     createPresence: function() {
-        return {"uid": "myuid", "sid": "mysid"};
+        return {"user": "myuid", "id": "mysid"};
     },
     getDefaultMeeting: function() {
         return uce.createClient().attachPresence(Factories.createPresence()).meeting("mymeeting");
@@ -146,8 +146,8 @@ jackTest("can create a presence", function() {
     this.client.auth("uid", "pwd", function(err, presence, xhr) {
         start();
         equals(err, null, "shoud not have error");
-        equals(presence.uid, "uid");
-        equals(presence.sid, "sid");
+        equals(presence.user, "uid");
+        equals(presence.id, "sid");
         ok(client.connected, "client connected");
         equals(client.uid, "uid");
     });
@@ -161,8 +161,31 @@ jackTest("can create a presence with metadata", function() {
     this.client.auth("uid", "pwd", {nickname: "nick"}, function(err, presence, xhr) {
         start();
         equals(err, null, "shoud not have error");
-        equals(presence.uid, "uid", "");
-        equals(presence.sid, "sid", "");
+        equals(presence.user, "uid", "");
+        equals(presence.id, "sid", "");
+    });
+});
+
+jackTest("can get a presence", function() {
+    stop();
+    $.mockjax({
+        url : '/api/0.3/presence/',
+        responseText: {"result": "mysid"}
+    });
+    $.mockjax({
+        url : '/api/0.3/presence/mysid',
+        data: { "uid": "myuid", "sid": "mysid"},
+        response: function() {
+            this.responseText = {"result": {"id": "mysid"}};
+        }
+    });
+    var client = this.client;
+    this.client.auth("myuid", "pwd", function(err, presence) {
+        client.presence(function(err, r, xhr) {
+            start();
+            equals(r.result.id, presence.id);
+            equals(err, null);
+        });
     });
 });
 
@@ -510,7 +533,7 @@ test("startLoop with 'bind', alias of 'on'", function() {
 test("get upload url", function() {
     var url = this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").getFileUploadUrl();
     equals(url, "/api/0.3/file/mymeeting?uid=myuid&sid=mysid");
-    var url = this.client.attachPresence({"uid": "myuid2", "sid": "mysid2"}).meeting("mymeeting2").getFileUploadUrl();
+    var url = this.client.attachPresence({"user": "myuid2", "id": "mysid2"}).meeting("mymeeting2").getFileUploadUrl();
     equals(url, "/api/0.3/file/mymeeting2?uid=myuid2&sid=mysid2");
 });
 
