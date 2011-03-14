@@ -17,7 +17,7 @@
 %%
 -module(presence_controller).
 
--export([init/0, delete/4, add/4]).
+-export([init/0, delete/4, get/4, add/4]).
 
 -include("uce.hrl").
 
@@ -29,6 +29,10 @@ init() ->
                            {"credential", "", string},
                            {"timeout", 0, integer},
                            {"metadata", [], dictionary}]}},
+
+     #uce_route{method='GET',
+                regexp="/presence/([^/]+)",
+                callback={?MODULE, get, []}},
 
      #uce_route{method='DELETE',
                 regexp="/presence/([^/]+)",
@@ -52,6 +56,10 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                          location={"", Domain},
                                          type="internal.presence.add"}),
     json_helpers:created(Domain, Id).
+
+get(Domain, [Id], [], _) ->
+    {ok, Record} = uce_presence:get(Domain, Id),
+    json_helpers:json(Domain, presence_helpers:to_json(Record)).
 
 delete(Domain, [Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),

@@ -21,7 +21,19 @@
 
 -include("uce.hrl").
 
--export([clean/2]).
+-export([clean/2, to_json/1]).
+
+to_json(#uce_presence{id=Id,
+                      domain=Domain,
+                      user={User, _},
+                      auth=Auth,
+                      metadata=Metadata}) ->
+    {struct,
+     [{id, Id},
+      {domain, Domain},
+      {user, User},
+      {auth, Auth},
+      {metadata, {struct, Metadata}}]}.
 
 clean(Domain, #uce_presence{
                     user=User,
