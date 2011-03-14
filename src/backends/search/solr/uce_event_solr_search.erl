@@ -19,7 +19,7 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/1, commit/0, list/10, delete/2]).
+-export([add/1, commit/0, list/11, delete/2]).
 
 -include("uce.hrl").
 
@@ -46,7 +46,7 @@ to_solrxml(#uce_event{id=Id,
                       datetime=Datetime,
                       location={Location, _},
                       from={From, _},
-                      to=To,
+                      to={To, _},
                       type=Type,
                       metadata=Metadata}) ->
 
@@ -95,7 +95,7 @@ params_to_query([Value|Tail])
                      " AND " ++ params_to_query(Tail)
              end.
 
-list({Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, Start, Rows, Order) ->
+list(Domain, {Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, Start, Rows, Order) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
 
     DomainSelector = [{"domain", Domain}],
@@ -116,7 +116,7 @@ list({Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, S
                 []
         end,
 
-    ParentSelector = 
+    ParentSelector =
         if
             Parent /= "" ->
                 [{"parent", Parent}];
@@ -249,7 +249,7 @@ make_list_json_events([{struct, Elems}|Tail]) ->
                         datetime=Datetime,
                         location={Location, Domain},
                         from={From, Domain},
-                        to=To,
+                        to={To, Domain},
                         type=Type,
                         parent=Parent,
                         metadata=Metadata}] ++ make_list_json_events(Tail)
@@ -259,4 +259,3 @@ delete(_Domain, Id) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, "<delete><query>"++ Id ++"</query></delete>"),
     {ok, deleted}.
-

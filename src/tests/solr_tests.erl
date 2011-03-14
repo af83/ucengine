@@ -26,7 +26,7 @@ solr_test_() ->
     { setup
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
-	, fun([Domain, _, _]) ->
+    , fun([Domain, _, _]) ->
         [ ?_test(test_add(Domain))
         , ?_test(test_search(Domain))
         ]
@@ -44,7 +44,7 @@ test_add(Domain) ->
 
 test_search(Domain) ->
     timer:sleep(2000),
-    ok = case uce_event_solr_search:list({"", Domain}, ["This"], {"", Domain}, [], 0, infinity, "", 0, 1, asc) of
+    ok = case uce_event_solr_search:list(Domain, {"", Domain}, ["This"], {"", Domain}, [], 0, infinity, "", 0, 1, asc) of
              {error, Reason} ->
                  {error, Reason};
              {ok, [_]} ->
