@@ -6,8 +6,5 @@
         return;
     }
 
-    // (Temporarily) Disable Ajax tests to reduce network strain
-    //isLocal = QUnit.isLocal = true;
-
     document.write("<scr" + "ipt src='http://swarm.af83.com/js/inject.js?" + (new Date).getTime() + "'></scr" + "ipt>");
 })();
