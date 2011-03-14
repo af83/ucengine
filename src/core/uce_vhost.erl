@@ -91,7 +91,6 @@ setup_admin(Domain) ->
     Auth = proplists:get_value(auth, Admin),
     Credential = proplists:get_value(credential, Admin),
     Metadata = proplists:get_value(metadata, Admin, []),
-    io:format("~p~p~p~n", [Uid, Auth, Credential]),
     catch uce_user:add(Domain, #uce_user{id={Uid, Domain},
                                          auth=Auth,
                                          credential=Credential,
