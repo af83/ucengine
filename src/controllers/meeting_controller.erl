@@ -131,7 +131,7 @@ leave(Domain, [Name, User], [Uid, Sid], _) ->
 
 roster(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, Uid, "roster", "list", {Name, Domain}),
+    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "roster", "list", {Name, Domain}),
     {ok, Roster} = uce_meeting:roster(Domain, {Name, Domain}),
     json_helpers:json(Domain,
                       {array, lists:map(fun(Member) ->
