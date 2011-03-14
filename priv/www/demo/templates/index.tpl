@@ -64,8 +64,8 @@
                     {{#currentmeetings}}
                     <li>
                         <p><strong>{{name}}</strong></p>
+                        <p>{{#metadata}}{{description}}{{/metadata}}</p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
-                        <p>{{metadatas.description}}</p>
                         {{^not_connected}}
                         <p class="go"><a href="#/meeting/{{name}}">JOIN</a></p>
                         {{/not_connected}}
@@ -89,8 +89,8 @@
                     {{#closedmeetings}}
                     <li>
                         <p><strong>{{name}}</strong></p>
+                        <p>{{#metadata}}{{description}}{{/metadata}}</p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
-                        <p>{{metadatas.description}}</p>
                         {{^not_connected}}
                         <p class="go"><a href="#/meeting/{{name}}">Replay</a></p>
                         {{/not_connected}}
@@ -114,8 +114,8 @@
                     {{#upcomingmeetings}}
                     <li>
                         <p><strong>{{name}}</strong></p>
+                        <p>{{#metadata}}{{description}}{{/metadata}}</p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
-                        <p>{{metadatas.description}}</p>
                         {{^not_connected}}
                         <p class="go"><a href="#/meeting/{{name}}">JOIN</a></p>
                         {{/not_connected}}
