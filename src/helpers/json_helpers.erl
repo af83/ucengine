@@ -38,37 +38,40 @@ format_response(Status, Headers, Content) ->
     [{status, Status},
      {content, "application/json", lists:flatten(Body)}] ++ Headers.
 
+add_cors_headers(Domain) ->
+    cors_helpers:format_cors_headers(Domain).
+
 unexpected_error() ->
     format_response(500, {struct, [{error, unexpected_error}]}).
 
-unexpected_error(_Domain) ->
-    format_response(500, {struct, [{error, unexpected_error}]}).
+unexpected_error(Domain) ->
+    format_response(500, add_cors_headers(Domain), {struct, [{error, unexpected_error}]}).
 
 error(Reason) ->
     Code = http_helpers:error_to_code(Reason),
     format_response(Code, {struct, [{error, Reason}]}).
 
-error(_Domain, Reason) ->
+error(Domain, Reason) ->
     Code = http_helpers:error_to_code(Reason),
-    format_response(Code, {struct, [{error, Reason}]}).
+    format_response(Code, add_cors_headers(Domain), {struct, [{error, Reason}]}).
 
-ok(_Domain) ->
-    format_response(200, [], {struct, [{result, ok}]}).
+ok(Domain) ->
+    format_response(200, add_cors_headers(Domain), {struct, [{result, ok}]}).
 
-true(_Domain) ->
-    format_response(200, [], {struct, [{result, "true"}]}).
+true(Domain) ->
+    format_response(200, add_cors_headers(Domain), {struct, [{result, "true"}]}).
 
-false(_Domain) ->
-    format_response(200, [], {struct, [{result, "false"}]}).
+false(Domain) ->
+    format_response(200, add_cors_headers(Domain), {struct, [{result, "false"}]}).
 
-created(_Domain) ->
-    format_response(201, [], {struct, [{result, created}]}).
+created(Domain) ->
+    format_response(201, add_cors_headers(Domain), {struct, [{result, created}]}).
 
-created(_Domain, Id) ->
-    format_response(201, [], {struct, [{result, Id}]}).
+created(Domain, Id) ->
+    format_response(201, add_cors_headers(Domain), {struct, [{result, Id}]}).
 
-json(_Domain, Content) ->
-    format_response(200, [], {struct, [{result, Content}]}).
+json(Domain, Content) ->
+    format_response(200, add_cors_headers(Domain), {struct, [{result, Content}]}).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

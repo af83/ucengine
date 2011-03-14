@@ -96,7 +96,7 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
                     ?ERROR_MSG("~p: error: ~p:~p: ~p~n", [Domain, Module, Function, Reason]),
                     json_helpers:error(Domain, Reason);
                 {streamcontent_from_pid, _, _} = Stream ->
-                    Stream;
+                    cors_helpers:format_cors_headers(Domain) ++ [Stream];
                 Response when is_list(Response) ->
                     Response;
                 Error ->
