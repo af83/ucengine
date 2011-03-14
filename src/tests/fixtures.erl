@@ -30,13 +30,13 @@ setup() ->
     [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/0.3/", setup_testers(Domain)].
 
 teardown([Domain, _, _Testers]) ->
-    apply(list_to_atom(atom_to_list(config:get(db)) ++ "_db"), drop, []),
+    apply(list_to_atom(atom_to_list(config:get(Domain, db)) ++ "_db"), drop, []),
     teardown_solr(Domain),
     ok.
 
 setup_meetings(Domain) ->
     Now = utils:now(),
-    catch uce_meeting:add(Domain, 
+    catch uce_meeting:add(Domain,
                           #uce_meeting{id={"testmeeting", Domain},
                                        metadata=[{"description", "Meeting"}],
                                        start_date=Now,
