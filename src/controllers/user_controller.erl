@@ -57,14 +57,14 @@ init() ->
 
 add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
     {ok, created} = uce_user:add(Domain, #uce_user{id={Name, Domain},
-                                           auth=Auth,
-                                           credential=Credential,
-                                           metadata=Metadata}),
+                                                   auth=Auth,
+                                                   credential=Credential,
+                                                   metadata=Metadata}),
 
     catch uce_event:add(Domain, #uce_event{domain=Domain,
-                                   from={Name, Domain},
-                                   location={"", Domain},
-                                   type="internal.user.add"}),
+                                           from={Name, Domain},
+                                           location={"", Domain},
+                                           type="internal.user.add"}),
 
     json_helpers:created(Domain).
 
