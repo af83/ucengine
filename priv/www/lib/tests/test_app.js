@@ -2,26 +2,26 @@ module('app', {
     setup: function() {
         this.app = $.sammy('#sammy_anchor', sammyapp);
         $.mockjax({
-            url : '/api/0.3/presence/',
+            url : '/api/' + uce.version + '/presence/',
             responseText: { "result": "409832095702309473209" }
         });
         $.mockjax({
-            url : '/api/0.3/infos/',
+            url : '/api/' + uce.version + '/infos/',
             responseText: {"result": {"domain": "localhost",
                                       "metadata": {"description":"af83m\u00e9dia specializes in digital communication. Our mission is to design and manage online content and communities.",
                                                    "logo":"af83.png",
                                                    "htags":"af83"}}}
         });
         $.mockjax({
-            url: '/api/0.3/meeting/opened',
+            url: '/api/' + uce.version + '/meeting/opened',
             responseText: {"result":[{"name":"demo","start_date":1287493374119,"end_date":"never","roster":["root"],"metadata":{"description":"U.C.Engine demo meetup"}},{"name":"demo2","start_date":1287493374120,"end_date":"never","roster":[],"metadata":{"description":"Meeting R&D"}}]}
         });
         $.mockjax({
-            url : '/api/0.3/meeting/closed',
+            url : '/api/' + uce.version + '/meeting/closed',
             responseText: {"result":[{"name":"agoroom","start_date":1287493374120,"end_date":"1287493374120","roster":["root"],"metadata":{"description":"Meeting agoroom"}}]}
         });
         $.mockjax({
-            url: '/api/0.3/meeting/upcoming',
+            url: '/api/' + uce.version + '/meeting/upcoming',
             responseText: {"result":[]}
         });
     },
