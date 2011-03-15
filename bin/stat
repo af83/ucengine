@@ -1,10 +1,11 @@
-#/bin/sh
+#!/bin/sh
 
-set core=`cat src/core/*.erl | wc -l`
-set controllers=`cat src/controllers/*.erl | wc -l`
-set helpers=`cat src/helpers/*.erl | wc -l`
-set models=`cat src/models/*.erl | wc -l`
-set tests=`cat src/tests/*.erl | wc -l`
+core=`cat src/core/*.erl | wc -l`
+controllers=`cat src/controllers/*.erl | wc -l`
+helpers=`cat src/helpers/*.erl | wc -l`
+models=`cat src/models/*.erl | wc -l`
+backends=`cat src/backends/**/**/**.erl | wc -l`
+tests=`cat src/tests/*.erl | wc -l`
 
 echo -n "Core: "
 echo $core
@@ -18,13 +19,16 @@ echo $helpers
 echo -n "Models: "
 echo $models
 
+echo -n "Backends: "
+echo $backends
+
 echo -n "Tests: "
 echo $tests
 
 echo
 
 echo -n "Total without tests: "
-echo "$core+$controllers+$helpers+$models" | bc
+echo "$core+$controllers+$helpers+$models+$backends" | bc
 
 echo -n "Total: "
-echo "$core+$controllers+$helpers+$models+$tests" | bc
+echo "$core+$controllers+$helpers+$models+$backends+$tests" | bc
