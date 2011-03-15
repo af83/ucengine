@@ -4,7 +4,7 @@
  * (c) 2011 af83
  */
 (function(g) {
-    var VERSION = "0.3";
+    var VERSION = "0.4";
 
     function UCEngine(baseUrl) {
 
@@ -482,6 +482,7 @@
         };
     }
     g.uce = {
+        version: VERSION,
         createClient : function(baseUrl) {
             return new UCEngine(baseUrl || '');
         },
