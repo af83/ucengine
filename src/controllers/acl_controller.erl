@@ -28,14 +28,14 @@ init() ->
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"conditions", [], dictionary}]}},
-     
+
      #uce_route{method='PUT',
                 regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
                 callback={?MODULE, add,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"conditions", [], dictionary}]}},
-     
+
      #uce_route{method='DELETE',
                 regexp="/user/([^/]+)/acl/([^/]+)/([^/]+)/?([^/]+)?/?",
                 callback={?MODULE, delete,
@@ -60,7 +60,7 @@ add(Domain, [To, Object, Action], Params, Arg) ->
     add(Domain, [To, Object, Action, ""], Params, Arg);
 add(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert(Domain, 
+    {ok, true} = uce_acl:assert(Domain,
                                 {Uid, Domain}, "acl", "add", {Meeting, Domain},
                                 [{"action", Action},
                                  {"object", Object},
@@ -71,13 +71,13 @@ add(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
                                          object=Object,
                                          location={Meeting, Domain},
                                          conditions=Conditions}),
-    catch uce_event:add(Domain,
-                        #uce_event{domain=Domain,
-                                   from={To, Domain},
-                                   type="internal.acl.add",
-                                   location={Meeting, Domain},
-                                   metadata=[{"action", Action},
-                                             {"object", Object}] ++ Conditions}),
+    {ok, _Id} = uce_event:add(Domain,
+                              #uce_event{domain=Domain,
+                                         from={To, Domain},
+                                         type="internal.acl.add",
+                                         location={Meeting, Domain},
+                                         metadata=[{"action", Action},
+                                                   {"object", Object}] ++ Conditions}),
     json_helpers:created(Domain).
 
 delete(Domain, [To, Object, Action], Params, Arg) ->
@@ -90,11 +90,11 @@ delete(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
                                  {"object", Object},
                                  {"meeting", Meeting}]),
     {ok, deleted} = uce_acl:delete(Domain, {To, Domain}, Object, Action, {Meeting, Domain}, Conditions),
-    catch uce_event:add(Domain,
-                        #uce_event{domain=Domain,
-                                   from={To, Domain},
-                                   type="internal.acl.delete",
-                                   location={Meeting, Domain},
-                                   metadata=[{"action", Action},
-                                             {"object", Object}] ++ Conditions}),
+    {ok, _Id} = uce_event:add(Domain,
+                              #uce_event{domain=Domain,
+                                         from={To, Domain},
+                                         type="internal.acl.delete",
+                                         location={Meeting, Domain},
+                                         metadata=[{"action", Action},
+                                                   {"object", Object}] ++ Conditions}),
     json_helpers:ok(Domain).
