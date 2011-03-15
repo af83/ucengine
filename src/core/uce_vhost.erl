@@ -71,16 +71,27 @@ setup_db(Domain) ->
     DBBackendModule = list_to_atom(lists:concat([DBBackend, "_db"])),
     DBBackendModule:init(Domain, DBConfig).
 
+setup_root_user(Domain, User = #uce_user{id={Uid, Domain} = Id}) ->
+    case uce_user:exists(Domain, Id) of
+        true ->
+            {ok, deleted} = uce_user:delete(Domain, Id);
+        _ ->
+            ok
+    end,
+    {ok, created} = uce_user:add(Domain, User),
+    {ok, created} = uce_acl:add(Domain, #uce_acl{user={Uid, Domain},
+                                                 location={"", Domain},
+                                                 action="all",
+                                                 object="all",
+                                                 conditions=[]}).
+
+
 setup_bricks(Domain) ->
     lists:foreach(fun({Name, Token}) ->
-                          catch uce_user:add(#uce_user{id={Name, Domain},
-                                                       auth="token",
-                                                       credential=Token,
-                                                       metadata=[]}),
-                          catch uce_acl:add(#uce_acl{user={Name, Domain},
-                                                     action="all",
-                                                     object="all",
-                                                     conditions=[]})
+                          setup_root_user(Domain, #uce_user{id={Name, Domain},
+                                                            auth="token",
+                                                            credential=Token,
+                                                            metadata=[]})
                   end,
                   config:get(Domain, bricks)).
 
@@ -91,16 +102,10 @@ setup_admin(Domain) ->
     Auth = proplists:get_value(auth, Admin),
     Credential = proplists:get_value(credential, Admin),
     Metadata = proplists:get_value(metadata, Admin, []),
-    catch uce_user:add(Domain, #uce_user{id={Uid, Domain},
-                                         auth=Auth,
-                                         credential=Credential,
-                                         metadata=Metadata}),
-    catch uce_acl:add(Domain, #uce_acl{user={Uid, Domain},
-                                       location={"", Domain},
-                                       action="all",
-                                       object="all",
-                                       conditions=[]}).
-
+    setup_root_user(Domain, #uce_user{id={Uid, Domain},
+                                      auth=Auth,
+                                      credential=Credential,
+                                      metadata=Metadata}).
 
 %%
 %% Tests
