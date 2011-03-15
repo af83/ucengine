@@ -622,16 +622,16 @@ test("temporize events", function() {
     // chuck_norris == aie
     setTimeout(function() {
         equals(called, 1);
-    }, 1500);
+    }, 2000);
     // chuck_norris + jacky_chan == outch
     setTimeout(function() {
         equals(called, 2);
-    }, 3500);
+    }, 4000);
     // chuck_norris + jacky_chan + bruce_less == Armageddon
     setTimeout(function() {
         start();
         equals(called, 3); // everyone is dead ?
-    }, 6000);
+    }, 6500);
 });
 
 test("can stop orchestrator", function() {
