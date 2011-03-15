@@ -46,11 +46,11 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                               timeout=Timeout,
                                               auth=User#uce_user.auth,
                                               metadata=Metadata}),
-    catch uce_event:add(Domain,
-                        #uce_event{domain=Domain,
-                                   from=User#uce_user.id,
-                                   location={"", Domain},
-                                   type="internal.presence.add"}),
+    {ok, _Id} = uce_event:add(Domain,
+                              #uce_event{domain=Domain,
+                                         from=User#uce_user.id,
+                                         location={"", Domain},
+                                         type="internal.presence.add"}),
     json_helpers:created(Domain, Id).
 
 delete(Domain, [Id], [Uid, Sid], _) ->
@@ -59,7 +59,7 @@ delete(Domain, [Id], [Uid, Sid], _) ->
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "presence", "delete", {"", Domain},
                                 [{"id", Record#uce_presence.id}]),
 
-    catch presence_helpers:clean(Domain, Record),
+    ok = presence_helpers:clean(Domain, Record),
 
     {ok, deleted} = uce_presence:delete(Domain, Record#uce_presence.id),
 

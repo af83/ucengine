@@ -61,10 +61,10 @@ add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
                                                    credential=Credential,
                                                    metadata=Metadata}),
 
-    catch uce_event:add(Domain, #uce_event{domain=Domain,
-                                           from={Name, Domain},
-                                           location={"", Domain},
-                                           type="internal.user.add"}),
+    {ok, _Id} = uce_event:add(Domain, #uce_event{domain=Domain,
+                                                 from={Name, Domain},
+                                                 location={"", Domain},
+                                                 type="internal.user.add"}),
 
     json_helpers:created(Domain).
 
@@ -89,11 +89,11 @@ update(Domain, [Name], [Uid, Sid, Auth, Credential, Metadata], _) ->
                                                       credential=Credential,
                                                       metadata=Metadata}),
 
-    catch uce_event:add(Domain,
-                        #uce_event{domain=Domain,
-                                   from={Name, Domain},
-                                   location={"", Domain},
-                                   type="internal.user.update"}),
+    {ok, _Id} = uce_event:add(Domain,
+                              #uce_event{domain=Domain,
+                                         from={Name, Domain},
+                                         location={"", Domain},
+                                         type="internal.user.update"}),
 
     json_helpers:ok(Domain).
 

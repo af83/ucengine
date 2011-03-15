@@ -109,11 +109,11 @@ join(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "roster", "add", {Name, Domain}),
     {ok, updated} = uce_meeting:join(Domain, {Name, Domain}, {Uid, Domain}),
     uce_presence:join(Domain, Sid, {Name, Domain}),
-    catch uce_event:add(Domain,
-                        #uce_event{domain=Domain,
-                                   type="internal.roster.add",
-                                   location={Name, Domain},
-                                   from={Uid, Domain}}),
+    {ok, _Id} = uce_event:add(Domain,
+                              #uce_event{domain=Domain,
+                                         type="internal.roster.add",
+                                         location={Name, Domain},
+                                         from={Uid, Domain}}),
     json_helpers:ok(Domain).
 
 %% TODO : Incomplete Sid must be ToSid
@@ -122,11 +122,11 @@ leave(Domain, [Name, User], [Uid, Sid], _) ->
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "roster", "delete", {Name, Domain}),
     {ok, updated} = uce_meeting:leave(Domain, {Name, Domain}, {User, Domain}),
     uce_presence:leave(Domain, Sid, {Name, Domain}),
-    catch uce_event:add(Domain,
-                        #uce_event{domain=Domain,
-                                   type="internal.roster.delete",
-                                   location={Name, Domain},
-                                   from={User, Domain}}),
+    {ok, _Id} = uce_event:add(Domain,
+                              #uce_event{domain=Domain,
+                                         type="internal.roster.delete",
+                                         location={Name, Domain},
+                                         from={User, Domain}}),
     json_helpers:ok(Domain).
 
 roster(Domain, [Name], [Uid, Sid], _) ->
