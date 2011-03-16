@@ -36,8 +36,7 @@ sort(Events, desc) ->
                end,
                Events).
 
-to_json(#uce_event{id=Id,
-                   domain=Domain,
+to_json(#uce_event{id={Id, Domain},
                    datetime=Datetime,
                    location=Location,
                    from={From, _},
@@ -75,7 +74,8 @@ from_json({struct, Event}) ->
         {error, Reason} ->
             {error, Reason};
         [Id, Datetime, From, Meeting, Type, Parent, {struct, Metadata}] ->
-            #uce_event{id=Id,
+            {_, Domain} = Meeting,
+            #uce_event{id={Id, Domain},
                        datetime=Datetime,
                        from=From,
                        location=Meeting,
@@ -102,7 +102,11 @@ feed(Domain, Path, Params) ->
                                        case utils:get(StructEvent, ["offset"]) of
                                            [none] ->
                                                [Datetime] = utils:get(Params, ["datetime"], [Event#uce_event.datetime]),
-                                               Event#uce_event{ id=Id
+                                               EventId = case Id of 
+                                                            {_, _} -> Id;
+                                                            _ -> {Id, Domain}
+                                                         end,
+                                               Event#uce_event{ id=EventId
                                                                 , datetime=Datetime
                                                                 , location=Location
                                                                 , from=From
@@ -115,7 +119,11 @@ feed(Domain, Path, Params) ->
                                                    {ok, Meeting} ->
                                                        Start = Meeting#uce_meeting.start_date,
                                                        [Datetime] = utils:get(Params, ["datetime"], [Start + list_to_integer(Offset)]),
-                                                       Event#uce_event{ id=Id
+                                                       EventId = case Id of 
+                                                                    {_, _} -> Id;
+                                                                    _ -> {Id, Domain}
+                                                                 end,
+                                                       Event#uce_event{ id=EventId
                                                                         , datetime=Datetime
                                                                         , location=Location
                                                                         , from=From
@@ -125,6 +133,6 @@ feed(Domain, Path, Params) ->
                                        end
                                end,
                                JSONEvents),
-            [ uce_event:add(Event#uce_event{domain=Domain}) || Event <- Events ],
+            [ uce_event:add(Event#uce_event{}) || Event <- Events ],
             ok
     end.

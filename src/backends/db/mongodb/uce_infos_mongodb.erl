@@ -23,7 +23,7 @@
 -include("mongodb.hrl").
 
 %% gen_uce_infos api
--export([get/1, update/1]).
+-export([get/1, update/2]).
 
 get(Domain) ->
     case catch emongo:find_one(Domain, "uce_infos", [{"domain", Domain}]) of
@@ -38,7 +38,7 @@ get(Domain) ->
             throw({error, bad_parameters})
     end.
 
-update(#uce_infos{domain=Domain} = Infos) ->
+update(Domain, #uce_infos{} = Infos) ->
     case catch emongo:find_one(Domain, "uce_infos", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),

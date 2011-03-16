@@ -23,11 +23,11 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
+-export([add/2,
          list/1,
          get/2,
          delete/2,
-         update/1,
+         update/2,
          all/1]).
 
 -include("uce.hrl").
@@ -38,7 +38,7 @@ init() ->
                          {type, set},
                          {attributes, record_info(fields, uce_presence)}]).
 
-add(#uce_presence{}=Presence) ->
+add(_Domain, #uce_presence{}=Presence) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(Presence)
                             end) of
@@ -50,9 +50,8 @@ add(#uce_presence{}=Presence) ->
 
 list(User) ->
     case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_presence{id='_',
+				    mnesia:match_object(#uce_presence{id={'_','_'},
                                                       user=User,
-                                                      domain='_',
                                                       auth='_',
                                                       timeout='_',
                                                       last_activity='_',
@@ -68,9 +67,8 @@ list(User) ->
     end.
 
 all(Domain) ->
-    case  mnesia:dirty_match_object(#uce_presence{id='_',
+    case  mnesia:dirty_match_object(#uce_presence{id={'_', Domain},
                                             user='_',
-                                            domain=Domain,
                                             auth='_',
                                             timeout='_',
                                             last_activity='_',
@@ -105,7 +103,7 @@ delete(_Domain, Id) ->
             throw({error, bad_parameters})
     end.
 
-update(#uce_presence{}=Presence) ->
+update(_Domain, #uce_presence{}=Presence) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(Presence)
                             end) of

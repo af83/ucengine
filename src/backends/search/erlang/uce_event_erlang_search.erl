@@ -56,6 +56,7 @@ filter(Events, Words) ->
 
 list(Domain, Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Max, Order) ->
     {ok, Events} = apply(db:get(uce_event, Domain), list, [Location, From, Type, DateStart, DateEnd, Parent]),
+
     FilteredEvents = filter(Events, Search),
     OrderedEvents = event_helpers:sort(FilteredEvents, Order),
     EventPage = paginate:paginate(OrderedEvents, Start, Max),

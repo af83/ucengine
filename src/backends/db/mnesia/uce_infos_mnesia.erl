@@ -23,7 +23,7 @@
 -include("uce.hrl").
 
 %% gen_uce_infos api
--export([get/1, update/1]).
+-export([get/1, update/2]).
 
 -export([init/0, drop/0]).
 
@@ -50,7 +50,7 @@ get(Domain) ->
             throw({error, bad_parameters})
     end.
 
-update(Infos) ->
+update(_Domain, Infos) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(Infos)
                             end) of

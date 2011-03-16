@@ -87,7 +87,7 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
             ?DEBUG("~p: call ~p:~p matching ~p with ~p~n", [Domain, Module, Function, Match, Params]),
             case catch Module:Function(Domain, Match, Params, Arg) of
                 {error, Reason} ->
-                    ?ERROR_MSG("~p: error: ~p:~p: ~p~n", [Domain, Module, Function, Reason]),
+                    ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Reason, Params]),
                     json_helpers:error(Domain, Reason);
                 {'EXIT', {function_clause, [{Module, Function,_}|_]}} ->
                     ?ERROR_MSG("~p: error: ~p:~p: function not found~n", [Domain, Module, Function]),

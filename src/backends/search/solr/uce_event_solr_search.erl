@@ -41,8 +41,7 @@ commit() ->
     {ok, commited}.
 
 %% Encode event in solrxml format which be used to add solr index
-to_solrxml(#uce_event{id=Id,
-                      domain=Domain,
+to_solrxml(#uce_event{id={Id, Domain},
                       datetime=Datetime,
                       location={Location, _},
                       from={From, _},
@@ -244,9 +243,11 @@ make_list_json_events([{struct, Elems}|Tail]) ->
                                           Value}
                                  end,
                                  FlatMetadata),
-            [#uce_event{id=Id,
-                        domain=Domain,
-                        datetime=Datetime,
+            [#uce_event{id={Id, Domain},
+                        datetime=case is_list(Datetime) of
+                                    true -> list_to_integer(Datetime);
+                                    _ -> Datetime
+                                 end,
                         location={Location, Domain},
                         from={From, Domain},
                         to={To, Domain},

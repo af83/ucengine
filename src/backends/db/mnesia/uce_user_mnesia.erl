@@ -21,11 +21,11 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
-         delete/1,
-         update/1,
+-export([add/2,
+         delete/2,
+         update/2,
          list/1,
-         get/1]).
+         get/2]).
 
 -include("uce.hrl").
 
@@ -35,7 +35,7 @@ init() ->
                          {type, set},
                          {attributes, record_info(fields, uce_user)}]).
 
-add(#uce_user{} = User) ->
+add(_Domain, #uce_user{} = User) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(User)
                             end) of
@@ -45,7 +45,7 @@ add(#uce_user{} = User) ->
             throw({error, bad_parameters})
     end.
 
-delete(Id) ->
+delete(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:delete({uce_user, Id})
                             end) of
@@ -55,7 +55,7 @@ delete(Id) ->
             throw({error, bad_parameters})
     end.
 
-update(#uce_user{} = User) ->
+update(_Domain, #uce_user{} = User) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(User)
                             end) of
@@ -78,7 +78,7 @@ list(Domain) ->
             throw({error, bad_parameters})
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:read(uce_user, Id)
                             end) of

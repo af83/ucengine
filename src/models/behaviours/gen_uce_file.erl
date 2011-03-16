@@ -22,7 +22,7 @@
 -export([behaviour_info/1]).
 
 behaviour_info(callbacks) ->
-    [{add, 1},
+    [{add, 2},
      {list, 1},
      {all, 1},
      {get, 2},

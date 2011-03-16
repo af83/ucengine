@@ -21,17 +21,17 @@
 -include_lib("eunit/include/eunit.hrl").
 
 setup_events(Domain) ->
-    uce_event:add(Domain, #uce_event{ domain=Domain,
+    uce_event:add(Domain, #uce_event{ id={none, Domain},
                               type="test_event_1",
                               location={"testmeeting", Domain},
                               from={"participant.user@af83.com", Domain}}),
     timer:sleep(10),
-    uce_event:add(Domain, #uce_event{ domain=Domain,
+    uce_event:add(Domain, #uce_event{ id={none, Domain},
                               type="test_event_2",
                               location={"testmeeting", Domain},
                               from={"user_2", Domain}}),
     timer:sleep(10),
-    uce_event:add(Domain, #uce_event{ domain=Domain,
+    uce_event:add(Domain, #uce_event{ id={none, Domain},
                               type="test_event_3",
                               location={"testmeeting", Domain},
                               from={"user_3", Domain},
@@ -191,6 +191,8 @@ test_search_overflow(BaseUrl, [{RootUid, RootSid}, _], _) ->
               {"startPage", "2"},
               {"startIndex", "1"}],
 
+    ?DEBUG("Result : ~p~n", [tests_utils:get(BaseUrl, "/search/event", Params)]),
+
     ?MATCH_SEARCH_RESULTS(0, 1, 2, "", 2, {array, []},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
@@ -211,6 +213,7 @@ test_search_with_keywords(BaseUrl, [{RootUid, RootSid}, _], _) ->
                  {"sid", RootSid},
                  {"count", "1"},
                  {"searchTerms", SearchTerms}],
+
 
     ?MATCH_SEARCH_RESULTS(1, 0, 1, SearchTerms, 1, {array, [{struct, [{"type", "search_event"}
                                                                        , {"domain", _}

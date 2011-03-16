@@ -58,10 +58,10 @@ init() ->
 add(Domain, [], Params, Arg) ->
     ?MODULE:add(Domain, [""], Params, Arg);
 add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "event", "add", {Meeting, Domain}, [{"type", Type},{"to", To}]),
     {ok, Id} = uce_event:add(Domain,
-                             #uce_event{domain=Domain,
+                             #uce_event{id={none, Domain},
                                         location={Meeting, Domain},
                                         from={Uid, Domain},
                                         type=Type,
@@ -71,9 +71,9 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
     json_helpers:created(Domain, Id).
 
 get(Domain, [_, Id], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "event", "get", {"", ""}, [{"id", Id}]),
-    {ok, #uce_event{to=To} = Event} = uce_event:get(Domain, Id),
+    {ok, #uce_event{to=To} = Event} = uce_event:get(Domain, {Id, Domain}),
     case To of
         {"", _} ->
             json_helpers:json(Domain, event_helpers:to_json(Event));
@@ -88,7 +88,7 @@ list(Domain, [], Params, Arg) ->
 list(Domain, [Meeting],
      [Uid, Sid, Search, Type, From, DateStart, DateEnd, Count, Page, Order, Parent, Async], Arg) ->
 
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "event", "list", {Meeting, Domain}, [{"from", From}]),
 
     Keywords = string:tokens(Search, ","),

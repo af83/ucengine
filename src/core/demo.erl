@@ -61,6 +61,7 @@ fill_domain(Domain) ->
              "romain.gauthier@af83.com", "participant"],
 
     lists:foreach(fun(User) ->
+                          ?DEBUG("User : ~p~n", [User]),
                           catch uce_user:add(Domain,
                                              #uce_user{id={User, Domain},
                                                        auth="password",
@@ -91,7 +92,7 @@ fill_domain(Domain) ->
     Hashtags = ["#TED", "#sinek", "#simonsinek", "#ucengine"],
     lists:foreach(fun(HashTag) ->
                           uce_event:add(Domain,
-                                        #uce_event{domain=Domain,
+                                        #uce_event{id={none, Domain},
                                                    type="twitter.hashtag.add",
                                                    location={"demo", Domain},
                                                    from={"participant", Domain},

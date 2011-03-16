@@ -34,8 +34,7 @@ solr_test_() ->
     }.
 
 test_add(Domain) ->
-    {ok, created} = uce_event_solr_search:add(#uce_event{id=utils:random(),
-                                                         domain=Domain,
+    {ok, created} = uce_event_solr_search:add(#uce_event{id={utils:random(), Domain},
                                                          datetime=utils:now(),
                                                          location={"testmeeting", Domain},
                                                          from={"chuck_norris", Domain},

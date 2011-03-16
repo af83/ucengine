@@ -23,22 +23,22 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_event{id=none}=Event) ->
-    ?MODULE:add(Domain, Event#uce_event{id=utils:random()});
+add(Domain, #uce_event{id={none, Domain}}=Event) ->
+    ?MODULE:add(Domain, Event#uce_event{id={utils:random(), Domain}});
 add(Domain, #uce_event{datetime=undefined}=Event) ->
     ?MODULE:add(Domain, Event#uce_event{datetime=utils:now()});
-add(Domain, #uce_event{location=Location, domain=Domain, from=From, to=To, parent=Parent} = Event) ->
+add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Event) ->
     LocationExists = uce_meeting:exists(Domain, Location),
     FromExists = uce_user:exists(Domain, From),
     ToExists = uce_user:exists(Domain, To),
-    ParentExists = uce_event:exists(Domain, Parent),
+    ParentExists = uce_event:exists(Domain, {Parent, Domain}),
 
     if
         LocationExists == true,
         FromExists == true,
         ToExists == true,
         ParentExists == true ->
-            {ok, Id} = apply(db:get(?MODULE, Domain), add, [Event]),
+            {ok, Id} = apply(db:get(?MODULE, Domain), add, [Domain, Event]),
             catch ?PUBSUB_MODULE:publish(Event),
             catch ?SEARCH_MODULE:add(Event),
             catch uce_acl:trigger(Domain, Event),
@@ -52,7 +52,7 @@ get(Domain, Id) ->
 
 exists(Domain, Id) ->
     case Id of
-        "" -> true;
+        {"", _Domain} -> true;
         _ ->
             case catch ?MODULE:get(Domain, Id) of
                 {error, not_found} ->
@@ -69,7 +69,7 @@ filter_private(Events, Uid) ->
                          case To of
                              {"", _} -> % all
                                  true;
-                             Uid ->
+                             {Uid, _} ->
                                  true;
                              _ ->
                                  false

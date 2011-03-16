@@ -21,28 +21,29 @@
 
 -behaviour(gen_uce_presence).
 
--export([add/1,
+-export([add/2,
          list/1,
          get/2,
          delete/2,
-         update/1,
+         update/2,
          all/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_presence{domain=Domain}=Presence) ->
+add(Domain, #uce_presence{}=Presence) ->
     case catch emongo:insert_sync(Domain, "uce_presence", to_collection(Presence)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
         _ ->
+            %%{Id, Domain} = Presence#uce_presence.id,
             {ok, Presence#uce_presence.id}
     end.
 
 list({User, Domain}) ->
     case catch emongo:find_all(Domain, "uce_presence", [{"user", User},
-                                                             {"domain", Domain}]) of
+                                                        {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -67,8 +68,8 @@ all(Domain) ->
             {ok, Records}
     end.
 
-get(Domain, Id) ->
-    case catch emongo:find_one(Domain, "uce_presence", [{"id", Id}]) of
+get(Domain, {SId, SDomain}) ->
+    case catch emongo:find_one(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -78,8 +79,8 @@ get(Domain, Id) ->
             throw({error, not_found})
     end.
 
-delete(Domain, Id) ->
-    case catch emongo:delete_sync(Domain, "uce_presence", [{"id", Id}]) of
+delete(Domain, {SId, SDomain}) ->
+    case catch emongo:delete_sync(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -87,9 +88,10 @@ delete(Domain, Id) ->
             {ok, deleted}
     end.
 
-update(#uce_presence{domain=Domain}=Presence) ->
+update(Domain, #uce_presence{}=Presence) ->
+    {Id, Domain} = Presence#uce_presence.id,
     case catch emongo:update_sync(Domain, "uce_presence",
-                                  [{"id", Presence#uce_presence.id}],
+                                  [{"id", Id}, {"domain", Domain}],
                                   to_collection(Presence), false) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -103,8 +105,7 @@ from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["id", "domain", "user", "auth", "last_activity", "timeout", "metadata"]) of
         [Id, Domain, User, Auth, LastActivity, Timeout, Metadata] ->
-            #uce_presence{id=Id,
-                          domain=Domain,
+            #uce_presence{id={Id, Domain},
                           user={User, Domain},
                           auth=Auth,
                           last_activity=list_to_integer(LastActivity),
@@ -114,8 +115,7 @@ from_collection(Collection) ->
             throw({error, bad_parameters})
     end.
 
-to_collection(#uce_presence{id=Id,
-                            domain=Domain,
+to_collection(#uce_presence{id={Id, Domain},
                             user={User, _},
                             auth=Auth,
                             last_activity=LastActivity,

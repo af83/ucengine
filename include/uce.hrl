@@ -1,8 +1,6 @@
 -record(uce_event, {
-          %% Id
-          id = none,
-          % Domain (vhost)
-          domain,
+          %% {eventid, Domain}
+          id = {none, none},
           %% date (ms from epoch)
           datetime = undefined,
           %% location = [Meeting]
@@ -19,10 +17,8 @@
           metadata = []}).
 
 -record(uce_presence, {
-          %% Id
-          id = none,
-          %% domain
-          domain,
+          %% {presenceid, domain}
+          id = {none, none},
           %% user id
           user,
           %% authification method
@@ -49,10 +45,8 @@
           metadata = []}).
 
 -record(uce_file, {
-          % file id
-          id = none,
-          % domain
-          domain,
+          % {fileid, domain}
+          id = {none, none},
           % name
           name,
           % {Meeting, Domain}
@@ -67,7 +61,7 @@
 
 -record(uce_user, {
           %% User (name, domain)
-          id = none,
+          id = {none, none},
           auth,
           credential = "",
           metadata = []}).

@@ -61,27 +61,27 @@ add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
                                                    credential=Credential,
                                                    metadata=Metadata}),
 
-    {ok, _Id} = uce_event:add(Domain, #uce_event{domain=Domain,
-                                                 from={Name, Domain},
-                                                 location={"", Domain},
-                                                 type="internal.user.add"}),
+    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
+                                               from={Name, Domain},
+                                               location={"", Domain},
+                                               type="internal.user.add"}),
 
     json_helpers:created(Domain).
 
 list(Domain, [], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "user", "list"),
     {ok, Users} = uce_user:list(Domain),
     json_helpers:json(Domain, {array, [user_helpers:to_json(User) || User <- Users]}).
 
 get(Domain, [Name], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "user", "get", {"", Domain}, [{"user", Name}]),
     {ok, Record} = uce_user:get(Domain, {Name, Domain}),
     json_helpers:json(Domain, user_helpers:to_json(Record)).
 
 update(Domain, [Name], [Uid, Sid, Auth, Credential, Metadata], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "user", "update", {"", Domain}, [{"user", Name},
                                                                                         {"auth", Auth}]),
     {ok, updated} = uce_user:update(Domain, #uce_user{id={Name, Domain},
@@ -89,16 +89,16 @@ update(Domain, [Name], [Uid, Sid, Auth, Credential, Metadata], _) ->
                                                       credential=Credential,
                                                       metadata=Metadata}),
 
-    {ok, _Id} = uce_event:add(Domain,
-                              #uce_event{domain=Domain,
-                                         from={Name, Domain},
-                                         location={"", Domain},
-                                         type="internal.user.update"}),
+    {ok, _} = uce_event:add(Domain,
+                            #uce_event{id={none, Domain},
+                                       from={Name, Domain},
+                                       location={"", Domain},
+                                       type="internal.user.update"}),
 
     json_helpers:ok(Domain).
 
 delete(Domain, [Name], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "user", "delete", {"", Domain}, [{"user", Name}]),
     {ok, deleted} = uce_user:delete(Domain, {Name, Domain}),
     json_helpers:ok(Domain).

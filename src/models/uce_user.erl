@@ -23,26 +23,26 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_user{id=Id} = User) ->
+add(Domain, #uce_user{id={_Name,Domain}=Id} = User) ->
     case exists(Domain, Id) of
         true ->
             throw({error, conflict});
         false ->
-            apply(db:get(?MODULE, Domain), add, [User])
+            apply(db:get(?MODULE, Domain), add, [Domain, User])
     end.
 
 delete(Domain, Id) ->
     case exists(Domain, Id) of
         true ->
-            apply(db:get(?MODULE, Domain), delete, [Id]);
+            apply(db:get(?MODULE, Domain), delete, [Domain, Id]);
         false ->
             throw({error, not_found})
     end.
 
-update(Domain, #uce_user{id=Id} = User) ->
+update(Domain, #uce_user{id={_Name, Domain}=Id} = User) ->
     case ?MODULE:exists(Domain, Id) of
         true ->
-            apply(db:get(?MODULE, Domain), update, [User]);
+            apply(db:get(?MODULE, Domain), update, [Domain, User]);
         false ->
             throw({error, not_found})
     end.
@@ -51,7 +51,7 @@ list(Domain) ->
     apply(db:get(?MODULE, Domain), list, [Domain]).
 
 get(Domain, User) ->
-    apply(db:get(?MODULE, Domain), get, [User]).
+    apply(db:get(?MODULE, Domain), get, [Domain, User]).
 
 exists(Domain, Id) ->
     case Id of

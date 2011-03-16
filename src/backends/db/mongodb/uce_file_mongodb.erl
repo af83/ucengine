@@ -21,7 +21,7 @@
 
 -behaviour(gen_uce_file).
 
--export([add/1,
+-export([add/2,
          list/1,
          all/1,
          get/2,
@@ -30,7 +30,7 @@
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_file{domain=Domain} = File) ->
+add(Domain, #uce_file{} = File) ->
     case catch emongo:insert_sync(Domain, "uce_file", to_collection(File)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -41,7 +41,7 @@ add(#uce_file{domain=Domain} = File) ->
 
 list({Location, Domain}) ->
     case catch emongo:find_all(Domain, "uce_file", [{"location", Location},
-                                                                  {"domain", Domain}]) of
+                                                    {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -58,8 +58,8 @@ all(Domain) ->
             {ok, [from_collection(File) || File <- Files]}
     end.
 
-get(Domain, Id) ->
-    case catch emongo:find_one(Domain, "uce_file", [{"id", Id}]) of
+get(Domain, {FileId, _FileDomain}) ->
+    case catch emongo:find_one(Domain, "uce_file", [{"id", FileId}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -69,8 +69,8 @@ get(Domain, Id) ->
             throw({error, not_found})
     end.
 
-delete(Domain, Id) ->
-    case catch emongo:delete_sync(Domain, "uce_file", [{"id", Id}]) of
+delete(Domain, {FileId, _FileDomain}) ->
+    case catch emongo:delete_sync(Domain, "uce_file", [{"id", FileId}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -82,8 +82,7 @@ from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
 		   ["id", "domain", "location", "name", "uri", "metadata"]) of
         [Id, Domain, Location, Name, Uri, Metadata] ->	
-            #uce_file{id=Id,
-                      domain=Domain,
+            #uce_file{id={Id, Domain},
                       name=Name,
                       location={Location, Domain},
                       uri=Uri,
@@ -92,8 +91,7 @@ from_collection(Collection) ->
             throw({error, bad_parameters})
     end.
 
-to_collection(#uce_file{id=Id,
-                        domain=Domain,
+to_collection(#uce_file{id={Id, Domain},
                         name=Name,
                         location={Location, _},
                         uri=Uri,

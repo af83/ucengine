@@ -47,7 +47,7 @@ init() ->
 check(Domain, [To, Object, Action], Params, Arg) ->
     check(Domain, [To, Object, Action, ""], Params, Arg);
 check(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "acl", "check"),
     case uce_acl:check(Domain, {To, Domain}, Object, Action, {Meeting, Domain}, Conditions) of
         {ok, true} ->
@@ -59,8 +59,8 @@ check(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
 add(Domain, [To, Object, Action], Params, Arg) ->
     add(Domain, [To, Object, Action, ""], Params, Arg);
 add(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
-    {ok, true} = uce_acl:assert(Domain,
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_acl:assert(Domain, 
                                 {Uid, Domain}, "acl", "add", {Meeting, Domain},
                                 [{"action", Action},
                                  {"object", Object},
@@ -71,30 +71,31 @@ add(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
                                          object=Object,
                                          location={Meeting, Domain},
                                          conditions=Conditions}),
-    {ok, _Id} = uce_event:add(Domain,
-                              #uce_event{domain=Domain,
-                                         from={To, Domain},
-                                         type="internal.acl.add",
-                                         location={Meeting, Domain},
-                                         metadata=[{"action", Action},
-                                                   {"object", Object}] ++ Conditions}),
+
+    {ok, _Id} =  uce_event:add(Domain,
+                               #uce_event{id={none, Domain},
+                                          from={To, Domain},
+                                          type="internal.acl.add",
+                                          location={Meeting, Domain},
+                                          metadata=[{"action", Action},
+                                                    {"object", Object}] ++ Conditions}),
     json_helpers:created(Domain).
 
 delete(Domain, [To, Object, Action], Params, Arg) ->
     delete(Domain, [To, Object, Action, "", ""], Params, Arg);
 delete(Domain, [To, Object, Action, Meeting], [Uid, Sid, Conditions], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, Sid),
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_acl:assert(Domain,
                                 {Uid, Domain}, "acl", "delete", {Meeting, Domain},
                                 [{"action", Action},
                                  {"object", Object},
                                  {"meeting", Meeting}]),
     {ok, deleted} = uce_acl:delete(Domain, {To, Domain}, Object, Action, {Meeting, Domain}, Conditions),
-    {ok, _Id} = uce_event:add(Domain,
-                              #uce_event{domain=Domain,
-                                         from={To, Domain},
-                                         type="internal.acl.delete",
-                                         location={Meeting, Domain},
-                                         metadata=[{"action", Action},
-                                                   {"object", Object}] ++ Conditions}),
+    {ok, _} = uce_event:add(Domain,
+                            #uce_event{id={none, Domain},
+                                       from={To, Domain},
+                                       type="internal.acl.delete",
+                                       location={Meeting, Domain},
+                                       metadata=[{"action", Action},
+                                                 {"object", Object}] ++ Conditions}),
     json_helpers:ok(Domain).

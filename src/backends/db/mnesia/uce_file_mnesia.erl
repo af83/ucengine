@@ -23,7 +23,7 @@
 
 -export([init/0, drop/0]).
 
--export([add/1, list/1, get/2, all/1, delete/2]).
+-export([add/2, list/1, get/2, all/1, delete/2]).
 
 -include("uce.hrl").
 
@@ -33,7 +33,7 @@ init() ->
                          {type, set},
                          {attributes, record_info(fields, uce_file)}]).
 
-add(#uce_file{} = File) ->
+add(_Domain, #uce_file{} = File) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(File)
                             end) of
@@ -43,10 +43,9 @@ add(#uce_file{} = File) ->
             throw({error, bad_parameters})
     end.
 
-list(Location) ->
+list({_, Domain}=Location) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_file{id='_',
-                                                                  domain='_',
+                                    mnesia:match_object(#uce_file{id={'_', Domain},
                                                                   name='_',
                                                                   location=Location,
                                                                   uri='_',
@@ -60,8 +59,7 @@ list(Location) ->
 
 all(Domain) ->
         case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_file{id='_',
-                                                                  domain=Domain,
+                                    mnesia:match_object(#uce_file{id={'_', Domain},
                                                                   name='_',
                                                                   location='_',
                                                                   uri='_',
@@ -73,7 +71,7 @@ all(Domain) ->
                 throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
+get(_Domain, {_, _}=Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:read(uce_file, Id)
                             end) of
@@ -85,7 +83,7 @@ get(_Domain, Id) ->
             throw({error, bad_parameters})
     end.
 
-delete(_Domain, Id) ->
+delete(_Domain, {_, _}=Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:delete({uce_file, Id})
                             end) of

@@ -21,14 +21,14 @@
 
 -behaviour(gen_uce_event).
 
--export([add/1,
+-export([add/2,
          get/2,
          list/6]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_event{domain=Domain} = Event) ->
+add(Domain, #uce_event{} = Event) ->
     case catch emongo:insert_sync(Domain, "uce_event", to_collection(Event)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -37,8 +37,8 @@ add(#uce_event{domain=Domain} = Event) ->
             {ok, Event#uce_event.id}
     end.
 
-get(Domain, Id) ->
-    case catch emongo:find_one(Domain, "uce_event", [{"id", Id}]) of
+get(Domain, {EventId, EventDomain}) ->
+    case catch emongo:find_one(Domain, "uce_event", [{"id", EventId}, {"domain", EventDomain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -100,10 +100,9 @@ list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-                  ["id", "domain", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
+              ["id", "domain", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
         [Id, Domain, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
-            #uce_event{id=Id,
-                       domain=Domain,
+            #uce_event{id={Id, Domain},
                        datetime=Datetime,
                        from={From, Domain},
                        to={To, Domain},
@@ -115,10 +114,9 @@ from_collection(Collection) ->
             throw({error, bad_parameters})
     end.
 
-to_collection(#uce_event{domain=Domain,
-                         id=Id,
+to_collection(#uce_event{id={Id, Domain},
                          location={Meeting, _},
-                         from={From, Domain},
+                         from={From, _},
                          to={To, _},
                          metadata=Metadata,
                          datetime=Datetime,

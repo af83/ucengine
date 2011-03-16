@@ -36,10 +36,10 @@ add(Domain, #uce_file{location=Location, name=Name} = File) ->
                     _ ->
                         {Name ++ "_" ++ utils:random(), "text/plain"}
                 end,
-            apply(db:get(?MODULE, Domain), add, [File#uce_file{id=Id, mime=Mime}])
+            apply(db:get(?MODULE, Domain), add, [Domain, File#uce_file{id={Id, Domain}, mime=Mime}])
     end.
 
-list(Domain, Location) ->
+list(Domain, {_, _}=Location) ->
     case location_helpers:exists(Domain, Location) of
         false ->
             throw({error, not_found});
@@ -47,10 +47,10 @@ list(Domain, Location) ->
             apply(db:get(?MODULE, Domain), list, [Location])
     end.
 
-get(Domain, Id) ->
+get(Domain, {_, _}=Id) ->
     apply(db:get(?MODULE, Domain), get, [Domain, Id]).
 
-delete(Domain, Id) ->
+delete(Domain, {_, _}=Id) ->
     case ?MODULE:get(Domain, Id) of
         {error, Reason} ->
             {error, Reason};

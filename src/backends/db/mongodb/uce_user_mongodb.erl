@@ -21,16 +21,16 @@
 
 -behaviour(gen_uce_user).
 
--export([add/1,
-         delete/1,
-         update/1,
+-export([add/2,
+         delete/2,
+         update/2,
          list/1,
-         get/1]).
+         get/2]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-add(#uce_user{id={_Name,Domain}} = User) ->
+add(Domain, #uce_user{} = User) ->
     case catch emongo:insert_sync(Domain, "uce_user", to_collection(User)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -39,9 +39,9 @@ add(#uce_user{id={_Name,Domain}} = User) ->
             {ok, created}
     end.
 
-delete({Name, Domain}) ->
+delete(Domain, {Name, Domain}) ->
     case catch emongo:delete_sync(Domain, "uce_user", [{"name", Name},
-                                                            {"domain", Domain}]) of
+                                                       {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});
@@ -49,9 +49,9 @@ delete({Name, Domain}) ->
             {ok, deleted}
     end.    
 
-update(#uce_user{id={Name, Domain}} = User) ->
+update(Domain, #uce_user{id={Name, UDomain}} = User) ->
     case catch emongo:update_sync(Domain, "uce_user", [{"name", Name},
-                                                            {"domain", Domain}],
+                                                       {"domain", UDomain}],
                                   to_collection(User), false) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -73,9 +73,9 @@ list(Domain) ->
             {ok, Users}
     end.
 
-get({Name, Domain}) ->
-    case catch emongo:find_one(Domain, "uce_user", [{"name", Name},
-                                                         {"domain", Domain}]) of
+get(Domain, {UName, UDomain}) ->
+    case catch emongo:find_one(Domain, "uce_user", [{"name", UName},
+                                                    {"domain", UDomain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});

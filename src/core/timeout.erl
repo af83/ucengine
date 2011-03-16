@@ -50,7 +50,7 @@ handle_cast(run, State) ->
     % delete expired presences
     Now = utils:now(),
     lists:foreach(
-      fun(#uce_presence{id=Id, last_activity=LastActivity, timeout=Timeout, domain=Domain} = Presence) ->
+      fun(#uce_presence{id={_Sid, Domain}=Id, last_activity=LastActivity, timeout=Timeout} = Presence) ->
               if
                   LastActivity + (Timeout * 1000) < Now ->
                       ok = presence_helpers:clean(Domain, Presence),

@@ -76,6 +76,7 @@ test_upload_small(BaseUrl, [{RootUid, RootSid}, _]) ->
                                            {"metadata", Metadata}]}]}}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
     {struct, [{"id", _},
+              {"domain", _},
               {"name", "small"}, 
               {"size", "28"}, 
               {"mime", "text/plain"}]} = Metadata.

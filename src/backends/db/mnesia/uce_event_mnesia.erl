@@ -23,7 +23,7 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
+-export([add/2,
          get/2,
          list/6]).
 
@@ -35,7 +35,7 @@ init() ->
                          {type, set},
                          {attributes, record_info(fields, uce_event)}]).
 
-add(#uce_event{} = Event) ->
+add(_Domain, #uce_event{} = Event) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(Event)
                             end) of
@@ -63,32 +63,32 @@ list(Location, From, Types, Start, End, Parent) ->
     {SelectLocation, ResultLocation} =
         case Location of
             {"", _} ->
-                {'$4', '$4'};
+                {'$3', '$3'};
             _ ->
                 {Location, {Location}}
         end,
     {SelectFrom, ResultFrom} =
         case From of
             {"", _} ->
-                {'$5', '$5'};
+                {'$4', '$4'};
             _ ->
                 {From, {From}}
         end,
     SelectParent = if
                        Parent == "" ->
-                           '$8';
+                           '$7';
                        true ->
                            Parent
                    end,
     Guard = if
                 Start /= 0, End /= infinity ->
-                    [{'>=', '$3', Start}, {'=<', '$3', End}];
+                    [{'>=', '$2', Start}, {'=<', '$2', End}];
 
                 Start /= 0 ->
-                    [{'>=', '$3', Start}];
+                    [{'>=', '$2', Start}];
 
                 End /= infinity ->
-                    [{'=<', '$3', End}];
+                    [{'=<', '$2', End}];
 
                 true ->
                     []
@@ -98,22 +98,21 @@ list(Location, From, Types, Start, End, Parent) ->
         lists:map(fun(Type) ->
                           SelectType = if
                                            Type == "" ->
-                                               '$7';
+                                               '$6';
                                            true ->
                                                Type
                                        end,
 
                           Match = #uce_event{id='$1',
-                                             domain='$2',
-                                             datetime='$3',
+                                             datetime='$2',
                                              location=SelectLocation,
                                              from=SelectFrom,
-                                             to='$6',
+                                             to='$5',
                                              type=SelectType,
                                              parent=SelectParent,
-                                             metadata='$9'},
-                          Result = {{'uce_event', '$1', '$2', '$3', ResultLocation,
-                                     ResultFrom, '$6', SelectType, SelectParent, '$9'}},
+                                             metadata='$8'},
+                          Result = {{'uce_event', '$1', '$2', ResultLocation,
+                                     ResultFrom, '$5', SelectType, SelectParent, '$8'}},
                           mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])
                   end,
                   Types),

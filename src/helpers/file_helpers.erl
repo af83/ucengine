@@ -24,8 +24,7 @@
 -export([to_json/1,
          download/3]).
 
-to_json(#uce_file{id=Id,
-                  domain=Domain,
+to_json(#uce_file{id={Id, Domain},
                   name=Name,
                   location=Location,
                   uri=Uri,
