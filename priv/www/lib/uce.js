@@ -163,8 +163,32 @@
                 }
             },
 
+            /**
+             * Search events
+             */
+            search: function(terms, callback) {
+                var query = terms.query || '';
+                delete terms.query;
+                var searchTerms = [];
+                for (var i in terms) {
+                    searchTerms.push(i+":"+terms[i]);
+                }
+                searchTerms.push(query);
+                get("/search/event",
+                    {'uid': _presence.user,
+                     'sid': _presence.id,
+                     'searchTerms' : searchTerms.join(' ')},
+                    function (err, result, xhr) {
+                        if (!callback) {
+                            return;
+                        }
+                        callback(err, result.result, xhr);
+                    });
+            },
+
             meeting : function(meetingname) {
                 var handlers = [];
+                var client = this;
                 return {
                     name: meetingname,
                     uid: (_presence || {}).user,
@@ -417,23 +441,8 @@
                      * Search event in current meeting
                      */
                     search: function(terms, callback) {
-                        var query = terms.query || '';
-                        delete terms.query;
-                        var searchTerms = ["location:"+ meetingname];
-                        for (var i in terms) {
-                            searchTerms.push(i+":"+terms[i]);
-                        }
-                        searchTerms.push(query);
-                        get("/search/event",
-                            {'uid': _presence.user,
-                             'sid': _presence.id,
-                             'searchTerms' : searchTerms.join(' ')},
-                            function (err, result, xhr) {
-                                if (!callback) {
-                                    return;
-                                }
-                                callback(err, result.result, xhr);
-                            });
+                        terms.location = meetingname;
+                        client.search(terms, callback);
                     }
                 };
             },
