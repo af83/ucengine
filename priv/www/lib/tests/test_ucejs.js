@@ -608,6 +608,27 @@ jackTest("custom api url", function() {
     });
 });
 
+jackTest("search events in a meeting", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "location:demo hello"}, 200, '{"result": {}}');
+    this.client.attachPresence(Factories.createPresence()).meeting('demo').search({query: 'hello'}, function(err, result) {
+        start();
+        equals(null, err);
+        same(result, {});
+    });
+});
+
+jackTest("complex search events in a meeting", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "location:demo type:internal.meeting.add,chat.message.new start:42 end:44 hello"}, 200, '{"result": {}}');
+    this.client.attachPresence(Factories.createPresence()).meeting('demo').search({type: ["internal.meeting.add","chat.message.new"],
+                                                                                   start: 42,
+                                                                                   end: 44,
+                                                                                   query: 'hello'}, function(err, result) {
+        start();
+    });
+});
+
 module("ucejs.replay", {
     setup:function() {
         this.meeting = Factories.getDefaultMeeting();

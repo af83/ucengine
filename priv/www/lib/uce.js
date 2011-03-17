@@ -412,6 +412,28 @@
                         handlers.push({type: type,
                                        callback: callback});
                         return this;
+                    },
+                    /**
+                     * Search event in current meeting
+                     */
+                    search: function(terms, callback) {
+                        var query = terms.query || '';
+                        delete terms.query;
+                        var searchTerms = ["location:"+ meetingname];
+                        for (var i in terms) {
+                            searchTerms.push(i+":"+terms[i]);
+                        }
+                        searchTerms.push(query);
+                        get("/search/event",
+                            {'uid': _presence.user,
+                             'sid': _presence.id,
+                             'searchTerms' : searchTerms.join(' ')},
+                            function (err, result, xhr) {
+                                if (!callback) {
+                                    return;
+                                }
+                                callback(err, result.result, xhr);
+                            });
                     }
                 };
             },
