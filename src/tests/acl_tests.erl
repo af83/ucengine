@@ -24,68 +24,68 @@ acl_test_() ->
     { setup
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
-    , fun([_, BaseUrl, Testers]) ->
-	      [?_test(test_add(BaseUrl, Testers)),
-	       ?_test(test_add_not_found_user(BaseUrl, Testers)),
-	       ?_test(test_add_not_found_meeting(BaseUrl, Testers)),
-	       ?_test(test_add_unauthorized(BaseUrl, Testers)),
+    , fun([_, BaseUrl, [Root, _Participant, Ugly|_]]) ->
+	      [?_test(test_add(BaseUrl, Root)),
+	       ?_test(test_add_not_found_user(BaseUrl, Root)),
+	       ?_test(test_add_not_found_meeting(BaseUrl, Root)),
+	       ?_test(test_add_unauthorized(BaseUrl, Ugly)),
 
-	       ?_test(test_check_false_location(BaseUrl, Testers)),
-	       ?_test(test_check_false_location_without_meeting(BaseUrl, Testers)),
-	       ?_test(test_check_false_conditions(BaseUrl, Testers)),
+	       ?_test(test_check_false_location(BaseUrl, Root)),
+	       ?_test(test_check_false_location_without_meeting(BaseUrl, Root)),
+	       ?_test(test_check_false_conditions(BaseUrl, Root)),
 
-	       ?_test(test_check_unauthorized(BaseUrl, Testers)),
+	       ?_test(test_check_unauthorized(BaseUrl, Ugly)),
 
-	       ?_test(test_check_true(BaseUrl, Testers)),
-	       ?_test(test_check_true_without_meeting(BaseUrl, Testers)),
+	       ?_test(test_check_true(BaseUrl, Root)),
+	       ?_test(test_check_true_without_meeting(BaseUrl, Root)),
 
-	       ?_test(test_delete(BaseUrl, Testers)),
-	       ?_test(test_delete_unauthorized(BaseUrl, Testers)),
-	       ?_test(test_delete_not_found_meeting(BaseUrl, Testers)),
-	       ?_test(test_delete_not_found_user(BaseUrl, Testers))]
+	       ?_test(test_delete(BaseUrl, Root)),
+	       ?_test(test_delete_unauthorized(BaseUrl, Root, Ugly)),
+	       ?_test(test_delete_not_found_meeting(BaseUrl, Root)),
+	       ?_test(test_delete_not_found_user(BaseUrl, Root))]
       end
     }.
 
-test_add(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_add(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"conditions[a]", "b"}],
     {struct, [{"result", "created"}]} = 
 	tests_utils:put(BaseUrl, "/user/participant.user@af83.com/acl/event/get/testmeeting", Params).
 
-test_add_not_found_user(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_add_not_found_user(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid}],
     {struct, [{"error", "not_found"}]} =
 	tests_utils:put(BaseUrl, "/user/unexistentuser/acl/testobject/testaction/testmeeting", Params).
 
-test_add_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_add_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid}],
     {struct, [{"error", "not_found"}]} =
 	tests_utils:put(BaseUrl, "/user/participant.user@af83.com/acl/testobject/testaction/unexistentmeeting", Params).
 
-test_add_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
+test_add_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
     Params = [{"uid", UglyUid},
 	      {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} =
 	tests_utils:put(BaseUrl, "/user/unexistentuser/acl/testobject/testaction/testmeeting", Params).
 
-test_check_true(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_check_true(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"conditions[a]", "b"}],
     {struct, [{"result", "true"}]} = 
 	tests_utils:get(BaseUrl, "/user/participant.user@af83.com/acl/event/get/testmeeting", Params).
 
-test_check_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
+test_check_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
     Params = [{"uid", UglyUid},
 	      {"sid", UglySid},
 	      {"conditions[a]", "b"}],
     {struct, [{"error", "unauthorized"}]} = 
 	tests_utils:get(BaseUrl, "/user/participant.user@af83.com/acl/event/get/testmeeting", Params).
 
-test_check_true_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_check_true_without_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"conditions[a]", "b"}],
@@ -94,28 +94,28 @@ test_check_true_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     {struct, [{"result", "true"}]} = 
 	tests_utils:get(BaseUrl, "/user/participant.user@af83.com/acl/testobject/testaction/", Params).
 
-test_check_false_location(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_check_false_location(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"conditions[a]", "b"}],
     {struct, [{"result", "false"}]} = 
 	tests_utils:get(BaseUrl, "/user/participant.user@af83.com/acl/event/get/othermeeting", Params).
 
-test_check_false_location_without_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_check_false_location_without_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"conditions[a]", "b"}],
     {struct, [{"result", "false"}]} = 
 	tests_utils:get(BaseUrl, "/user/participant.user@af83.com/acl/event/get/", Params).
 
-test_check_false_conditions(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_check_false_conditions(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
 	      {"sid", RootSid},
 	      {"conditions[a]", "c"}],
     {struct, [{"result", "false"}]} = 
 	tests_utils:get(BaseUrl, "/user/participant.user@af83.com/acl/event/get/testmeeting", Params).
 
-test_delete(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_delete(BaseUrl, {RootUid, RootSid}) ->
     ParamsAdd = [{"uid", RootUid},
 		 {"sid", RootSid},
 		 {"conditions[a]", "b"}],
@@ -132,7 +132,7 @@ test_delete(BaseUrl, [{RootUid, RootSid}, _]) ->
     {struct, [{"result", "false"}]} =
 	tests_utils:get(BaseUrl, "/user/participant.user@af83.com/acl/event/get/testmeeting", ParamsCheck).
 
-test_delete_unauthorized(BaseUrl, [{RootUid, RootSid}, {UglyUid, UglySid}]) ->
+test_delete_unauthorized(BaseUrl, {RootUid, RootSid}, {UglyUid, UglySid}) ->
     ParamsAdd = [{"uid", RootUid},
 		 {"sid", RootSid},
 		 {"conditions[a]", "b"}],
@@ -144,7 +144,7 @@ test_delete_unauthorized(BaseUrl, [{RootUid, RootSid}, {UglyUid, UglySid}]) ->
     {struct, [{"error", "unauthorized"}]} =
 	tests_utils:delete(BaseUrl, "/user/participant.user@af83.com/acl/event/get/unexistentmeeting", Params).
     
-test_delete_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_delete_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     ParamsAdd = [{"uid", RootUid},
 		 {"sid", RootSid},
 		 {"conditions[a]", "b"}],
@@ -156,7 +156,7 @@ test_delete_not_found_meeting(BaseUrl, [{RootUid, RootSid}, _]) ->
     {struct, [{"error", "not_found"}]} =
 	tests_utils:delete(BaseUrl, "/user/participant.user@af83.com/acl/event/get/unexistentmeeting", Params).
 
-test_delete_not_found_user(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_delete_not_found_user(BaseUrl, {RootUid, RootSid}) ->
     ParamsAdd = [{"uid", RootUid},
 		 {"sid", RootSid},
 		 {"conditions[a]", "b"}],

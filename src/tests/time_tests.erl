@@ -23,11 +23,11 @@ time_test_() ->
     { setup,
       fun fixtures:setup/0,
       fun fixtures:teardown/1,
-      fun([_, BaseUrl, Testers]) ->
-	      [?_test(test_get(BaseUrl, Testers))]
+      fun([_, BaseUrl, [Root|_]]) ->
+	      [?_test(test_get(BaseUrl, Root))]
       end}.
 
-test_get(BaseUrl, [{RootUid, RootSid}, _]) ->
+test_get(BaseUrl, {RootUid, RootSid}) ->
     {struct, [{"result", Time}]} = tests_utils:get(BaseUrl, "/time", [{"uid", RootUid},
                                                                       {"sid", RootSid}]),
     Diff = Time - utils:now(),

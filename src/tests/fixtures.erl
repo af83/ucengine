@@ -66,6 +66,16 @@ setup_users(Domain) ->
                          location={"", Domain}}),
     uce_acl:add(Domain,
                 #uce_acl{user=ParticipantId,
+                         action="add",
+                         object="event",
+                         location={"", Domain}}),
+    uce_acl:add(Domain,
+                #uce_acl{user=ParticipantId,
+                         action="list",
+                         object="event",
+                         location={"", Domain}}),
+    uce_acl:add(Domain,
+                #uce_acl{user=ParticipantId,
                          action="delete",
                          object="presence",
                          location={"", Domain},
@@ -102,6 +112,7 @@ setup_users(Domain) ->
     ok.
 
 setup_testers(Domain) ->
+    % Move the users creation in setup_users
     RootUid = "root.user@af83.com",
     RootId = {RootUid, Domain},
     catch uce_user:add(Domain,
@@ -118,6 +129,17 @@ setup_testers(Domain) ->
                                                                user=RootId,
                                                                auth="password",
                                                                metadata=[]}),
+
+
+    ParticipantUid = "participant.user@af83.com",
+    ParticipantId = {ParticipantUid, Domain},
+    {ok, {ParticipantSid, _Domain}} = uce_presence:add(Domain,
+                                                       #uce_presence{id={none, Domain},
+                                                                     user=ParticipantId,
+                                                                     auth="password",
+                                                                     metadata=[]}),
+
+
     UglyUid = "ugly.user@af83.com",
     UglyId = {UglyUid, Domain},
     catch uce_user:add(Domain,
@@ -129,7 +151,8 @@ setup_testers(Domain) ->
                                                                user=UglyId,
                                                                auth="password",
                                                                metadata=[]}),
-    [{RootUid, RootSid}, {UglyUid, UglySid}].
+
+    [{RootUid, RootSid}, {ParticipantUid, ParticipantSid}, {UglyUid, UglySid}].
 
 teardown_solr(Domain) ->
     uce_event_solr_search:delete(Domain, "*:*"),

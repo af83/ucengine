@@ -75,21 +75,21 @@ search_test_() ->
       , fun([Domain, BaseUrl, Testers, _Events]) ->
                 fixtures:teardown([Domain, BaseUrl, Testers])
         end
-      , fun([_, BaseUrl, Testers, Events]) ->
-                [?_test(test_search(BaseUrl, Testers, Events)),
-                 ?_test(test_search_first(BaseUrl, Testers, Events)),
-                 ?_test(test_search_second(BaseUrl, Testers, Events)),
-                 ?_test(test_search_second_page(BaseUrl, Testers, Events)),
-                 ?_test(test_search_overflow(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_keywords(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_keywords_without_meeting(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_keywords_with_from(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_keywords_and_timestart_and_timeend(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_type(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_types(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_type_and_timestart(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_type_and_timestart_and_timeend(BaseUrl, Testers, Events)),
-                 ?_test(test_search_with_type_and_timeend(BaseUrl, Testers, Events))
+      , fun([_, BaseUrl, [Root|_], Events]) ->
+                [?_test(test_search(BaseUrl, Root)),
+                 ?_test(test_search_first(BaseUrl, Root)),
+                 ?_test(test_search_second(BaseUrl, Root)),
+                 ?_test(test_search_second_page(BaseUrl, Root)),
+                 ?_test(test_search_overflow(BaseUrl, Root)),
+                 ?_test(test_search_with_keywords(BaseUrl, Root)),
+                 ?_test(test_search_with_keywords_without_meeting(BaseUrl, Root)),
+                 ?_test(test_search_with_keywords_with_from(BaseUrl, Root)),
+                 ?_test(test_search_with_keywords_and_timestart_and_timeend(BaseUrl, Root, Events)),
+                 ?_test(test_search_with_type(BaseUrl, Root, Events)),
+                 ?_test(test_search_with_types(BaseUrl, Root, Events)),
+                 ?_test(test_search_with_type_and_timestart(BaseUrl, Root, Events)),
+                 ?_test(test_search_with_type_and_timestart_and_timeend(BaseUrl, Root, Events)),
+                 ?_test(test_search_with_type_and_timeend(BaseUrl, Root, Events))
                 ]
         end}.
 
@@ -105,7 +105,7 @@ search_test_() ->
                                             {"entries", Entries}]}}]},
                      Results)).
 
-test_search(BaseUrl, [{RootUid, RootSid}, _], _) ->
+test_search(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"count", "3"}],
@@ -137,7 +137,7 @@ test_search(BaseUrl, [{RootUid, RootSid}, _], _) ->
                                           },
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
-test_search_first(BaseUrl, [{RootUid, RootSid}, _], _) ->
+test_search_first(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"count", "1"}],
@@ -152,7 +152,7 @@ test_search_first(BaseUrl, [{RootUid, RootSid}, _], _) ->
                                                             ]}]},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
-test_search_second(BaseUrl, [{RootUid, RootSid}, _], _) ->
+test_search_second(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"count", "1"},
@@ -168,7 +168,7 @@ test_search_second(BaseUrl, [{RootUid, RootSid}, _], _) ->
                                                             ]}]},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
-test_search_second_page(BaseUrl, [{RootUid, RootSid}, _], _) ->
+test_search_second_page(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"count", "1"},
@@ -184,19 +184,17 @@ test_search_second_page(BaseUrl, [{RootUid, RootSid}, _], _) ->
                                                             ]}]},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
-test_search_overflow(BaseUrl, [{RootUid, RootSid}, _], _) ->
+test_search_overflow(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"count", "2"},
               {"startPage", "2"},
               {"startIndex", "1"}],
 
-    ?DEBUG("Result : ~p~n", [tests_utils:get(BaseUrl, "/search/event", Params)]),
-
     ?MATCH_SEARCH_RESULTS(0, 1, 2, "", 2, {array, []},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
-test_search_with_keywords(BaseUrl, [{RootUid, RootSid}, _], _) ->
+test_search_with_keywords(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "search_event"},
@@ -224,7 +222,7 @@ test_search_with_keywords(BaseUrl, [{RootUid, RootSid}, _], _) ->
                                                                        , {"metadata", {struct, [{"description", "lonely event"}]}}
                                                                       ]}]}, tests_utils:get(BaseUrl, "/search/event", ParamsGet)).
 
-test_search_with_keywords_without_meeting(BaseUrl, [{RootUid, RootSid}, _], _) ->
+test_search_with_keywords_without_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "search_event"},
@@ -252,7 +250,7 @@ test_search_with_keywords_without_meeting(BaseUrl, [{RootUid, RootSid}, _], _) -
                                                              ]}]},
                          tests_utils:get(BaseUrl, "/search/event", ParamsGet)).
 
-test_search_with_keywords_with_from(BaseUrl, [{RootUid, RootSid}, _], _) ->
+test_search_with_keywords_with_from(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "search_event"},
@@ -281,7 +279,7 @@ test_search_with_keywords_with_from(BaseUrl, [{RootUid, RootSid}, _], _) ->
                           tests_utils:get(BaseUrl, "/search/event", ParamsGet)).
 
 test_search_with_keywords_and_timestart_and_timeend(BaseUrl,
-                                                    [{RootUid, RootSid}, _],
+                                                    {RootUid, RootSid},
                                                     [_, _, #uce_event{datetime = Datetime}]) ->
     SearchTerms = lists:concat([" start:", Datetime,
                                 " end:", Datetime + 1,
@@ -313,7 +311,7 @@ test_search_with_keywords_and_timestart_and_timeend(BaseUrl,
     ?MATCH_SEARCH_RESULTS(0, 0, 10, SearchTermsNothing, 1, {array, []},
                           tests_utils:get(BaseUrl, "/search/event", ParamsGetNothing)).
 
-test_search_with_type(BaseUrl, [{RootUid, RootSid}, _], [_, _, #uce_event{datetime=Datetime}]) ->
+test_search_with_type(BaseUrl, {RootUid, RootSid}, [_, _, #uce_event{datetime=Datetime}]) ->
      SearchTerms = lists:concat([" type:test_event_3"]),
 
      ParamsGetStart = [{"uid", RootUid},
@@ -331,7 +329,7 @@ test_search_with_type(BaseUrl, [{RootUid, RootSid}, _], [_, _, #uce_event{dateti
                                                                  ]}|_]},
                            tests_utils:get(BaseUrl, "/search/event", ParamsGetStart)).
 
-test_search_with_types(BaseUrl, [{RootUid, RootSid}, _], [_, _, #uce_event{datetime=Datetime}]) ->
+test_search_with_types(BaseUrl, {RootUid, RootSid}, [_, _, #uce_event{datetime=Datetime}]) ->
     SearchTerms = lists:concat([" type:test_event_3,test_event_1"]),
 
     ParamsGetStart = [{"uid", RootUid},
@@ -358,7 +356,7 @@ test_search_with_types(BaseUrl, [{RootUid, RootSid}, _], [_, _, #uce_event{datet
                                                     },
                           tests_utils:get(BaseUrl, "/search/event", ParamsGetStart)).
 
-test_search_with_type_and_timestart(BaseUrl, [{RootUid, RootSid}, _], [_, _, #uce_event{datetime=Datetime}]) ->
+test_search_with_type_and_timestart(BaseUrl, {RootUid, RootSid}, [_, _, #uce_event{datetime=Datetime}]) ->
     SearchTerms = lists:concat([" start:", Datetime,
                                 " type:test_event_3",
                                 " test"]),
@@ -379,7 +377,7 @@ test_search_with_type_and_timestart(BaseUrl, [{RootUid, RootSid}, _], [_, _, #uc
                                                     },
                           tests_utils:get(BaseUrl, "/search/event", ParamsGetStart)).
 
-test_search_with_type_and_timestart_and_timeend(BaseUrl, [{RootUid, RootSid}, _], [_, _, #uce_event{datetime=Datetime}]) ->
+test_search_with_type_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}, [_, _, #uce_event{datetime=Datetime}]) ->
 
     SearchTerms = lists:concat([" start:", Datetime,
                                 " end:", Datetime + 1,
@@ -401,9 +399,9 @@ test_search_with_type_and_timestart_and_timeend(BaseUrl, [{RootUid, RootSid}, _]
                                                     },
                           tests_utils:get(BaseUrl, "/search/event", ParamsGetStart)).
 
-test_search_with_type_and_timeend(BaseUrl, [{RootUid, RootSid}, _], [_,
-                                                                     #uce_event{datetime=Datetime1},
-                                                                     #uce_event{datetime=Datetime2}]) ->
+test_search_with_type_and_timeend(BaseUrl, {RootUid, RootSid}, [_,
+                                                                #uce_event{datetime=Datetime1},
+                                                                #uce_event{datetime=Datetime2}]) ->
     SearchTerms = lists:concat([" end:", Datetime2 - 1,
                                 " type:test_event_2"]),
 

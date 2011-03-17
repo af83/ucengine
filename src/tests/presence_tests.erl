@@ -24,19 +24,19 @@ presence_test_() ->
     { setup
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
-    , fun([_, BaseUrl, Testers]) ->
+    , fun([_, BaseUrl, [_Root, _Participant, Ugly|_]]) ->
               [ ?_test(test_presence_create_password(BaseUrl)),
                 ?_test(test_presence_create_with_no_password(BaseUrl)),
                 ?_test(test_presence_create_missing_credential(BaseUrl)),
                 ?_test(test_presence_create_bad_password(BaseUrl)),
                 ?_test(test_presence_create_not_found_user(BaseUrl)),
-                ?_test(test_presence_create_unauthorized(BaseUrl, Testers)),
+                ?_test(test_presence_create_unauthorized(BaseUrl, Ugly)),
 
                 ?_test(test_presence_get(BaseUrl)),
                 ?_test(test_presence_get_not_found(BaseUrl)),
                 
                 ?_test(test_presence_close(BaseUrl)),
-                ?_test(test_presence_close_unauthorized(BaseUrl, Testers)),
+                ?_test(test_presence_close_unauthorized(BaseUrl, Ugly)),
                 ?_test(test_presence_close_not_foundsid(BaseUrl)),
                 ?_test(test_presence_timeout(BaseUrl))]
       end
@@ -75,7 +75,7 @@ test_presence_create_not_found_user(BaseUrl) ->
     {struct,[{"error", "not_found"}]} =
         tests_utils:post(BaseUrl, "/presence/", Params).
 
-test_presence_create_unauthorized(BaseUrl, [_, {UglyUid, _}]) ->
+test_presence_create_unauthorized(BaseUrl, {UglyUid, _}) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
               {"uid", UglyUid},
               {"credential", "pwd"}],
@@ -113,7 +113,7 @@ test_presence_close(BaseUrl) ->
     {struct, [{"result", "ok"}]} =
         tests_utils:delete(BaseUrl, "/presence/" ++ Sid, ParamsDelete).
 
-test_presence_close_unauthorized(BaseUrl, [_, {UglyUid, UglySid}]) ->
+test_presence_close_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
     ParamsDelete = [{"uid", UglyUid},
                     {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} =
