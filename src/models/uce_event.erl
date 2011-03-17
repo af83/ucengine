@@ -64,12 +64,12 @@ exists(Domain, Id) ->
             end
     end.
 
-filter_private(Events, Uid) ->
+filter_private(Events, {Name, Domain}) ->
     lists:filter(fun(#uce_event{to=To}) ->
                          case To of
                              {"", _} -> % all
                                  true;
-                             {Uid, _} ->
+                             {Name, Domain} ->
                                  true;
                              _ ->
                                  false
