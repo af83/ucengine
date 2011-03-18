@@ -89,7 +89,7 @@ fill_domain(Domain) ->
                                  action="list",
                                  object="meeting"}),
 
-    Hashtags = ["#TED", "#sinek", "#simonsinek", "#ucengine"],
+    Hashtags = ["#ucengine", "#af83"],
     lists:foreach(fun(HashTag) ->
                           uce_event:add(Domain,
                                         #uce_event{id={none, Domain},
