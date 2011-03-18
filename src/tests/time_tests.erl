@@ -24,16 +24,15 @@ time_test_() ->
       fun fixtures:setup/0,
       fun fixtures:teardown/1,
       fun([_, BaseUrl, [Root|_]]) ->
-	      [?_test(test_get(BaseUrl, Root))]
+              [?_test(test_get(BaseUrl, Root))]
       end}.
 
-test_get(BaseUrl, {RootUid, RootSid}) ->
-    {struct, [{"result", Time}]} = tests_utils:get(BaseUrl, "/time", [{"uid", RootUid},
-                                                                      {"sid", RootSid}]),
+test_get(BaseUrl, {_RootUid, _RootSid}) ->
+    {struct, [{"result", Time}]} = tests_utils:get(BaseUrl, "/time", []),
     Diff = Time - utils:now(),
     if
-	Diff > 1000 ->
-	    throw({error, too_much_delay, Diff});
-	true ->
-	    nothing
+        Diff > 1000 ->
+            throw({error, too_much_delay, Diff});
+        true ->
+            nothing
     end.
