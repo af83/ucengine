@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([sort/1, sort/2, to_json/1, from_json/1, feed/2, feed/3]).
+-export([sort/1, sort/2, to_json/1, from_json/1]).
 
 sort(Events) ->
     ?MODULE:sort(Events, asc).
@@ -82,57 +82,4 @@ from_json({struct, Event}) ->
                        type=Type,
                        parent=Parent,
                        metadata=Metadata}
-    end.
-
-feed(Domain, Path) ->
-    feed(Domain, Path, []).
-feed(Domain, Path, Params) ->
-    case file:read_file(Path) of
-        {error, Reason} ->
-            {error, Reason};
-        {ok, Data} ->
-            {array, JSONEvents} = mochijson:decode(binary_to_list(Data)),
-            Events = lists:map(fun({struct, StructEvent} = JSONEvent) ->
-                                       Event = ?MODULE:from_json(JSONEvent),
-                                       [Id, Location, From, Type] = utils:get(Params, ["id", "location", "from", "type"],
-                                                                              [Event#uce_event.id,
-                                                                               Event#uce_event.location,
-                                                                               Event#uce_event.from,
-                                                                               Event#uce_event.type]),
-                                       case utils:get(StructEvent, ["offset"]) of
-                                           [none] ->
-                                               [Datetime] = utils:get(Params, ["datetime"], [Event#uce_event.datetime]),
-                                               EventId = case Id of 
-                                                            {_, _} -> Id;
-                                                            _ -> {Id, Domain}
-                                                         end,
-                                               Event#uce_event{ id=EventId
-                                                                , datetime=Datetime
-                                                                , location=Location
-                                                                , from=From
-                                                                , type=Type
-                                                              };
-                                           [Offset] ->
-                                               case uce_meeting:get(Domain, Location) of
-                                                   {error, Reason} ->
-                                                       throw([Reason, Location]);
-                                                   {ok, Meeting} ->
-                                                       Start = Meeting#uce_meeting.start_date,
-                                                       [Datetime] = utils:get(Params, ["datetime"], [Start + list_to_integer(Offset)]),
-                                                       EventId = case Id of 
-                                                                    {_, _} -> Id;
-                                                                    _ -> {Id, Domain}
-                                                                 end,
-                                                       Event#uce_event{ id=EventId
-                                                                        , datetime=Datetime
-                                                                        , location=Location
-                                                                        , from=From
-                                                                        , type=Type
-                                                                      }
-                                               end
-                                       end
-                               end,
-                               JSONEvents),
-            [ uce_event:add(Event#uce_event{}) || Event <- Events ],
-            ok
     end.
