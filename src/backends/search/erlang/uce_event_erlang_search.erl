@@ -60,4 +60,4 @@ list(Domain, Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Ma
     FilteredEvents = filter(Events, Search),
     OrderedEvents = event_helpers:sort(FilteredEvents, Order),
     EventPage = paginate:paginate(OrderedEvents, Start, Max),
-    {ok, length(EventPage), EventPage}.
+    {ok, length(FilteredEvents), EventPage}.
