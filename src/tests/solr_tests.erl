@@ -46,6 +46,6 @@ test_search(Domain) ->
     ok = case uce_event_solr_search:list(Domain, {"", Domain}, ["This"], {"", Domain}, [], 0, infinity, "", 0, 1, asc) of
              {error, Reason} ->
                  {error, Reason};
-             {ok, [_]} ->
+             {ok, _NumTotal, [_]} ->
                  ok
          end.

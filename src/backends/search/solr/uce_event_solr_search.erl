@@ -178,16 +178,19 @@ list(Domain, {Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, P
                               Params),
 
     case ibrowse:send_req(Host ++ ?SOLR_SELECT ++ string:join(EncodedParams, "&"), [], get) of
-        {ok, _, _, JSON} ->
-            {ok, json_to_events(mochijson:decode(JSON))};
+        {ok, _, _, Body} ->
+            {NumTotal, Events} = json_to_events(Body),
+            {ok, NumTotal, Events};
         {error, _} ->
             throw({error, bad_parameters})
     end.
 
-json_to_events({struct, JSON}) ->
+json_to_events(Body) ->
+    {struct, JSON} = mochijson:decode(Body),
     {"response", {struct, ResponseJSON}} = lists:keyfind("response", 1, JSON),
+    {"numFound", NumTotal} = lists:keyfind("numFound", 1, ResponseJSON),
     {"docs", {array, DocsJSON}} = lists:keyfind("docs", 1, ResponseJSON),
-    make_list_json_events(DocsJSON).
+    {NumTotal, make_list_json_events(DocsJSON)}.
 
 make_list_json_events([]) ->
     [];

@@ -142,7 +142,7 @@ test_search_first(BaseUrl, {RootUid, RootSid}) ->
               {"sid", RootSid},
               {"count", "1"}],
 
-    ?MATCH_SEARCH_RESULTS(1, 0, 1, "", 1, {array, [{struct, [{"type", "test_event_1"}
+    ?MATCH_SEARCH_RESULTS(3, 0, 1, "", 1, {array, [{struct, [{"type", "test_event_1"}
                                                              , {"domain", _}
                                                              , {"datetime", _}
                                                              , {"id", _}
@@ -158,7 +158,7 @@ test_search_second(BaseUrl, {RootUid, RootSid}) ->
               {"count", "1"},
               {"startIndex", "1"}],
 
-    ?MATCH_SEARCH_RESULTS(1, 1, 1, "", 1, {array, [{struct, [{"type", "test_event_2"}
+    ?MATCH_SEARCH_RESULTS(3, 1, 1, "", 1, {array, [{struct, [{"type", "test_event_2"}
                                                              , {"domain", _}
                                                              , {"datetime", _}
                                                              , {"id", _}
@@ -174,7 +174,7 @@ test_search_second_page(BaseUrl, {RootUid, RootSid}) ->
               {"count", "1"},
               {"startPage", "2"}],
 
-    ?MATCH_SEARCH_RESULTS(1, 0, 1, "", 2, {array, [{struct, [{"type", "test_event_2"}
+    ?MATCH_SEARCH_RESULTS(3, 0, 1, "", 2, {array, [{struct, [{"type", "test_event_2"}
                                                              , {"domain", _}
                                                              , {"datetime", _}
                                                              , {"id", _}
@@ -191,7 +191,7 @@ test_search_overflow(BaseUrl, {RootUid, RootSid}) ->
               {"startPage", "2"},
               {"startIndex", "1"}],
 
-    ?MATCH_SEARCH_RESULTS(0, 1, 2, "", 2, {array, []},
+    ?MATCH_SEARCH_RESULTS(3, 1, 2, "", 2, {array, []},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
 
 test_search_with_keywords(BaseUrl, {RootUid, RootSid}) ->
@@ -267,7 +267,7 @@ test_search_with_keywords_with_from(BaseUrl, {RootUid, RootSid}) ->
                  {"count", "1"},
                  {"searchTerms", SearchTerms}],
 
-    ?MATCH_SEARCH_RESULTS(1, 0, 1, SearchTerms, 1, {array,
+    ?MATCH_SEARCH_RESULTS(3, 0, 1, SearchTerms, 1, {array,
                                                     [{struct, [ {"type", "search_event"}
                                                                 , {"domain", _}
                                                                 , {"datetime", _}

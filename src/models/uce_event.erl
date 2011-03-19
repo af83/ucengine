@@ -78,30 +78,29 @@ filter_private(Events, {Name, Domain}) ->
                  Events).
 
 search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
-    {ok, Events} = ?SEARCH_MODULE:list(Domain,
-                                       Location,
-                                       Search,
-                                       From,
-                                       Types,
-                                       DateStart,
-                                       DateEnd,
-                                       Parent,
-                                       Start,
-                                       Max,
-                                       Order),
-    {ok, filter_private(Events, Uid)}.
+    {ok, NumTotal, Events} = ?SEARCH_MODULE:list(Domain,
+                                                 Location,
+                                                 Search,
+                                                 From,
+                                                 Types,
+                                                 DateStart,
+                                                 DateEnd,
+                                                 Parent,
+                                                 Start,
+                                                 Max,
+                                                 Order),
+    {ok, NumTotal, filter_private(Events, Uid)}.
 
 list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
-    {ok, Events} =
-        uce_event_erlang_search:list(Domain,
-                                     Location,
-                                     Search,
-                                     From,
-                                     Types,
-                                     DateStart,
-                                     DateEnd,
-                                     Parent,
-                                     Start,
-                                     Max,
-                                     Order),
+    {ok, _Num, Events} = uce_event_erlang_search:list(Domain,
+                                                      Location,
+                                                      Search,
+                                                      From,
+                                                      Types,
+                                                      DateStart,
+                                                      DateEnd,
+                                                      Parent,
+                                                      Start,
+                                                      Max,
+                                                      Order),
     {ok, filter_private(Events, Uid)}.
