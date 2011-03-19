@@ -547,7 +547,7 @@ test("get download file url", function() {
 
 jackTest("this.client.time",  function() {
     stop();
-    addUceApiCall("get", "/api/" + uce.version + "/time",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": "4"}');
+    addUceApiCall("get", "/api/" + uce.version + "/time",  {}, 200, '{"result": "4"}');
     this.client.attachPresence(Factories.createPresence()).time.get(function(err, result, xhr) {
         start();
         equals(null, err);

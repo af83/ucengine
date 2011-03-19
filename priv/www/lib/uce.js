@@ -502,8 +502,7 @@
             },
             time: {
                 get: function(callback) {
-                    get("/time", {'uid': _presence.user,
-                                  'sid': _presence.id},
+                    get("/time", {},
                         function(err, result, xhr) {
                             callback(err, result.result, xhr);
                         });
