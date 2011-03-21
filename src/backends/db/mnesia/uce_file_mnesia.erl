@@ -23,7 +23,7 @@
 
 -export([init/0, drop/0]).
 
--export([add/2, list/1, get/2, all/1, delete/2]).
+-export([add/2, list/2, get/2, all/1, delete/2]).
 
 -include("uce.hrl").
 
@@ -43,12 +43,13 @@ add(_Domain, #uce_file{} = File) ->
             throw({error, bad_parameters})
     end.
 
-list({_, Domain}=Location) ->
+list(_Domain, {_, _}=Location) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_file{id={'_', Domain},
+                                    mnesia:match_object(#uce_file{id='_',
                                                                   name='_',
                                                                   location=Location,
                                                                   uri='_',
+                                                                  mime='_',
                                                                   metadata='_'})
                             end) of
         {atomic, Files} ->
@@ -63,6 +64,7 @@ all(Domain) ->
                                                                   name='_',
                                                                   location='_',
                                                                   uri='_',
+                                                                  mime='_',
                                                                   metadata='_'})
                                 end) of
             {atomic, Files} ->

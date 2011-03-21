@@ -44,7 +44,7 @@ list(Domain, {_, _}=Location) ->
         false ->
             throw({error, not_found});
         true ->
-            apply(db:get(?MODULE, Domain), list, [Location])
+            apply(db:get(?MODULE, Domain), list, [Domain, Location])
     end.
 
 get(Domain, {_, _}=Id) ->

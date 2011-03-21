@@ -22,7 +22,7 @@
 -behaviour(gen_uce_file).
 
 -export([add/2,
-         list/1,
+         list/2,
          all/1,
          get/2,
          delete/2]).
@@ -39,7 +39,7 @@ add(Domain, #uce_file{} = File) ->
             {ok, File#uce_file.id}
     end.
 
-list({Location, Domain}) ->
+list(Domain, {Location, _}) ->
     case catch emongo:find_all(Domain, "uce_file", [{"location", Location},
                                                     {"domain", Domain}]) of
         {'EXIT', Reason} ->
