@@ -64,18 +64,21 @@
           id = {none, none},
           auth,
           credential = "",
-          metadata = []}).
+          metadata = [],
+          roles=[]}).
+
+-record(uce_role, {
+          id = {"", ""},
+          acl=[]}).
+
+-record(uce_access, {
+          action,
+          object,
+          conditions=[]}).
 
 -record(uce_infos, {
           domain = none,
           metadata = []}).
-
--record(uce_acl, {
-          user,
-          action,
-          object,
-          location={"", ""},
-          conditions=[]}).
 
 -record(uce_route, {
           method,

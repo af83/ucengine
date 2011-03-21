@@ -56,38 +56,43 @@ fill_domain(Domain) ->
                                        start_date=1287738533649,
                                        end_date=1287739733649}),
 
+    catch uce_role:add(Domain, #uce_role{id={"participant", Domain},
+                                         acl=[#uce_access{action="add", object="presence"},
+                                              #uce_access{action="get", object="infos"},
+                                              #uce_access{action="add", object="roster"},
+                                              #uce_access{action="get", object="meeting"},
+                                              #uce_access{action="list", object="meeting"},
+                                              #uce_access{action="all", object="event"}]}),
+
     Users = ["thierry.bomandouki@af83.com", "victor.goya@af83.com",
              "louis.ameline@af83.com", "alexandre.eisenchteter@af83.com",
              "romain.gauthier@af83.com", "participant"],
 
     lists:foreach(fun(User) ->
                           ?DEBUG("User : ~p~n", [User]),
+                          catch uce_role:add(Domain, #uce_role{id={User, Domain},
+                                                               acl=[]}),
                           catch uce_user:add(Domain,
                                              #uce_user{id={User, Domain},
                                                        auth="password",
                                                        credential="pwd",
-                                                       metadata=[]}),
-                          uce_acl:add(Domain,
-                                      #uce_acl{user={User, Domain},
-                                               location={"", Domain},
-                                               action="add",
-                                               object="presence"})
+                                                       metadata=[],
+                                                       roles=[{"default", ""},
+                                                              {User, ""},
+                                                              {"participant", ""}]})
                   end, Users),
                                                 % anonymous account
+    catch uce_role:add(Domain, #uce_role{id={"anonymous", Domain},
+                                         acl=[#uce_access{action="add", object="presence"},
+                                              #uce_access{action="get", object="infos"},
+                                              #uce_access{action="get", object="meeting"},
+                                              #uce_access{action="list", object="meeting"}]}),
+
+
     catch uce_user:add(Domain, #uce_user{id={"anonymous", Domain},
-                                         auth="none"}),
-    uce_acl:add(Domain, #uce_acl{user={"anonymous", Domain},
-                                 action="add",
-                                 object="presence"}),
-    uce_acl:add(Domain, #uce_acl{user={"anonymous", Domain},
-                                 action="get",
-                                 object="infos"}),
-    uce_acl:add(Domain, #uce_acl{user={"anonymous", Domain},
-                                 action="get",
-                                 object="meeting"}),
-    uce_acl:add(Domain, #uce_acl{user={"anonymous", Domain},
-                                 action="list",
-                                 object="meeting"}),
+                                         auth="none",
+                                         roles=[{"default", ""},
+                                                {"anonymous", ""}]}),
 
     Hashtags = ["#ucengine", "#af83"],
     lists:foreach(fun(HashTag) ->

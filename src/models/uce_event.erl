@@ -38,7 +38,6 @@ add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Eve
             {ok, Id} = apply(db:get(?MODULE, Domain), add, [Domain, Event]),
             ?PUBSUB_MODULE:publish(Event),
             ?SEARCH_MODULE:add(Event),
-            uce_acl:trigger(Domain, Event),
             {ok, Id};
         {_Bool1, _Bool2, _Bool3, _Bool4} ->
             throw({error, not_found})

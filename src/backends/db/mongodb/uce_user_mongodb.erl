@@ -87,12 +87,13 @@ get(Domain, {UName, UDomain}) ->
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-                   ["name", "domain", "auth", "credential", "metadata"]) of
-        [Name, Domain, Auth, Credential, Metadata] ->
+                   ["name", "domain", "auth", "credential", "metadata", "roles"]) of
+        [Name, Domain, Auth, Credential, Metadata, Roles] ->
             #uce_user{id={Name, Domain},
                       auth=Auth,
                       credential=Credential,
-                      metadata=Metadata};
+                      metadata=Metadata,
+                      roles=Roles};
         _ ->
             throw({error, bad_parameters})
     end.
@@ -100,9 +101,11 @@ from_collection(Collection) ->
 to_collection(#uce_user{id={Name, Domain},
                         auth=Auth,
                         credential=Credential,
-                        metadata=Metadata}) ->
+                        metadata=Metadata,
+                        roles=Roles}) ->
     [{"name", Name},
      {"domain", Domain},
      {"auth", Auth},
      {"credential", Credential},
-     {"metadata", Metadata}].
+     {"metadata", Metadata},
+     {"roles", Roles}].

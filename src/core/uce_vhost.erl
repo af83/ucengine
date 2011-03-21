@@ -42,6 +42,8 @@ start_link(Domain) ->
 
 init([Domain]) ->
     setup_db(Domain),
+    setup_default_role(Domain),
+    setup_root_role(Domain),
     setup_bricks(Domain),
     setup_admin(Domain),
     {ok, Domain}.
@@ -71,6 +73,30 @@ setup_db(Domain) ->
     DBBackendModule = list_to_atom(lists:concat([DBBackend, "_db"])),
     DBBackendModule:init(Domain, DBConfig).
 
+setup_default_role(Domain) ->
+    % TODO: move this in the configuration
+    case catch uce_role:add(Domain, #uce_role{id={"default", Domain},
+                                              acl=[#uce_access{action="add", object="presence"},
+                                                   #uce_access{action="delete", object="presence"}]}) of
+        {ok, created} ->
+            ok;
+        {error, conflict} ->
+            ok;
+        {error, Reason} ->
+            throw({error, Reason})
+    end.
+
+setup_root_role(Domain) ->
+    case catch uce_role:add(Domain, #uce_role{id={"root", Domain},
+                                              acl=[#uce_access{action="all", object="all"}]}) of
+        {ok, created} ->
+            ok;
+        {error, conflict} ->
+            ok;
+        {error, Reason} ->
+            throw({error, Reason})
+    end.
+
 setup_root_user(Domain, User = #uce_user{id={Uid, Domain} = Id}) ->
     case uce_user:exists(Domain, Id) of
         true ->
@@ -78,13 +104,9 @@ setup_root_user(Domain, User = #uce_user{id={Uid, Domain} = Id}) ->
         _ ->
             ok
     end,
-    {ok, created} = uce_user:add(Domain, User),
-    {ok, created} = uce_acl:add(Domain, #uce_acl{user={Uid, Domain},
-                                                 location={"", Domain},
-                                                 action="all",
-                                                 object="all",
-                                                 conditions=[]}).
-
+    {ok, created} = uce_user:add(Domain, User#uce_user{roles=[{"default", ""},
+                                                              {Uid, ""},
+                                                              {"root", ""}]}).
 
 setup_bricks(Domain) ->
     lists:foreach(fun({Name, Token}) ->

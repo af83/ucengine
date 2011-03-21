@@ -59,7 +59,8 @@ add(Domain, [], Params, Arg) ->
     ?MODULE:add(Domain, [""], Params, Arg);
 add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "event", "add", {Meeting, Domain}, [{"type", Type},{"to", To}]),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "event", "add",
+                                   [{"type", Type},{"to", To}]),
     {ok, Id} = uce_event:add(Domain,
                              #uce_event{id={none, Domain},
                                         location={Meeting, Domain},
@@ -72,7 +73,7 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
 
 get(Domain, [_, Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "event", "get", {"", ""}, [{"id", Id}]),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "event", "get", [{"id", Id}]),
     {ok, #uce_event{to=To} = Event} = uce_event:get(Domain, {Id, Domain}),
     case To of
         {"", _} ->
@@ -89,7 +90,7 @@ list(Domain, [Meeting],
      [Uid, Sid, Search, Type, From, DateStart, DateEnd, Count, Page, Order, Parent, Async], Arg) ->
 
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "event", "list", {Meeting, Domain}, [{"from", From}]),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "event", "list", [{"from", From}]),
 
     Keywords = string:tokens(Search, ","),
     Types = string:tokens(Type, ","),

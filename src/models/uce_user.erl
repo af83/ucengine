@@ -19,7 +19,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/2, delete/2, update/2, list/1, get/2, exists/2]).
+-export([add/2, delete/2, update/2, list/1, get/2, exists/2, acl/3]).
 
 -include("uce.hrl").
 
@@ -67,3 +67,20 @@ exists(Domain, Id) ->
                     true
             end
     end.
+
+acl(Domain, User, {Location, _}) ->
+    {ok, Record} = ?MODULE:get(Domain, User),
+    ACL = lists:map(fun({RoleName, RoleLocation}) ->
+                            {ok, RoleACL} =
+                                if
+                                    RoleLocation == "" ->
+                                        uce_role:acl(Domain, {RoleName, Domain});
+                                    RoleLocation == Location ->
+                                        uce_role:acl(Domain, {RoleName, Domain});
+                                    true ->
+                                        {ok, []}
+                                end,
+                            RoleACL
+                    end,
+                    Record#uce_user.roles),
+    {ok, lists:flatten(ACL)}.

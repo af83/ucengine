@@ -65,23 +65,6 @@ ctl_user_test_() ->
       end
     }.
 
-ctl_acl_test_() ->
-    { setup
-      , fun fixtures:setup/0
-      , fun fixtures:teardown/1
-      , fun([Domain, _BaseUrl, _Testers]) ->
-        [ ?_test(test_acl_add(Domain))
-        , ?_test(test_acl_add_missing_parameter())
-        % TODO: Test the conflict case
-        , ?_test(test_acl_check(Domain))
-        , ?_test(test_acl_check_missing_parameter())
-        , ?_test(test_acl_delete(Domain))
-        , ?_test(test_acl_delete_missing_parameter())
-        , ?_test(test_acl_delete_not_found(Domain))
-        ]
-      end
-    }.
-
 ctl_infos_test_() ->
     { setup
       , fun fixtures:setup/0
@@ -249,69 +232,6 @@ test_user_delete_not_found(Domain) ->
 
 test_user_list(Domain) ->
     ok = uce_ctl:action(user, list, [{"domain", [Domain]}]).
-
-%%
-%% ACL
-%%
-
-test_acl_add(Domain) ->
-    Params = [ {"participant.user@af83.com", Domain}
-             , "user"
-             , "add"
-             , {"", ""}
-             , []
-             ],
-    {ok, false} = erlang:apply(uce_acl, check, [Domain] ++ Params),
-    ACL = [ {"domain", [Domain]}
-            , {"uid", ["participant.user@af83.com"]}
-            , {"action", ["add"]}
-            , {"object", ["user"]}
-          ],
-    ok = uce_ctl:action(acl, add, ACL),
-    {ok, true} = erlang:apply(uce_acl, check, [Domain] ++ Params).
-test_acl_add_missing_parameter() ->
-    Params = [ {"action", ["add"]}
-             , {"object", ["user"]}
-             , {"org", ["testorg"]}
-             , {"meeting", ["testmeeting"]}
-             ],
-    error = uce_ctl:action(acl, add, Params).
-
-test_acl_check(Domain) ->
-    Params = [ {"domain", [Domain]}
-             , {"uid", ["participant.user@af83.com"]}
-             , {"action", ["delete"]}
-             , {"object", ["presence"]}
-             , {"user", ["participant.user@af83.com"]}
-             ],
-    ok = uce_ctl:action(acl, check, Params).
-test_acl_check_missing_parameter() ->
-    Params = [ {"action", ["delete"]}
-             , {"object", ["presence"]}
-             , {"user", ["participant.user@af83.com"]}
-             ],
-    error = uce_ctl:action(acl, check, Params).
-
-test_acl_delete(Domain) ->
-    Params = [ {"domain", [Domain]}
-             , {"uid", ["participant.user@af83.com"]}
-             , {"action", ["add"]}
-             , {"object", ["presence"]}
-             ],
-    ok = uce_ctl:action(acl, delete, Params).
-test_acl_delete_missing_parameter() ->
-    Params = [ {"action", ["delete"]}
-             , {"object", ["presence"]}
-             ],
-    error = uce_ctl:action(acl, delete, Params).
-test_acl_delete_not_found(Domain) ->
-    Params = [ {"domain", [Domain]}
-             , {"uid", ["nobody@af83.com"]}
-             , {"action", ["add"]}
-             , {"object", ["presence"]}
-             ],
-    {error, not_found} = (catch uce_ctl:action(acl, delete, Params)).
-
 
 %%
 %% Infos

@@ -54,7 +54,7 @@ init() ->
 
 add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "file", "add", {Meeting, Domain}),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "add"),
     {ok, Id} = uce_file:add(Domain, #uce_file{id={none, Domain},
                                               location={Meeting, Domain},
                                               name=Name,
@@ -77,7 +77,7 @@ add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
 
 list(Domain, [Meeting], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "file", "list", {Meeting, Domain}),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "list"),
     {ok, Files} = uce_file:list(Domain, {Meeting, Domain}),
     json_helpers:json(Domain, {array, [file_helpers:to_json(File) || File <- Files]}).
 
@@ -90,7 +90,7 @@ get_path(Uri) ->
 
 get(Domain, [Meeting, Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "file", "get", {Meeting, Domain}, [{"id", Id}]),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "get", [{"id", Id}]),
     {ok, File} = uce_file:get(Domain, {Id, Domain}),
     Path = get_path(File#uce_file.uri),
     case file:read_file(Path) of
@@ -103,6 +103,6 @@ get(Domain, [Meeting, Id], [Uid, Sid], _) ->
 
 delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "file", "delete", {Meeting, Domain}, [{"id", Id}]),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "delete", [{"id", Id}]),
     {ok, deleted} = uce_file:delete(Domain, {Id, Domain}),
     json_helpers:ok(Domain).

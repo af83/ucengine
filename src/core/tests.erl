@@ -32,7 +32,6 @@ start() ->
 run() ->
     Modules = [event_tests,
                search_tests,
-               acl_tests,
                meeting_tests,
                presence_tests,
                user_tests,

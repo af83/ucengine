@@ -115,15 +115,6 @@ usage(Object) ->
         true ->
             nothing
     end,
-    if
-        Object == none ; Object == acl ->
-            io:format("ACL:~n"),
-            io:format("\tacl add --domain <domain> --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n"),
-            io:format("\tacl delete --domain <domain> --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n"),
-            io:format("\tacl check --domain <domain> --uid <uid> --object <object> --action <action> [--meeting <meeting>] [--condition <value>]~n~n");
-        true ->
-            nothing
-    end,
     io:format("Formatting:~n"),
     io:format("\t<date>: ISO8601 formatted date (ex. '2010-25-12 00:00:01')~n~n"),
     io:format("U.C.Engine (c) AF83 - http://ucengine.org~n"),
@@ -174,6 +165,18 @@ display_metadata(json, [{Key, Value}|Tail]) ->
     end,
     display_metadata(json, Tail).
 
+display_roles(json, []) ->
+    [];
+display_roles(json, [{Role, Location}|Tail]) ->
+    io:format("        ~p: ~p", [json_escape(Role), json_escape(Location)]),
+    case Tail of
+        [] ->
+            io:format("~n");
+        _ ->
+            io:format(",~n")
+    end,
+    display_roles(json, Tail).
+
 display_field(json, [], []) ->
     [];
 display_field(json, [Value|Values], [Field|Fields]) ->
@@ -181,6 +184,10 @@ display_field(json, [Value|Values], [Field|Fields]) ->
         metadata ->
             io:format("    \"metadata\": {~n"),
             display_metadata(json, Value),
+            io:format("    }");
+        roles ->
+            io:format("    \"metadata\": {~n"),
+            display_roles(json, Value),
             io:format("    }");
         _ ->
             io:format("    ~p: ~p", [json_escape(atom_to_list(Field)),
@@ -338,76 +345,6 @@ action(meeting, list, Args) ->
         {[Domain, Status], _} ->
             {ok, Records} = call(meeting, list, [Domain, Status]),
             display(json, Records, record_info(fields, uce_meeting))
-    end;
-
-%%
-%% ACL
-%%
-action(acl, add, Args) ->
-    case getopt(["domain", "uid", "meeting", "object", "action"],
-                Args, [none, none, "", none, none]) of
-        {[none, _, _, _, _], _} ->
-            error(missing_parameter);
-        {[_, none, _, _, _], _} ->
-            error(missing_parameter);
-        {[_, _, _, none], _} ->
-            error(missing_parameter);
-        {[_, _, _, _, none], _} ->
-            error(missing_parameter);
-        {[Domain, User, Meeting, Object, Action], Conditions} ->
-            {ok, created} = call(acl, add, [Domain, 
-                                            #uce_acl{user={User, Domain},
-                                                     location={Meeting, Domain},
-                                                     object=Object,
-                                                     action=Action,
-                                                     conditions=Conditions}]),
-            success(created)
-    end;
-
-action(acl, delete, Args) ->
-    case getopt(["domain", "uid", "meeting", "object", "action"],
-                Args, [none, none, "", none, none]) of
-        {[none, _, _, _, _], _} ->
-            error(missing_parameter);
-        {[_, none, _, _, _], _} ->
-            error(missing_parameter);
-        {[_, _, _, none, _], _} ->
-            error(missing_parameter);
-        {[_, _, _, _, none], _} ->
-            error(missing_parameter);
-        {[Domain, User, Meeting, Object, Action], Conditions} ->
-            {ok, deleted} = call(acl, delete, [Domain,
-                                               {User, Domain},
-                                               Object,
-                                               Action,
-                                               {Meeting, Domain},
-                                               Conditions]),
-            success(deleted)
-    end;
-
-action(acl, check, Args) ->
-    case getopt(["domain", "uid", "meeting", "object", "action"],
-                Args, [none, none, "", none, none]) of
-        {[none, _, _, _, _], _} ->
-            error(missing_parameter);
-        {[_, none, _, _, _], _} ->
-            error(missing_parameter);
-        {[_, _, _, none, _], _} ->
-            error(missing_parameter);
-        {[_, _, _, _, none], _} ->
-            error(missing_parameter);
-        {[Domain, User, Meeting, Object, Action], Conditions} ->
-            case call(acl, check, [Domain,
-                                   {User, Domain},
-                                   Object,
-                                   Action,
-                                   {Meeting, Domain},
-                                   Conditions]) of
-                {ok, true} ->
-                    success(true);
-                {ok, false} ->
-                    success(false)
-            end
     end;
 
 %%

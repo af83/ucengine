@@ -42,7 +42,7 @@ init() ->
 
 add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
     {ok, User} = uce_user:get(Domain, {Name, Domain}),
-    {ok, true} = uce_acl:assert(Domain, User#uce_user.id, "presence", "add"),
+    {ok, true} = uce_access:assert(Domain, User#uce_user.id, {"", ""}, "presence", "add"),
     {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
     {ok, {Id, Domain}} = uce_presence:add(Domain,
                                 #uce_presence{id={none, Domain},
@@ -62,11 +62,10 @@ get(Domain, [Id], [], _) ->
     json_helpers:json(Domain, presence_helpers:to_json(Record)).
 
 delete(Domain, [Id], [Uid, Sid], _) ->
-    ?DEBUG("delete presence Id = ~p~n", [Id]),
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, Record} = uce_presence:get(Domain, {Id, Domain}),
-    {ok, true} = uce_acl:assert(Domain, {Uid, Domain}, "presence", "delete", {"", Domain},
-                                [{"id", Record#uce_presence.id}]),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "presence", "delete",
+                                   [{"id", Record#uce_presence.id}]),
 
     ok = presence_helpers:clean(Domain, Record),
 
