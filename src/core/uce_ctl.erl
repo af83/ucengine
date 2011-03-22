@@ -54,8 +54,6 @@ args_to_dictionary([_|Tail]) ->
 start() ->
     Command = init:get_arguments(),
     case utils:get(Command, [dummy]) of
-        [['-help'], _] ->
-            usage();
         [[Object, _|_]] = [Params] ->
             case catch action(Params, args_to_dictionary(Command)) of
                 ok ->
