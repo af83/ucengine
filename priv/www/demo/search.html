@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+        <title>U.C.Engine Search demo</title>
+        <link href="stylesheets/base.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="stylesheets/search.css" media="screen" rel="stylesheet" type="text/css" />
+
+        <script type="text/javascript" src="../lib/jquery-1.4.4.min.js"></script>
+        <script type="text/javascript" src="javascripts/jquery.timeago.js"></script>
+        <script type="text/javascript" src="../lib/uce.js"></script>
+        <script type="text/javascript" src="javascripts/search.js"></script>
+    </head>
+    <body>
+
+        <header>
+            <div class="page">
+                <ul>
+                    <li id="logoPartner"><img src="images/ucengine.png" /></li>
+                </ul>
+                <div class="frame"></div>
+            </div>
+        </header>
+
+        <div id="content">
+            <select id="time">
+                <option value="all">All</option>
+                <option value="less_1">Less than 1 minute</option>
+                <option value="more_1">More than 1 minute</option>
+            </select>
+
+            <input type="text" name="search" id="search" placeholder="query" />
+            <input type="submit" value="search" id="start" />
+
+            <div id="results">
+
+            </div>
+        </div>
+
+        <footer>
+            <div class="page">
+                <p>(c) 2011 af83</p>
+            </div>
+        </footer>
+    </body>
+</html>
