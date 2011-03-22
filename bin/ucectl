@@ -82,5 +82,5 @@ case $1 in
     demo) internal_cmd $@;;
     time) internal_cmd $@;;
     user) internal_cmd $@;;
-    acl) internal_cmd $@;;
+    role) internal_cmd $@;;
 esac
