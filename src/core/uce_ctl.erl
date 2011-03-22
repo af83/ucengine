@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([start/0, stop/0, getopt/2, action/3, success/1, error/1]).
+-export([start/0, stop/0, getopt/2, action/2, success/1, error/1]).
 -export([parse_date/1, timestamp_to_iso/1]).
 
 -compile({no_auto_import,[error/1]}).
@@ -53,15 +53,11 @@ args_to_dictionary([_|Tail]) ->
 
 start() ->
     Command = init:get_arguments(),
-    case utils:get(Command, [object, action]) of
+    case utils:get(Command, [dummy]) of
         [['-help'], _] ->
             usage();
-        [[Object], []] ->
-            usage(list_to_atom(Object));
-        [[Object], [Action]] ->
-            case catch action(list_to_atom(Object),
-                              list_to_atom(Action),
-                              args_to_dictionary(Command)) of
+        [[Object, _|_]] = [Params] ->
+            case catch action(Params, args_to_dictionary(Command)) of
                 ok ->
                     io:format("~n"),
                     init:stop(0);
@@ -79,6 +75,8 @@ start() ->
                     io:format("Fatal: ~p~n", [Exception]),
                     init:stop(2)
             end;
+        [[Object|_]] ->
+            usage(list_to_atom(Object));
         _ ->
             usage()
     end,
@@ -111,10 +109,23 @@ usage(Object) ->
             io:format("\tuser update --domain <domain> --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
             io:format("\tuser get --domain <domain> --uid <uid>~n"),
             io:format("\tuser delete --domain <domain> --uid <uid>~n"),
-            io:format("\tuser list --domain <domain>~n~n");
+            io:format("\tuser list --domain <domain>~n~n"),
+            io:format("\tuser role add --domain <domain> --uid <uid> --role <role> --location <location>~n~n"),
+            io:format("\tuser role delete --domain <domain> --uid <uid> --role <role> --location <location>~n~n");
         true ->
             nothing
     end,
+    if
+        Object == none ; Object == role ->
+            io:format("Roles:~n"),
+            io:format("\trole add --domain <domain> --name <name>"),
+            io:format("\trole delete --domain <domain> --name <name>"),
+            io:format("\trole access add --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]"),
+            io:format("\trole access delete --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]");
+        true ->
+            nothing
+    end,
+                      
     io:format("Formatting:~n"),
     io:format("\t<date>: ISO8601 formatted date (ex. '2010-25-12 00:00:01')~n~n"),
     io:format("U.C.Engine (c) AF83 - http://ucengine.org~n"),
@@ -225,10 +236,6 @@ display(json, Record, Fields) ->
     io:format("}"),
     ok.
 
-%% display(erlang, Record) ->
-%%     io:format("~p~n", [Record]),
-%%     ok.
-
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
     case catch rpc:call(get_node(), Module, Action, Args) of
@@ -286,7 +293,7 @@ error(Reason) ->
 %%
 %% Meeting
 %%
-action(meeting, add, Args) ->
+action(["meeting", "add"], Args) ->
     case getopt(["domain", "name", "start", "end"], Args) of
         {[none, _, _, _], _Metadata} ->
             error(missing_parameter);
@@ -301,7 +308,7 @@ action(meeting, add, Args) ->
             success(created)
     end;
 
-action(meeting, delete, Args) ->
+action(["meeting", "delete"], Args) ->
     case getopt(["domain", "name"], Args) of
         {[none, _], _} ->
             error(missing_parameter);
@@ -312,7 +319,7 @@ action(meeting, delete, Args) ->
             success(deleted)
     end;
 
-action(meeting, get, Args) ->
+action(["meeting", "get"], Args) ->
     case getopt(["domain", "name"], Args) of
         {[none, _], _} ->
             error(missing_parameter);
@@ -323,7 +330,7 @@ action(meeting, get, Args) ->
             display(json, Record, record_info(fields, uce_meeting))
     end;
 
-action(meeting, update, Args) ->
+action(["meeting", "update"], Args) ->
     case getopt(["domain", "name", "start", "end"], Args) of
         {[none, _, _, _], _Metadata} ->
             error(missing_parameter);
@@ -338,7 +345,7 @@ action(meeting, update, Args) ->
             success(updated)
     end;
 
-action(meeting, list, Args) ->
+action(["meeting", "list"], Args) ->
     case getopt(["domain", "status"], Args, [none, "all"]) of
         {[none, _], _} ->
             error(missing_parameter);
@@ -351,7 +358,7 @@ action(meeting, list, Args) ->
 %% Users
 %%
 
-action(user, add, Args) ->
+action(["user", "add"], Args) ->
     case getopt(["domain", "uid", "auth", "credential"], Args) of
         {[none, _, _, _], _Metadata} ->
             error(missing_parameter);
@@ -370,7 +377,7 @@ action(user, add, Args) ->
            success(created)
     end;
 
-action(user, delete, Args) ->
+action(["user", "delete"], Args) ->
     case getopt(["domain", "uid"], Args) of
         {[none, _], _} ->
             error(missing_parameter);
@@ -382,7 +389,7 @@ action(user, delete, Args) ->
     end;
 
 
-action(user, get, Args) ->
+action(["user", "get"], Args) ->
     case getopt(["domain", "uid"], Args, [none, none]) of
         {[none, _], _} ->
             error(missing_parameter);
@@ -395,7 +402,7 @@ action(user, get, Args) ->
             error(missing_parameter)
     end;
 
-action(user, update, Args) ->
+action(["user", "update"], Args) ->
     case getopt(["domain", "uid", "auth", "credential"], Args) of
         {[none, _, _, _], _Metadata} ->
             error(missing_parameter);
@@ -414,7 +421,7 @@ action(user, update, Args) ->
             success(updated)
     end;
 
-action(user, list, Args) ->
+action(["user", "list"], Args) ->
     case getopt(["domain"], Args) of
         {[none], _} ->
             error(missing_parameter);
@@ -423,18 +430,113 @@ action(user, list, Args) ->
             display(json, Records, record_info(fields, uce_user))
     end;
 
+action(["user", "role", "add"], Args) ->
+    case getopt(["domain", "uid", "role", "location"], Args) of
+        {[none, _, _, _], _Metadata} ->
+            error(missing_parameter);
+        {[_, none, _, _], _Metadata} ->
+            error(missing_parameter);
+        {[_, _, none, _], _Metadata} ->
+            error(missing_parameter);
+        {[_, _, _, none], _Metadata} ->
+            error(missing_parameter);
+        {[Domain, Uid, Role, Location], _Metadata} ->
+            {ok, updated} = call(user, addRole, [Domain,
+                                                 {Uid, Domain},
+                                                 {Role, Location}]),
+            success(updated)
+    end;
+
+action(["user", "role", "delete"], Args) ->
+    case getopt(["domain", "uid", "role", "location"], Args) of
+        {[none, _, _, _], _Metadata} ->
+            error(missing_parameter);
+        {[_, none, _, _], _Metadata} ->
+            error(missing_parameter);
+        {[_, _, none, _], _Metadata} ->
+            error(missing_parameter);
+        {[_, _, _, none], _Metadata} ->
+            error(missing_parameter);
+        {[Domain, Uid, Role, Location], _Metadata} ->
+            {ok, updated} = call(user, deleteRole, [Domain,
+                                                    {Uid, Domain},
+                                                    {Role, Location}]),
+            success(updated)
+    end;
+
+%%
+%% Roles
+%%
+action(["role", "add"], Args) ->
+     case getopt(["domain", "name"], Args) of
+         {[none, _], _} ->
+             error(missing_parameter);
+         {[_, none], _} ->
+             error(missing_parameter);
+         {[Domain, Name], _} ->
+             {ok, created} = call(role, add, [Domain, #uce_role{id={Name, Domain}}]),
+             success(created)
+     end;
+
+action(["role", "delete"], Args) ->
+     case getopt(["domain", "name"], Args) of
+         {[none, _], _} ->
+             error(missing_parameter);
+         {[_, none], _} ->
+             error(missing_parameter);
+         {[Domain, Name], _} ->
+             {ok, deleted} = call(role, delete, [Domain, {Name, Domain}]),
+             success(deleted)
+     end;
+
+action(["role", "access", "add"], Args) ->
+     case getopt(["domain", "name", "action", "object"], Args) of
+         {[none, _, _, _], _} ->
+             error(missing_parameter);
+         {[_, none, _, _], _} ->
+             error(missing_parameter);
+         {[_, _, none, _], _} ->
+             error(missing_parameter);
+         {[_, _, _, none], _} ->
+             error(missing_parameter);
+         {[Domain, Name, Action, Object], Conditions} ->
+             {ok, updated} = call(role, addAccess, [Domain, {Name, Domain},
+                                                    #uce_access{action=Action,
+                                                                object=Object,
+                                                                conditions=Conditions}]),
+             success(updated)
+     end;
+
+action(["role", "access", "delete"], Args) ->
+     case getopt(["domain", "name", "action", "object"], Args) of
+         {[none, _, _, _], _} ->
+             error(missing_parameter);
+         {[_, none, _, _], _} ->
+             error(missing_parameter);
+         {[_, _, none, _], _} ->
+             error(missing_parameter);
+         {[_, _, _, none], _} ->
+             error(missing_parameter);
+         {[Domain, Name, Action, Object], Conditions} ->
+             {ok, updated} = call(role, deleteAccess, [Domain, {Name, Domain},
+                                                       #uce_access{action=Action,
+                                                                   object=Object,
+                                                                   conditions=Conditions}]),
+             success(updated)
+     end;
+
 %%
 %% Time
 %%
 
-action(time, get, _) ->
+action(["time", "get"], _) ->
     io:format("Server time: ~p", [utils:now()]),
     ok;
 
 %%
 %% Info
 %%
-action(infos, get, Args) ->
+action(["infos", "get"], Args) ->
     case getopt(["domain"], Args) of
         {[none], _} ->
             error(missing_parameter);
@@ -443,7 +545,7 @@ action(infos, get, Args) ->
             display(json, Infos, record_info(fields, uce_infos))
     end;
 
-action(infos, update, Args) ->
+action(["infos", "update"], Args) ->
     case getopt(["domain"], Args) of
         {[Domain], Metadata} ->
             {ok, updated} = call(infos, update, [Domain, #uce_infos{domain=Domain, metadata=Metadata}]),
@@ -455,9 +557,9 @@ action(infos, update, Args) ->
 %%
 %% Utils
 %%
-action(demo, start, _) ->
+action(["demo", "start"], _) ->
     rpc:call(get_node(), demo, start, []),
     success(started);
 
-action(Object, _, _) ->
-    usage(Object).
+action([Object|_], _) ->
+    usage(list_to_atom(Object)).
