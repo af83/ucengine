@@ -109,19 +109,20 @@ usage(Object) ->
             io:format("\tuser update --domain <domain> --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
             io:format("\tuser get --domain <domain> --uid <uid>~n"),
             io:format("\tuser delete --domain <domain> --uid <uid>~n"),
-            io:format("\tuser list --domain <domain>~n~n"),
-            io:format("\tuser role add --domain <domain> --uid <uid> --role <role> --location <location>~n~n"),
-            io:format("\tuser role delete --domain <domain> --uid <uid> --role <role> --location <location>~n~n");
+            io:format("\tuser list --domain <domain>~n"),
+            io:format("\tuser role add --domain <domain> --uid <uid> --role <role> [--location <location>]~n"),
+            io:format("\tuser role delete --domain <domain> --uid <uid> --role <role> [--location <location>]~n~n");
         true ->
             nothing
     end,
     if
         Object == none ; Object == role ->
             io:format("Roles:~n"),
-            io:format("\trole add --domain <domain> --name <name>"),
-            io:format("\trole delete --domain <domain> --name <name>"),
-            io:format("\trole access add --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]"),
-            io:format("\trole access delete --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]");
+            io:format("\trole add --domain <domain> --name <name>~n"),
+            io:format("\trole delete --domain <domain> --name <name>~n"),
+            io:format("\trole access add --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]~n"),
+            io:format("\trole access delete --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]~n"),
+            io:format("\trole access check --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]~n~n");
         true ->
             nothing
     end,
@@ -431,7 +432,7 @@ action(["user", "list"], Args) ->
     end;
 
 action(["user", "role", "add"], Args) ->
-    case getopt(["domain", "uid", "role", "location"], Args) of
+    case getopt(["domain", "uid", "role", "location"], Args, [none, none, none, ""]) of
         {[none, _, _, _], _Metadata} ->
             error(missing_parameter);
         {[_, none, _, _], _Metadata} ->
@@ -448,7 +449,7 @@ action(["user", "role", "add"], Args) ->
     end;
 
 action(["user", "role", "delete"], Args) ->
-    case getopt(["domain", "uid", "role", "location"], Args) of
+    case getopt(["domain", "uid", "role", "location"], Args, [none, none, none, ""]) of
         {[none, _, _, _], _Metadata} ->
             error(missing_parameter);
         {[_, none, _, _], _Metadata} ->
@@ -523,6 +524,26 @@ action(["role", "access", "delete"], Args) ->
                                                                    object=Object,
                                                                    conditions=Conditions}]),
              success(updated)
+     end;
+
+action(["role", "access", "check"], Args) ->
+     case getopt(["domain", "uid", "location", "action", "object"], Args, [none, none, "", none, none]) of
+         {[none, _, _, _, _], _} ->
+             error(missing_parameter);
+         {[_, none, _, _, _], _} ->
+             error(missing_parameter);
+         {[_, _, _, none, _], _} ->
+             error(missing_parameter);
+         {[_, _, _, _, none], _} ->
+             error(missing_parameter);
+         {[Domain, Uid, Location, Action, Object], Conditions} ->
+             {ok, Result} = call(access, check, [Domain,
+                                                 {Uid, Domain},
+                                                 {Location, Domain},
+                                                 Object,
+                                                 Action,
+                                                 Conditions]),
+             success(Result)
      end;
 
 %%

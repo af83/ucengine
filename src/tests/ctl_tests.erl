@@ -77,6 +77,7 @@ ctl_roles_test_() ->
                 ,  ?_test(test_role_delete(Domain))
                 ,  ?_test(test_role_delete_not_found(Domain))
                 ,  ?_test(test_role_add_access(Domain))
+                ,  ?_test(test_role_check_access(Domain))
                 ,  ?_test(test_role_delete_access(Domain))
                 ]
         end
@@ -337,6 +338,17 @@ test_role_add_access(Domain) ->
                                     action="testaction",
                                     conditions=[{"a", "b"}, {"c", "d"}]}]}} =
         uce_role:get(Domain, {"test_role_2", Domain}).
+
+test_role_check_access(Domain) ->
+    uce_user:addRole(Domain, {"anonymous.user@af83.com", Domain}, {"test_role_2", ""}),
+    Params = [ {"domain", [Domain]}
+               , {"uid", ["anonymous.user@af83.com"]}
+               , {"object", ["testobject"]}
+               , {"action", ["testaction"]}
+               , {"a", ["b"]}
+               , {"c", ["d"]}],
+    
+    ok = uce_ctl:action(["role", "access", "check"], Params).
 
 test_role_delete_access(Domain) ->
     {ok, #uce_role{id={"test_role_2", Domain},
