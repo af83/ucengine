@@ -42,7 +42,7 @@ start_link(Domain) ->
 
 init([Domain]) ->
     setup_db(Domain),
-    setup_default_role(Domain),
+    setup_roles(Domain),
     setup_root_role(Domain),
     setup_bricks(Domain),
     setup_admin(Domain),
@@ -73,11 +73,19 @@ setup_db(Domain) ->
     DBBackendModule = list_to_atom(lists:concat([DBBackend, "_db"])),
     DBBackendModule:init(Domain, DBConfig).
 
-setup_default_role(Domain) ->
-    % TODO: move this in the configuration
-    case catch uce_role:add(Domain, #uce_role{id={"default", Domain},
-                                              acl=[#uce_access{action="add", object="presence"},
-                                                   #uce_access{action="delete", object="presence"}]}) of
+setup_roles(Domain) ->
+    setup_role(Domain, config:get(Domain, roles)).
+
+setup_role(_, undefined) ->
+    ok;
+setup_role(Domain, [{Name, ConfigACL}]) ->
+    ACL = lists:map(fun({Action, Object, Conditions}) ->
+                            #uce_access{action=Action,
+                                        object=Object,
+                                        conditions=Conditions}
+                    end,
+                    ConfigACL),
+    case catch uce_role:add(Domain, #uce_role{id={Name, Domain}, acl=ACL}) of
         {ok, created} ->
             ok;
         {error, conflict} ->
