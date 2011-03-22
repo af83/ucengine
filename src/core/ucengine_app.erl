@@ -80,6 +80,7 @@ setup_controllers() ->
                   [user_controller,
                    presence_controller,
                    meeting_controller,
+                   role_controller,
                    event_controller,
                    file_controller,
                    time_controller,

@@ -37,6 +37,7 @@ run() ->
                user_tests,
                time_tests,
                file_tests,
+               role_tests,
                ctl_tests,
                infos_tests] ++
         case config:get(search) of
