@@ -19,7 +19,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/2, delete/2, update/2, list/1, get/2, exists/2, acl/3]).
+-export([add/2, delete/2, update/2, list/1, get/2, exists/2, acl/3, addRole/3, deleteRole/3]).
 
 -include("uce.hrl").
 
@@ -67,6 +67,25 @@ exists(Domain, Id) ->
                     true
             end
     end.
+
+addRole(Domain, Id, {Role, Location}) ->
+    {ok, User} = ?MODULE:get(Domain, Id),
+    case lists:keyfind(Role, 1, User#uce_user.roles) of
+        {Role, Location} ->
+            {ok, updated};
+        false ->
+            ?MODULE:update(Domain, User#uce_user{roles=(User#uce_user.roles ++ [{Role, Location}])})
+    end.
+
+deleteRole(Domain, Id, {Role, Location}) ->
+    {ok, User} = ?MODULE:get(Domain, Id),
+    Roles = case lists:keyfind(Role, 1, User#uce_user.roles) of
+                {Role, Location} ->
+                    lists:delete({Role, Location}, User#uce_user.roles);
+                false ->
+                    User#uce_user.roles
+            end,
+    ?MODULE:update(Domain, User#uce_user{roles=Roles}).
 
 acl(Domain, User, {Location, _}) ->
     {ok, Record} = ?MODULE:get(Domain, User),

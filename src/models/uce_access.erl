@@ -19,12 +19,44 @@
 
 -author('victor.goya@af83.com').
 
--export([assert/5,
+-export([exists/2,
+         delete/2,
+         assert/5,
          assert/6,
          check/5,
          check/6]).
 
 -include("uce.hrl").
+
+exists(#uce_access{} = Access, ACL) ->
+    case ?MODULE:delete(Access, ACL) of
+        ACL ->
+            false;
+        _ ->
+            true
+    end.
+
+delete(#uce_access{} = Access, ACL) ->
+    lists:filter(fun(#uce_access{} = RoleAccess) ->
+                         if
+                             RoleAccess#uce_access.object /= Access#uce_access.object ->
+                                 true;
+                             RoleAccess#uce_access.action /= Access#uce_access.action ->
+                                 true;
+                             length(Access#uce_access.conditions) /=
+                             length(RoleAccess#uce_access.conditions) ->
+                                 true;
+                             true ->
+                                 case lists:subtract(Access#uce_access.conditions,
+                                                     RoleAccess#uce_access.conditions) of
+                                     [] ->
+                                         false;
+                                     _ ->
+                                         true
+                                 end
+                         end
+                 end,
+                 ACL).
 
 assert(Domain, User, Location, Object, Action) ->
     assert(Domain, User, Location, Object, Action, []).
