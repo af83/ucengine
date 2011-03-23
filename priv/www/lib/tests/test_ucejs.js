@@ -618,6 +618,14 @@ jackTest("search events in all meetings", function() {
     });
 });
 
+jackTest("search events with options", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "hello", "order": "asc"}, 200, '{"result": {}}');
+    this.client.attachPresence(Factories.createPresence()).search({query: 'hello'}, {order: "asc"}, function(err, result) {
+        start();
+    });
+});
+
 jackTest("complex search events in all meetings", function() {
     stop();
     addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "type:internal.meeting.add,chat.message.new start:42 end:44 hello"}, 200, '{"result": {}}');
@@ -633,6 +641,16 @@ jackTest("search events in a meeting", function() {
     stop();
     addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "location:demo hello"}, 200, '{"result": {}}');
     this.client.attachPresence(Factories.createPresence()).meeting('demo').search({query: 'hello'}, function(err, result) {
+        start();
+        equals(null, err);
+        same(result, {});
+    });
+});
+
+jackTest("search events in a meeting with options", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "location:demo hello", "order": "asc"}, 200, '{"result": {}}');
+    this.client.attachPresence(Factories.createPresence()).meeting('demo').search({query: 'hello'}, {order: "asc"}, function(err, result) {
         start();
         equals(null, err);
         same(result, {});

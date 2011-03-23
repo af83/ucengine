@@ -166,7 +166,11 @@
             /**
              * Search events
              */
-            search: function(terms, callback) {
+            search: function(terms, params, callback) {
+                if (!callback) {
+                    callback = params;
+                    params = {};
+                }
                 var query = terms.query || '';
                 delete terms.query;
                 var searchTerms = [];
@@ -175,9 +179,9 @@
                 }
                 searchTerms.push(query);
                 get("/search/event",
-                    {'uid': _presence.user,
-                     'sid': _presence.id,
-                     'searchTerms' : searchTerms.join(' ')},
+                    $.extend({'uid': _presence.user,
+                              'sid': _presence.id,
+                              'searchTerms' : searchTerms.join(' ')}, params),
                     function (err, result, xhr) {
                         if (!callback) {
                             return;
@@ -440,9 +444,9 @@
                     /**
                      * Search event in current meeting
                      */
-                    search: function(terms, callback) {
+                    search: function(terms, options, callback) {
                         terms.location = meetingname;
-                        client.search(terms, callback);
+                        client.search(terms, options, callback);
                     }
                 };
             },
