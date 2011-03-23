@@ -38,8 +38,10 @@ add(Domain, #uce_role{} = Role) ->
             {ok, created}
     end.
 
-update(Domain, #uce_role{} = Role) ->
-    case catch emongo:update_sync(Domain, "uce_role", to_collection(Role)) of
+update(Domain, #uce_role{id={Name, _}} = Role) ->
+    case catch emongo:update_sync(Domain, "uce_role", [{"name", Name},
+                                                       {"domain", Domain}],
+                                  to_collection(Role), false) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
             throw({error, bad_parameters});

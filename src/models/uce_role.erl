@@ -23,6 +23,7 @@
          delete/2,
          update/2,
          get/2,
+         exists/2,
          acl/2,
          addAccess/3,
          deleteAccess/3]).

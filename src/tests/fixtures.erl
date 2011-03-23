@@ -69,6 +69,10 @@ setup_users(Domain) ->
                                               #uce_access{action="add", object="roster"},
                                               #uce_access{action="get", object="meeting"},
                                               #uce_access{action="list", object="meeting"}]}),
+    catch uce_role:add(Domain, #uce_role{id={"testrole_location", Domain},
+                                         acl=[#uce_access{action="testaction", object="testobject", conditions=[{"a", "b"}]}]}),
+    catch uce_role:add(Domain, #uce_role{id={"testrole_without_location", Domain},
+                                         acl=[#uce_access{action="testaction_global", object="testobject_global", conditions=[{"c", "d"}]}]}),
 
     catch uce_role:add(Domain, #uce_role{id={ParticipantUid, Domain}, acl=[]}),
 
@@ -77,6 +81,8 @@ setup_users(Domain) ->
                                  auth="password",
                                  credential="pwd",
                                  roles=[{"participant", ""},
+                                        {"testrole_location", "testmeeting"},
+                                        {"testrole_without_location", ""},
                                         {ParticipantUid, ""},
                                         {"default", ""}]}),
 

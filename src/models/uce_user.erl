@@ -69,18 +69,29 @@ exists(Domain, Id) ->
     end.
 
 addRole(Domain, Id, {Role, Location}) ->
-    {ok, User} = ?MODULE:get(Domain, Id),
-    case lists:keyfind(Role, 1, User#uce_user.roles) of
-        {Role, Location} ->
-            {ok, updated};
+    % Just ensure the role and location exists
+    case uce_meeting:exists(Domain, {Location, Domain}) of
+        true ->
+            case uce_role:exists(Domain, {Role, Domain}) of
+                true ->
+                    {ok, User} = ?MODULE:get(Domain, Id),
+                    case lists:member({Role, Location}, User#uce_user.roles) of
+                        true ->
+                            {ok, updated};
+                        false ->
+                            ?MODULE:update(Domain, User#uce_user{roles=(User#uce_user.roles ++ [{Role, Location}])})
+                    end;
+                false ->
+                    throw({error, not_found})
+            end;
         false ->
-            ?MODULE:update(Domain, User#uce_user{roles=(User#uce_user.roles ++ [{Role, Location}])})
+            throw({error, not_found})
     end.
 
 deleteRole(Domain, Id, {Role, Location}) ->
     {ok, User} = ?MODULE:get(Domain, Id),
-    Roles = case lists:keyfind(Role, 1, User#uce_user.roles) of
-                {Role, Location} ->
+    Roles = case lists:member({Role, Location}, User#uce_user.roles) of
+                true ->
                     lists:delete({Role, Location}, User#uce_user.roles);
                 false ->
                     User#uce_user.roles

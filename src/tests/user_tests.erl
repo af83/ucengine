@@ -43,6 +43,22 @@ user_test_() ->
                ?_test(test_update_missing_credential(BaseUrl, Root)),
                ?_test(test_update_not_found(BaseUrl, Root)),
                ?_test(test_update_unauthorized(BaseUrl, Ugly)),
+
+               ?_test(test_set_role(BaseUrl, Root)),
+               ?_test(test_set_role_missing_role(BaseUrl, Root)),
+               ?_test(test_set_role_not_found_user(BaseUrl, Root)),
+               ?_test(test_set_role_not_found_role(BaseUrl, Root)),
+               ?_test(test_set_role_not_found_location(BaseUrl, Root)),
+               ?_test(test_set_role_unauthorized(BaseUrl, Ugly)),
+
+               ?_test(test_check_false_location(BaseUrl, Root)),
+               ?_test(test_check_false_location_without_meeting(BaseUrl, Root)),
+               ?_test(test_check_false_conditions(BaseUrl, Root)),
+               
+               ?_test(test_check_unauthorized(BaseUrl, Ugly)),
+
+               ?_test(test_check_true(BaseUrl, Root)),
+               ?_test(test_check_true_without_meeting(BaseUrl, Root)),
                
                ?_test(test_delete_unauthorized(BaseUrl, Ugly)),
                ?_test(test_delete(BaseUrl, Root)),
@@ -168,6 +184,95 @@ test_update_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
               {"metadata[nickname]", "test_modified_nickname"}],
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:put(BaseUrl, "/user/test.user@af83.com", Params).
+
+test_set_role(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"role", "anonymous"},
+              {"location", "testmeeting"}],
+    {struct, [{"result", "ok"}]} =
+        tests_utils:post(BaseUrl, "/user/test.user@af83.com/roles/", Params).
+
+test_set_role_missing_role(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"location", "testmeeting"}],
+    {struct, [{"error", "missing_parameters"}]} =
+        tests_utils:post(BaseUrl, "/user/test.user@af83.com/roles/", Params).
+
+test_set_role_not_found_user(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"role", "anonymous"},
+              {"location", "testmeeting"}],
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:post(BaseUrl, "/user/unexistent_user/roles/", Params).
+
+test_set_role_not_found_role(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"role", "unexistent_role"},
+              {"location", "testmeeting"}],
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:post(BaseUrl, "/user/test.user@af83.com/roles/", Params).
+
+test_set_role_not_found_location(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"role", "anonymous"},
+              {"location", "unexistent_meeting"}],
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:post(BaseUrl, "/user/test.user@af83.com/roles/", Params).
+
+test_set_role_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
+    Params = [{"uid", UglyUid},
+              {"sid", UglySid},
+              {"role", "anonymous"},
+              {"location", "testmeeting"}],
+    {struct, [{"error", "unauthorized"}]} =
+        tests_utils:post(BaseUrl, "/user/test.user@af83.com/roles/", Params).
+
+test_check_true(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"conditions[a]", "b"}],
+    {struct, [{"result", "true"}]} = 
+        tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/testmeeting", Params).
+
+test_check_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
+    Params = [{"uid", UglyUid},
+              {"sid", UglySid},
+              {"conditions[a]", "b"}],
+    {struct, [{"error", "unauthorized"}]} = 
+        tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/testmeeting", Params).
+
+test_check_true_without_meeting(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"conditions[c]", "d"}],
+    {struct, [{"result", "true"}]} = 
+        tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction_global/testobject_global/", Params).
+
+test_check_false_location(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"conditions[a]", "b"}],
+    {struct, [{"result", "false"}]} = 
+        tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/othermeeting", Params).
+
+test_check_false_location_without_meeting(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"conditions[a]", "b"}],
+    {struct, [{"result", "false"}]} = 
+        tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/", Params).
+
+test_check_false_conditions(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"conditions[a]", "c"}],
+    {struct, [{"result", "false"}]} = 
+        tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/testmeeting", Params).
 
 test_delete_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
     Params = [{"uid", UglyUid},
