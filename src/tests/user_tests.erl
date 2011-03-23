@@ -30,14 +30,14 @@ user_test_() ->
                ?_test(test_register_missing_credential(BaseUrl)),
                ?_test(test_register_missing_name(BaseUrl)),
                ?_test(test_register_conflict(BaseUrl)),
-               
+
                ?_test(test_get(BaseUrl, Root)),
                ?_test(test_get_not_found(BaseUrl, Root)),
                ?_test(test_get_unauthorized(BaseUrl, Ugly)),
-               
+
                ?_test(test_list(BaseUrl, Root)),
                ?_test(test_list_unauthorized(BaseUrl, Ugly)),
-               
+
                ?_test(test_update(BaseUrl, Root)),
                ?_test(test_update_missing_auth(BaseUrl, Root)),
                ?_test(test_update_missing_credential(BaseUrl, Root)),
@@ -62,12 +62,12 @@ user_test_() ->
                ?_test(test_check_false_location(BaseUrl, Root)),
                ?_test(test_check_false_location_without_meeting(BaseUrl, Root)),
                ?_test(test_check_false_conditions(BaseUrl, Root)),
-               
+
                ?_test(test_check_unauthorized(BaseUrl, Ugly)),
 
                ?_test(test_check_true(BaseUrl, Root)),
                ?_test(test_check_true_without_meeting(BaseUrl, Root)),
-               
+
                ?_test(test_delete_unauthorized(BaseUrl, Ugly)),
                ?_test(test_delete(BaseUrl, Root)),
                ?_test(test_delete_not_found(BaseUrl, Root))]
@@ -128,7 +128,7 @@ test_get_not_found(BaseUrl, {RootUid, RootSid}) ->
 
 test_get_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
     Params = [{"uid", UglyUid},
-	      {"sid", UglySid}],
+              {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:get(BaseUrl, "/user/unexistent.user@af83.com", Params).
 
@@ -146,7 +146,7 @@ test_list(BaseUrl, {RootUid, RootSid}) ->
 
 test_list_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
     Params = [{"uid", UglyUid},
-	      {"sid", UglySid}],
+              {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} = tests_utils:get(BaseUrl, "/user/", Params).
 
 test_update(BaseUrl, {RootUid, RootSid}) ->
@@ -291,42 +291,42 @@ test_check_true(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"conditions[a]", "b"}],
-    {struct, [{"result", "true"}]} = 
+    {struct, [{"result", "true"}]} =
         tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/testmeeting", Params).
 
 test_check_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
     Params = [{"uid", UglyUid},
               {"sid", UglySid},
               {"conditions[a]", "b"}],
-    {struct, [{"error", "unauthorized"}]} = 
+    {struct, [{"error", "unauthorized"}]} =
         tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/testmeeting", Params).
 
 test_check_true_without_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"conditions[c]", "d"}],
-    {struct, [{"result", "true"}]} = 
+    {struct, [{"result", "true"}]} =
         tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction_global/testobject_global/", Params).
 
 test_check_false_location(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"conditions[a]", "b"}],
-    {struct, [{"result", "false"}]} = 
+    {struct, [{"result", "false"}]} =
         tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/othermeeting", Params).
 
 test_check_false_location_without_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"conditions[a]", "b"}],
-    {struct, [{"result", "false"}]} = 
+    {struct, [{"result", "false"}]} =
         tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/", Params).
 
 test_check_false_conditions(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"conditions[a]", "c"}],
-    {struct, [{"result", "false"}]} = 
+    {struct, [{"result", "false"}]} =
         tests_utils:get(BaseUrl, "/user/participant.user@af83.com/can/testaction/testobject/testmeeting", Params).
 
 test_delete_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
