@@ -31,7 +31,8 @@ init() ->
                            {"searchTerms", "", string},
                            {"startIndex", 0, integer},
                            {"startPage", 1, integer},
-                           {"count", 10, integer}]}}].
+                           {"count", 10, integer},
+                           {"order", "asc", string}]}}].
 
 extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
     {ok, Regexp} = re:compile("(^|.* )" ++ Term ++ ":([^ ]+)(.*)"),
@@ -47,7 +48,7 @@ extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
 extract_terms(SearchTerms, [], []) ->
     [{"keywords", string:tokens(SearchTerms, " ")}].
 
-search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count], Arg) ->
+search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count, Order], Arg) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
 
     [{"type", Type},
@@ -83,7 +84,7 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
                                               Parent,
                                               Start,
                                               Count,
-                                              asc),
+                                              list_to_atom(Order)),
 
     {abs_path, Path} = Arg#arg.req#http_request.path,
     Link = lists:concat(["http://", Arg#arg.headers#headers.host, Path]),
