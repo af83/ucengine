@@ -45,11 +45,19 @@ user_test_() ->
                ?_test(test_update_unauthorized(BaseUrl, Ugly)),
 
                ?_test(test_set_role(BaseUrl, Root)),
+               ?_test(test_set_role_with_location(BaseUrl, Root)),
                ?_test(test_set_role_missing_role(BaseUrl, Root)),
                ?_test(test_set_role_not_found_user(BaseUrl, Root)),
                ?_test(test_set_role_not_found_role(BaseUrl, Root)),
                ?_test(test_set_role_not_found_location(BaseUrl, Root)),
                ?_test(test_set_role_unauthorized(BaseUrl, Ugly)),
+
+               ?_test(test_delete_role(BaseUrl, Root)),
+               ?_test(test_delete_role_with_location(BaseUrl, Root)),
+               ?_test(test_delete_role_not_found_user(BaseUrl, Root)),
+               ?_test(test_delete_role_not_found_role(BaseUrl, Root)),
+               ?_test(test_delete_role_not_found_location(BaseUrl, Root)),
+               ?_test(test_delete_role_unauthorized(BaseUrl, Ugly)),
 
                ?_test(test_check_false_location(BaseUrl, Root)),
                ?_test(test_check_false_location_without_meeting(BaseUrl, Root)),
@@ -188,6 +196,13 @@ test_update_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
 test_set_role(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
+              {"role", "anonymous"}],
+    {struct, [{"result", "ok"}]} =
+        tests_utils:post(BaseUrl, "/user/test.user@af83.com/roles/", Params).
+
+test_set_role_with_location(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
               {"role", "anonymous"},
               {"location", "testmeeting"}],
     {struct, [{"result", "ok"}]} =
@@ -231,6 +246,46 @@ test_set_role_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
               {"location", "testmeeting"}],
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:post(BaseUrl, "/user/test.user@af83.com/roles/", Params).
+
+test_delete_role(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct, [{"result", "ok"}]} =
+        tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/anonymous", Params),
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/anonymous", Params).
+
+test_delete_role_with_location(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct, [{"result", "ok"}]} =
+        tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/anonymous/testmeeting", Params),
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/anonymous", Params).
+
+test_delete_role_not_found_user(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:delete(BaseUrl, "/user/unexistent_user/roles/anonymous", Params).
+
+test_delete_role_not_found_role(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/unexistent_role", Params).
+
+test_delete_role_not_found_location(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/anonymous/unexistent_location", Params).
+
+test_delete_role_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
+    Params = [{"uid", UglyUid},
+              {"sid", UglySid}],
+    {struct, [{"error", "unauthorized"}]} =
+        tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/anonymous", Params).
 
 test_check_true(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
