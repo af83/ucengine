@@ -94,7 +94,7 @@ deleteRole(Domain, Id, {Role, Location}) ->
                 true ->
                     lists:delete({Role, Location}, User#uce_user.roles);
                 false ->
-                    User#uce_user.roles
+                    throw({error, not_found})
             end,
     ?MODULE:update(Domain, User#uce_user{roles=Roles}).
 

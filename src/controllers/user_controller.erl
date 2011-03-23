@@ -151,13 +151,13 @@ addRole(Domain, [Name], [Uid, Sid, Role, Location], _) ->
     {ok, updated} = uce_user:addRole(Domain, {Name, Domain}, {Role, Location}),
     json_helpers:ok(Domain).
 
-deleteRole(Domain, [Name], [Uid, Sid, Role, Location], Arg) ->
-    deleteRole(Domain, [Name, ""], [Uid, Sid, Role, Location], Arg);
-deleteRole(Domain, [Name, Location], [Uid, Sid, Role, Location], _) ->
+deleteRole(Domain, [User, Role], [Uid, Sid], Arg) ->
+    deleteRole(Domain, [User, Role, ""], [Uid, Sid], Arg);
+deleteRole(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", Name},
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", User},
                                                                                        {"location", Location},
                                                                                        {"role", Role}]),
 
-    {ok, updated} = uce_user:deleteRole(Domain, {Name, Domain}, {Role, Location}),
+    {ok, updated} = uce_user:deleteRole(Domain, {User, Domain}, {Role, Location}),
     json_helpers:ok(Domain).
