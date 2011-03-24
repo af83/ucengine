@@ -93,7 +93,7 @@ from_collection(Collection) ->
                       auth=Auth,
                       credential=Credential,
                       metadata=Metadata,
-                      roles=Roles};
+                      roles=[{Role, Location} || [Role, Location] <- Roles]};
         _ ->
             throw({error, bad_parameters})
     end.
@@ -108,4 +108,4 @@ to_collection(#uce_user{id={Name, Domain},
      {"auth", Auth},
      {"credential", Credential},
      {"metadata", Metadata},
-     {"roles", Roles}].
+     {"roles", [[Role, Location] || {Role, Location} <- Roles]}].
