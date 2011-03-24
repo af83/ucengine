@@ -95,7 +95,7 @@ test_add_access(BaseUrl, {RootUid, RootSid}) ->
               {"object", "testobject"},
               {"action", "testaction"},
               {"conditions[a]", "b"}],
-    {struct, [{"result", "created"}]} =
+    {struct, [{"result", "ok"}]} =
         tests_utils:post(BaseUrl, "/role/default/acl", Params).
 
 test_add_access_not_found(BaseUrl, {RootUid, RootSid}) ->
@@ -119,26 +119,20 @@ test_add_access_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
 test_delete_access(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
-              {"object", "testobject"},
-              {"action", "testaction"},
               {"conditions[a]", "b"}],
     {struct, [{"result", "ok"}]} =
-        tests_utils:delete(BaseUrl, "/role/default/acl", Params).
+        tests_utils:delete(BaseUrl, "/role/default/acl/testaction/testobject", Params).
 
 test_delete_access_not_found(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
-              {"object", "testobject"},
-              {"action", "testaction"},
               {"conditions[a]", "b"}],
     {struct, [{"error", "not_found"}]} =
-        tests_utils:delete(BaseUrl, "/role/unexistent_role/acl", Params).
+        tests_utils:delete(BaseUrl, "/role/unexistent_role/acl/testaction/testobject", Params).
 
 test_delete_access_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
     Params = [{"uid", UglyUid},
               {"sid", UglySid},
-              {"object", "testobject"},
-              {"action", "testaction"},
               {"conditions[a]", "b"}],
     {struct, [{"error", "unauthorized"}]} =
-        tests_utils:delete(BaseUrl, "/role/default/acl", Params).
+        tests_utils:delete(BaseUrl, "/role/default/acl/testaction/testobject", Params).

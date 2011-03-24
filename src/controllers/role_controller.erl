@@ -45,12 +45,10 @@ init() ->
                            {"conditions", [], dictionary}]}},
 
      #uce_route{method='DELETE',
-                regexp="/role/([^/]+)/acl",
+                regexp="/role/([^/]+)/acl/([^/]+)/([^/]+)",
                 callback={?MODULE, deleteAccess,
                           [{"uid", required, string},
                            {"sid", required, string},
-                           {"object", "all", string},
-                           {"action", "all", string},
                            {"conditions", [], dictionary}]}}].
 
 add(Domain, [], [Uid, Sid, Name], _) ->
@@ -97,9 +95,9 @@ addAccess(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
                                                          {"object", Object}] ++
                                                    Conditions}),
 
-    json_helpers:created(Domain).
+    json_helpers:ok(Domain).
 
-deleteAccess(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
+deleteAccess(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
                                    "access", "add", [{"role", Role},
