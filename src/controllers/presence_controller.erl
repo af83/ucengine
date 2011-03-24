@@ -25,7 +25,7 @@ init() ->
     [#uce_route{method='POST',
                 regexp="/presence",
                 callback={?MODULE, add,
-                          [{"uid", required, string},
+                          [{"name", required, string},
                            {"credential", "", string},
                            {"timeout", 0, integer},
                            {"metadata", [], dictionary}]}},
@@ -41,21 +41,22 @@ init() ->
                            {"sid", required, string}]}}].
 
 add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
-    {ok, User} = uce_user:get(Domain, {Name, Domain}),
+    {ok, User} = uce_user:get(Domain, Name),
     {ok, true} = uce_access:assert(Domain, User#uce_user.id, {"", ""}, "presence", "add"),
     {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
-    {ok, {Id, Domain}} = uce_presence:add(Domain,
-                                #uce_presence{id={none, Domain},
-                                              user=User#uce_user.id,
-                                              timeout=Timeout,
-                                              auth=User#uce_user.auth,
-                                              metadata=Metadata}),
+    {ok, {Sid, _}} = uce_presence:add(Domain,
+                                 #uce_presence{id={none, Domain},
+                                               user=User#uce_user.id,
+                                               timeout=Timeout,
+                                               auth=User#uce_user.auth,
+                                               metadata=Metadata}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id={none, Domain},
                                        from=User#uce_user.id,
                                        location={"", Domain},
                                        type="internal.presence.add"}),
-    json_helpers:created(Domain, Id).
+    {Id, _} = User#uce_user.id, 
+    json_helpers:created(Domain, {Id, Sid}).
 
 get(Domain, [Id], [], _) ->
     {ok, Record} = uce_presence:get(Domain, {Id, Domain}),

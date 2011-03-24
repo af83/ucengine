@@ -60,8 +60,10 @@
          }).
 
 -record(uce_user, {
-          %% User (name, domain)
+          %% User (uid, domain)
           id = {none, none},
+          %% name
+          name,
           auth,
           credential = "",
           metadata = [],

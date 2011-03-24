@@ -31,6 +31,12 @@
 -include("uce.hrl").
 -include("mongodb.hrl").
 
+
+%%--------------------------------------------------------------------
+%% @spec (Domain, #uce_presence{}) -> {ok, created} | {error, bad_parameters} 
+%% @doc Insert given record #uce_presence{} in uce_presence mongodb table
+%% @end
+%%--------------------------------------------------------------------
 add(Domain, #uce_presence{}=Presence) ->
     case catch emongo:insert_sync(Domain, "uce_presence", to_collection(Presence)) of
         {'EXIT', Reason} ->
@@ -41,6 +47,11 @@ add(Domain, #uce_presence{}=Presence) ->
             {ok, Presence#uce_presence.id}
     end.
 
+%%--------------------------------------------------------------------
+%% @spec ({User::list, Domain::list}) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters} 
+%% @doc List all record #uce_presence for the given user and domain
+%% @end
+%%--------------------------------------------------------------------
 list({User, Domain}) ->
     case catch emongo:find_all(Domain, "uce_presence", [{"user", User},
                                                         {"domain", Domain}]) of
@@ -55,6 +66,11 @@ list({User, Domain}) ->
             {ok, Records}
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters} 
+%% @doc List all record #uce_presence for the given domain
+%% @end
+%%--------------------------------------------------------------------
 all(Domain) ->
     case catch emongo:find_all(Domain, "uce_presence", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
@@ -68,6 +84,11 @@ all(Domain) ->
             {ok, Records}
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, #uce_presence{}} | {error, bad_parameters} | {error, not_found}
+%% @doc Get record uce_presence which correspond to the given id and domain
+%% @end
+%%--------------------------------------------------------------------
 get(Domain, {SId, SDomain}) ->
     case catch emongo:find_one(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
         {'EXIT', Reason} ->
@@ -79,6 +100,11 @@ get(Domain, {SId, SDomain}) ->
             throw({error, not_found})
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, deleted} | {error, bad_parameters} 
+%% @doc Delete record 
+%% @end
+%%--------------------------------------------------------------------
 delete(Domain, {SId, SDomain}) ->
     case catch emongo:delete_sync(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
         {'EXIT', Reason} ->
@@ -88,6 +114,11 @@ delete(Domain, {SId, SDomain}) ->
             {ok, deleted}
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, #uce_presence{}) -> {ok, updated} | {error, bad_parameters} 
+%% @doc Update record 
+%% @end
+%%--------------------------------------------------------------------
 update(Domain, #uce_presence{}=Presence) ->
     {Id, Domain} = Presence#uce_presence.id,
     case catch emongo:update_sync(Domain, "uce_presence",
@@ -101,6 +132,11 @@ update(Domain, #uce_presence{}=Presence) ->
     end.
 
 
+%%--------------------------------------------------------------------
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_presence{} | {error, bad_parameters} 
+%% @doc Convert collection returned by mongodb to valid record #uce_meeting{}
+%% @end
+%%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["id", "domain", "user", "auth", "last_activity", "timeout", "metadata"]) of
@@ -115,6 +151,11 @@ from_collection(Collection) ->
             throw({error, bad_parameters})
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (#uce_presence{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @doc Convert #uce_presence{} record to valid collection
+%% @end
+%%--------------------------------------------------------------------
 to_collection(#uce_presence{id={Id, Domain},
                             user={User, _},
                             auth=Auth,

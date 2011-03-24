@@ -26,6 +26,11 @@
 -include("uce.hrl").
 -include("mongodb.hrl").
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, MongoPoolInfos::list) -> any()
+%% @doc Initialize mongodb dedicated connections pool for the given domain (vhost).
+%% @end 
+%%--------------------------------------------------------------------
 init(Domain, MongoPoolInfos) ->
     catch application:start(emongo),
     [Size, Host, Port, Name] = utils:get_values(MongoPoolInfos,
@@ -35,12 +40,22 @@ init(Domain, MongoPoolInfos) ->
                                                  {database, ?DEFAULT_MONGODB_NAME}]),
     emongo:add_pool(Domain, Host, Port, Name, Size).
 
+%%--------------------------------------------------------------------
+%% @spec () -> any()
+%% @doc Disconnect from mongodb by dropping all connections pool.
+%% @end 
+%%--------------------------------------------------------------------
 drop() ->
     lists:foreach(fun({Domain, _}) ->
                           catch emongo:drop_database(Domain)
                   end,
                   config:get('hosts')).
 
+%%--------------------------------------------------------------------
+%% @spec () -> ok 
+%% @doc Terminate.
+%% @end 
+%%--------------------------------------------------------------------
 terminate() ->
     ok.
 

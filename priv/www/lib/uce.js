@@ -59,11 +59,13 @@
         return {
             connected : false,
             uid: null,
+            name: null,
             /**
              * Create user presence
              */
-            auth: function(uid, credential, metadata, callback) {
-                var params = {uid: uid};
+            auth: function(uname, credential, metadata, callback) {
+                var params = {name: uname};
+                name = uname;
                 if (credential) {
                     params.credential = credential;
                 }
@@ -77,7 +79,8 @@
                     if (err) {
                         callback(err, result, xhr);
                     } else {
-                        var p = {"user": uid, "id": result.result};
+                        uid = result.result.uid;
+                        var p = {"user": uid, "id": result.result.sid};
                         that.attachPresence(p);
                         callback(err, p, xhr);
                     }

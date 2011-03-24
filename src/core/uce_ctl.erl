@@ -356,9 +356,8 @@ action(["meeting", "list"], Args) ->
 %%
 %% Users
 %%
-
 action(["user", "add"], Args) ->
-    case getopt(["domain", "uid", "auth", "credential"], Args) of
+    case getopt(["domain", "name", "auth", "credential"], Args) of
         {[none, _, _, _], _Metadata} ->
             error(missing_parameter);
         {[_, none, _, _], _Metadata} ->
@@ -368,11 +367,12 @@ action(["user", "add"], Args) ->
         {[_, _, _, none], _Metadata} ->
             error(missing_parameter);
         {[Domain, Name, Auth, Credential], Metadata} ->
-            {ok, created} = call(user, add, [Domain,
-                                             #uce_user{id={Name, Domain},
-                                                       auth=Auth,
-                                                       credential=Credential,
-                                                       metadata=Metadata}]),
+            {ok, _Uid} = call(user, add, [Domain,
+                                          #uce_user{id={none, Domain},
+                                                    name=Name,
+                                                    auth=Auth,
+                                                    credential=Credential,
+                                                    metadata=Metadata}]),
            success(created)
     end;
 
@@ -382,38 +382,41 @@ action(["user", "delete"], Args) ->
             error(missing_parameter);
         {[_, none], _} ->
             error(missing_parameter);
-        {[Domain, Name], _} ->
-            {ok, deleted} = call(user, delete, [Domain, {Name, Domain}]),
+        {[Domain, Id], _} ->
+            {ok, deleted} = call(user, delete, [Domain, {Id, Domain}]),
             success(deleted)
     end;
 
 
 action(["user", "get"], Args) ->
-    case getopt(["domain", "uid"], Args, [none, none]) of
+    case getopt(["domain", "name"], Args, [none, none]) of
         {[none, _], _} ->
             error(missing_parameter);
         {[_, none], _} ->
             error(missing_parameter);
         {[Domain, Name], _} ->
-            {ok, Record} = call(user, get, [Domain, {Name, Domain}]),
+            {ok, Record} = call(user, get, [Domain, Name]),
             display(json, Record, record_info(fields, uce_user));
         {[none], _} ->
             error(missing_parameter)
     end;
 
 action(["user", "update"], Args) ->
-    case getopt(["domain", "uid", "auth", "credential"], Args) of
-        {[none, _, _, _], _Metadata} ->
+    case getopt(["domain", "id", "name", "auth", "credential"], Args) of
+        {[none, _, _, _, _], _Metadata} ->
             error(missing_parameter);
-        {[_, none, _, _], _Metadata} ->
+        {[_, none, _, _, _], _Metadata} ->
             error(missing_parameter);
-        {[_, _, none, _], _Metadata} ->
+        {[_, _, none, _, _], _Metadata} ->
             error(missing_parameter);
-        {[_, _, _, none], _Metadata} ->
+        {[_, _, _, none, _], _Metadata} ->
             error(missing_parameter);
-        {[Domain, Name, Auth, Credential], Metadata} ->
+        {[_, _, _, _, none], _Metadata} ->
+            error(missing_parameter);
+        {[Domain, Id, Name, Auth, Credential], Metadata} ->
             {ok, updated} = call(user, update, [Domain,
-                                                #uce_user{id={Name, Domain},
+                                                #uce_user{id={Id, Domain},
+                                                          name=Name,
                                                           auth=Auth,
                                                           credential=Credential,
                                                           metadata=Metadata}]),

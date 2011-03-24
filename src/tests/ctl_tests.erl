@@ -173,15 +173,17 @@ test_meeting_list_missing_parameter() ->
 test_user_add(Domain) ->
     false = uce_user:exists(Domain, {"test.user@af83.com", Domain}),
     Params = [ {"domain", [Domain]}
-             , {"uid", ["test.user@af83.com"]}
+             , {"name", ["test.user@af83.com"]}
              , {"auth", ["password"]}
              , {"credential", ["pwd"]}
              ],
     ok = uce_ctl:action(["user", "add"], Params),
-    {ok, #uce_user{id={"test.user@af83.com", Domain},
+    {ok, #uce_user{id={_, Domain},
+                   name="test.user@af83.com",
                    auth="password",
                    credential="pwd",
-                   metadata=[]}} = uce_user:get(Domain, {"test.user@af83.com", Domain}).
+                   metadata=[]}} = uce_user:get(Domain, "test.user@af83.com").
+
 test_user_add_missing_parameter() ->
     Params = [ {"auth", ["password"]}
              , {"credential", ["pwd"]}
@@ -190,7 +192,7 @@ test_user_add_missing_parameter() ->
 
 test_user_get(Domain) ->
     Params = [ {"domain", [Domain]}
-             , {"uid", ["participant.user@af83.com"]}
+             , {"name", ["participant.user@af83.com"]}
              , {"auth", ["password"]}
              , {"credential", ["pwd"]}
              ],
@@ -201,81 +203,94 @@ test_user_get_missing_parameter() ->
     error = uce_ctl:action(["user", "get"], Params).
 test_user_get_not_found(Domain) ->
     Params = [ {"domain", [Domain]}
-             , {"uid", ["nobody@af83.com"]}
+             , {"name", ["nobody@af83.com"]}
              , {"auth", ["password"]}
              , {"credential", ["pwd"]}
              ],
     {error, not_found} = (catch uce_ctl:action(["user", "get"], Params)).
 
 test_user_update(Domain) ->
-    {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
+    io:format("Get : ~p~n", [uce_user:get(Domain, "anonymous.user@af83.com")]),
+    {ok, #uce_user{id={Uid, Domain},
+                   name="anonymous.user@af83.com",
                    auth="none"}} =
-        uce_user:get(Domain, {"anonymous.user@af83.com", Domain}),
-    Params = [ {"domain", [Domain]}
-             , {"uid", ["anonymous.user@af83.com"]}
+        uce_user:get(Domain, "anonymous.user@af83.com"),
+    Params = [ {"id", [Uid]}
+             , {"domain", [Domain]}
+             , {"name", ["anonymous.user@af83.com"]}
              , {"auth", ["password"]}
              , {"credential", ["pwd"]}
              ],
     ok = uce_ctl:action(["user", "update"], Params),
-    {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
+    io:format("Get : ~p~n", [uce_user:get(Domain, "anonymous.user@af83.com")]),
+    {ok, #uce_user{id={Uid, Domain},
+                   name="anonymous.user@af83.com",
                    auth="password",
                    credential="pwd"}} =
-        uce_user:get(Domain, {"anonymous.user@af83.com", Domain}).
+        uce_user:get(Domain, "anonymous.user@af83.com").
+
 test_user_update_missing_parameter() ->
     error = uce_ctl:action(["user", "update"], []).
+
 test_user_update_not_found(Domain) ->
     Params = [ {"domain", [Domain]}
-             , {"uid", ["nobody@af83.com"]}
+             , {"id", ["none"]}
+             , {"name", ["nobody@af83.com"]}
              , {"auth", ["password"]}
              , {"credential", ["passwd"]}
              ],
     {error, not_found} = (catch uce_ctl:action(["user", "update"], Params)).
 
 test_user_add_role(Domain) ->
-    {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
+    {ok, #uce_user{id={Uid, Domain},
+                   name="anonymous.user@af83.com",
                    auth="password",
                    credential="pwd",
                    roles=[]}} =
-        uce_user:get(Domain, {"anonymous.user@af83.com", Domain}),
+        uce_user:get(Domain, "anonymous.user@af83.com"),
     Params = [ {"domain", [Domain]}
-             , {"uid", ["anonymous.user@af83.com"]}
+             , {"uid", [Uid]}
              , {"role", ["root"]}
              , {"location", ["testmeeting"]}
              ],
     ok = uce_ctl:action(["user", "role", "add"], Params),
-    {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
+    {ok, #uce_user{id={Uid, Domain},
                    auth="password",
                    credential="pwd",
                    roles=[{"root","testmeeting"}]}} =
-        uce_user:get(Domain, {"anonymous.user@af83.com", Domain}).
+        uce_user:get(Domain, "anonymous.user@af83.com").
 
 test_user_delete_role(Domain) ->
-    {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
+    {ok, #uce_user{id={Uid, Domain},
+                   name="anonymous.user@af83.com",
                    auth="password",
                    credential="pwd",
                    roles=[{"root","testmeeting"}]}} =
-        uce_user:get(Domain, {"anonymous.user@af83.com", Domain}),
+        uce_user:get(Domain, "anonymous.user@af83.com"),
     Params = [ {"domain", [Domain]}
-             , {"uid", ["anonymous.user@af83.com"]}
+             , {"uid", [Uid]}
              , {"role", ["root"]}
              , {"location", ["testmeeting"]}
              ],
     ok = uce_ctl:action(["user", "role", "delete"], Params),
-    {ok, #uce_user{id={"anonymous.user@af83.com", Domain},
+    {ok, #uce_user{id={Uid, Domain},
                    auth="password",
                    credential="pwd",
                    roles=[]}} =
-        uce_user:get(Domain, {"anonymous.user@af83.com", Domain}).
+        uce_user:get(Domain, "anonymous.user@af83.com").
 
 test_user_delete(Domain) ->
-    {ok, #uce_user{id={"participant.user@af83.com", Domain},
+    {ok, #uce_user{id={Uid, Domain},
+                   name="participant.user@af83.com",
                    auth="password",
-                   credential="pwd"}} = uce_user:get(Domain, {"participant.user@af83.com", Domain}),
-    Params = [{"domain", [Domain]}, {"uid", ["participant.user@af83.com"]}],
+                   credential="pwd"}} = uce_user:get(Domain, "participant.user@af83.com"),
+    Params = [{"domain", [Domain]}, {"uid", [Uid]}],
     ok = uce_ctl:action(["user", "delete"], Params),
-    false = uce_user:exists(Domain, {"participant.user@af83.com", Domain}).
+    false = uce_user:exists(Domain, "participant.user@af83.com").
+
 test_user_delete_missing_parameter() ->
     error = uce_ctl:action(["user", "delete"], []).
+
 test_user_delete_not_found(Domain) ->
     Params = [ {"domain", [Domain]}
              , {"uid", ["nobody@af83.com"]}
@@ -340,9 +355,11 @@ test_role_add_access(Domain) ->
         uce_role:get(Domain, {"test_role_2", Domain}).
 
 test_role_check_access(Domain) ->
-    uce_user:addRole(Domain, {"anonymous.user@af83.com", Domain}, {"test_role_2", ""}),
+    {ok, Anonymous} = uce_user:get(Domain, "anonymous.user@af83.com"),
+    {AnonymousUid, _} = Anonymous#uce_user.id,
+    uce_user:addRole(Domain, {AnonymousUid, Domain}, {"test_role_2", ""}),
     Params = [ {"domain", [Domain]}
-               , {"uid", ["anonymous.user@af83.com"]}
+               , {"uid", [AnonymousUid]}
                , {"object", ["testobject"]}
                , {"action", ["testaction"]}
                , {"a", ["b"]}

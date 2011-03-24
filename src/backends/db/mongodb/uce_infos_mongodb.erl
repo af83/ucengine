@@ -25,6 +25,11 @@
 %% gen_uce_infos api
 -export([get/1, update/2]).
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list) -> {ok, #uce_infos{}} | {error, bad_parameters}
+%% @doc Get record #uce_infos for the given gomain
+%% @end
+%%--------------------------------------------------------------------
 get(Domain) ->
     case catch emongo:find_one(Domain, "uce_infos", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
@@ -38,6 +43,11 @@ get(Domain) ->
             throw({error, bad_parameters})
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, #uce_infos{}) -> {ok, updated} | {error, bad_parameters}
+%% @doc Update record #uce_infos for the given domain
+%% @end
+%%--------------------------------------------------------------------
 update(Domain, #uce_infos{} = Infos) ->
     case catch emongo:find_one(Domain, "uce_infos", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
@@ -65,11 +75,21 @@ update(Domain, #uce_infos{} = Infos) ->
             throw({error, bad_parameters})
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (#uce_infos{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @doc Convert #uce_infos{} record to valid collection
+%% @end
+%%--------------------------------------------------------------------
 to_collection(#uce_infos{domain=Domain,
                          metadata=Metadata}) ->
     [{"domain", Domain},
      {"metadata", Metadata}].
 
+%%--------------------------------------------------------------------
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_infos{} | {error, bad_parameters} 
+%% @doc Convert collection returned by mongodb to valid record #uce_infos{}
+%% @end
+%%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
 		   ["domain", "metadata"]) of

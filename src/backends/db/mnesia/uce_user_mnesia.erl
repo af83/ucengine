@@ -68,9 +68,11 @@ update(_Domain, #uce_user{} = User) ->
 list(Domain) ->
     case mnesia:transaction(fun() ->
                                     mnesia:match_object(#uce_user{id={'_', Domain},
+                                                                  name='_',
                                                                   auth='_',
                                                                   credential='_',
-                                                                  metadata='_'})
+                                                                  metadata='_',
+                                                                  roles='_'})
                             end) of
         {atomic, Records} ->
             {ok, Records};
@@ -78,7 +80,13 @@ list(Domain) ->
             throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
+get(_Domain, Id) when is_list(Id) -> 
+    case mnesia:dirty_match_object({uce_user, '_', Id, '_', '_', '_', '_'}) of
+        [] -> throw({error, not_found});
+        [Record] -> {ok, Record};
+        _ -> throw({error, bad_parameters})
+    end;
+get(_Domain, {_, _} = Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:read(uce_user, Id)
                             end) of

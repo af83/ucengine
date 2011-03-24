@@ -23,14 +23,27 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_user{id={_Name,Domain}=Id} = User) ->
-    case exists(Domain, Id) of
+add(Domain, #uce_user{id={none, none}} = User) ->
+    ?MODULE:add(Domain, User#uce_user{id={utils:random(), Domain}});
+add(Domain, #uce_user{id={none, Domain}} = User) ->
+    ?MODULE:add(Domain, User#uce_user{id={utils:random(), Domain}});
+add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
+    case exists(Domain, Name) of
         true ->
-            throw({error, conflict});
+            throw({error,conflict});
         false ->
-            apply(db:get(?MODULE, Domain), add, [Domain, User])
+            apply(db:get(?MODULE, Domain), add, [Domain, User]),
+            uce_role:add(Domain, #uce_role{id={UId, Domain}}),
+            uce_user:addRole(Domain, {UId, Domain}, {"default", []}),
+            uce_user:addRole(Domain, {UId, Domain}, {UId, []}),
+            {ok, UId}
     end.
 
+delete(Domain, Id) when is_list(Id) ->
+    case ?MODULE:get(Domain, Id) of
+        {error, _} -> throw({error, not_found});
+        {ok, User} -> apply(db:get(?MODULE, Domain), delete, [Domain, User#uce_user.id])
+    end;
 delete(Domain, Id) ->
     case exists(Domain, Id) of
         true ->
@@ -39,8 +52,8 @@ delete(Domain, Id) ->
             throw({error, not_found})
     end.
 
-update(Domain, #uce_user{id={_Name, Domain}=Id} = User) ->
-    case ?MODULE:exists(Domain, Id) of
+update(Domain, #uce_user{name=Name} = User) ->
+    case ?MODULE:exists(Domain, Name) of
         true ->
             apply(db:get(?MODULE, Domain), update, [Domain, User]);
         false ->
@@ -53,6 +66,12 @@ list(Domain) ->
 get(Domain, User) ->
     apply(db:get(?MODULE, Domain), get, [Domain, User]).
 
+exists(Domain, Id) when is_list(Id) ->
+    case catch ?MODULE:get(Domain, Id) of
+        {error, not_found} -> false;
+        {error, Reason} -> throw({error, Reason});
+        _ -> true
+    end;
 exists(Domain, Id) ->
     case Id of
         {"", _} -> % all

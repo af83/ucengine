@@ -211,7 +211,7 @@ test_update_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
 
 test_join(BaseUrl, {RootUid, RootSid}) ->
     Params = [ {"uid", RootUid}
-               , {"sid", RootSid}],
+             , {"sid", RootSid}],
     
     {struct, [{"result", "ok"}]} =
 	tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params),
@@ -219,6 +219,7 @@ test_join(BaseUrl, {RootUid, RootSid}) ->
     {struct, [{"result", {array, Array}}]} = 
         tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster/", Params),
     [{struct,[{"uid",RootUid},
+              {"name",_},
               {"domain",_},
               {"auth","password"},
               {"metadata",{struct,[]}}]}] = Array.

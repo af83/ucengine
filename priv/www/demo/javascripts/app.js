@@ -70,7 +70,7 @@ function sammyapp() {
     function buildHome(callback) {
         var c = {welcome         : 'Welcome To U.C.Engine by af83',
                  description     : infos.description,
-                 not_connected   : (client.uid == "anonymous" || !client.connected),
+                 not_connected   : (client.name == "anonymous" || !client.connected),
                  format: function() {
                      return function(text, render) {
                          var timestamp = render(text);
@@ -150,7 +150,7 @@ function sammyapp() {
         });
     });
     this.get('#/meeting/:name', function(context) {
-        if (!client.connected || client.uid == 'anonymous')
+        if (!client.connected || client.name == 'anonymous')
         {
             return this.redirect('#/');
         }

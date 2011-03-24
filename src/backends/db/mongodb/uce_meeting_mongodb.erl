@@ -30,6 +30,11 @@
 -include("uce.hrl").
 -include("mongodb.hrl").
 
+%%--------------------------------------------------------------------
+%% @spec (#uce_meeting{}) -> {ok, created} | {error, bad_parameters} 
+%% @doc Insert given record #uce_meeting{} in uce_meeting mongodb table
+%% @end
+%%--------------------------------------------------------------------
 add(#uce_meeting{id={_Name,Domain}} = Meeting) ->
     case catch emongo:insert_sync(Domain, "uce_meeting", to_collection(Meeting)) of
         {'EXIT', Reason} ->
@@ -39,6 +44,11 @@ add(#uce_meeting{id={_Name,Domain}} = Meeting) ->
             {ok, created}
     end.
 
+%%--------------------------------------------------------------------
+%% @spec ({Name::list, Domain::list}) -> {ok, deleted} | {error, bad_parameters} 
+%% @doc Delete record 
+%% @end
+%%--------------------------------------------------------------------
 delete({Name, Domain}) ->
     case emongo:delete_sync(Domain, "uce_meeting", [{"name", Name}, {"domain", Domain}]) of
         {'EXIT', Reason} ->
@@ -48,6 +58,11 @@ delete({Name, Domain}) ->
             {ok, deleted}
     end.
 
+%%--------------------------------------------------------------------
+%% @spec ({Name::list, Domain::list}) -> {ok, #uce_meeting{}} | {error, not_found}
+%% @doc Get record uce_meeting which correspond to the given name and domain
+%% @end
+%%--------------------------------------------------------------------
 get({Name, Domain}) ->
     case catch emongo:find_one(Domain, "uce_meeting",
                                [{"name", Name}, {"domain", Domain}]) of
@@ -60,6 +75,11 @@ get({Name, Domain}) ->
             throw({error, not_found})
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (#uce_meeting{}) -> {ok, updated} | {error, bad_parameters}
+%% @doc update #uce_meeting record 
+%% @end
+%%--------------------------------------------------------------------
 update(#uce_meeting{id={Name, Domain}} = Meeting) ->
     case catch emongo:update_sync(Domain, "uce_meeting",
                                   [{"name", Name}, {"domain", Domain}],
@@ -71,6 +91,11 @@ update(#uce_meeting{id={Name, Domain}} = Meeting) ->
             {ok, updated}
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list) -> {ok, [#uce_meeting{}, #uce_meeting{}, ..] = Meetings::list} | {error, bad_parameters} 
+%% @doc List all record #uce_meeting for the given domain
+%% @end
+%%--------------------------------------------------------------------
 list(Domain) ->
     case catch emongo:find_all(Domain, "uce_meeting", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
@@ -81,6 +106,11 @@ list(Domain) ->
     end.
 
 
+%%--------------------------------------------------------------------
+%% @spec (#uce_meeting{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @doc Convert #uce_meeting{} record to valid collection
+%% @end
+%%--------------------------------------------------------------------
 to_collection(#uce_meeting{id={Name, Domain},
                            start_date=Start,
                            end_date=End,
@@ -93,6 +123,11 @@ to_collection(#uce_meeting{id={Name, Domain},
      {"roster", Roster},
      {"metadata", Metadata}].
 
+%%--------------------------------------------------------------------
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_meeting{} | {error, bad_parameters} 
+%% @doc Convert collection returned by mongodb to valid record #uce_meeting{}
+%% @end
+%%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
 		   ["name", "domain", "start_date", "end_date", "roster", "metadata"]) of

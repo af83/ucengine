@@ -28,6 +28,11 @@
 -include("uce.hrl").
 -include("mongodb.hrl").
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, #uce_event{}) -> {ok, created} | {error, bad_parameters} 
+%% @doc Insert given record #uce_event{} in uce_event mongodb table
+%% @end
+%%--------------------------------------------------------------------
 add(Domain, #uce_event{} = Event) ->
     case catch emongo:insert_sync(Domain, "uce_event", to_collection(Event)) of
         {'EXIT', Reason} ->
@@ -37,6 +42,11 @@ add(Domain, #uce_event{} = Event) ->
             {ok, Event#uce_event.id}
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, {EventId::list, EventDomain::list}) -> {ok, #uce_event{}} | {error, bad_parameters} 
+%% @doc Retrieve record #uce_event{} for the given id and domain
+%% @end
+%%--------------------------------------------------------------------
 get(Domain, {EventId, EventDomain}) ->
     case catch emongo:find_one(Domain, "uce_event", [{"id", EventId}, {"domain", EventDomain}]) of
         {'EXIT', Reason} ->
@@ -48,6 +58,11 @@ get(Domain, {EventId, EventDomain}) ->
             throw({error, not_found})
     end.
 
+%%--------------------------------------------------------------------
+%% @spec ({list, Domain::list} = location, {FromId::list, FromDomain::list} = From::tuple, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list} 
+%% @doc Returns list of record #uce_event which are match with given keys
+%% @end
+%%--------------------------------------------------------------------
 list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
     SelectLocation = case Location of
                          {"", Domain} ->
@@ -98,6 +113,11 @@ list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
                                        [{orderby, [{"this.datetime", asc}]}])),
     {ok, Events}.
 
+%%--------------------------------------------------------------------
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_user{} | {error, bad_parameters} 
+%% @doc Convert collection returned by mongodb to valid record #uce_event{}
+%% @end
+%%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
               ["id", "domain", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
@@ -114,6 +134,11 @@ from_collection(Collection) ->
             throw({error, bad_parameters})
     end.
 
+%%--------------------------------------------------------------------
+%% @spec (#uce_event{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @doc Convert #uce_event{} record to valid collection
+%% @end
+%%--------------------------------------------------------------------
 to_collection(#uce_event{id={Id, Domain},
                          location={Meeting, _},
                          from={From, _},

@@ -21,20 +21,23 @@
 -include_lib("eunit/include/eunit.hrl").
 
 setup_events(Domain) ->
+    {ok, Participant} = uce_user:get(Domain, "participant.user@af83.com"),
     uce_event:add(Domain, #uce_event{ id={none, Domain},
                               type="test_event_1",
                               location={"testmeeting", Domain},
-                              from={"participant.user@af83.com", Domain}}),
+                              from=Participant#uce_user.id}),
     timer:sleep(10),
+    {ok, User2} = uce_user:get(Domain, "user_2"),
     uce_event:add(Domain, #uce_event{ id={none, Domain},
                               type="test_event_2",
                               location={"testmeeting", Domain},
-                              from={"user_2", Domain}}),
+                              from=User2#uce_user.id}),
     timer:sleep(10),
+    {ok, User3} = uce_user:get(Domain, "user_3"),
     uce_event:add(Domain, #uce_event{ id={none, Domain},
                               type="test_event_3",
                               location={"testmeeting", Domain},
-                              from={"user_3", Domain},
+                              from=User3#uce_user.id,
                               metadata=[{"description", "test"}]}),
 
     timer:sleep(2000),
@@ -115,7 +118,7 @@ test_search(BaseUrl, {RootUid, RootSid}) ->
                                                              , {"datetime", _}
                                                              , {"id", _}
                                                              , {"location", "testmeeting"}
-                                                             , {"from", "participant.user@af83.com"}
+                                                             , {"from", _} %%"participant.user@af83.com"}
                                                              , {"metadata", {struct, []}}
                                                             ]},
                                                    {struct, [{"type", "test_event_2"}
@@ -123,7 +126,7 @@ test_search(BaseUrl, {RootUid, RootSid}) ->
                                                              , {"datetime", _}
                                                              , {"id", _}
                                                              , {"location", "testmeeting"}
-                                                             , {"from", "user_2"}
+                                                             , {"from", _} %%"user_2"}
                                                              , {"metadata", {struct, []}}
                                                             ]},
                                                    {struct, [{"type", "test_event_3"}
@@ -131,7 +134,7 @@ test_search(BaseUrl, {RootUid, RootSid}) ->
                                                              , {"datetime", _}
                                                              , {"id", _}
                                                              , {"location", "testmeeting"}
-                                                             , {"from", "user_3"}
+                                                             , {"from", _} %%"user_3"}
                                                              , {"metadata", {struct, [{"description", "test"}]}}
                                                             ]}]
                                           },
@@ -147,7 +150,7 @@ test_search_first(BaseUrl, {RootUid, RootSid}) ->
                                                              , {"datetime", _}
                                                              , {"id", _}
                                                              , {"location", "testmeeting"}
-                                                             , {"from", "participant.user@af83.com"}
+                                                             , {"from", _} %%"participant.user@af83.com"}
                                                              , {"metadata", {struct, []}}
                                                             ]}]},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
@@ -163,7 +166,7 @@ test_search_second(BaseUrl, {RootUid, RootSid}) ->
                                                              , {"datetime", _}
                                                              , {"id", _}
                                                              , {"location", "testmeeting"}
-                                                             , {"from", "user_2"}
+                                                             , {"from", _} %%"user_2"}
                                                              , {"metadata", {struct, []}}
                                                             ]}]},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
@@ -179,7 +182,7 @@ test_search_second_page(BaseUrl, {RootUid, RootSid}) ->
                                                              , {"datetime", _}
                                                              , {"id", _}
                                                              , {"location", "testmeeting"}
-                                                             , {"from", "user_2"}
+                                                             , {"from", _} %%"user_2"}
                                                              , {"metadata", {struct, []}}
                                                             ]}]},
                           tests_utils:get(BaseUrl, "/search/event", Params)).
@@ -294,7 +297,7 @@ test_search_with_keywords_and_timestart_and_timeend(BaseUrl,
                                                                  , {"datetime", Datetime}
                                                                  , {"id", _}
                                                                  , {"location", "testmeeting"}
-                                                                 , {"from", "user_3"}
+                                                                 , {"from", _} %%"user_3"}
                                                                  , {"metadata", {struct, [{"description", "test"}]}}
                                                                 ]}|_]
                                                     },
@@ -324,7 +327,7 @@ test_search_with_type(BaseUrl, {RootUid, RootSid}, [_, _, #uce_event{datetime=Da
                                                                   , {"datetime", Datetime}
                                                                   , {"id", _}
                                                                   , {"location", "testmeeting"}
-                                                                  , {"from", "user_3"}
+                                                                  , {"from", _} %%"user_3"}
                                                                   , {"metadata", {struct, [{"description", "test"}]}}
                                                                  ]}|_]},
                            tests_utils:get(BaseUrl, "/search/event", ParamsGetStart)).
@@ -342,7 +345,7 @@ test_search_with_types(BaseUrl, {RootUid, RootSid}, [_, _, #uce_event{datetime=D
                                                                  , {"datetime", _}
                                                                  , {"id", _}
                                                                  , {"location", "testmeeting"}
-                                                                 , {"from", "participant.user@af83.com"}
+                                                                 , {"from", _} %%"participant.user@af83.com"}
                                                                  , {"metadata", {struct, []}}
                                                                 ]},
                                                        {struct, [{"type", "test_event_3"}
@@ -350,7 +353,7 @@ test_search_with_types(BaseUrl, {RootUid, RootSid}, [_, _, #uce_event{datetime=D
                                                                  , {"datetime", Datetime}
                                                                  , {"id", _}
                                                                  , {"location", "testmeeting"}
-                                                                 , {"from", "user_3"}
+                                                                 , {"from", _} %%"user_3"}
                                                                  , {"metadata", {struct, [{"description", "test"}]}}
                                                                 ]}|_]
                                                     },
@@ -371,7 +374,7 @@ test_search_with_type_and_timestart(BaseUrl, {RootUid, RootSid}, [_, _, #uce_eve
                                                                  , {"datetime", Datetime}
                                                                  , {"id", _}
                                                                  , {"location", "testmeeting"}
-                                                                 , {"from", "user_3"}
+                                                                 , {"from", _} %%"user_3"}
                                                                  , {"metadata", {struct, [{"description", "test"}]}}
                                                                 ]}|_]
                                                     },
@@ -393,7 +396,7 @@ test_search_with_type_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}, [_,
                                                                  , {"datetime", Datetime}
                                                                  , {"id", _}
                                                                  , {"location", "testmeeting"}
-                                                                 , {"from", "user_3"}
+                                                                 , {"from", _} %%"user_3"}
                                                                  , {"metadata", {struct, [{"description", "test"}]}}
                                                                 ]}|_]
                                                     },
@@ -414,7 +417,7 @@ test_search_with_type_and_timeend(BaseUrl, {RootUid, RootSid}, [_,
                                                                  , {"datetime", Datetime1}
                                                                  , {"id", _}
                                                                  , {"location", "testmeeting"}
-                                                                 , {"from", "user_2"}
+                                                                 , {"from", _} %%"user_2"}
                                                                  , {"metadata", {struct, []}}
                                                                 ]}]
                                                     },

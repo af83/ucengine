@@ -20,17 +20,17 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
+-include("mongodb.hrl").
+
 infos_test_() ->
     { setup
       , fun fixtures:setup/0
       , fun fixtures:teardown/1
-      , fun([_, BaseUrl, [Root, _Participant, Ugly]]) ->
+      , fun([_, BaseUrl, [Root, _Participant, Ugly|_]]) ->
                 [?_test(test_get(BaseUrl, Root)),
                  ?_test(test_update(BaseUrl, Root)),
                  ?_test(test_update_unauthorized(BaseUrl, Ugly))]
         end}.
-
--include("mongodb.hrl").
 
 test_get(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},

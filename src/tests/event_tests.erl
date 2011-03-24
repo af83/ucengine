@@ -23,23 +23,27 @@
 -compile(export_all).
 
 setup_events(Domain) ->
+    {ok, Participant} = uce_user:get(Domain, "participant.user@af83.com"),
+    {ok, User2} = uce_user:get(Domain, "user_2"),
+    {ok, User3} = uce_user:get(Domain, "user_3"),
+
     uce_event:add(Domain,
                   #uce_event{ id={none, Domain},
                               type="test_event_1",
                               location={"testmeeting", Domain},
-                              from={"participant.user@af83.com", Domain}}),
+                              from=Participant#uce_user.id}),
     timer:sleep(10),
     uce_event:add(Domain,
                   #uce_event{ id={none, Domain},
                               type="test_event_2",
                               location={"testmeeting", Domain},
-                              from={"user_2", Domain}}),
+                              from=User2#uce_user.id}),
     timer:sleep(10),
     uce_event:add(Domain,
                   #uce_event{ id={none, Domain},
                               type="test_event_3",
                               location={"testmeeting", Domain},
-                              from={"user_3", Domain},
+                              from=User3#uce_user.id,
                               metadata=[{"description", "test"}]}),
     ok.
 
@@ -159,10 +163,12 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "test_push_to_other"},
-              {"to", "participant.user@af83.com"},
+              {"to", ParticipantUid},
               {"metadata[description]", "pushed_event"}],
+    
     {struct, [{"result", Id}]} =
         tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+    
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params),
     ParamsRoot = [{"uid", RootUid},
@@ -181,7 +187,7 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
                          {"id", Id},
                          {"location", "testmeeting"},
                          {"from", RootUid},
-                         {"metadata", {struct, [{"description", "pushed_event"}]}}]}]}}]} =
+                         {"metadata", {struct, [{"description", "pushed_event"}]}}]}]}}|_]} =
         tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsParticipant).
 
 test_push_missing_type(BaseUrl, {RootUid, RootSid}) ->
@@ -227,7 +233,7 @@ test_get(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "participant.user@af83.com"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_2"}
@@ -235,7 +241,7 @@ test_get(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_2"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_3"}
@@ -243,7 +249,7 @@ test_get(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]}, tests_utils:get(BaseUrl, "/event/testmeeting", Params)).
@@ -351,7 +357,7 @@ test_get_with_keywords_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "participant.user@af83.com"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_2"}
@@ -359,7 +365,7 @@ test_get_with_keywords_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_2"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_3"}
@@ -367,7 +373,7 @@ test_get_with_keywords_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Third}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
@@ -384,7 +390,7 @@ test_get_with_keywords_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Third}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart),
@@ -406,7 +412,7 @@ test_get_with_type(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "participant.user@af83.com"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_2"}
@@ -414,7 +420,7 @@ test_get_with_type(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_2"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_3"}
@@ -422,7 +428,7 @@ test_get_with_type(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Third}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
@@ -435,7 +441,7 @@ test_get_with_type(BaseUrl, {RootUid, RootSid}) ->
                                                    , {"datetime", Third}
                                                    , {"id", _}
                                                    , {"location", "testmeeting"}
-                                                   , {"from", "user_3"}
+                                                   , {"from", _}
                                                    , {"metadata", {struct, [{"description", "test"}]}}
                                                   ]}|_]
                                       }}]},
@@ -450,7 +456,7 @@ test_get_with_types(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "participant.user@af83.com"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_2"}
@@ -458,7 +464,7 @@ test_get_with_types(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_2"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_3"}
@@ -466,7 +472,7 @@ test_get_with_types(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Third}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
@@ -479,7 +485,7 @@ test_get_with_types(BaseUrl, {RootUid, RootSid}) ->
                                                    , {"datetime", _}
                                                    , {"id", _}
                                                    , {"location", "testmeeting"}
-                                                   , {"from", "participant.user@af83.com"}
+                                                   , {"from", _}
                                                    , {"metadata", {struct, []}}
                                                   ]},
                                          {struct, [{"type", "test_event_3"}
@@ -487,7 +493,7 @@ test_get_with_types(BaseUrl, {RootUid, RootSid}) ->
                                                    , {"datetime", Third}
                                                    , {"id", _}
                                                    , {"location", "testmeeting"}
-                                                   , {"from", "user_3"}
+                                                   , {"from", _}
                                                    , {"metadata", {struct, [{"description", "test"}]}}
                                                   ]}|_]
                                       }}]},
@@ -502,7 +508,7 @@ test_get_with_type_and_timestart(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "participant.user@af83.com"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_2"}
@@ -510,7 +516,7 @@ test_get_with_type_and_timestart(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_2"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_3"}
@@ -518,7 +524,7 @@ test_get_with_type_and_timestart(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Third}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
@@ -532,7 +538,7 @@ test_get_with_type_and_timestart(BaseUrl, {RootUid, RootSid}) ->
                                                    , {"datetime", Third}
                                                    , {"id", _}
                                                    , {"location", "testmeeting"}
-                                                   , {"from", "user_3"}
+                                                   , {"from", _}
                                                    , {"metadata", {struct, [{"description", "test"}]}}
                                                   ]}|_]
                                       }}]},
@@ -547,7 +553,7 @@ test_get_with_type_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "participant.user@af83.com"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_2"}
@@ -555,7 +561,7 @@ test_get_with_type_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_2"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_3"}
@@ -563,7 +569,7 @@ test_get_with_type_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Third}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
@@ -578,7 +584,7 @@ test_get_with_type_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Third}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart),
@@ -599,7 +605,7 @@ test_get_with_type_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", _}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "participant.user@af83.com"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_2"}
@@ -607,7 +613,7 @@ test_get_with_type_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Second}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_2"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]},
                             {struct, [{"type", "test_event_3"}
@@ -615,7 +621,7 @@ test_get_with_type_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Third}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_3"}
+                                      , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting", Params),
@@ -629,7 +635,7 @@ test_get_with_type_and_timeend(BaseUrl, {RootUid, RootSid}) ->
                                       , {"datetime", Second}
                                       , {"id", _}
                                       , {"location", "testmeeting"}
-                                      , {"from", "user_2"}
+                                      , {"from", _}
                                       , {"metadata", {struct, []}}
                                      ]}|_]
                          }}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetStart).

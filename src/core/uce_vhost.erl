@@ -29,6 +29,7 @@
          handle_cast/2,
          handle_info/2,
          terminate/2]).
+-compile([export_all]).
 
 name(Domain) ->
     list_to_atom(lists:concat([?MODULE, "_", Domain])).
@@ -105,20 +106,13 @@ setup_root_role(Domain) ->
             throw({error, Reason})
     end.
 
-setup_root_user(Domain, User = #uce_user{id={Uid, Domain} = Id}) ->
-    case uce_user:exists(Domain, Id) of
-        true ->
-            {ok, deleted} = uce_user:delete(Domain, Id);
-        _ ->
-            ok
-    end,
-    {ok, created} = uce_user:add(Domain, User#uce_user{roles=[{"default", ""},
-                                                              {Uid, ""},
-                                                              {"root", ""}]}).
+setup_root_user(Domain, #uce_user{} = User) ->
+    {ok, UId} = uce_user:add(Domain, User),
+    uce_user:addRole(Domain, {UId, Domain}, {"root", []}).
 
 setup_bricks(Domain) ->
     lists:foreach(fun({Name, Token}) ->
-                          setup_root_user(Domain, #uce_user{id={Name, Domain},
+                          catch setup_root_user(Domain, #uce_user{name=Name,
                                                             auth="token",
                                                             credential=Token,
                                                             metadata=[]})
@@ -132,7 +126,7 @@ setup_admin(Domain) ->
     Auth = proplists:get_value(auth, Admin),
     Credential = proplists:get_value(credential, Admin),
     Metadata = proplists:get_value(metadata, Admin, []),
-    setup_root_user(Domain, #uce_user{id={Uid, Domain},
+    catch setup_root_user(Domain, #uce_user{name=Uid,
                                       auth=Auth,
                                       credential=Credential,
                                       metadata=Metadata}).
