@@ -20,7 +20,7 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
-user_test_() ->
+role_test_() ->
     { setup
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
