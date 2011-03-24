@@ -12,6 +12,12 @@ $(document).ready(function() {
             return {
                 end: (Date.now() - 60 * 1000)
             };
+        },
+        last_24: function() {
+            return {
+                start: Date.now() - 60 * 60 * 60 * 24 * 1000,
+                end: Date.now()
+            };
         }
     };
 
