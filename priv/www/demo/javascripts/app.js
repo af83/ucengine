@@ -230,7 +230,7 @@ function sammyapp() {
             .attr('class', 'signout')
             .appendTo('header .page');
         var span = $('<span>')
-            .text(client.uid)
+            .text(client.name)
             .appendTo(p);
         var a = $('<a>')
             .attr('href', '#/user/logout')
