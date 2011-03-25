@@ -87,7 +87,7 @@ test_presence_get(BaseUrl) ->
     Params = [{"metadata[nickname]", "PasswordParticipantGet"},
               {"name", Uid},
               {"credential", "pwd"}],
-    {struct,[{"result", {struct, [{"id", _},
+    {struct,[{"result", {struct, [{"uid", _},
                                   {"sid",Sid}]}}]} = tests_utils:post(BaseUrl, "/presence/", Params),
 
     {struct,[{"result",
@@ -107,7 +107,7 @@ test_presence_close(BaseUrl) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
               {"name", Uid},
               {"credential", "pwd"}],
-    {struct,[{"result", {struct, [{"id", Id},
+    {struct,[{"result", {struct, [{"uid", Id},
                                   {"sid",Sid}]}}]} = tests_utils:post(BaseUrl, "/presence/", Params),
 
     ParamsDelete = [{"uid", Id},
@@ -125,7 +125,7 @@ test_presence_close_not_foundsid(BaseUrl) ->
     Params = [{"metadata[nickname]", "PasswordParticipant"},
               {"name", "participant.user@af83.com"},
               {"credential", "pwd"}],
-    {struct,[{"result", {struct, [{"id", Id},
+    {struct,[{"result", {struct, [{"uid", Id},
                                   {"sid",Sid}]}}]} = tests_utils:post(BaseUrl, "/presence/", Params),
 
     ParamsDelete = [{"uid", Id},
@@ -140,7 +140,7 @@ test_presence_timeout(BaseUrl) ->
     Params = [{"name", "participant.user@af83.com"},
               {"timeout", integer_to_list(DefaultTimeout)},
               {"credential", "pwd"}],
-    {struct,[{"result", {struct, [{"id", Uid},
+    {struct,[{"result", {struct, [{"uid", Uid},
                                   {"sid",Sid}]}}]} =
         tests_utils:post(BaseUrl, "/presence/", Params),
     timer:sleep(DefaultTimeout * 2000),
