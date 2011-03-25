@@ -57,8 +57,11 @@ setup_meetings(Domain) ->
 
 setup_users(Domain) ->
     catch uce_role:add(Domain, #uce_role{id={"default", Domain},
-                                              acl=[#uce_access{action="add", object="presence"},
-                                                   #uce_access{action="delete", object="presence"}]}),
+                                         acl=[#uce_access{action="add", object="presence"},
+                                              #uce_access{action="delete", object="presence"}]}),
+
+    catch uce_role:add(Domain, #uce_role{id={"root", Domain},
+                                         acl=[#uce_access{action="all", object="all"}]}),
 
     catch uce_role:add(Domain, #uce_role{id={"participant", Domain},
                                          acl=[#uce_access{action="add", object="presence"},
@@ -78,42 +81,54 @@ setup_users(Domain) ->
                                          acl=[#uce_access{action="add", object="presence"},
                                               #uce_access{action="delete", object="presence"}]}),
 
-    {ok, Id} = uce_user:add(Domain, #uce_user{name="participant.user@af83.com",
-                                              auth="password",
-                                              credential="pwd"}),
+    ParticipantUid = "participant.user@af83.com",
+    ParticipantId = {ParticipantUid, Domain},
+    catch uce_user:add(Domain, #uce_user{id=ParticipantId,
+                                         name=ParticipantUid,
+                                         auth="password",
+                                         credential="pwd"}),
 
-    uce_user:addRole(Domain, {Id, Domain}, {"participant", ""}),
-    uce_user:addRole(Domain, {Id, Domain}, {"testrole_location", "testmeeting"}),
-    uce_user:addRole(Domain, {Id, Domain}, {"testrole_without_location", ""}),
+    uce_user:addRole(Domain, ParticipantId, {"participant", ""}),
+    uce_user:addRole(Domain, ParticipantId, {"testrole_location", "testmeeting"}),
+    uce_user:addRole(Domain, ParticipantId, {"testrole_without_location", ""}),
+    uce_user:addRole(Domain, ParticipantId, {"participant", ""}),
 
-    {ok, _Id} = uce_user:add(Domain, #uce_user{name="anonymous.user@af83.com",
-                                               auth="none"}),
+    AnonymousUid = "anonymous.user@af83.com",
+    AnonymousId = {AnonymousUid, Domain},
+    catch uce_user:add(Domain, #uce_user{id=AnonymousId,
+                                         name=AnonymousUid,
+                                         auth="none",
+                                         roles=[]}),
+    uce_user:addRole(Domain, AnonymousId, {"anonymous", ""}),
 
-    uce_user:add(Domain, #uce_user{name="token.user@af83.com",
-                                   auth="token",
-                                   credential="4444"}),
+    catch uce_user:add(Domain,
+                       #uce_user{id={"token.user@af83.com", Domain},
+                                 name="token.user@af83.com",
+                                 auth="token",
+                                 credential="4444"}),
 
-    uce_user:add(Domain, #uce_user{name="user_2",
-                                   auth="password",
-                                   credential="pwd"}),
+    catch uce_user:add(Domain,
+                       #uce_user{id={"user_2", Domain},
+                                 name="user_2",
+                                 auth="password",
+                                 credential="pwd"}),
 
-    uce_user:add(Domain, #uce_user{name="user_3",
-                                   auth="password",
-                                   credential="pwd"}),
+    catch uce_user:add(Domain,
+                       #uce_user{id={"user_3", Domain},
+                                 name="user_3",
+                                 auth="password",
+                                 credential="pwd"}),
 
     ok.
 
 setup_testers(Domain) ->
-    % Move the users creation in setup_users
-
-    catch uce_role:add(Domain, #uce_role{id={"root", Domain},
-                                         acl=[#uce_access{action="all", object="all"}]}),
-    
+    % TODO: Move the users creation in setup_users
     {ok, RootUid} = uce_user:add(Domain,
                                  #uce_user{name="root.user@af83.com",
                                            auth="password",
                                            credential="pwd"}),
-    uce_user:addRole(Domain, {RootUid, Domain}, {"root", ""}),
+
+    catch uce_role:addAccess(Domain, {RootUid, Domain}, #uce_access{action="all", object="all"}),
 
     RootId = {RootUid, Domain},
     {ok, {RootSid, _Domain}} = uce_presence:add(Domain,
@@ -132,11 +147,11 @@ setup_testers(Domain) ->
                                                                      auth="password",
                                                                      metadata=[]}),
 
-
     {ok, UglyUid} = uce_user:add(Domain,
                                  #uce_user{name="ugly.user@af83.com",
                                            auth="password",
-                                           credential="pwd"}),
+                                           credential="pwd",
+                                           roles=[]}),
     UglyId = {UglyUid, Domain},
     uce_user:deleteRole(Domain, UglyId, {"default", ""}),
 
