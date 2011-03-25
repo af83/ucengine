@@ -32,10 +32,11 @@ add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
         true ->
             throw({error,conflict});
         false ->
-            apply(db:get(?MODULE, Domain), add, [Domain, User]),
             uce_role:add(Domain, #uce_role{id={UId, Domain}}),
-            uce_user:addRole(Domain, {UId, Domain}, {"default", []}),
-            uce_user:addRole(Domain, {UId, Domain}, {UId, []}),
+
+            DefaultRoles = [{"default", ""}, {UId, ""}],
+            apply(db:get(?MODULE, Domain), add,
+                  [Domain, User#uce_user{roles=User#uce_user.roles ++ DefaultRoles}]),
             {ok, UId}
     end.
 
@@ -44,10 +45,16 @@ delete(Domain, Id) when is_list(Id) ->
         {error, _} -> throw({error, not_found});
         {ok, User} -> apply(db:get(?MODULE, Domain), delete, [Domain, User#uce_user.id])
     end;
-delete(Domain, Id) ->
+delete(Domain, {Uid, _} = Id) ->
     case exists(Domain, Id) of
         true ->
-            apply(db:get(?MODULE, Domain), delete, [Domain, Id]);
+            % delete the default role
+            case catch uce_role:delete(Domain, {Uid, Domain}) of
+                {error, Reason} when Reason /= not_found ->
+                    throw({error, Reason});
+                _ ->
+                    apply(db:get(?MODULE, Domain), delete, [Domain, Id])
+            end;
         false ->
             throw({error, not_found})
     end.
@@ -57,8 +64,8 @@ update(Domain, #uce_user{name=Name} = User) ->
         true ->
             apply(db:get(?MODULE, Domain), update, [Domain, User]);
         false ->
-            throw({error, not_found})
-    end.
+            throw({error, not_found}) 
+   end.
 
 list(Domain) ->
     apply(db:get(?MODULE, Domain), list, [Domain]).
