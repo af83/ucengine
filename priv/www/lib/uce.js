@@ -80,7 +80,7 @@
                         callback(err, result, xhr);
                     } else {
                         uid = result.result.uid;
-                        var p = {"user": uid, "id": result.result.sid};
+                        var p = {"user": uid, "id": result.result.sid, "name": name};
                         that.attachPresence(p);
                         callback(err, p, xhr);
                     }
@@ -127,6 +127,7 @@
                 _presence = p;
                 this.connected = true;
                 this.uid = p.user;
+                this.name = p.name;
                 return this;
             },
             /**
