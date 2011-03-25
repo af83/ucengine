@@ -75,6 +75,7 @@ setup_db(Domain) ->
     DBBackendModule:init(Domain, DBConfig).
 
 setup_roles(Domain) ->
+    uce_role:add(Domain, #uce_role{id={"default", Domain}, acl=[]}),
     setup_role(Domain, config:get(Domain, roles)).
 
 setup_role(_, undefined) ->
@@ -90,6 +91,7 @@ setup_role(Domain, [{Name, ConfigACL}]) ->
         {ok, created} ->
             ok;
         {error, conflict} ->
+            uce_role:update(Domain, #uce_role{id={Name, Domain}, acl=ACL}),
             ok;
         {error, Reason} ->
             throw({error, Reason})
