@@ -108,14 +108,13 @@ get(Domain, [Id], [Uid, Sid], _) ->
 
 update(Domain, [Id], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", Domain}, "user", "update", [{"user", Id},
-                                                                                           {"auth", Auth}]),
-    {ok, User} = uce_user:get(Domain, {Id, Domain}),
-    {ok, updated} = uce_user:update(Domain, User#uce_user{name=Name,
-                                                          auth=Auth,
-                                                          credential=Credential,
-                                                          metadata=Metadata}),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", Id},
+                                                                                       {"auth", Auth}]),
+    {ok, Record} = uce_user:get(Domain, {Id, Domain}),
+    {ok, updated} = uce_user:update(Domain, Record#uce_user{name=Name,
+                                                            auth=Auth,
+                                                            credential=Credential,
+                                                            metadata=Metadata}),
 
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id={none, Domain},
