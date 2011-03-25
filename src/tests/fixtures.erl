@@ -28,8 +28,8 @@ setup() ->
     {Domain, _Config} = hd(Hosts),
     Port = config:get(port),
     setup_meetings(Domain),
-    setup_users(Domain),
-    [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/", setup_testers(Domain)].
+    UsersUid = setup_users(Domain),
+    [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/", setup_testers(Domain, UsersUid)].
 
 teardown([Domain, _, _Testers]) ->
     apply(list_to_atom(lists:concat([config:get(Domain, db), "_db"])), drop, []),
@@ -119,50 +119,39 @@ setup_users(Domain) ->
                                  auth="password",
                                  credential="pwd"}),
 
-    ok.
-
-setup_testers(Domain) ->
-    % TODO: Move the users creation in setup_users
     {ok, RootUid} = uce_user:add(Domain,
                                  #uce_user{name="root.user@af83.com",
                                            auth="password",
                                            credential="pwd"}),
-
     catch uce_role:addAccess(Domain, {RootUid, Domain}, #uce_access{action="all", object="all"}),
-
-    RootId = {RootUid, Domain},
-    {ok, {RootSid, _Domain}} = uce_presence:add(Domain,
-                                                 #uce_presence{id={none, Domain},
-                                                               user=RootId,
-                                                               auth="password",
-                                                               metadata=[]}),
-
-    {ok, Participant} = uce_user:get(Domain, "participant.user@af83.com"),
-    
-    {ParticipantUid, _} = Participant#uce_user.id,
-    
-    {ok, {ParticipantSid, _Domain}} = uce_presence:add(Domain,
-                                                       #uce_presence{id={none, Domain},
-                                                                     user=Participant#uce_user.id,
-                                                                     auth="password",
-                                                                     metadata=[]}),
 
     {ok, UglyUid} = uce_user:add(Domain,
                                  #uce_user{name="ugly.user@af83.com",
                                            auth="password",
                                            credential="pwd",
                                            roles=[]}),
-    UglyId = {UglyUid, Domain},
-    uce_user:deleteRole(Domain, UglyId, {"default", ""}),
+    uce_user:deleteRole(Domain, {UglyUid, Domain}, {"default", ""}),
 
-    {ok, {UglySid, _Domain}} = uce_presence:add(Domain,
+    {RootUid, ParticipantUid, UglyUid, AnonymousUid}.
+
+setup_testers(Domain, {RootUid, ParticipantUid, UglyUid, AnonymousUid}) ->
+    {ok, {RootSid, _Domain}} = uce_presence:add(Domain,
                                                  #uce_presence{id={none, Domain},
-                                                               user=UglyId,
+                                                               user={RootUid, Domain},
                                                                auth="password",
                                                                metadata=[]}),
 
-    {ok, Anonymous} = uce_user:get(Domain, "anonymous.user@af83.com"),
-    {AnonymousUid, _} = Anonymous#uce_user.id,
+    {ok, {ParticipantSid, _Domain}} = uce_presence:add(Domain,
+                                                       #uce_presence{id={none, Domain},
+                                                                     user={ParticipantUid, Domain},
+                                                                     auth="password",
+                                                                     metadata=[]}),
+
+    {ok, {UglySid, _Domain}} = uce_presence:add(Domain,
+                                                 #uce_presence{id={none, Domain},
+                                                               user={UglyUid, Domain},
+                                                               auth="password",
+                                                               metadata=[]}),
 
     [{RootUid, RootSid}, {ParticipantUid, ParticipantSid}, {UglyUid, UglySid}, {AnonymousUid, ""}].
 
