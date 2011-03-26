@@ -38,7 +38,6 @@ start(_, _) ->
     application:start(crypto),
     mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
-    application:start(inets),
     ibrowse:start(),
 
     Arguments = init:get_arguments(),
