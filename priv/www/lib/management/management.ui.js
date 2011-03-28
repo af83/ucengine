@@ -34,7 +34,7 @@ $.uce.widget("management", {
                 .attr('title', this.options.title)
                 .button({
                     text: false,
-                    icons: {primary: "ui-icon-comment"}
+                    icons: {primary: "ui-icon-note"}
                 }).click(function() {
                     that.element.effect('bounce');
                     $(window).scrollTop(that.element.offset().top);
