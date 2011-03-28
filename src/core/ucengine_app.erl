@@ -15,7 +15,7 @@
 %%  You should have received a copy of the GNU Affero General Public License
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
--module(uce_app).
+-module(ucengine_app).
 -author('victor.goya@af83.com').
 
 -behaviour(application).
@@ -32,7 +32,7 @@
 
 
 start() ->
-    application:start(uce).
+    application:start(ucengine).
 
 start(_, _) ->
     application:start(crypto),

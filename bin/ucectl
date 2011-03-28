@@ -17,7 +17,7 @@ fi
 
 NAME=-name
 
-ERL_ARGS="+K true +P 65535 +A 2 -pa ebin -run uce_app  \
+ERL_ARGS="+K true +P 65535 +A 2 -pa ebin -run ucengine_app  \
           -mnesia dir ${MNESIA_DIR} -boot start_sasl  \
           -sasl sasl_error_logger {file,\"${LOG_DIR}/ucengine-sasl.log\"} \
           -kernel error_logger {file,\"${LOG_DIR}/ucengine.log\"} \
