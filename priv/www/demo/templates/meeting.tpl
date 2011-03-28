@@ -28,6 +28,7 @@
       <article id="fileupload" />
       <article id="filesharing" />
       <article id="chat" />
+      <article id="management" />
       <article id="whiteboard" />
     </section>
 

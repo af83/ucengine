@@ -389,6 +389,12 @@ $.sammy("#meeting", function() {
                                     dock: '#chat-dock',
                                     mode: 'reduced'});
 
+        addWidget("#management", 'management', {ucemeeting: meeting,
+                                                title: "Meeting Facilitation",
+                                                dock: '#management-dock',
+                                                mode: 'reduced',
+                                                fixed: true});
+
         addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
                                                 dock         : '#whiteboard-dock',
                                                 width        : 574,
