@@ -51,19 +51,16 @@ init([]) ->
 
 route(_, _, []) ->
     {error, not_found};
-route(Method, Path, [{PathRoute, #uce_route{method=RouteMethod, callback=Handler}}|Routes]) ->
-    if
-        Method == RouteMethod ->
-            case re:run(Path, PathRoute, [{capture, all, list}]) of
-                {match, Match} ->
-                    [_|Tail] = Match,
-                    {ok, Tail, Handler};
-                _ ->
-                    route(Method, Path, Routes)
-            end;
-        true ->
+route(Method, Path, [{PathRoute, #uce_route{method=Method, callback=Handler}}|Routes]) ->
+    case re:run(Path, PathRoute, [{capture, all, list}]) of
+        {match, Match} ->
+            [_|Tail] = Match,
+            {ok, Tail, Handler};
+        _ ->
             route(Method, Path, Routes)
-    end.
+    end;
+route(Method, Path, [{_PathRoute, #uce_route{method=_RouteMethod, callback=_Handler}}|Routes]) ->
+    route(Method, Path, Routes).
 
 handle_call({get, Method, Path}, _From, DB) ->
     {reply, route(Method, Path, ets:tab2list(DB)), DB};
