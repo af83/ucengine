@@ -4,7 +4,8 @@ $.uce.widget("chat", {
         title: "Conversations",
         lang: "fr",
         langs: ["fr", "en", "it"],
-        mode: 'reduced'
+        mode: 'reduced',
+        buttons: {}
     },
     // ucengine events
     meetingsEvents: {
@@ -118,7 +119,7 @@ $.uce.widget("chat", {
         /* create space for all hashtags */
         this._addHashtag('all');
 
-        var rightButtons = [flags].concat(this.options.buttons.right);
+        var rightButtons = [flags].concat(this.options.buttons.right || []);
         this._addHeader(this.options.title, {left: this.options.buttons.left,
                                              right: rightButtons});
 
