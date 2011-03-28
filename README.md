@@ -2,9 +2,14 @@
 
 U.C.Engine (Unified Collaboration Engine), is a publish/subscribe server with persistence.
 
-## Quick Install
+## Build
 
-    $> make && make run
+    $> make rel
+
+## Starting U.C.Engine
+
+    $> cd rel/ucengine
+    $> bin/ucengine start
 
 ## More docs
 
