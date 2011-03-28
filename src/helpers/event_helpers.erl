@@ -41,8 +41,16 @@ to_json(#uce_event{id={Id, Domain},
                    location=Location,
                    from={From, _},
                    type=Type,
+                   to=To,
                    parent=Parent,
                    metadata=Metadata}) ->
+    JSONTo = case To of
+                 {"", _} ->
+                     [];
+                 {ToId, _} ->
+                     [{to, ToId}]
+             end,
+
     JSONLocation = case Location of
                        {"", _} ->
                            [];
@@ -61,6 +69,7 @@ to_json(#uce_event{id={Id, Domain},
       {datetime, Datetime},
       {id, Id}] ++
          JSONLocation ++
+         JSONTo ++
          [{from, From}] ++
          JSONParent ++
          [{metadata, {struct, Metadata}}]};

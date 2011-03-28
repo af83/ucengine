@@ -155,6 +155,7 @@ test_push_to_me(BaseUrl, {RootUid, RootSid}) ->
                          {"datetime", _},
                          {"id", Id},
                          {"location", "testmeeting"},
+                         {"to", RootUid},
                          {"from", RootUid},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
                    tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params).
@@ -186,6 +187,7 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
                          {"datetime", _},
                          {"id", Id},
                          {"location", "testmeeting"},
+                         {"to", "participant.user@af83.com"},
                          {"from", RootUid},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}]}}|_]} =
         tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsParticipant).
