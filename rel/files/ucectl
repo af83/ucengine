@@ -1,0 +1,92 @@
+#!/bin/bash
+# -*- tab-width:4;indent-tabs-mode:nil -*-
+# ex: ts=4 sw=4 et
+
+RUNNER_SCRIPT_DIR=$(cd ${0%/*} && pwd)
+
+RUNNER_BASE_DIR=${RUNNER_SCRIPT_DIR%/*}
+RUNNER_ETC_DIR=$RUNNER_BASE_DIR/etc
+RUNNER_LOG_DIR=$RUNNER_BASE_DIR/log
+PIPE_DIR=/tmp/$RUNNER_BASE_DIR/
+RUNNER_USER=
+
+# Make sure this script is running as the appropriate user
+if [ ! -z "$RUNNER_USER" ] && [ `whoami` != "$RUNNER_USER" ]; then
+    exec sudo -u $RUNNER_USER -i $0 $@
+fi
+
+# Make sure CWD is set to runner base dir
+cd $RUNNER_BASE_DIR
+
+# Make sure log directory exists
+mkdir -p $RUNNER_LOG_DIR
+
+# Extract the target node name from node.args
+NAME_ARG=`grep -e '-[s]*name' $RUNNER_ETC_DIR/vm.args`
+if [ -z "$NAME_ARG" ]; then
+    echo "vm.args needs to have either -name or -sname parameter."
+    exit 1
+fi
+
+# Learn how to specify node name for connection from remote nodes
+echo "$NAME_ARG" | grep '^-sname' > /dev/null 2>&1
+if [ "X$?" = "X0" ]; then
+    NAME_PARAM="-sname"
+    NAME_HOST=""
+else
+    NAME_PARAM="-name"
+    echo "$NAME_ARG" | grep '@.*' > /dev/null 2>&1
+    if [ "X$?" = "X0" ]; then
+        NAME_HOST=`echo "${NAME_ARG}" | sed -e 's/.*\(@.*\)$/\1/'`
+    else
+        NAME_HOST=""
+    fi
+fi
+
+# Extract the target cookie
+COOKIE_ARG=`grep -e '-setcookie' $RUNNER_ETC_DIR/vm.args`
+if [ -z "$COOKIE_ARG" ]; then
+    echo "vm.args needs to have a -setcookie parameter."
+    exit 1
+fi
+
+# Identify the script name
+SCRIPT=`basename $0`
+
+# Parse out release and erts info
+START_ERL=`cat $RUNNER_BASE_DIR/releases/start_erl.data`
+ERTS_VSN=${START_ERL% *}
+APP_VSN=${START_ERL#* }
+
+# Add ERTS bin dir to our path
+ERTS_PATH=$RUNNER_BASE_DIR/erts-$ERTS_VSN/bin
+
+# Setup command to control the node
+NODETOOL="$ERTS_PATH/escript $ERTS_PATH/nodetool $NAME_ARG $COOKIE_ARG"
+
+internal_cmd()
+{
+    $ERTS_PATH/erl -noshell $NAME_PARAM uce_ctl$NAME_HOST $COOKIE_ARG \
+                   -s uce_ctl       \
+                   -object "$1"     \
+                   -action "$2"     \
+                   -dummy           \
+                   "$@"
+}
+
+# Check the first argument for instructions
+case "$1" in
+    --help) internal_cmd $@;;
+    infos) internal_cmd $@;;
+    meeting) internal_cmd $@;;
+    demo) internal_cmd $@;;
+    time) internal_cmd $@;;
+    user) internal_cmd $@;;
+    acl) internal_cmd $@;;
+    *)
+        echo "Usage: $SCRIPT {infos|meeting|restart|reboot|ping|console|attach}"
+        exit 1
+        ;;
+esac
+
+exit 0
