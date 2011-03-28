@@ -38,10 +38,10 @@ sort(List, Order) ->
     end.
 
 paginate(List, Start, Count) ->
-    Max = if
-              Count == infinity ->
+    Max = case Count of
+              infinity ->
                   length(List);
-              true ->
+              _ ->
                   Count
           end,
     if
@@ -59,6 +59,7 @@ paginate_test() ->
     ?assertEqual(lists:seq(0, 9), paginate(List, 0, 10)),
     ?assertEqual(lists:seq(0, 4), paginate(List, 0, 5)),
     ?assertEqual(lists:seq(2, 11), paginate(List, 2, 10)),
-    ?assertEqual(lists:seq(5, 9), paginate(List, 5, 5)).
+    ?assertEqual(lists:seq(5, 9), paginate(List, 5, 5)),
+    ?assertEqual(lists:seq(0, 12), paginate(List, 0, infinity)).
 
 -endif.
