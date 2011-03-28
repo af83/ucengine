@@ -1,7 +1,7 @@
-{application, uce, [
-	      {description, "Secure event recorder"},
-	      {vsn, "0.5"},
-	      {registered, []},
-	      {mod, {uce_app, []}},
-	      {applications, [kernel, stdlib]}
-]}.
+{application, ucengine, [
+                    {description, "Secure event recorder"},
+                    {vsn, "0.5"},
+                    {registered, []},
+                    {mod, {ucengine_app, []}},
+                    {applications, [kernel, stdlib]}
+                   ]}.
