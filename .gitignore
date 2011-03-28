@@ -5,3 +5,4 @@ ucengine.access
 data/*
 deps/*
 .eunit
+rel/ucengine/
