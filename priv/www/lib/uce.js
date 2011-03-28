@@ -474,14 +474,14 @@
                 }
             },
             user: {
-                register: function(uid, auth, credential, metadata, callback) {
-                    post("/user/", $.extend({}, {uid: uid, auth: auth, credential:credential, metadata:metadata}), function(err, result, xhr) {
+                register: function(name, auth, credential, metadata, callback) {
+                    post("/user/", $.extend({}, {name: name, auth: auth, credential:credential, metadata:metadata}), function(err, result, xhr) {
                         callback(err, result, xhr);
                     });
                     return this;
                 },
-                registerWithPassword: function(uid, credential, metadata, callback) {
-                    return this.register(uid, "password", credential, metadata, callback);
+                registerWithPassword: function(name, credential, metadata, callback) {
+                    return this.register(name, "password", credential, metadata, callback);
                 },
                 get: function(uid, callback) {
                     get("/user/"+ uid, $.extend({}, {'uid': _presence.user,
