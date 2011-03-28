@@ -33,17 +33,14 @@ add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Eve
     ToExists = uce_user:exists(Domain, To),
     ParentExists = uce_event:exists(Domain, {Parent, Domain}),
 
-    if
-        LocationExists == true,
-        FromExists == true,
-        ToExists == true,
-        ParentExists == true ->
+    case {LocationExists, FromExists, ToExists, ParentExists} of
+        {true, true, true, true} ->
             {ok, Id} = apply(db:get(?MODULE, Domain), add, [Domain, Event]),
-            catch ?PUBSUB_MODULE:publish(Event),
-            catch ?SEARCH_MODULE:add(Event),
-            catch uce_acl:trigger(Domain, Event),
+            ?PUBSUB_MODULE:publish(Event),
+            ?SEARCH_MODULE:add(Event),
+            uce_acl:trigger(Domain, Event),
             {ok, Id};
-        true ->
+        {_Bool1, _Bool2, _Bool3, _Bool4} ->
             throw({error, not_found})
     end.
 
