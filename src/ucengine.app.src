@@ -1,5 +1,5 @@
 {application, ucengine, [
-                    {description, "Secure event recorder"},
+                    {description, "Publish/Subscribe server with persistence."},
                     {vsn, "0.5"},
                     {registered, []},
                     {mod, {ucengine_app, []}},
