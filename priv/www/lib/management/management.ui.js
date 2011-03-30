@@ -91,17 +91,30 @@ $.uce.widget("management", {
         }
         this._updateRoster();
     },
-
+    
     /**
      * Internal functions
      */
     _updateRoster: function() {
         this._roster.empty();
-        for (var i = 0; i < this._state.roster.length; i++) {
-            var user = $('<li>')
-                .text(this._state.roster[i]);
-            user.appendTo(this._roster);
-        }
+        var meeting = this.options.ucemeeting;
+        var that = this;
+        $(this._state.roster).each(function(i, user) {
+            $('<li>')
+                .text(user)
+                .click(function() {
+                    // Don't chat with yourself, you idiot!
+                    console.log(that.options.me, user);
+                    if (that.options.me == user) {
+                        return;
+                    }
+                    meeting.trigger({type: 'chat.private.start',
+                                     from: 'internal',
+                                     metadata: {
+                                         interlocutor: user
+                                     }});
+                }).appendTo(that._roster);
+        });
     },
 
     _updateNotifications: function() {

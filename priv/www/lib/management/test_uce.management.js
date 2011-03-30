@@ -35,7 +35,7 @@ test("destroy delete all elements", function() {
 module("uce.management", {
     setup: function() {
         var that = this;
-        var ucemeeting = {
+        this.ucemeeting = {
             on: function(eventName, callback) {
                 if (eventName == "internal.roster.add") {
                     that.callback_roster_add = callback;
@@ -45,7 +45,7 @@ module("uce.management", {
             }
         };
         $('#management').management({
-            ucemeeting: ucemeeting,
+            ucemeeting: this.ucemeeting,
             dock: '#management-dock'
         });
     },
@@ -78,4 +78,24 @@ test("handle leave", function() {
 
     this.callback_roster_delete(Factories.deleteRosterEvent('chuck'));
     equals($("#management .ui-management-roster").children().size(), 0);
+});
+
+jackTest("send a chat.private.start event when clicking on a user", function() {
+    expect(3);
+    var ucemeeting = jack.create("ucemeeting", ['trigger']);
+    jack.expect("ucemeeting.trigger")
+        .exactly("1 time")
+        .mock(function(event) {
+            equals(event.type, "chat.private.start");
+            equals(event.metadata.interlocutor, "brucelee");
+        });
+    ucemeeting.on = this.ucemeeting.on;
+
+    $('#management').management({
+        ucemeeting: ucemeeting,
+        me: 'chuck'
+    });
+
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
+    $("#management .ui-management-roster li:eq(0)").click();    
 });
