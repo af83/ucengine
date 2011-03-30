@@ -55,11 +55,12 @@ event_test_() ->
                 [Domain, BaseUrl, Testers]
         end
       , fun fixtures:teardown/1
-      , fun([_, BaseUrl, [Root, Participant|_]]) ->
+      , fun([_, BaseUrl, [Root, Participant, Ugly|_]]) ->
                 [?_test(test_push(BaseUrl, Root)),
                  ?_test(test_push_without_meeting(BaseUrl, Root)),
                  ?_test(test_push_with_parent(BaseUrl, Root)),
                  ?_test(test_push_to_me(BaseUrl, Root)),
+                 ?_test(test_push_to_unauthorized(BaseUrl, Root, Participant, Ugly)),
                  ?_test(test_push_to_other(BaseUrl, Root, Participant)),
 
                  ?_test(test_push_missing_type(BaseUrl, Root)),
@@ -160,6 +161,24 @@ test_push_to_me(BaseUrl, {RootUid, RootSid}) ->
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
                    tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params).
 
+test_push_to_unauthorized(BaseUrl,
+                          {RootUid, RootSid},
+                          {ParticipantUid, ParticipantSid},
+                          {UglyUid, _UglySid}) ->
+    Params = [{"uid", ParticipantUid},
+              {"sid", ParticipantSid},
+              {"type", "test_push_1"},
+              {"to", UglyUid},
+              {"metadata[description]", "pushed_event"}],
+    {struct, [{"result", _Id}]} =
+        tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+
+    ParamsRoot = [{"uid", RootUid},
+                  {"sid", RootSid},
+                  {"type", "test_push_to_other"}],
+     {struct, [{"result", {array, []}}]} =
+         tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsRoot).
+
 test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
@@ -172,11 +191,6 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
 
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params),
-    ParamsRoot = [{"uid", RootUid},
-                  {"sid", RootSid},
-                  {"type", "test_push_to_other"}],
-    {struct, [{"result", {array, []}}]} =
-        tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsRoot),
 
     ParamsParticipant = [{"uid", ParticipantUid},
                          {"sid", ParticipantSid},
@@ -189,8 +203,22 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
                          {"location", "testmeeting"},
                          {"to", "participant.user@af83.com"},
                          {"from", RootUid},
-                         {"metadata", {struct, [{"description", "pushed_event"}]}}]}]}}|_]} =
-        tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsParticipant).
+                         {"metadata", {struct, [{"description", "pushed_event"}]}}]}]}}]} =
+        tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsParticipant),
+    
+    ParamsRootGet = [{"uid", RootUid},
+                     {"sid", RootSid},
+                     {"type", "test_push_to_other"}],
+    {struct, [{"result", {array, [
+               {struct, [{"type", "test_push_to_other"},
+                         {"domain", _},
+                         {"datetime", _},
+                         {"id", Id},
+                         {"location", "testmeeting"},
+                         {"to", "participant.user@af83.com"},
+                         {"from", RootUid},
+                         {"metadata", {struct, [{"description", "pushed_event"}]}}]}]}}]} =
+        tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsRootGet).
 
 test_push_missing_type(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},

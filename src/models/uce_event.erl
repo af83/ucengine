@@ -61,13 +61,17 @@ exists(Domain, Id) ->
     end.
 
 filter_private(Events, {Name, Domain}) ->
-    lists:filter(fun(#uce_event{to=To}) ->
-                         case To of
-                             {"", _} -> % all
+    lists:filter(fun(#uce_event{to=To, from=From}) ->
+                         if
+                             To == {"", ""} ->     % all
                                  true;
-                             {Name, Domain} ->
+                             To == {"", Domain} -> % all
                                  true;
-                             _ ->
+                             To == {Name, Domain} ->
+                                 true;
+                             From == {Name, Domain} ->
+                                 true;
+                             true ->
                                  false
                          end
                  end,
