@@ -29,7 +29,6 @@
          handle_cast/2,
          handle_info/2,
          terminate/2]).
--compile([export_all]).
 
 name(Domain) ->
     list_to_atom(lists:concat([?MODULE, "_", Domain])).
@@ -87,34 +86,36 @@ setup_role(Domain, [{Name, ConfigACL}]) ->
                                         conditions=Conditions}
                     end,
                     ConfigACL),
-    case catch uce_role:add(Domain, #uce_role{id={Name, Domain}, acl=ACL}) of
+    case uce_role:add(Domain, #uce_role{id={Name, Domain}, acl=ACL}) of
         {ok, created} ->
             ok;
         {error, conflict} ->
             uce_role:update(Domain, #uce_role{id={Name, Domain}, acl=ACL}),
             ok;
         {error, Reason} ->
-            throw({error, Reason})
+            {error, Reason}
     end.
 
 setup_root_role(Domain) ->
-    case catch uce_role:add(Domain, #uce_role{id={"root", Domain},
+    case uce_role:add(Domain, #uce_role{id={"root", Domain},
                                               acl=[#uce_access{action="all", object="all"}]}) of
         {ok, created} ->
             ok;
         {error, conflict} ->
             ok;
         {error, Reason} ->
-            throw({error, Reason})
+            {error, Reason}
     end.
 
 setup_root_user(Domain, #uce_user{} = User) ->
-    {ok, UId} = uce_user:add(Domain, User),
-    uce_user:addRole(Domain, {UId, Domain}, {"root", []}).
+    case uce_user:add(Domain, User) of
+        {ok, UId} -> uce_user:add_role(Domain, {UId, Domain}, {"root", []});
+        {error, _} -> nothing
+    end.
 
 setup_bricks(Domain) ->
     lists:foreach(fun({Name, Token}) ->
-                          catch setup_root_user(Domain, #uce_user{name=Name,
+                          setup_root_user(Domain, #uce_user{name=Name,
                                                             auth="token",
                                                             credential=Token,
                                                             metadata=[]})
@@ -128,7 +129,7 @@ setup_admin(Domain) ->
     Auth = proplists:get_value(auth, Admin),
     Credential = proplists:get_value(credential, Admin),
     Metadata = proplists:get_value(metadata, Admin, []),
-    catch setup_root_user(Domain, #uce_user{name=Uid,
+    setup_root_user(Domain, #uce_user{name=Uid,
                                       auth=Auth,
                                       credential=Credential,
                                       metadata=Metadata}).
