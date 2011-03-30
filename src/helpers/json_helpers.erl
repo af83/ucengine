@@ -67,13 +67,10 @@ false(Domain) ->
 created(Domain) ->
     format_response(201, add_cors_headers(Domain), {struct, [{result, created}]}).
 
+created(Domain, {Elmt1, Domain}) ->
+    format_response(201, add_cors_headers(Domain), {struct, [{result, Elmt1}]});
 created(Domain, {Elmt1, Elmt2}) ->
-    if
-        Domain == Elmt2 ->
-            format_response(201, add_cors_headers(Domain), {struct, [{result, Elmt1}]});
-        true ->
-            format_response(201, add_cors_headers(Domain), {struct, [{result, {struct, [{uid, Elmt1}, {sid, Elmt2}]}}]})
-    end;
+    format_response(201, add_cors_headers(Domain), {struct, [{result, {struct, [{uid, Elmt1}, {sid, Elmt2}]}}]});
 created(Domain, Id) ->
     format_response(201, add_cors_headers(Domain), {struct, [{result, Id}]}).
 
