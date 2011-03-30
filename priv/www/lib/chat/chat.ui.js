@@ -9,10 +9,12 @@ $.uce.widget("chat", {
     },
     // ucengine events
     meetingsEvents: {
+        // Local events
+        "chat.private.start"     : "_handlePrivateChatStart",
+
+        // Events from U.C.Engine
         "twitter.hashtag.add"    : "_handleHashTag",
         "twitter.tweet.new"      : "_handleTweet",
-        "internal.roster.add"    : "_handleJoin",
-        "internal.roster.delete" : "_handleLeave",
         "chat.translation.new"   : "_handleTranslation",
         "chat.message.new"       : "_handleMessage"
     },
@@ -249,7 +251,19 @@ $.uce.widget("chat", {
         if (!event.metadata.lang || !event.metadata.text) {
             return;
         }
-        this._addChat('all',
+
+        var to = 'all';
+        if (event.to) {
+            to = (event.to == this.options.me) ? event.from : event.to;
+
+            var that = this;
+            $.each(this.options.langs, function(i, lang) {
+                that._addConversation(to, lang);
+            });
+            this._addRosterUser(to);
+        }
+
+        this._addChat(to,
                       event.metadata.lang,
                       event.datetime,
                       event.from,
@@ -263,23 +277,15 @@ $.uce.widget("chat", {
         }
     },
 
-    _handleJoin: function(event) {
-        for (var index = 0; index < this._state.roster.length; index++) {
-            if (this._state.roster[index] == event.from) {
-                return;
-            }
-        }
-        this._state.roster.push(event.from);
-        this._updateRoster();
-    },
+    _handlePrivateChatStart: function(event) {
+        var interlocutor = event.metadata.interlocutor;
+        this._addRosterUser(interlocutor);
 
-    _handleLeave: function(event) {
-        for (var index = 0; index < this._state.roster.length; index++) {
-            if (this._state.roster[index] == event.from) {
-                this._state.roster.splice(index, 1);
-            }
-        }
-        this._updateRoster();
+        var that = this;
+        $.each(this.options.langs, function(i, lang) {
+            that._addConversation(interlocutor, lang);
+        });
+        this._showConversation(interlocutor, this.options.lang);
     },
 
     /**
@@ -331,6 +337,10 @@ $.uce.widget("chat", {
     },
 
     _addConversation: function(name, language) {
+        if (this._containers.find('.ui-chat-container[name="conversation:' + name + ':' + language + '"]').size() > 0) {
+            return;
+        }
+
         var conversation = this._addContainer('conversation:' + name + ":" + language);
 
         /* create form to send messages */
@@ -347,7 +357,12 @@ $.uce.widget("chat", {
         var that = this;
         form.submit(function(e) {
             var metadata = {text: text.val(), lang: language};
-            that.options.ucemeeting.push("chat.message.new", metadata);
+            if (name == "all") {
+                that.options.ucemeeting.push("chat.message.new", metadata);
+            }
+            else {
+                that.options.ucemeeting.pushTo(name, "chat.message.new", metadata);
+            }
             text.val("");
             return false;
         });
@@ -435,13 +450,56 @@ $.uce.widget("chat", {
         conversationList.scrollTop(conversationList[0].scrollHeight);
     },
 
+    _addRosterUser: function(user) {
+        for (var index = 0; index < this._state.roster.length; index++) {
+            if (this._state.roster[index] == user) {
+                return;
+            }
+        }
+        this._state.roster.push(user);
+        this._updateRoster();
+    },
+
+    _deleteRosterUser: function(user) {
+        for (var index = 0; index < this._state.roster.length; index++) {
+            if (this._state.roster[index] == user) {
+                this._state.roster.splice(index, 1);
+            }
+        }
+        this._updateRoster();
+    },
+
     _updateRoster: function() {
         this._selectors.conversations.empty();
-        for (var i = 0; i < this._state.roster.length; i++) {
-            var user = $('<li>')
-                .text(this._state.roster[i]);
-            user.appendTo(this._selectors.conversations);
-        }
+
+        var that = this;
+        $(this._state.roster).each(function(i, user) {
+            var userSelector = $('<span>')
+                .text(user)
+                .attr('class', 'ui-chat ui-selector-text');
+            var closeButton = $('<span>')
+                .attr('class', 'ui-chat ui-selector-button ui-button-close')
+                .attr('href', '#')
+                .button({
+                    text: false,
+                    icons: {
+                        primary: "ui-icon-circle-close"
+                    }
+                })
+                .bind('click', function() {
+                    that._deleteRosterUser(user);
+                    if (that.options.mode == "expanded") {
+                        that._showConversation("all", that.options.lang);
+                    }
+                })
+            $('<li>')
+                .click(function() {
+                    that._showConversation(user, that.options.lang);
+                })
+                .append(userSelector)
+                .append(closeButton)
+                .appendTo(that._selectors.conversations);
+        });
     },
 
     _updateHashtags: function() {

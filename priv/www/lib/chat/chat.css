@@ -102,8 +102,11 @@
 
 .ui-chat.ui-chat-expanded .ui-chat-selector-all li {
     font: bold 16px Helvetica;
-    border-top: 1px solid #D7D7D7;
     border-bottom: 1px solid #D7D7D7;
+}
+
+.ui-chat .ui-chat-selector li {
+    height: 19px;
 }
 
 .ui-chat.ui-chat-reduced .ui-chat-selector li {
@@ -113,6 +116,34 @@
     color: #424242;
     font: 14px Helvetica;
     border-top: 1px solid #D7D7D7;
+    background: url('images/next.png') 270px no-repeat;
+}
+
+.ui-chat.ui-chat-expanded .ui-chat-selector li {
+    width: 159px;
+}
+
+.ui-chat .ui-chat-selector li span.ui-selector-text {
+    overflow: hidden;
+    display: block;
+    float: left;
+    text-overflow: ellipsis;
+}
+
+.ui-chat.ui-chat-expanded .ui-chat-selector li span.ui-selector-text {
+    width: 126px;
+}
+
+.ui-chat.ui-chat-reduced .ui-chat-selector li span.ui-selector-text {
+    width: 223px;
+}
+
+.ui-chat .ui-chat-selector li span.ui-selector-button {
+    border: none;
+    background: none;
+    float: right;
+    display: block;
+    margin-top: 4px;
 }
 
 .ui-chat.ui-chat-reduced .ui-chat-selector-all li {
@@ -120,8 +151,8 @@
     background: url('images/next.png') 270px no-repeat;
 }
 
-.ui-chat .ui-chat-selector-conversations.ui-chat-selector-all li {
-    border-top: none;
+.ui-chat.ui-chat-expanded .ui-chat-selector-hashtags.ui-chat-selector-all {
+    border-top: 1px solid #D7D7D7;
 }
 
 .ui-chat.ui-chat-reduced .ui-chat-selector-hashtags.ui-chat-selector-elems li {

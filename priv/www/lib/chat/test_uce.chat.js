@@ -1,6 +1,8 @@
-module("uce.chat", {teardown: function() {
-    $('#chat').chat('destroy');
-}});
+module("uce.chat", {
+    teardown: function() {
+        $('#chat').chat('destroy');
+    }
+});
 
 Factories.newHashTagEvent = function(params) {
     return {
@@ -39,8 +41,8 @@ Factories.deleteRosterEvent = function(from) {
     };
 }
 
-Factories.newChatEvent = function(from, text) {
-    return {
+Factories.newChatEvent = function(from, text, to) {
+    event = {
         type: "chat.message.new",
         from: from,
         datetime: 42424242424242,
@@ -49,6 +51,11 @@ Factories.newChatEvent = function(from, text) {
             lang: 'fr'
         }
     };
+
+    if (to) {
+        event.to = to;
+    }
+    return event
 }
 
 Factories.newTranslationEvent = function(from, text, lang) {
@@ -62,6 +69,17 @@ Factories.newTranslationEvent = function(from, text, lang) {
         }
     };
 }
+
+Factories.addChatStartEvent: function(interlocutor) {
+    return {
+        type: "chat.private.start",
+        from: "internal",
+        metadata: {
+            interlocutor: interlocutor
+        }
+    };
+},
+
 
 test("create some elements", function() {
     $('#chat').chat();
@@ -105,19 +123,18 @@ jackTest("add hashtag", function() {
     $('#chat').find('form.ui-chat-hashtag-form').submit();
 });
 
+
 module("uce.chat", {
     setup: function() {
         var that = this;
-        var ucemeeting = {
+        this.ucemeeting = {
             on: function(eventName, callback) {
                 if (eventName == "twitter.hashtag.add") {
                     that.callback_hashtag = callback;
                 } else if (eventName == "twitter.tweet.new") {
                     that.callback_tweet = callback;
-                } else if (eventName == "internal.roster.add") {
-                    that.callback_roster_add = callback;
-                } else if (eventName == "internal.roster.delete") {
-                    that.callback_roster_delete = callback;
+                } else if (eventName == "chat.private.start") {
+                    that.callback_chat_start = callback;
                 } else if (eventName == "chat.message.new") {
                     that.callback_chat = callback;
                 } else if (eventName == "chat.translation.new") {
@@ -126,7 +143,8 @@ module("uce.chat", {
             }
         };
         $('#chat').chat({
-            ucemeeting: ucemeeting,
+            ucemeeting: this.ucemeeting,
+            me: 'chuck',
             dock: '#chat-dock'
         });
     },
@@ -228,30 +246,31 @@ test("clear chat", function() {
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 0);
 });
 
-test("handle join", function() {
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+test("handle chat.private.start", function() {
+    this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
 });
 
 test("handle duplicate participant", function() {
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_chat_start(Factories.addChatStartEvent('chuck'));
+    this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
 });
 
-test("handle leave", function() {
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+test("close the one2one chat", function() {
+    this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
 
-    this.callback_roster_delete(Factories.deleteRosterEvent('chuck'));
+    var closeButton = $("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0) .ui-button-close");
+    closeButton.click();
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 0);
 });
 
 test("test messages", function() {
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
 
     equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list')
@@ -262,13 +281,27 @@ test("test messages", function() {
            .text(), "hello");
 });
 
+test("test private message", function() {
+    this.callback_chat(Factories.newChatEvent('brucelee', 'hello', 'chuck'));
+
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'brucelee');
+
+    equals($('#chat .ui-chat-container[name="conversation:brucelee:fr"] .ui-chat-list')
+           .children().size(), 1);
+    equals($('#chat .ui-chat-container[name="conversation:brucelee:fr"] .ui-chat-list li:eq(0) .ui-chat-message-from')
+           .text(), "brucelee");
+    equals($('#chat .ui-chat-container[name="conversation:brucelee:fr"] .ui-chat-list li:eq(0) .ui-chat-message-text')
+           .text(), "hello");
+});
+
 test("test message notification", function() {
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
     equals($("#chat-dock .ui-widget-dock-notification").text(), "1");
 });
 
 test("test translation", function() {
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     this.callback_translation(Factories.newTranslationEvent('chuck', 'hello', 'en'));
     equals($('#chat .ui-chat-container[name="conversation:all:en"] .ui-chat-list')
            .children().size(), 1);
@@ -279,7 +312,7 @@ test("test translation", function() {
 });
 
 test("can show chatroom and go back", function() {
-    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
 
     $("#chat .ui-chat-selector-conversations.ui-chat-selector-all li:eq(0)").click();
@@ -292,4 +325,48 @@ test("can show chatroom and go back", function() {
 
     ok(!$('#chat .ui-chat-container[name="conversation:all:fr"]').hasClass("ui-chat-current"), 
        "should not have class ui-chat-current");
+});
+
+jackTest("post a message in the global chatroom", function() {
+    expect(4);
+    var ucemeeting = jack.create("ucemeeting", ['push']);
+    jack.expect("ucemeeting.push")
+        .exactly("1 time")
+        .mock(function(type, metadata) {
+            equals(type, "chat.message.new");
+            equals(metadata.text, "hello world");
+            equals(metadata.lang, "fr");
+        });
+    ucemeeting.on = this.ucemeeting.on;
+
+    $('#chat').chat({
+        ucemeeting: ucemeeting,
+        me: 'chuck'
+    });
+
+    $("#chat .ui-chat-container[name='conversation:all:fr'] .ui-chat-message-form input[type='text']").val("hello world");
+    $("#chat .ui-chat-container[name='conversation:all:fr'] .ui-chat-message-form").submit();
+});
+
+jackTest("post a message in the private chatroom", function() {
+    expect(5);
+    var ucemeeting = jack.create("ucemeeting", ['pushTo']);
+    jack.expect("ucemeeting.pushTo")
+        .exactly("1 time")
+        .mock(function(to, type, metadata) {
+            equals(to, "brucelee");
+            equals(type, "chat.message.new");
+            equals(metadata.text, "hello world");
+            equals(metadata.lang, "fr");
+        });
+    ucemeeting.on = this.ucemeeting.on;
+
+    $('#chat').chat({
+        ucemeeting: ucemeeting,
+        me: 'chuck'
+    });
+
+    this.callback_chat_start(Factories.addChatStartEvent('brucelee'));
+    $("#chat .ui-chat-container[name='conversation:brucelee:fr'] .ui-chat-message-form input[type='text']").val("hello world");
+    $("#chat .ui-chat-container[name='conversation:brucelee:fr'] .ui-chat-message-form").submit();
 });
