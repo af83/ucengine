@@ -80,26 +80,26 @@ fill_domain(Domain) ->
 
                           {ok, RUser} = uce_user:get(Domain, User),
 
-                          uce_user:addRole(Domain, RUser#uce_user.id, {"participant", ""}),
-    
+                          uce_user:add_role(Domain, RUser#uce_user.id, {"participant", ""}),
+
                           catch uce_role:add(Domain, #uce_role{id=RUser#uce_user.id,
                                                                acl=[]})
-                        
+
                   end, Users),
-    
-    catch uce_role:add(Domain, #uce_role{id={"anonymous", Domain},
-                                         acl=[#uce_access{action="add", object="presence"},
-                                              #uce_access{action="get", object="infos"},
-                                              #uce_access{action="get", object="meeting"},
-                                              #uce_access{action="list", object="meeting"}]}),
+
+    uce_role:add(Domain, #uce_role{id={"anonymous", Domain},
+                                        acl=[#uce_access{action="add", object="presence"},
+                                             #uce_access{action="get", object="infos"},
+                                             #uce_access{action="get", object="meeting"},
+                                             #uce_access{action="list", object="meeting"}]}),
 
     % anonymous account
-    catch uce_user:add(Domain, #uce_user{id={none, Domain},
-                                         name="anonymous",
-                                         auth="none",
-                                         roles=[]}),
+    uce_user:add(Domain, #uce_user{id={none, Domain},
+                                       name="anonymous",
+                                       auth="none",
+                                       roles=[]}),
     {ok, RAnonymous} = uce_user:get(Domain, "anonymous"),
-    uce_user:addRole(Domain, RAnonymous#uce_user.id, {"anonymous", ""}),
+    uce_user:add_role(Domain, RAnonymous#uce_user.id, {"anonymous", ""}),
 
     {ok, RParticipant} = uce_user:get(Domain, "participant"),
 
