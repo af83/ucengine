@@ -39,7 +39,7 @@ add(#uce_meeting{id={_Name,Domain}} = Meeting) ->
     case catch emongo:insert_sync(Domain, "uce_meeting", to_collection(Meeting)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         _ ->
             {ok, created}
     end.
@@ -53,7 +53,7 @@ delete({Name, Domain}) ->
     case emongo:delete_sync(Domain, "uce_meeting", [{"name", Name}, {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         _ ->
             {ok, deleted}
     end.
@@ -68,11 +68,11 @@ get({Name, Domain}) ->
                                [{"name", Name}, {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         [Record] ->
             {ok, from_collection(Record)};
         _ ->
-            throw({error, not_found})
+            {error, not_found}
     end.
 
 %%--------------------------------------------------------------------
@@ -86,7 +86,7 @@ update(#uce_meeting{id={Name, Domain}} = Meeting) ->
                                   to_collection(Meeting), false) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         _ ->
             {ok, updated}
     end.
@@ -100,7 +100,7 @@ list(Domain) ->
     case catch emongo:find_all(Domain, "uce_meeting", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         Collections ->
             {ok, [from_collection(Collection) || Collection <- Collections]}
     end.
@@ -138,5 +138,5 @@ from_collection(Collection) ->
                      roster=Roster,
                      metadata=Metadata};
         _ ->
-            throw({error, bad_parameters})
+            {error, bad_parameters}
     end.

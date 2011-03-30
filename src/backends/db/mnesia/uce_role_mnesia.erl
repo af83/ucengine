@@ -37,14 +37,8 @@ init() ->
                                {attributes, record_info(fields, uce_role)}]).
 
 add(_Domain, #uce_role{}=Role) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Role)
-                            end) of
-        {atomic, _} ->
-            {ok, created};
-        {aborted, Reason} ->
-            {error, Reason}
-    end.
+    mnesia:dirty_write(Role),
+    {ok, created}.
 
 update(_Domain, #uce_role{}=Role) ->
     case mnesia:transaction(fun() ->
@@ -67,15 +61,9 @@ delete(_Domain, Id) ->
     end.
 	
 get(_Domain, Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_role, Id)
-                            end) of
-        {atomic, [Record]} ->
-            {ok, Record};
-        {atomic, _} ->
-            throw({error, not_found});
-        {aborted, _} ->
-            throw({error, bad_parameters})
+    case mnesia:dirty_read(uce_role, Id) of
+        [Record] -> {ok, Record};
+        [] -> {error, not_found}
     end.
 
 drop() ->

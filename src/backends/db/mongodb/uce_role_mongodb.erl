@@ -33,7 +33,7 @@ add(Domain, #uce_role{} = Role) ->
     case catch emongo:insert_sync(Domain, "uce_role", to_collection(Role)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         _ ->
             {ok, created}
     end.
@@ -44,7 +44,7 @@ update(Domain, #uce_role{id={Name, _}} = Role) ->
                                   to_collection(Role), false) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         _ ->
             {ok, updated}
     end.
@@ -54,7 +54,7 @@ delete(Domain, {Name, Domain}) ->
                                                        {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         _ ->
             {ok, deleted}
     end.
@@ -64,11 +64,11 @@ get(Domain, {Name, Domain}) ->
                                                     {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+            {error, bad_parameters};
         [Record] ->
             {ok, from_collection(Record)};
         _ ->
-            throw({error, not_found})
+            {error, not_found}
     end.
 
 from_collection(Collection) ->
@@ -79,7 +79,7 @@ from_collection(Collection) ->
                       acl=[#uce_access{object=Object, action=Action, conditions=Conditions} ||
                               [Object, Action, Conditions] <- ACL]};
         _ ->
-            throw({error, bad_parameters})
+            {error, bad_parameters}
     end.
 
 to_collection(#uce_role{id={Name, Domain},
