@@ -64,7 +64,7 @@ update(Domain, #uce_presence{}=Presence) ->
     end.
 
 exists(Domain, Id) ->
-    case catch ?MODULE:get(Domain, Id) of
+    case ?MODULE:get(Domain, Id) of
         {error, not_found} ->
             false;
         {error, Reason} ->
@@ -82,24 +82,30 @@ assert(Domain, User, {_, _} = Sid) ->
     end.
 
 check(Domain, User, {_, _} = Sid) when is_list(User) ->
-    {ok, RecordUser} = uce_user:get(Domain, User),
-    UserId = RecordUser#uce_user.id,
-    {ok, Record} = uce_presence:get(Domain, Sid),
-    case Record#uce_presence.user of
-        UserId ->
-            uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
-            {ok, true};
-        _ ->
-            {ok, false}
+    case uce_user:get(Domain, User) of
+        {ok, RecordUser} ->
+            UserId = RecordUser#uce_user.id,
+            {ok, Record} = uce_presence:get(Domain, Sid),
+            case Record#uce_presence.user of
+                UserId ->
+                    uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
+                    {ok, true};
+                _=_Other ->
+                    {ok, false}
+            end;
+        {error, _Reason} = Error -> throw(Error)
     end;
 check(Domain, User, {_, _} = Sid) ->
-    {ok, Record} = uce_presence:get(Domain, Sid),
-    case Record#uce_presence.user of
-        User ->
-            uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
-            {ok, true};
-        _ ->
-            {ok, false}
+    case uce_presence:get(Domain, Sid) of
+        {ok, Record} ->
+            case Record#uce_presence.user of
+                User ->
+                    uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
+                    {ok, true};
+                _=_Other ->
+                    {ok, false}
+            end;
+        {error, _Reason} = Error -> throw(Error)
     end.
 
 join(Domain, {_, _}=Sid, Meeting) ->
@@ -107,7 +113,7 @@ join(Domain, {_, _}=Sid, Meeting) ->
     case lists:member(Meeting, Record#uce_presence.meetings) of
         true ->
             {ok, updated};
-        _ ->
+        false ->
             Meetings = Record#uce_presence.meetings ++ [Meeting],
             apply(db:get(?MODULE, Domain), update, [Domain, Record#uce_presence{meetings=Meetings}])
     end.
