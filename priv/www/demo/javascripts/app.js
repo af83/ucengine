@@ -385,11 +385,13 @@ $.sammy("#meeting", function() {
         }
 
         addWidget("#chat", 'chat', {ucemeeting: meeting,
+                                    me: client.uid,
                                     title: "Conversations",
                                     dock: '#chat-dock',
                                     mode: 'reduced'});
 
         addWidget("#management", 'management', {ucemeeting: meeting,
+                                                me: client.uid,
                                                 title: "Meeting Facilitation",
                                                 dock: '#management-dock',
                                                 mode: 'reduced',
