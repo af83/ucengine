@@ -238,24 +238,37 @@
                                 callback(err, roster, xhr);
                             });
                     },
+
                     /**
                      * Push event
                      */
-                    push: function(type, metadata, callback) {
+                    _push: function(params, callback) {
                         post("/event/" + meetingname,
-                            {'uid': _presence.user,
-                             'sid': _presence.id,
-                             'type': type,
-                             'metadata': metadata},
-                            callback);
+                             $.extend({'uid': _presence.user, 'sid': _presence.id}, params),
+                             callback);
                         return this;
                     },
+                    push: function(type, metadata, callback) {
+                        this._push({'type': type,
+                                    'metadata': metadata},
+                                   callback);
+                        return this;
+                    },
+                    pushTo: function(to, type, metadata, callback) {
+                        this._push({'type': type,
+                                    'to': to,
+                                    'metadata': metadata},
+                                   callback);
+                        return this;
+                    },
+
                     /**
                      * Get file upload url for this meeting
                      */
                     getFileUploadUrl: function() {
                         return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"?uid="+_presence.user+"&sid="+_presence.id;
                     },
+
                     /**
                      * Get file download url
                      * @param String filename
@@ -263,6 +276,7 @@
                     getFileDownloadUrl: function(filename) {
                         return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"/"+ filename +"?uid="+_presence.user+"&sid="+_presence.id;
                     },
+
                     /**
                      * @param Object params
                      *    search
@@ -311,6 +325,7 @@
                         longPolling._start(params, callback);
                         return longPolling;
                     },
+
                     /**
                      * @param Object params
                      *    search
@@ -345,6 +360,7 @@
                             });
                         return this;
                     },
+
                     /**
                      * Trigger event on the internal queue
                      * @param Object event
