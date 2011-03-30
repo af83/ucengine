@@ -41,26 +41,34 @@ init() ->
                            {"sid", required, string}]}}].
 
 add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
-    {ok, User} = uce_user:get(Domain, Name),
-    {ok, true} = uce_access:assert(Domain, User#uce_user.id, {"", ""}, "presence", "add"),
-    {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
-    {ok, {Sid, _}} = uce_presence:add(Domain,
-                                 #uce_presence{id={none, Domain},
-                                               user=User#uce_user.id,
-                                               timeout=Timeout,
-                                               auth=User#uce_user.auth,
-                                               metadata=Metadata}),
-    {ok, _} = uce_event:add(Domain,
-                            #uce_event{id={none, Domain},
-                                       from=User#uce_user.id,
-                                       location={"", Domain},
-                                       type="internal.presence.add"}),
-    {Id, _} = User#uce_user.id, 
-    json_helpers:created(Domain, {Id, Sid}).
+    case uce_user:get(Domain, Name) of
+        {ok, User} ->
+            {ok, true} = uce_access:assert(Domain, User#uce_user.id, {"", ""}, "presence", "add"),
+            case ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential) of 
+                {ok, true} ->
+                    {ok, {Sid, _}} = uce_presence:add(Domain,
+                                                      #uce_presence{id={none, Domain},
+                                                                    user=User#uce_user.id,
+                                                                    timeout=Timeout,
+                                                                    auth=User#uce_user.auth,
+                                                                    metadata=Metadata}),
+                    {ok, _} = uce_event:add(Domain,
+                                            #uce_event{id={none, Domain},
+                                                       from=User#uce_user.id,
+                                                       location={"", Domain},
+                                                       type="internal.presence.add"}),
+                    {Id, _} = User#uce_user.id, 
+                    json_helpers:created(Domain, {Id, Sid});
+                {error, Reason} -> json_helpers:error(Domain, Reason)
+            end;
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
 
 get(Domain, [Id], [], _) ->
-    {ok, Record} = uce_presence:get(Domain, {Id, Domain}),
-    json_helpers:json(Domain, presence_helpers:to_json(Record)).
+    case uce_presence:get(Domain, {Id, Domain}) of
+        {ok, Record} -> json_helpers:json(Domain, presence_helpers:to_json(Record));
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
 
 delete(Domain, [Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),

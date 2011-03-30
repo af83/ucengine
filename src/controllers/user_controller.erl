@@ -17,7 +17,7 @@
 %%
 -module(user_controller).
 
--export([init/0, add/4, update/4, get/4, list/4, delete/4, checkAccess/4, addRole/4, deleteRole/4]).
+-export([init/0, add/4, update/4, get/4, list/4, delete/4, check_access/4, add_role/4, delete_role/4]).
 
 -include("uce.hrl").
 
@@ -60,14 +60,14 @@ init() ->
 
      #uce_route{method='GET',
                 regexp="/user/([^/]+)/can/([^/]+)/([^/]+)/?([^/]+)?",
-                callback={?MODULE, checkAccess,
+                callback={?MODULE, check_access,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"conditions", [], dictionary}]}},
 
      #uce_route{method='POST',
                 regexp="/user/([^/]+)/roles",
-                callback={?MODULE, addRole,
+                callback={?MODULE, add_role,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"role", required, string},
@@ -75,64 +75,77 @@ init() ->
 
      #uce_route{method='DELETE',
                 regexp="/user/([^/]+)/roles/([^/]+)/?([^/]+)?",
-                callback={?MODULE, deleteRole,
+                callback={?MODULE, delete_role,
                           [{"uid", required, string},
                            {"sid", required, string}]}}].
 
 
 add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
-    {ok, UId} = uce_user:add(Domain, #uce_user{id={none, Domain},
-                                               name=Name,
-                                               auth=Auth,
-                                               credential=Credential,
-                                               metadata=Metadata}),
-
-    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
-                                               from={UId, Domain},
-                                               location={"", Domain},
-                                               type="internal.user.add"}),
-
-    json_helpers:created(Domain, UId).
+    case uce_user:add(Domain, #uce_user{id={none, Domain},
+                                        name=Name,
+                                        auth=Auth,
+                                        credential=Credential,
+                                        metadata=Metadata}) of
+        {ok, UId} -> 
+            {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
+                                                       from={UId, Domain},
+                                                       location={"", Domain},
+                                                       type="internal.user.add"}),
+            json_helpers:created(Domain, UId);
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
 
 list(Domain, [], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "list"),
-    {ok, Users} = uce_user:list(Domain),
-    json_helpers:json(Domain, {array, [user_helpers:to_json(User) || User <- Users]}).
+    case uce_user:list(Domain) of
+        {ok, Users} -> json_helpers:json(Domain, {array, [user_helpers:to_json(User) || User <- Users]});
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
 
 get(Domain, [Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "get", [{"user", Id}]),
-    {ok, Record} = uce_user:get(Domain, {Id, Domain}),
-    json_helpers:json(Domain, user_helpers:to_json(Record)).
+    case uce_user:get(Domain, {Id, Domain}) of
+        {ok, Record} -> json_helpers:json(Domain, user_helpers:to_json(Record));
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
 
 update(Domain, [Id], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", Id},
                                                                                        {"auth", Auth}]),
-    {ok, Record} = uce_user:get(Domain, {Id, Domain}),
-    {ok, updated} = uce_user:update(Domain, Record#uce_user{name=Name,
-                                                            auth=Auth,
-                                                            credential=Credential,
-                                                            metadata=Metadata}),
-
-    {ok, _} = uce_event:add(Domain,
-                            #uce_event{id={none, Domain},
-                                       from={Id, Domain},
-                                       location={"", Domain},
-                                       type="internal.user.update"}),
-
-    json_helpers:ok(Domain).
+    case uce_user:get(Domain, {Id, Domain}) of
+        {ok, Record} -> 
+            case uce_user:update(Domain, Record#uce_user{name=Name,
+                                                         auth=Auth,
+                                                         credential=Credential,
+                                                         metadata=Metadata}) of
+                {ok, updated} ->
+                    case uce_event:add(Domain,
+                                       #uce_event{id={none, Domain},
+                                                  from={Id, Domain},
+                                                  location={"", Domain},
+                                                  type="internal.user.update"}) of
+                        {ok, _} -> json_helpers:ok(Domain);
+                        {error, Reason} -> json_helpers:error(Domain, Reason)
+                    end;
+                {error, Reason} -> json_helpers:error(Domain, Reason)
+            end;
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
 
 delete(Domain, [Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", Domain}, "user", "delete", [{"user", Id}]),
-    {ok, deleted} = uce_user:delete(Domain, {Id, Domain}),
-    json_helpers:ok(Domain).
+    case uce_user:delete(Domain, {Id, Domain}) of
+        {ok, deleted} -> json_helpers:ok(Domain);
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
 
-checkAccess(Domain, [Name, Action, Object], [Uid, Sid, Conditions], Arg) ->
-    checkAccess(Domain, [Name, Action, Object, ""], [Uid, Sid, Conditions], Arg);
-checkAccess(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _Arg) ->
+check_access(Domain, [Name, Action, Object], [Uid, Sid, Conditions], Arg) ->
+    check_access(Domain, [Name, Action, Object, ""], [Uid, Sid, Conditions], Arg);
+check_access(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _Arg) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "access", "check", [{"user", Name},
                                                                                         {"action", Action},
@@ -145,22 +158,26 @@ checkAccess(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _A
             json_helpers:false(Domain)
     end.
 
-addRole(Domain, [Name], [Uid, Sid, Role, Location], _) ->
+add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", Name},
                                                                                        {"location", Location},
                                                                                        {"role", Role}]),
 
-    {ok, updated} = uce_user:addRole(Domain, {Name, Domain}, {Role, Location}),
-    json_helpers:ok(Domain).
+    case uce_user:add_role(Domain, {Name, Domain}, {Role, Location}) of
+        {ok, updated} -> json_helpers:ok(Domain);
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
 
-deleteRole(Domain, [User, Role], [Uid, Sid], Arg) ->
-    deleteRole(Domain, [User, Role, ""], [Uid, Sid], Arg);
-deleteRole(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
+delete_role(Domain, [User, Role], [Uid, Sid], Arg) ->
+    delete_role(Domain, [User, Role, ""], [Uid, Sid], Arg);
+delete_role(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", User},
                                                                                        {"location", Location},
                                                                                        {"role", Role}]),
 
-    {ok, updated} = uce_user:deleteRole(Domain, {User, Domain}, {Role, Location}),
-    json_helpers:ok(Domain).
+    case uce_user:delete_role(Domain, {User, Domain}, {Role, Location}) of
+        {ok, updated} -> json_helpers:ok(Domain);
+        {error, Reason} -> json_helpers:error(Domain, Reason)
+    end.
