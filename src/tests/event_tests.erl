@@ -166,10 +166,10 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
               {"type", "test_push_to_other"},
               {"to", ParticipantUid},
               {"metadata[description]", "pushed_event"}],
-    
+
     {struct, [{"result", Id}]} =
         tests_utils:post(BaseUrl, "/event/testmeeting", Params),
-    
+
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params),
     ParamsRoot = [{"uid", RootUid},
@@ -277,7 +277,7 @@ test_get_with_keywords(BaseUrl, {RootUid, RootSid}) ->
                                      , {"location", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "lonely event"}]}}
-                                    ]}]}}]}, 
+                                    ]}]}}]},
                  tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet)).
 
 test_get_with_keywords_without_meeting(BaseUrl, {RootUid, RootSid}) ->
@@ -323,7 +323,7 @@ test_get_with_keywords_with_from(BaseUrl, {RootUid, RootSid}) ->
                                      , {"location", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "lonely event"}]}}
-                                    ]}]}}]}, 
+                                    ]}]}}]},
                  tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet)).
 
 test_get_with_keywords_in_metadata(BaseUrl, {RootUid, RootSid}) ->
@@ -332,7 +332,7 @@ test_get_with_keywords_in_metadata(BaseUrl, {RootUid, RootSid}) ->
               {"type", "search_event"},
               {"metadata[description]", "lonely happy event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
-    
+
     timer:sleep(1000),
 
     ParamsGet = [{"uid", RootUid},
@@ -347,7 +347,7 @@ test_get_with_keywords_in_metadata(BaseUrl, {RootUid, RootSid}) ->
                                                   , {"location", "testmeeting"}
                                                   , {"from", RootUid}
                                                   , {"metadata", {struct, [{"description", "lonely happy event"}]}}
-                                                 ]}]}}]}, 
+                                                 ]}]}}]},
                  tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet)).
 
 test_get_with_keywords_and_timestart_and_timeend(BaseUrl, {RootUid, RootSid}) ->
