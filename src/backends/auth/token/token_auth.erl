@@ -28,7 +28,7 @@ assert(User, Credential) ->
         {ok, true} ->
             {ok, true};
         {ok, false} ->
-            throw({error, bad_credentials})
+            {error, bad_credentials}
     end.
 
 check(User, Credential) ->
