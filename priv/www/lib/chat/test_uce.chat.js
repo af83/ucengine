@@ -70,7 +70,7 @@ Factories.newTranslationEvent = function(from, text, lang) {
     };
 }
 
-Factories.addChatStartEvent: function(interlocutor) {
+Factories.addChatStartEvent = function(interlocutor) {
     return {
         type: "chat.private.start",
         from: "internal",
@@ -80,6 +80,13 @@ Factories.addChatStartEvent: function(interlocutor) {
     };
 },
 
+Factories.updateNicknameEvent = function(from, nickname) {
+    return {
+        type: "roster.nickname.update",
+        from: from,
+        metadata: {nickname: nickname}
+    };
+}
 
 test("create some elements", function() {
     $('#chat').chat();
@@ -133,18 +140,24 @@ module("uce.chat", {
                     that.callback_hashtag = callback;
                 } else if (eventName == "twitter.tweet.new") {
                     that.callback_tweet = callback;
+                } else if (eventName == "internal.roster.add") {
+                    that.callback_roster_add = callback;
+                } else if (eventName == "internal.roster.delete") {
+                    that.callback_roster_delete = callback;
                 } else if (eventName == "chat.private.start") {
                     that.callback_chat_start = callback;
                 } else if (eventName == "chat.message.new") {
                     that.callback_chat = callback;
                 } else if (eventName == "chat.translation.new") {
                     that.callback_translation = callback;
+                } else if (eventName == "roster.nickname.update") {
+                    that.callback_nickname_update = callback;
                 }
             }
         };
         $('#chat').chat({
             ucemeeting: this.ucemeeting,
-            me: 'chuck',
+            uceclient: {uid: 'chuck'},
             dock: '#chat-dock'
         });
     },
@@ -247,22 +260,25 @@ test("clear chat", function() {
 });
 
 test("handle chat.private.start", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
-    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'Unnamed 1');
 });
 
 test("handle duplicate participant", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
-    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'Unnamed 1');
 });
 
 test("close the one2one chat", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
-    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'chuck');
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'Unnamed 1');
 
     var closeButton = $("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0) .ui-button-close");
     closeButton.click();
@@ -270,48 +286,54 @@ test("close the one2one chat", function() {
 });
 
 test("test messages", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
 
     equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list')
            .children().size(), 1);
     equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list li:eq(0) .ui-chat-message-from')
-           .text(), "chuck");
+           .text(), "Unnamed 1");
     equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list li:eq(0) .ui-chat-message-text')
            .text(), "hello");
 });
 
 test("test private message", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
     this.callback_chat(Factories.newChatEvent('brucelee', 'hello', 'chuck'));
 
     equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
-    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'brucelee');
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'Unnamed 2');
 
     equals($('#chat .ui-chat-container[name="conversation:brucelee:fr"] .ui-chat-list')
            .children().size(), 1);
     equals($('#chat .ui-chat-container[name="conversation:brucelee:fr"] .ui-chat-list li:eq(0) .ui-chat-message-from')
-           .text(), "brucelee");
+           .text(), "Unnamed 2");
     equals($('#chat .ui-chat-container[name="conversation:brucelee:fr"] .ui-chat-list li:eq(0) .ui-chat-message-text')
            .text(), "hello");
 });
 
 test("test message notification", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
     equals($("#chat-dock .ui-widget-dock-notification").text(), "1");
 });
 
 test("test translation", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     this.callback_translation(Factories.newTranslationEvent('chuck', 'hello', 'en'));
     equals($('#chat .ui-chat-container[name="conversation:all:en"] .ui-chat-list')
            .children().size(), 1);
     equals($('#chat .ui-chat-container[name="conversation:all:en"] .ui-chat-list li:eq(0) .ui-chat-message-from')
-           .text(), "chuck");
+           .text(), "Unnamed 1");
     equals($('#chat .ui-chat-container[name="conversation:all:en"] .ui-chat-list li:eq(0) .ui-chat-message-text')
            .text(), "hello");
 });
 
 test("can show chatroom and go back", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat_start(Factories.addChatStartEvent('chuck'));
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
 
@@ -341,7 +363,7 @@ jackTest("post a message in the global chatroom", function() {
 
     $('#chat').chat({
         ucemeeting: ucemeeting,
-        me: 'chuck'
+        uceclient: {uid: 'chuck'}
     });
 
     $("#chat .ui-chat-container[name='conversation:all:fr'] .ui-chat-message-form input[type='text']").val("hello world");
@@ -363,10 +385,20 @@ jackTest("post a message in the private chatroom", function() {
 
     $('#chat').chat({
         ucemeeting: ucemeeting,
-        me: 'chuck'
+        uceclient: {uid: 'chuck'}
     });
 
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
     this.callback_chat_start(Factories.addChatStartEvent('brucelee'));
     $("#chat .ui-chat-container[name='conversation:brucelee:fr'] .ui-chat-message-form input[type='text']").val("hello world");
     $("#chat .ui-chat-container[name='conversation:brucelee:fr'] .ui-chat-message-form").submit();
+});
+
+test("handle roster.nickame.update event", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_chat_start(Factories.addChatStartEvent('chuck'));
+    this.callback_nickname_update(Factories.updateNicknameEvent('chuck', 'Chuck Norris'));
+
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems").children().size(), 1);
+    equals($("#chat .ui-chat-selector-conversations.ui-chat-selector-elems li:eq(0)").text(), 'Chuck Norris');
 });

@@ -16,7 +16,12 @@ $.uce.widget("chat", {
         "twitter.hashtag.add"    : "_handleHashTag",
         "twitter.tweet.new"      : "_handleTweet",
         "chat.translation.new"   : "_handleTranslation",
-        "chat.message.new"       : "_handleMessage"
+        "chat.message.new"       : "_handleMessage",
+
+        "internal.roster.add"    : "_handleJoin",
+        "internal.roster.delete" : "_handleLeave",
+
+        "roster.nickname.update" : "_handleNicknameUpdate"
     },
     _create: function() {
         var that = this;
@@ -88,9 +93,10 @@ $.uce.widget("chat", {
             .attr('class', 'ui-chat-containers')
             .appendTo(this._content);
 
-        this._state = [];
-        this._state.roster = [];
+        this._state = {};
+        this._state.roster = {};
         this._state.hashtags = {};
+        this._state.anonCounter = 1;
 
         var flags = $('<span>')
             .attr('class', 'ui-chat-flags');
@@ -254,19 +260,20 @@ $.uce.widget("chat", {
 
         var to = 'all';
         if (event.to) {
-            to = (event.to == this.options.me) ? event.from : event.to;
+            to = (event.to == this.options.uceclient.uid) ? event.from : event.to;
 
             var that = this;
             $.each(this.options.langs, function(i, lang) {
                 that._addConversation(to, lang);
             });
-            this._addRosterUser(to);
+            this._state.roster[to].visible = true;
+            this._updateRoster();
         }
 
         this._addChat(to,
                       event.metadata.lang,
                       event.datetime,
-                      event.from,
+                      this._state.roster[event.from].nickname,
                       event.metadata.text);
         // XXX: Can we refactor this to have a general behaviour when there is no dock ?
         if (this.options.dock &&
@@ -277,9 +284,33 @@ $.uce.widget("chat", {
         }
     },
 
+    _handleJoin: function(event) {
+        if (this._state.roster[event.from]) {
+            return;
+        }
+        this._state.roster[event.from] = {uid: event.from, nickname:
+                                          "Unnamed " + this._state.anonCounter,
+                                          visible: false};
+        this._state.anonCounter++;
+        this._updateRoster();
+    },
+
+    _handleLeave: function(event) {
+        delete this._state.roster[event.from];
+        this._updateRoster();
+    },
+
+    _handleNicknameUpdate: function(event) {
+        if (this._state.roster[event.from]) {
+            this._state.roster[event.from].nickname = event.metadata.nickname;
+            this._updateRoster();
+        }
+    },
+
     _handlePrivateChatStart: function(event) {
         var interlocutor = event.metadata.interlocutor;
-        this._addRosterUser(interlocutor);
+        this._state.roster[interlocutor].visible = true;
+        this._updateRoster();
 
         var that = this;
         $.each(this.options.langs, function(i, lang) {
@@ -359,8 +390,7 @@ $.uce.widget("chat", {
             var metadata = {text: text.val(), lang: language};
             if (name == "all") {
                 that.options.ucemeeting.push("chat.message.new", metadata);
-            }
-            else {
+            } else {
                 that.options.ucemeeting.pushTo(name, "chat.message.new", metadata);
             }
             text.val("");
@@ -450,32 +480,16 @@ $.uce.widget("chat", {
         conversationList.scrollTop(conversationList[0].scrollHeight);
     },
 
-    _addRosterUser: function(user) {
-        for (var index = 0; index < this._state.roster.length; index++) {
-            if (this._state.roster[index] == user) {
-                return;
-            }
-        }
-        this._state.roster.push(user);
-        this._updateRoster();
-    },
-
-    _deleteRosterUser: function(user) {
-        for (var index = 0; index < this._state.roster.length; index++) {
-            if (this._state.roster[index] == user) {
-                this._state.roster.splice(index, 1);
-            }
-        }
-        this._updateRoster();
-    },
-
     _updateRoster: function() {
         this._selectors.conversations.empty();
 
         var that = this;
-        $(this._state.roster).each(function(i, user) {
+        $.each(this._state.roster, function(uid, user) {
+            if (user.visible == false) {
+                return;
+            }
             var userSelector = $('<span>')
-                .text(user)
+                .text(user.nickname)
                 .attr('class', 'ui-chat ui-selector-text');
             var closeButton = $('<span>')
                 .attr('class', 'ui-chat ui-selector-button ui-button-close')
@@ -487,14 +501,16 @@ $.uce.widget("chat", {
                     }
                 })
                 .bind('click', function() {
-                    that._deleteRosterUser(user);
+                    that._state.roster[uid].visible = false;
+                    that._updateRoster();
+
                     if (that.options.mode == "expanded") {
                         that._showConversation("all", that.options.lang);
                     }
                 })
             $('<li>')
                 .click(function() {
-                    that._showConversation(user, that.options.lang);
+                    that._showConversation(uid, that.options.lang);
                 })
                 .append(userSelector)
                 .append(closeButton)
