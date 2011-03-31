@@ -7,7 +7,9 @@ $.uce.widget("management", {
     // ucengine events
     meetingsEvents: {
         "internal.roster.add"           : "_handleJoin",
-        "internal.roster.delete"        : "_handleLeave"
+        "internal.roster.delete"        : "_handleLeave",
+
+        "roster.nickname.update"        : "_handleNicknameUpdate"
     },
     _create: function() {
         var that = this;
@@ -24,7 +26,8 @@ $.uce.widget("management", {
             .appendTo(this._content);
 
         this._state = {};
-        this._state.roster = [];
+        this._state.roster = {};
+        this._state.anonCounter = 1;
 
         /* create dock */
         if (this.options.dock) {
@@ -74,24 +77,27 @@ $.uce.widget("management", {
      */
 
     _handleJoin: function(event) {
-        for (var index = 0; index < this._state.roster.length; index++) {
-            if (this._state.roster[index] == event.from) {
-                return;
-            }
+        if (this._state.roster[event.from]) {
+            return;
         }
-        this._state.roster.push(event.from);
+        this._state.roster[event.from] = {uid: event.from, nickname:
+                                          "Unnamed " + this._state.anonCounter};
+        this._state.anonCounter++;
         this._updateRoster();
     },
 
     _handleLeave: function(event) {
-        for (var index = 0; index < this._state.roster.length; index++) {
-            if (this._state.roster[index] == event.from) {
-                this._state.roster.splice(index, 1);
-            }
-        }
+        delete this._state.roster[event.from];
         this._updateRoster();
     },
     
+    _handleNicknameUpdate: function(event) {
+        if (this._state.roster[event.from]) {
+            this._state.roster[event.from].nickname = event.metadata.nickname;
+            this._updateRoster();
+        }
+    },
+
     /**
      * Internal functions
      */
@@ -99,21 +105,25 @@ $.uce.widget("management", {
         this._roster.empty();
         var meeting = this.options.ucemeeting;
         var that = this;
-        $(this._state.roster).each(function(i, user) {
-            $('<li>')
-                .text(user)
-                .click(function() {
-                    // Don't chat with yourself, you idiot!
-                    console.log(that.options.me, user);
-                    if (that.options.me == user) {
-                        return;
-                    }
+        $.each(this._state.roster, function(uid, user) {
+            var userField = $('<li>').text(user.nickname);
+            if (uid != that.options.uceclient.uid) {
+                userField.click(function() {
                     meeting.trigger({type: 'chat.private.start',
                                      from: 'internal',
                                      metadata: {
-                                         interlocutor: user
+                                         interlocutor: uid
                                      }});
-                }).appendTo(that._roster);
+                })
+            } else {
+                userField.editable({onSubmit: function(content) {
+                    if (content.current == content.previous) {
+                        return;
+                    }
+                    meeting.push('roster.nickname.update', {nickname: content.current});
+                }});
+            }
+            userField.appendTo(that._roster);
         });
     },
 
