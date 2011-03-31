@@ -194,7 +194,7 @@
                     });
             },
 
-            meeting : function(meetingname) {
+            meeting: function(meetingname) {
                 var handlers = [];
                 var client = this;
                 return {
