@@ -26,6 +26,16 @@
     color: #424242;
     font: 14px Helvetica;
     border-top: 1px solid #D7D7D7;
+    height: 20px;
+    line-height: 18px;
+    vertical-align: middle;
+}
+
+.ui-management .ui-management-roster li input {
+    border: 1px solid #D7D7D7;
+    width: 60%;
+    margin-left: -1px;
+    margin-right: -1px;
 }
 
 .ui-management .ui-management-roster li:first-child {
