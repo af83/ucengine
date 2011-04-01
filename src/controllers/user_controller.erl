@@ -160,24 +160,48 @@ check_access(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _
 
 add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", Name},
-                                                                                       {"location", Location},
-                                                                                       {"role", Role}]),
-
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user.role", "add", [{"user", Name},
+                                                                                         {"location", Location},
+                                                                                         {"role", Role}]),
+    
     case uce_user:add_role(Domain, {Name, Domain}, {Role, Location}) of
-        {ok, updated} -> json_helpers:ok(Domain);
-        {error, Reason} -> json_helpers:error(Domain, Reason)
+        {ok, updated} ->
+            case uce_event:add(Domain,
+                               #uce_event{id={none, Domain},
+                                          from={Id, Domain},
+                                          location={Location, Domain},
+                                          type="internal.user.role.add",
+                                          metadata=[{"role", Role}]}) of
+                {ok, _} ->
+                    json_helpers:ok(Domain);
+                {error, Reason} ->
+                    json_helpers:error(Domain, Reason)
+            end;
+        {error, Reason} ->
+            json_helpers:error(Domain, Reason)
     end.
 
 delete_role(Domain, [User, Role], [Uid, Sid], Arg) ->
     delete_role(Domain, [User, Role, ""], [Uid, Sid], Arg);
 delete_role(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", User},
-                                                                                       {"location", Location},
-                                                                                       {"role", Role}]),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user.role", "delete", [{"user", User},
+                                                                                            {"location", Location},
+                                                                                            {"role", Role}]),
 
     case uce_user:delete_role(Domain, {User, Domain}, {Role, Location}) of
-        {ok, updated} -> json_helpers:ok(Domain);
-        {error, Reason} -> json_helpers:error(Domain, Reason)
+        {ok, updated} ->
+            case uce_event:add(Domain,
+                               #uce_event{id={none, Domain},
+                                          from={Id, Domain},
+                                          location={Location, Domain},
+                                          type="internal.user.role.delete",
+                                          metadata=[{"role", Role}]}) of
+                {ok, _} ->
+                    json_helpers:ok(Domain);
+                {error, Reason} ->
+                    json_helpers:error(Domain, Reason)
+            end;
+        {error, Reason} ->
+            json_helpers:error(Domain, Reason)
     end.
