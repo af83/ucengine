@@ -668,6 +668,128 @@ jackTest("complex search events in a meeting", function() {
     });
 });
 
+module("ucejs.userAccess", {
+    setup:function() {
+        this.client = uce.createClient();
+    }
+});
+
+jackTest("user.addRole", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/user/otheruid/roles", {"uid": "myuid",
+                                                                           "sid": "mysid", 
+                                                                           "name": "newrole",
+                                                                           "location": "testmeeting"},
+                  201, '{"result":"created"}');
+    this.client
+        .attachPresence(Factories.createPresence())
+        .user.addRole("otheruid",
+                      "newrole",
+                      "testmeeting",
+                      function(err, result) {
+                          start();
+                          equals(err, null);
+                          same(result.result, "created");
+                      });
+});
+
+jackTest("user.deleteRole", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/user/otheruid/roles/newrole/testmeeting",
+                  {uid: "myuid",
+                   sid: "mysid",
+                   _method: "delete"},
+                  200, '{"result":"ok"}');
+    this.client.attachPresence(Factories.createPresence())
+        .user.deleteRole("otheruid",
+                         "newrole",
+                         "testmeeting",
+                         function(err, result) {
+                             start();
+                             equals(err, null);
+                             same(result.result, "ok");
+                         });
+});
+
+jackTest("user.can", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/user/otheruid/can/action/object/mymeeting",
+                  {"uid": "myuid",
+                   "sid": "mysid"}, 200, '{"result":"true"}');
+    this.client.attachPresence(Factories.createPresence()).user.can("otheruid", "action", "object", "mymeeting", function(err, result) {
+        start();
+        equals(err, null);
+        same(result, true);
+    });
+});
+
+module("ucejs.role", {
+    setup:function() {
+        this.client = uce.createClient();
+    }
+});
+
+jackTest("role.add", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/role",
+                  {"name": "newrole",
+                   "uid": "myuid",
+                   "sid": "mysid"}, 201, '{"result":"created"}');
+    this.client.attachPresence(Factories.createPresence())
+        .role.add("newrole", function(err, result) {
+            start();
+            equals(err, null);
+            same(result.result, "created");
+        });
+});
+
+jackTest("role.delete", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/role/newrole",
+                  {"uid": "myuid",
+                   "sid": "mysid",
+                   "_method": "delete"}, 200, '{"result":"ok"}');
+    this.client.attachPresence(Factories.createPresence())
+        .role.del("newrole", function(err, result) {
+            start();
+            equals(err, null);
+            same(result.result, "ok");
+        });
+});
+
+jackTest("role.addAccess", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/role/myrole/acl",
+                  {"action": "access_action",
+                   "object": "access_object",
+                   "conditions": {'a': 'b', 'c': 'd'},
+                   "uid": "myuid",
+                   "sid": "mysid"}, 201, '{"result":"created"}');
+    this.client.attachPresence(Factories.createPresence())
+        .role.addAccess("myrole", "access_action", "access_object", {'a': 'b', 'c': 'd'},
+                        function(err, result) {
+                            start();
+                            equals(err, null);
+                            same(result.result, "created");
+                        });
+});
+
+jackTest("role.deleteAccess", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/role/myrole/acl/access_action/access_object",
+                  {"conditions": {'a': 'b', 'c': 'd'},
+                   "uid": "myuid",
+                   "sid": "mysid",
+                   "_method": "delete"}, 200, '{"result":"ok"}');
+    this.client.attachPresence(Factories.createPresence())
+        .role.deleteAccess("myrole", "access_action", "access_object", {'a': 'b', 'c': 'd'},
+                           function(err, result) {
+                               start();
+                               equals(err, null);
+                               same(result.result, "ok");
+                           });
+});
+
 module("ucejs.replay", {
     setup:function() {
         this.meeting = Factories.getDefaultMeeting();
@@ -769,20 +891,4 @@ test("can jump to a specific datetime in the past", function() {
         start();
         equals(called, 4);
     }, 4500);
-});
-
-module("ucejs.acl", {
-    setup:function() {
-        this.client = uce.createClient();
-    }
-});
-
-jackTest("user.can", function() {
-    stop();
-    addUceApiCall("get", "/api/" + uce.version + "/user/otheruid/acl/all/all", {"uid": "myuid", "sid": "mysid"}, 200, '{"result":"true"}');
-    this.client.attachPresence(Factories.createPresence()).user.can("otheruid", "all", "all", function(err, result) {
-        start();
-        equals(err, null);
-        same(result, true);
-    });
 });

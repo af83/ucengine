@@ -506,14 +506,71 @@
                             callback(err, result, xhr);
                         });
                 },
-                can: function(uid, object, action, callback) {
-                    get("/user/"+ uid +"/acl/"+ action +"/"+ action, {'uid': _presence.user,
-                                                                      'sid': _presence.id},
-                        function(err, result) {
+                addRole: function(uid, role, location, callback) {
+                    post("/user/" + uid + "/roles", {'uid': _presence.user,
+                                                     'sid': _presence.id,
+                                                     'name': role,
+                                                     'location': location},
+                         function(err, result, xhr) {
+                             callback(err, result, xhr);
+                         });
+                },
+                deleteRole: function(uid, role, location, callback) {
+                    del("/user/" + uid + "/roles/" + role + "/" + location,
+                        {'uid': _presence.user,
+                         'sid': _presence.id},
+                        function(err, result, xhr) {
+                            callback(err, result, xhr);
+                        });
+
+                },
+                can: function(uid, action, object, location, callback) {
+                    get("/user/" + uid + "/can/" + action + "/" + object + "/" + location,
+                        {'uid': _presence.user,
+                         'sid': _presence.id},
+                        function(err, result, xhr) {
                             if (err)
-                                callback(err, result);
+                                callback(err, result, xhr);
                             else
-                                callback(err, result.result === "true");
+                                callback(err, result.result === "true", xhr);
+                        });
+                }
+            },
+            role: {
+                add: function(name, callback) {
+                    post("/role", {'name': name,
+                                   'uid': _presence.user,
+                                   'sid': _presence.id},
+                         function(err, result, xhr) {
+                             callback(err, result, xhr);
+                         });
+                },
+                del: function(name, callback) {
+                    del("/role/" + name,
+                        {'uid': _presence.user,
+                         'sid': _presence.id},
+                        function(err, result, xhr) {
+                            callback(err, result, xhr);
+                        });
+                },
+                addAccess: function(role, action, object, conditions, callback) {
+                    post("/role/" + role + "/acl",
+                         {'action': action,
+                          'object': object,
+                          'conditions': conditions,
+                          'uid': _presence.user,
+                          'sid': _presence.id},
+                         function(err, result, xhr) {
+                             callback(err, result, xhr);
+                         });
+                },
+                deleteAccess: function(role, action, object, conditions, callback) {
+                    del("/role/" + role + "/acl/" + action + "/" + object,
+                        {'conditions': conditions,
+                         'uid': _presence.user,
+                         'sid': _presence.id},
+                        function(err, result, xhr) {
+                            callback(err, result, xhr);
                         });
                 }
             },
