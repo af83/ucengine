@@ -515,7 +515,7 @@
                              callback(err, result, xhr);
                          });
                 },
-                deleteRole: function(uid, role, location, callback) {
+                delRole: function(uid, role, location, callback) {
                     del("/user/" + uid + "/roles/" + role + "/" + location,
                         {'uid': _presence.user,
                          'sid': _presence.id},
@@ -564,7 +564,7 @@
                              callback(err, result, xhr);
                          });
                 },
-                deleteAccess: function(role, action, object, conditions, callback) {
+                delAccess: function(role, action, object, conditions, callback) {
                     del("/role/" + role + "/acl/" + action + "/" + object,
                         {'conditions': conditions,
                          'uid': _presence.user,

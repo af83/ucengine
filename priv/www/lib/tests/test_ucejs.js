@@ -701,7 +701,7 @@ jackTest("user.deleteRole", function() {
                    _method: "delete"},
                   200, '{"result":"ok"}');
     this.client.attachPresence(Factories.createPresence())
-        .user.deleteRole("otheruid",
+        .user.delRole("otheruid",
                          "newrole",
                          "testmeeting",
                          function(err, result) {
@@ -782,12 +782,12 @@ jackTest("role.deleteAccess", function() {
                    "sid": "mysid",
                    "_method": "delete"}, 200, '{"result":"ok"}');
     this.client.attachPresence(Factories.createPresence())
-        .role.deleteAccess("myrole", "access_action", "access_object", {'a': 'b', 'c': 'd'},
-                           function(err, result) {
-                               start();
-                               equals(err, null);
-                               same(result.result, "ok");
-                           });
+        .role.delAccess("myrole", "access_action", "access_object", {'a': 'b', 'c': 'd'},
+                        function(err, result) {
+                            start();
+                            equals(err, null);
+                            same(result.result, "ok");
+                        });
 });
 
 module("ucejs.replay", {
