@@ -86,7 +86,7 @@ add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
                                         auth=Auth,
                                         credential=Credential,
                                         metadata=Metadata}) of
-        {ok, UId} -> 
+        {ok, UId} ->
             {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
                                                        from={UId, Domain},
                                                        location={"", Domain},
@@ -171,7 +171,8 @@ add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
                                           from={Uid, Domain},
                                           location={Location, Domain},
                                           type="internal.user.role.add",
-                                          metadata=[{"role", Role}]}) of
+                                          metadata=[{"role", Role},
+                                                    {"user", Name}]}) of
                 {ok, _} ->
                     json_helpers:ok(Domain);
                 {error, Reason} ->
@@ -196,7 +197,8 @@ delete_role(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
                                           from={Uid, Domain},
                                           location={Location, Domain},
                                           type="internal.user.role.delete",
-                                          metadata=[{"role", Role}]}) of
+                                          metadata=[{"role", Role},
+                                                    {"user", User}]}) of
                 {ok, _} ->
                     json_helpers:ok(Domain);
                 {error, Reason} ->
