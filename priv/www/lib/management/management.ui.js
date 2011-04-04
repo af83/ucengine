@@ -9,6 +9,9 @@ $.uce.widget("management", {
         "internal.roster.add"           : "_handleJoin",
         "internal.roster.delete"        : "_handleLeave",
 
+        "internal.user.role.add"        : "_handleUserRoleAdd",
+        "internal.user.role.delete"     : "_handleUserRoleDelete",
+
         "roster.nickname.update"        : "_handleNicknameUpdate"
     },
     _create: function() {
@@ -26,7 +29,9 @@ $.uce.widget("management", {
             .appendTo(this._content);
 
         this._state = {};
-        this._state.roster = {};
+        this._state.roster = [];
+        this._state.users = {};
+        this._state.me = {};
         this._state.anonCounter = 1;
 
         /* create dock */
@@ -77,53 +82,160 @@ $.uce.widget("management", {
      */
 
     _handleJoin: function(event) {
-        if (this._state.roster[event.from]) {
+        if (this._state.users[event.from]) {
             return;
         }
-        this._state.roster[event.from] = {uid: event.from, nickname:
-                                          "Unnamed " + this._state.anonCounter};
+        this._state.users[event.from] = {uid: event.from,
+                                         nickname: "Unnamed " + this._state.anonCounter,
+                                         you: false,
+                                         owner: false,
+                                         speaker: false};
+        if (event.from == this.options.uceclient.uid) {
+            this._state.users[event.from].you = true;
+        }
         this._state.anonCounter++;
         this._updateRoster();
     },
 
     _handleLeave: function(event) {
-        delete this._state.roster[event.from];
+        delete this._state.users[event.from];
         this._updateRoster();
     },
-    
+
     _handleNicknameUpdate: function(event) {
-        if (this._state.roster[event.from]) {
-            this._state.roster[event.from].nickname = event.metadata.nickname;
+        if (this._state.users[event.from]) {
+            this._state.users[event.from].nickname = event.metadata.nickname;
             this._updateRoster();
         }
+    },
+
+    _handleUserRoleAdd: function(event) {
+        if (!this._state.users[event.metadata.user]) {
+            return;
+        }
+        if (event.metadata.role == "owner") {
+            this._state.users[event.metadata.user].owner = true;
+        }
+        else if (event.metadata.role == "speaker") {
+            this._state.users[event.metadata.user].speaker = true;
+        }
+        this._updateRoster();
+    },
+
+    _handleUserRoleDelete: function(event) {
+        if (!this._state.users[event.metadata.user]) {
+            return;
+        }
+
+        if (event.metadata.role == "owner") {
+            this._state.users[event.metadata.user].owner = false;
+        }
+        else if (event.metadata.role == "speaker") {
+            this._state.users[event.metadata.user].speaker = false;
+        }
+        this._updateRoster();
     },
 
     /**
      * Internal functions
      */
+
     _updateRoster: function() {
         this._roster.empty();
         var meeting = this.options.ucemeeting;
+
+        var roster = [];
+        $.each(this._state.users, function(uid, user) {
+            roster.push(user);
+        });
+        roster = roster.sort(function(user1, user2) {
+            if (user1.you) {
+                return (-1);
+            }
+            if (user2.you) {
+                return (1);
+            }
+
+            if (user1.owner) {
+                return (-1);
+            }
+            if (user2.owner) {
+                return (1);
+            }
+
+            if (user1.speaker) {
+                return (-1);
+            }
+            if (user2.speaker) {
+                return (1);
+            }
+
+            if (user1.nickname > user2.nickname) {
+                return (1);
+            }
+            return (0);
+        });
+
+        var me = this._state.users[this.options.uceclient.uid];
         var that = this;
-        $.each(this._state.roster, function(uid, user) {
-            var userField = $('<li>').text(user.nickname);
-            if (uid != that.options.uceclient.uid) {
+        $.each(roster, function(i, user) {
+
+            var userField = $('<span>')
+                .addClass('ui-management-user')
+                .text(user.nickname);
+
+            var roleField = $('<span>')
+                .addClass('ui-management-role');
+            if (user.owner) {
+                roleField.text("Owner");
+            } else if (user.speaker) {
+                roleField.text("Speaker");
+            } else if (user.you) {
+                roleField.text("You");
+            }
+
+            var elem = $('<li>').append(userField)
+                .append(" ")
+                .append(roleField);
+
+            if (user.uid != me.uid) {
                 userField.click(function() {
                     meeting.trigger({type: 'chat.private.start',
                                      from: 'internal',
                                      metadata: {
-                                         interlocutor: uid
+                                         interlocutor: user.uid
                                      }});
                 })
+                if (me.owner) {
+                    var giveLeadButton = $('<a>')
+                        .addClass('ui-management-lead-button')
+                        .button({label: "Give Lead"})
+                        .appendTo(elem);
+                    giveLeadButton.click(function() {
+                        meeting.push('chat.lead.request', {});
+                    });
+                    elem.hover(
+                        function() {
+                            giveLeadButton.addClass('ui-management-button-active');
+                        },
+                        function() {
+                            giveLeadButton.removeClass('ui-management-button-active');
+                        });
+                }
             } else {
                 userField.editable({onSubmit: function(content) {
                     if (content.current == content.previous) {
                         return;
                     }
+                    if (content.current == "") {
+                        userField.text(content.previous);
+                        return;
+                    }
                     meeting.push('roster.nickname.update', {nickname: content.current});
                 }});
             }
-            userField.appendTo(that._roster);
+
+            elem.appendTo(that._roster);
         });
     },
 

@@ -22,7 +22,7 @@
 .ui-management .ui-management-roster li {
     list-style-type: none;
     display: block;
-    padding: 5px 50px 6px 10px;
+    padding: 5px 5px 6px 10px;
     color: #424242;
     font: 14px Helvetica;
     border-top: 1px solid #D7D7D7;
@@ -40,4 +40,28 @@
 
 .ui-management .ui-management-roster li:first-child {
     border-top: none;
+}
+
+.ui-management .ui-management-roster .ui-management-role {
+    font-weight: bold;
+    margin-left: 12px;
+}
+
+.ui-management .ui-management-roster a.ui-management-lead-button {
+    height: 20px;
+    float: right;
+    display: none;
+}
+
+.ui-management .ui-management-roster a.ui-management-lead-button.ui-management-button-active {
+    display: block;
+}
+
+.ui-management .ui-management-roster a.ui-management-lead-button .ui-button-text {
+    margin: 0px;
+    padding: 0px;
+    line-height: 20px;
+    padding-left: 8px;
+    padding-right: 8px;
+    color: #424242;
 }
