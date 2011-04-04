@@ -64,9 +64,12 @@ fill_domain(Domain) ->
                                               #uce_access{action="list", object="meeting"},
                                               #uce_access{action="all", object="event"}]}),
 
+    catch uce_role:add(Domain, #uce_role{id={"ower", Domain},
+                                         acl=[]}),
+
     Users = ["thierry.bomandouki@af83.com", "victor.goya@af83.com",
              "louis.ameline@af83.com", "alexandre.eisenchteter@af83.com",
-             "romain.gauthier@af83.com", "participant"],
+             "romain.gauthier@af83.com", "participant", "owner"],
 
     lists:foreach(fun(User) ->
                           ?DEBUG("User : ~p~n", [User]),
@@ -86,6 +89,22 @@ fill_domain(Domain) ->
                                                                acl=[]})
 
                   end, Users),
+
+    {ok, #uce_user{id={Uid, _}=AdminId}} = uce_user:get(Domain, "owner"),
+    lists:foreach(fun(Location) ->
+                          uce_user:add_role(Domain, AdminId, {"owner", Location}),
+                          uce_event:add(Domain, #uce_event{id={none, Domain},
+                                                           from=AdminId,
+                                                           location={Location, Domain},
+                                                           type="internal.roster.add"}),
+                          uce_event:add(Domain, #uce_event{id={none, Domain},
+                                                           from=AdminId,
+                                                           location={Location, Domain},
+                                                           type="internal.user.role.add",
+                                                           metadata=[{"role", "owner"},
+                                                                     {"user", Uid}]})
+                  end,
+                  ["demo", "demo2", "agoroom"]),
 
     uce_role:add(Domain, #uce_role{id={"anonymous", Domain},
                                         acl=[#uce_access{action="add", object="presence"},
