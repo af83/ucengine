@@ -168,7 +168,7 @@ add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
         {ok, updated} ->
             case uce_event:add(Domain,
                                #uce_event{id={none, Domain},
-                                          from={Id, Domain},
+                                          from={Uid, Domain},
                                           location={Location, Domain},
                                           type="internal.user.role.add",
                                           metadata=[{"role", Role}]}) of
@@ -193,7 +193,7 @@ delete_role(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
         {ok, updated} ->
             case uce_event:add(Domain,
                                #uce_event{id={none, Domain},
-                                          from={Id, Domain},
+                                          from={Uid, Domain},
                                           location={Location, Domain},
                                           type="internal.user.role.delete",
                                           metadata=[{"role", Role}]}) of
