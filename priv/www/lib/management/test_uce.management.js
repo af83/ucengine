@@ -78,6 +78,7 @@ module("uce.management", {
     setup: function() {
         var that = this;
         this.ucemeeting = {
+            name: "testmeeting",
             on: function(eventName, callback) {
                 if (eventName == "internal.roster.add") {
                     that.callback_roster_add = callback;
@@ -347,4 +348,59 @@ test("ignore meeting.lead.refuse event from non-owner", function() {
 
     this.callback_lead_refuse(Factories.refuseLeadEvent('brucelee', 'chuck'));
     equals($("#management .ui-management-roster li:eq(0) .ui-management-role").text(), 'Lead Request Pending');
+});
+
+jackTest("add the 'speaker' role when clicking on the 'Give Lead' button", function() {
+    expect(4);
+    var userMock = jack.create("user", ['addRole', 'delRole']);
+    jack.expect("user.addRole")
+        .exactly("1 time")
+        .mock(function(uid, role, location, callback) {
+            equals(uid, "brucelee");
+            equals(role, "speaker");
+            equals(location, "testmeeting");
+        });
+    uceclient = {uid: "chuck", user: userMock};
+
+    $('#management').management({
+        ucemeeting: this.ucemeeting,
+        uceclient: uceclient
+    });
+
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_role_add(Factories.addUserRoleEvent('god', 'chuck', 'owner'));
+
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
+
+    $("#management .ui-management-roster li:eq(1) .ui-management-lead-button").click();
+});
+
+jackTest("add the 'speaker' role when clicking on the accept pictogram", function() {
+    expect(4);
+    var userMock = jack.create("user", ['addRole', 'delRole']);
+    jack.expect("user.addRole")
+        .exactly("1 time")
+        .mock(function(uid, role, location, callback) {
+            equals(uid, "brucelee");
+            equals(role, "speaker");
+            equals(location, "testmeeting");
+        });
+    uceclient = {uid: "chuck", user: userMock};
+
+    var ucemeeting = jack.create("ucemeeting", ['push']);
+    ucemeeting.on = this.ucemeeting.on;
+    ucemeeting.name = this.ucemeeting.name;
+
+    $('#management').management({
+        ucemeeting: ucemeeting,
+        uceclient: uceclient
+    });
+
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_role_add(Factories.addUserRoleEvent('god', 'chuck', 'owner'));
+
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
+    this.callback_lead_request(Factories.requestLeadEvent('brucelee'));
+
+    $("#management .ui-management-roster li:eq(1) .ui-management-lead-button:eq(1)").click();
 });

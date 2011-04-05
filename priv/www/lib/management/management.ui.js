@@ -136,6 +136,7 @@ $.uce.widget("management", {
         }
         else if (event.metadata.role == "speaker") {
             this._state.users[event.metadata.user].speaker = true;
+            this._state.users[event.metadata.user].requestLead = false;
         }
         this._updateRoster();
     },
@@ -150,6 +151,7 @@ $.uce.widget("management", {
         }
         else if (event.metadata.role == "speaker") {
             this._state.users[event.metadata.user].speaker = false;
+            this._state.users[event.metadata.user].requestLead = false;
         }
         this._updateRoster();
     },
@@ -244,9 +246,16 @@ $.uce.widget("management", {
                             meeting.push('meeting.lead.refuse', {user: user.uid});
                         }).appendTo(item);
                         that._createPictogram("ui-icon-circle-check", function() {
+                            that._giveLead(user);
                         }).appendTo(item);
+                    } else if (user.speaker) {
+                        that._createButton("Remove Lead", function() {
+                            that._removeLead(user);
+                        }).appendTo(item);
+
                     } else {
                         that._createButton("Give Lead", function() {
+                            that._giveLead(user);
                         }).appendTo(item);
                     }
                 }
@@ -276,6 +285,26 @@ $.uce.widget("management", {
 
             item.appendTo(that._roster);
         });
+    },
+
+    _removeLead: function(speaker) {
+        this.options.uceclient.user.delRole(speaker.uid,
+                                            "speaker",
+                                            this.options.ucemeeting.name,
+                                            function(err, result, xhr) {});;
+    },
+
+    _giveLead: function(speaker) {
+        // Remove the lead from the current speaker
+        var that = this;
+        $.each(this._state.users, function(uid, user) {
+            that._removeLead(speaker);
+        });
+        // Give the lead to the new speaker
+        this.options.uceclient.user.addRole(speaker.uid,
+                                            "speaker",
+                                            this.options.ucemeeting.name,
+                                            function(err, result, xhr) {});;
     },
 
     _createButton: function(label, callback) {
