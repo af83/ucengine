@@ -677,8 +677,8 @@ module("ucejs.userAccess", {
 jackTest("user.addRole", function() {
     stop();
     addUceApiCall("post", "/api/" + uce.version + "/user/otheruid/roles", {"uid": "myuid",
-                                                                           "sid": "mysid", 
-                                                                           "name": "newrole",
+                                                                           "sid": "mysid",
+                                                                           "role": "newrole",
                                                                            "location": "testmeeting"},
                   201, '{"result":"created"}');
     this.client

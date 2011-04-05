@@ -509,7 +509,7 @@
                 addRole: function(uid, role, location, callback) {
                     post("/user/" + uid + "/roles", {'uid': _presence.user,
                                                      'sid': _presence.id,
-                                                     'name': role,
+                                                     'role': role,
                                                      'location': location},
                          function(err, result, xhr) {
                              callback(err, result, xhr);
