@@ -25,15 +25,15 @@
          get/2,
          exists/2,
          acl/2,
-         add_access/3,
-         delete_access/3]).
+         addAccess/3,
+         deleteAccess/3]).
 
 -include("uce.hrl").
 
 add(Domain, #uce_role{id=Id} = Role) ->
     case exists(Domain, Id) of
         true ->
-            {error, conflict};
+            throw({error, conflict});
         false ->
             apply(db:get(?MODULE, Domain), add, [Domain, Role])
     end.
@@ -43,52 +43,49 @@ update(Domain, #uce_role{id=Id} = Role) ->
         true ->
             apply(db:get(?MODULE, Domain), update, [Domain, Role]);
         false ->
-            {error, not_found}
+            throw({error, not_found})
     end.
 
 delete(Domain, Id) ->
     case exists(Domain, Id) of
         true ->
             apply(db:get(?MODULE, Domain), delete, [Domain, Id]);
-        false -> {error, not_found}
+        false ->
+            throw({error, not_found})
     end.
 
 get(Domain, Id) ->
     apply(db:get(?MODULE, Domain), get, [Domain, Id]).
 
 exists(Domain, Id) ->
-    case ?MODULE:get(Domain, Id) of
+    case catch ?MODULE:get(Domain, Id) of
         {error, not_found} ->
             false;
-        {ok, _} -> true
+        {error, Reason} ->
+            throw({error, Reason});
+        _ ->
+            true
     end.
 
 acl(Domain, Id) ->
     {ok, Role} = ?MODULE:get(Domain, Id),
     {ok, Role#uce_role.acl}.
 
-add_access(Domain, Id, #uce_access{} = Access) ->
-    case ?MODULE:get(Domain, Id) of 
-        {ok, Role} -> 
-            ?MODULE:get(Domain, Id),
-            case uce_access:exists(Access, Role#uce_role.acl) of
-                true ->
-                    {ok, updated};
-                false ->
-                    ?MODULE:update(Domain, Role#uce_role{acl=(Role#uce_role.acl ++ [Access])})
-            end;
-        {error, _Reason} = Error -> Error
+addAccess(Domain, Id, #uce_access{} = Access) ->
+    {ok, Role} = ?MODULE:get(Domain, Id),
+    case uce_access:exists(Access, Role#uce_role.acl) of
+        true ->
+            {ok, updated};
+        false ->
+            ?MODULE:update(Domain, Role#uce_role{acl=(Role#uce_role.acl ++ [Access])})
     end.
 
-delete_access(Domain, Id, #uce_access{} = Access) ->
-    case ?MODULE:get(Domain, Id) of 
-        {ok, Role} -> 
-            ACL = case uce_access:exists(Access, Role#uce_role.acl) of
-                      true ->
-                          uce_access:delete(Access, Role#uce_role.acl);
-                      false ->
-                          Role#uce_role.acl
-                  end,
-            ?MODULE:update(Domain, Role#uce_role{acl=ACL});
-        {error, _Reason} = Error -> Error
-    end.
+deleteAccess(Domain, Id, #uce_access{} = Access) ->
+    {ok, Role} = ?MODULE:get(Domain, Id),
+    ACL = case uce_access:exists(Access, Role#uce_role.acl) of
+              true ->
+                  uce_access:delete(Access, Role#uce_role.acl);
+              false ->
+                  Role#uce_role.acl
+          end,
+    ?MODULE:update(Domain, Role#uce_role{acl=ACL}).
