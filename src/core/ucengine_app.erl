@@ -22,7 +22,6 @@
 
 -export([start/0]).
 
--compile(export_all).
 
 %% application callback
 -export([start/2, stop/1]).

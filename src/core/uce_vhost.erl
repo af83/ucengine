@@ -29,7 +29,6 @@
          handle_cast/2,
          handle_info/2,
          terminate/2]).
--compile([export_all]).
 
 name(Domain) ->
     list_to_atom(lists:concat([?MODULE, "_", Domain])).

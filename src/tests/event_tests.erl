@@ -20,7 +20,8 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--compile(export_all).
+-export([send_long_polling_event/2]).
+
 
 setup_events(Domain) ->
     {ok, Participant} = uce_user:get(Domain, "participant.user@af83.com"),
