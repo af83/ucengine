@@ -29,7 +29,7 @@
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, MongoPoolInfos::list) -> any()
 %% @doc Initialize mongodb dedicated connections pool for the given domain (vhost).
-%% @end
+%% @end 
 %%--------------------------------------------------------------------
 init(Domain, MongoPoolInfos) ->
     catch application:start(emongo),
@@ -43,7 +43,7 @@ init(Domain, MongoPoolInfos) ->
 %%--------------------------------------------------------------------
 %% @spec () -> any()
 %% @doc Disconnect from mongodb by dropping all connections pool.
-%% @end
+%% @end 
 %%--------------------------------------------------------------------
 drop() ->
     lists:foreach(fun({Domain, _}) ->
@@ -52,9 +52,9 @@ drop() ->
                   config:get('hosts')).
 
 %%--------------------------------------------------------------------
-%% @spec () -> ok
+%% @spec () -> ok 
 %% @doc Terminate.
-%% @end
+%% @end 
 %%--------------------------------------------------------------------
 terminate() ->
     ok.

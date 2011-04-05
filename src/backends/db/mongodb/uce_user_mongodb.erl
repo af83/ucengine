@@ -39,7 +39,7 @@ add(Domain, #uce_user{} = User) ->
     case catch emongo:insert_sync(Domain, "uce_user", to_collection(User)) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         _ ->
             {ok, created}
     end.
@@ -54,7 +54,7 @@ delete(Domain, {Id, Domain}) ->
                                                        {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         _ ->
             {ok, deleted}
     end.    
@@ -72,7 +72,7 @@ update(Domain, #uce_user{id={Id, UDomain}} = User) ->
                                   to_collection(User), false) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         _ ->
             {ok, updated}
     end.
@@ -86,7 +86,7 @@ list(Domain) ->
     case catch emongo:find_all(Domain, "uce_user", [{"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         Collections ->
             Users = lists:map(fun(Collection) ->
                                       from_collection(Collection)
@@ -109,18 +109,18 @@ get(Domain, Name) when is_list(Name) ->
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->
-            {error, not_found}
+            throw({error, not_found})
     end;
 get(Domain, {UId, UDomain}) ->
     case catch emongo:find_one(Domain, "uce_user", [{"id", UId},
                                                     {"domain", UDomain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->
-            {error, not_found}
+            throw({error, not_found})
     end.
 
 %%--------------------------------------------------------------------
@@ -139,7 +139,7 @@ from_collection(Collection) ->
                       metadata=Metadata,
                       roles=[{Role, Location} || [Role, Location] <- Roles]};
         _ ->
-            {error, bad_parameters}
+            throw({error, bad_parameters})
     end.
 
 %%--------------------------------------------------------------------

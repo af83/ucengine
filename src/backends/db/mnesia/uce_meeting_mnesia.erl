@@ -42,7 +42,7 @@ add(#uce_meeting{} = Meeting) ->
                                     mnesia:write(Meeting)
                             end) of
         {aborted, _} ->
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         {atomic, _} ->
             {ok, created}
     end.
@@ -52,7 +52,7 @@ delete(Id) ->
                                     mnesia:delete({uce_meeting, Id})
                             end) of
         {aborted, _} ->
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         {atomic, ok} ->
             {ok, deleted}
     end.
@@ -64,9 +64,9 @@ get(Id) ->
         {atomic, [Record]} ->
             {ok, Record};
         {atomic, _} ->
-            {error, not_found};
+            throw({error, not_found});
         {aborted, _} ->
-            {error, bad_parameters}
+            throw({error, bad_parameters})
     end.
 
 update(#uce_meeting{} = Meeting) ->
@@ -74,7 +74,7 @@ update(#uce_meeting{} = Meeting) ->
                                     mnesia:write(Meeting)
                             end) of
         {aborted, _} ->
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         {atomic, _} ->
             {ok, updated}
     end.
@@ -88,7 +88,7 @@ list(Domain) ->
                                                                      metadata='_'})
                             end) of
         {aborted, _} ->
-            {error, bad_parameters};
+            throw({error, bad_parameters});
         {atomic, Meetings} ->
             {ok, Meetings}
     end.
