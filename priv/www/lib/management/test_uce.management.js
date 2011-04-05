@@ -35,6 +35,14 @@ Factories.deleteUserRoleEvent = function(from, user, role) {
     };
 }
 
+Factories.requestLeadEvent = function(from) {
+    return {
+        type: "chat.lead.request",
+        from: from,
+        metadata: {}
+    };
+}
+
 Factories.deleteRosterEvent = function(from) {
     return {
         type: "internal.roster.delete",
@@ -71,6 +79,8 @@ module("uce.management", {
                     that.callback_role_add = callback;
                 } else if (eventName == "internal.user.role.delete") {
                     that.callback_role_delete = callback;
+                } else if (eventName == "chat.lead.request") {
+                    that.callback_lead_request = callback;
                 } else if (eventName == "roster.nickname.update") {
                     that.callback_nickname_update = callback;
                 }
@@ -240,4 +250,41 @@ jackTest("send a chat.private.start event when clicking on a user", function() {
 
     this.callback_roster_add(Factories.addRosterEvent('brucelee'));
     $("#management .ui-management-roster li:eq(0) .ui-management-user").click();
+});
+
+jackTest("send a chat.lead.request event when clicking on the 'Request Lead' button", function() {
+    expect(2);
+    var ucemeeting = jack.create("ucemeeting", ['push']);
+    jack.expect("ucemeeting.push")
+        .exactly("1 time")
+        .mock(function(type) {
+            equals(type, "chat.lead.request");
+        });
+    ucemeeting.on = this.ucemeeting.on;
+
+    $('#management').management({
+        ucemeeting: ucemeeting,
+        uceclient: {uid: 'chuck'}
+    });
+
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    $("#management .ui-management-roster li:eq(0) .ui-management-lead-button").click();
+});
+
+test("display a message after a chat.lead.request is received from us", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_lead_request(Factories.requestLeadEvent('chuck'));
+    equals($("#management .ui-management-roster li:eq(0) .ui-management-role").text(), 'Lead Request Pending');
+});
+
+test("display a choice after a chat.lead.request is sent to the owner", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_role_add(Factories.addUserRoleEvent('god', 'chuck', 'owner'));
+
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
+    this.callback_lead_request(Factories.requestLeadEvent('brucelee'));
+
+    equals($("#management .ui-management-roster li:eq(1) .ui-management-lead-button").size(), 2);
+    ok($("#management .ui-management-roster li:eq(1) .ui-management-lead-button:eq(0) span").hasClass('ui-icon-circle-close'));
+    ok($("#management .ui-management-roster li:eq(1) .ui-management-lead-button:eq(1) span").hasClass('ui-icon-circle-check'));
 });

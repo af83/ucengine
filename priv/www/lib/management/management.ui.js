@@ -12,7 +12,9 @@ $.uce.widget("management", {
         "internal.user.role.add"        : "_handleUserRoleAdd",
         "internal.user.role.delete"     : "_handleUserRoleDelete",
 
-        "roster.nickname.update"        : "_handleNicknameUpdate"
+        "roster.nickname.update"        : "_handleNicknameUpdate",
+
+        "chat.lead.request"             : "_handleLeadRequest"
     },
     _create: function() {
         var that = this;
@@ -89,7 +91,8 @@ $.uce.widget("management", {
                                          nickname: "Unnamed " + this._state.anonCounter,
                                          you: false,
                                          owner: false,
-                                         speaker: false};
+                                         speaker: false,
+                                         requestLead: false};
         if (event.from == this.options.uceclient.uid) {
             this._state.users[event.from].you = true;
         }
@@ -107,6 +110,11 @@ $.uce.widget("management", {
             this._state.users[event.from].nickname = event.metadata.nickname;
             this._updateRoster();
         }
+    },
+
+    _handleLeadRequest: function(event) {
+        this._state.users[event.from].requestLead = true;
+        this._updateRoster();
     },
 
     _handleUserRoleAdd: function(event) {
@@ -139,7 +147,6 @@ $.uce.widget("management", {
     /**
      * Internal functions
      */
-
     _updateRoster: function() {
         this._roster.empty();
         var meeting = this.options.ucemeeting;
@@ -170,6 +177,13 @@ $.uce.widget("management", {
                 return (1);
             }
 
+            if (user1.requestLead) {
+                return (-1);
+            }
+            if (user2.requestLead) {
+                return (1);
+            }
+
             if (user1.nickname > user2.nickname) {
                 return (1);
             }
@@ -194,9 +208,16 @@ $.uce.widget("management", {
                 roleField.text("You");
             }
 
-            var elem = $('<li>').append(userField)
+            var item = $('<li>').append(userField)
                 .append(" ")
-                .append(roleField);
+                .append(roleField)
+                .hover(
+                    function() {
+                        item.addClass('ui-management-user-active');
+                    },
+                    function() {
+                        item.removeClass('ui-management-user-active');
+                    });
 
             if (user.uid != that.options.uceclient.uid) {
                 userField.click(function() {
@@ -207,20 +228,16 @@ $.uce.widget("management", {
                                      }});
                 })
                 if (me && me.owner) {
-                    var giveLeadButton = $('<a>')
-                        .addClass('ui-management-lead-button')
-                        .button({label: "Give Lead"})
-                        .appendTo(elem);
-                    giveLeadButton.click(function() {
-                        meeting.push('chat.lead.request', {});
-                    });
-                    elem.hover(
-                        function() {
-                            giveLeadButton.addClass('ui-management-button-active');
-                        },
-                        function() {
-                            giveLeadButton.removeClass('ui-management-button-active');
-                        });
+                    if (user.requestLead) {
+                        roleField.text("Request Lead");
+                        that._createPictogram("ui-icon-circle-close", function() {
+                        }).appendTo(item);
+                        that._createPictogram("ui-icon-circle-check", function() {
+                        }).appendTo(item);
+                    } else {
+                        that._createButton("Give Lead", function() {
+                        }).appendTo(item);
+                    }
                 }
             } else {
                 userField.editable({onSubmit: function(content) {
@@ -233,10 +250,38 @@ $.uce.widget("management", {
                     }
                     meeting.push('roster.nickname.update', {nickname: content.current});
                 }});
+
+                // Add a 'Request Lead' button if we don't have the right to talk
+                if (me && !me.owner && !me.speaker) {
+                    if (me.requestLead) {
+                        roleField.text("Lead Request Pending");
+                    } else {
+                        that._createButton("Request Lead", function() {
+                            meeting.push('chat.lead.request', {});
+                        }).appendTo(item);
+                    }
+                }
             }
 
-            elem.appendTo(that._roster);
+            item.appendTo(that._roster);
         });
+    },
+
+    _createButton: function(label, callback) {
+        var button = $('<a>')
+            .addClass('ui-management-lead-button')
+            .button({label: label})
+            .click(callback);
+        return (button);
+    },
+
+    _createPictogram: function(icon, callback) {
+        var button = $('<a>')
+            .addClass('ui-management-lead-button')
+            .button({text: false,
+                     icons: {primary: icon}})
+            .click(callback);
+        return (button);
     },
 
     _updateNotifications: function() {

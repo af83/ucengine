@@ -50,18 +50,24 @@
 .ui-management .ui-management-roster a.ui-management-lead-button {
     height: 20px;
     float: right;
-    display: none;
-}
-
-.ui-management .ui-management-roster a.ui-management-lead-button.ui-management-button-active {
-    display: block;
-}
-
-.ui-management .ui-management-roster a.ui-management-lead-button .ui-button-text {
     margin: 0px;
     padding: 0px;
+}
+
+.ui-management .ui-management-roster a.ui-management-lead-button.ui-button-text-only {
+    display: none;
     line-height: 20px;
     padding-left: 8px;
     padding-right: 8px;
     color: #424242;
+}
+
+.ui-management .ui-management-roster li.ui-management-user-active a.ui-management-lead-button.ui-button-text-only {
+    display: block;
+}
+
+.ui-management .ui-management-roster a.ui-management-lead-button.ui-button-icon-only {
+    border: none;
+    width: 24px;
+    background: none;
 }
