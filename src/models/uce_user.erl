@@ -19,7 +19,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/2, delete/2, update/2, list/1, get/2, exists/2, acl/3, addRole/3, deleteRole/3]).
+-export([add/2, delete/2, update/2, list/1, get/2, exists/2, acl/3, add_role/3, delete_role/3]).
 
 -include("uce.hrl").
 
@@ -94,7 +94,7 @@ exists(Domain, Id) ->
             end
     end.
 
-addRole(Domain, Id, {Role, Location}) ->
+add_role(Domain, Id, {Role, Location}) ->
     % Just ensure the role and location exists
     case uce_meeting:exists(Domain, {Location, Domain}) of
         true ->
@@ -114,7 +114,7 @@ addRole(Domain, Id, {Role, Location}) ->
             throw({error, not_found})
     end.
 
-deleteRole(Domain, Id, {Role, Location}) ->
+delete_role(Domain, Id, {Role, Location}) ->
     {ok, User} = ?MODULE:get(Domain, Id),
     Roles = case lists:member({Role, Location}, User#uce_user.roles) of
                 true ->

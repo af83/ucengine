@@ -17,7 +17,7 @@
 %%
 -module(role_controller).
 
--export([init/0, add/4, delete/4, addAccess/4, deleteAccess/4]).
+-export([init/0, add/4, delete/4, add_access/4, delete_access/4]).
 
 -include("uce.hrl").
 
@@ -37,7 +37,7 @@ init() ->
 
      #uce_route{method='POST',
                 regexp="/role/([^/]+)/acl",
-                callback={?MODULE, addAccess,
+                callback={?MODULE, add_access,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"object", "all", string},
@@ -46,7 +46,7 @@ init() ->
 
      #uce_route{method='DELETE',
                 regexp="/role/([^/]+)/acl/([^/]+)/([^/]+)",
-                callback={?MODULE, deleteAccess,
+                callback={?MODULE, delete_access,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"conditions", [], dictionary}]}}].
@@ -74,14 +74,14 @@ delete(Domain, [Name], [Uid, Sid], _) ->
     {ok, deleted} = uce_role:delete(Domain, {Name, Domain}),
     json_helpers:ok(Domain).
 
-addAccess(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
+add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
                                                      {"action", Action}]),
 
-    {ok, updated} = uce_role:addAccess(Domain, {Role, Domain},
+    {ok, updated} = uce_role:add_access(Domain, {Role, Domain},
                                        #uce_access{object=Object,
                                                    action=Action,
                                                    conditions=Conditions}),
@@ -97,14 +97,14 @@ addAccess(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
 
     json_helpers:ok(Domain).
 
-deleteAccess(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
+delete_access(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
                                                      {"action", Action}]),
 
-    {ok, updated} = uce_role:deleteAccess(Domain, {Role, Domain},
+    {ok, updated} = uce_role:delete_access(Domain, {Role, Domain},
                                           #uce_access{object=Object,
                                                       action=Action,
                                                       conditions=Conditions}),

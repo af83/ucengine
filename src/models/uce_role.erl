@@ -25,8 +25,8 @@
          get/2,
          exists/2,
          acl/2,
-         addAccess/3,
-         deleteAccess/3]).
+         add_access/3,
+         delete_access/3]).
 
 -include("uce.hrl").
 
@@ -71,7 +71,7 @@ acl(Domain, Id) ->
     {ok, Role} = ?MODULE:get(Domain, Id),
     {ok, Role#uce_role.acl}.
 
-addAccess(Domain, Id, #uce_access{} = Access) ->
+add_access(Domain, Id, #uce_access{} = Access) ->
     {ok, Role} = ?MODULE:get(Domain, Id),
     case uce_access:exists(Access, Role#uce_role.acl) of
         true ->
@@ -80,7 +80,7 @@ addAccess(Domain, Id, #uce_access{} = Access) ->
             ?MODULE:update(Domain, Role#uce_role{acl=(Role#uce_role.acl ++ [Access])})
     end.
 
-deleteAccess(Domain, Id, #uce_access{} = Access) ->
+delete_access(Domain, Id, #uce_access{} = Access) ->
     {ok, Role} = ?MODULE:get(Domain, Id),
     ACL = case uce_access:exists(Access, Role#uce_role.acl) of
               true ->
