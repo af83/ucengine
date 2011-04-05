@@ -20,8 +20,6 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--include("mongodb.hrl").
-
 infos_test_() ->
     { setup
       , fun fixtures:setup/0
