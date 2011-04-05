@@ -443,7 +443,7 @@ action(["user", "role", "add"], Args) ->
         {[_, _, _, none], _Metadata} ->
             error(missing_parameter);
         {[Domain, Uid, Role, Location], _Metadata} ->
-            {ok, updated} = call(user, add_role, [Domain,
+            {ok, updated} = call(user, addRole, [Domain,
                                                  {Uid, Domain},
                                                  {Role, Location}]),
             success(updated)
@@ -460,7 +460,7 @@ action(["user", "role", "delete"], Args) ->
         {[_, _, _, none], _Metadata} ->
             error(missing_parameter);
         {[Domain, Uid, Role, Location], _Metadata} ->
-            {ok, updated} = call(user, delete_role, [Domain,
+            {ok, updated} = call(user, deleteRole, [Domain,
                                                     {Uid, Domain},
                                                     {Role, Location}]),
             success(updated)
@@ -502,7 +502,7 @@ action(["role", "access", "add"], Args) ->
          {[_, _, _, none], _} ->
              error(missing_parameter);
          {[Domain, Name, Action, Object], Conditions} ->
-             {ok, updated} = call(role, add_access, [Domain, {Name, Domain},
+             {ok, updated} = call(role, addAccess, [Domain, {Name, Domain},
                                                     #uce_access{action=Action,
                                                                 object=Object,
                                                                 conditions=Conditions}]),
@@ -520,7 +520,7 @@ action(["role", "access", "delete"], Args) ->
          {[_, _, _, none], _} ->
              error(missing_parameter);
          {[Domain, Name, Action, Object], Conditions} ->
-             {ok, updated} = call(role, delete_access, [Domain, {Name, Domain},
+             {ok, updated} = call(role, deleteAccess, [Domain, {Name, Domain},
                                                        #uce_access{action=Action,
                                                                    object=Object,
                                                                    conditions=Conditions}]),
