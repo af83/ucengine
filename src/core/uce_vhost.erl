@@ -108,12 +108,17 @@ setup_root_role(Domain) ->
     end.
 
 setup_root_user(Domain, #uce_user{} = User) ->
-    {ok, UId} = uce_user:add(Domain, User),
-    uce_user:add_role(Domain, {UId, Domain}, {"root", []}).
+    case catch uce_user:add(Domain, User) of
+        {ok, UId} -> 
+            uce_user:add_role(Domain, {UId, Domain}, {"root", []});
+        {error, conflict} ->
+            ok;
+        {error, _} = Error -> throw(Error)
+    end.
 
 setup_bricks(Domain) ->
     lists:foreach(fun({Name, Token}) ->
-                          catch setup_root_user(Domain, #uce_user{name=Name,
+                          setup_root_user(Domain, #uce_user{name=Name,
                                                             auth="token",
                                                             credential=Token,
                                                             metadata=[]})
@@ -127,7 +132,7 @@ setup_admin(Domain) ->
     Auth = proplists:get_value(auth, Admin),
     Credential = proplists:get_value(credential, Admin),
     Metadata = proplists:get_value(metadata, Admin, []),
-    catch setup_root_user(Domain, #uce_user{name=Uid,
+    setup_root_user(Domain, #uce_user{name=Uid,
                                       auth=Auth,
                                       credential=Credential,
                                       metadata=Metadata}).
