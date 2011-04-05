@@ -357,7 +357,7 @@ test_role_add_access(Domain) ->
 test_role_check_access(Domain) ->
     {ok, Anonymous} = uce_user:get(Domain, "anonymous.user@af83.com"),
     {AnonymousUid, _} = Anonymous#uce_user.id,
-    uce_user:add_role(Domain, {AnonymousUid, Domain}, {"test_role_2", ""}),
+    uce_user:addRole(Domain, {AnonymousUid, Domain}, {"test_role_2", ""}),
     Params = [ {"domain", [Domain]}
                , {"uid", [AnonymousUid]}
                , {"object", ["testobject"]}
