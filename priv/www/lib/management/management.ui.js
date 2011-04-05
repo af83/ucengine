@@ -251,12 +251,14 @@ $.uce.widget("management", {
                     } else if (user.speaker) {
                         that._createButton("Remove Lead", function() {
                             that._removeLead(user);
-                        }).appendTo(item);
+                        }).addClass('ui-managament-lead-button-remove')
+                            .appendTo(item);
 
                     } else {
                         that._createButton("Give Lead", function() {
                             that._giveLead(user);
-                        }).appendTo(item);
+                        }).addClass('ui-management-lead-button-give')
+                            .appendTo(item);
                     }
                 }
             } else {
@@ -278,7 +280,8 @@ $.uce.widget("management", {
                     } else {
                         that._createButton("Request Lead", function() {
                             meeting.push('meeting.lead.request', {});
-                        }).appendTo(item);
+                        }).addClass('ui-management-lead-button-request')
+                            .appendTo(item);
                     }
                 }
             }
@@ -298,7 +301,9 @@ $.uce.widget("management", {
         // Remove the lead from the current speaker
         var that = this;
         $.each(this._state.users, function(uid, user) {
-            that._removeLead(speaker);
+            if (user.speaker) {
+                that._removeLead(user);
+            }
         });
         // Give the lead to the new speaker
         this.options.uceclient.user.addRole(speaker.uid,

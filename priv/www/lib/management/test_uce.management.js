@@ -351,12 +351,19 @@ test("ignore meeting.lead.refuse event from non-owner", function() {
 });
 
 jackTest("add the 'speaker' role when clicking on the 'Give Lead' button", function() {
-    expect(4);
+    expect(7);
     var userMock = jack.create("user", ['addRole', 'delRole']);
     jack.expect("user.addRole")
         .exactly("1 time")
         .mock(function(uid, role, location, callback) {
             equals(uid, "brucelee");
+            equals(role, "speaker");
+            equals(location, "testmeeting");
+        });
+    jack.expect("user.delRole")
+        .exactly("1 time")
+        .mock(function(uid, role, location, callback) {
+            equals(uid, "jcvd");
             equals(role, "speaker");
             equals(location, "testmeeting");
         });
@@ -370,18 +377,28 @@ jackTest("add the 'speaker' role when clicking on the 'Give Lead' button", funct
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_role_add(Factories.addUserRoleEvent('god', 'chuck', 'owner'));
 
+    this.callback_roster_add(Factories.addRosterEvent('jcvd'));
+    this.callback_role_add(Factories.addUserRoleEvent('god', 'jcvd', 'speaker'));
+
     this.callback_roster_add(Factories.addRosterEvent('brucelee'));
 
-    $("#management .ui-management-roster li:eq(1) .ui-management-lead-button").click();
+    $("#management .ui-management-roster li:eq(2) .ui-management-lead-button").click();
 });
 
 jackTest("add the 'speaker' role when clicking on the accept pictogram", function() {
-    expect(4);
+    expect(7);
     var userMock = jack.create("user", ['addRole', 'delRole']);
     jack.expect("user.addRole")
         .exactly("1 time")
         .mock(function(uid, role, location, callback) {
             equals(uid, "brucelee");
+            equals(role, "speaker");
+            equals(location, "testmeeting");
+        });
+    jack.expect("user.delRole")
+        .exactly("1 time")
+        .mock(function(uid, role, location, callback) {
+            equals(uid, "jcvd");
             equals(role, "speaker");
             equals(location, "testmeeting");
         });
@@ -399,8 +416,11 @@ jackTest("add the 'speaker' role when clicking on the accept pictogram", functio
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_role_add(Factories.addUserRoleEvent('god', 'chuck', 'owner'));
 
+    this.callback_roster_add(Factories.addRosterEvent('jcvd'));
+    this.callback_role_add(Factories.addUserRoleEvent('god', 'jcvd', 'speaker'));
+
     this.callback_roster_add(Factories.addRosterEvent('brucelee'));
     this.callback_lead_request(Factories.requestLeadEvent('brucelee'));
 
-    $("#management .ui-management-roster li:eq(1) .ui-management-lead-button:eq(1)").click();
+    $("#management .ui-management-roster li:eq(2) .ui-management-lead-button:eq(1)").click();
 });
