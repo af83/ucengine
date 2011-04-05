@@ -17,7 +17,7 @@
 %%
 -module(role_controller).
 
--export([init/0, add/4, delete/4, add_access/4, delete_access/4]).
+-export([init/0, add/4, delete/4, addAccess/4, deleteAccess/4]).
 
 -include("uce.hrl").
 
@@ -37,7 +37,7 @@ init() ->
 
      #uce_route{method='POST',
                 regexp="/role/([^/]+)/acl",
-                callback={?MODULE, add_access,
+                callback={?MODULE, addAccess,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"object", "all", string},
@@ -46,7 +46,7 @@ init() ->
 
      #uce_route{method='DELETE',
                 regexp="/role/([^/]+)/acl/([^/]+)/([^/]+)",
-                callback={?MODULE, delete_access,
+                callback={?MODULE, deleteAccess,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"conditions", [], dictionary}]}}].
@@ -54,84 +54,68 @@ init() ->
 add(Domain, [], [Uid, Sid, Name], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "role", "add", [{"name", Name}]),
-    case uce_role:add(Domain, #uce_role{id={Name, Domain}}) of
-        {ok, created} ->
-            case uce_event:add(Domain, #uce_event{id={none, Domain},
-                                                  from={Uid, Domain},
-                                                  location={"", Domain},
-                                                  type="internal.role.add",
-                                                  metadata=[{"name", Name}]}) of
-                {ok, _} -> json_helpers:created(Domain);
-                {error, Reason} -> json_helpers:error(Domain, Reason)
-            end;
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end. 
+    {ok, created} = uce_role:add(Domain, #uce_role{id={Name, Domain}}),
+    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
+                                               from={Uid, Domain},
+                                               location={"", Domain},
+                                               type="internal.role.add",
+                                               metadata=[{"name", Name}]}),
+
+    json_helpers:created(Domain).
 
 delete(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "role", "delete", [{"name", Name}]),
-    case uce_role:delete(Domain, {Name, Domain}) of
-        {ok, deleted} ->
-            case uce_event:add(Domain, #uce_event{id={none, Domain},
-                                                  from={Uid, Domain},
-                                                  location={"", Domain},
-                                                  type="internal.role.delete",
-                                                  metadata=[{"name", Name}]}) of
-                {ok, _} -> json_helpers:ok(Domain);
-                {error, Reason} -> json_helpers:error(Domain, Reason)
-            end;
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
+                                               from={Uid, Domain},
+                                               location={"", Domain},
+                                               type="internal.role.delete",
+                                               metadata=[{"name", Name}]}),
+    {ok, deleted} = uce_role:delete(Domain, {Name, Domain}),
+    json_helpers:ok(Domain).
 
-add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
+addAccess(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
                                                      {"action", Action}]),
 
-    case uce_role:add_access(Domain,
-                             {Role, Domain},
-                             #uce_access{object=Object,
-                                         action=Action,
-                                         conditions=Conditions}) of
-        {ok, updated} -> 
-            case uce_event:add(Domain, #uce_event{id={none, Domain},
-                                                  from={Uid, Domain},
-                                                  location={"", Domain},
-                                                  type="internal.access.add",
-                                                  metadata=[{"role", Role},
-                                                            {"action", Action},
-                                                            {"object", Object}] ++
-                                                            Conditions}) of
-                {ok, _} -> json_helpers:ok(Domain);
-                {error, Reason} -> json_helpers:error(Domain, Reason)
-            end;
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, updated} = uce_role:addAccess(Domain, {Role, Domain},
+                                       #uce_access{object=Object,
+                                                   action=Action,
+                                                   conditions=Conditions}),
 
-delete_access(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
+    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
+                                               from={Uid, Domain},
+                                               location={"", Domain},
+                                               type="internal.access.add",
+                                               metadata=[{"role", Role},
+                                                         {"action", Action},
+                                                         {"object", Object}] ++
+                                                   Conditions}),
+
+    json_helpers:ok(Domain).
+
+deleteAccess(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
                                                      {"action", Action}]),
 
-    case uce_role:delete_access(Domain, {Role, Domain},
-                                        #uce_access{object=Object,
-                                                    action=Action,
-                                                    conditions=Conditions}) of
-        {ok, updated} -> 
-            case uce_event:add(Domain, #uce_event{id={none, Domain},
-                                                  from={Uid, Domain},
-                                                  location={"", Domain},
-                                                  type="internal.access.delete",
-                                                  metadata=[{"role", Role},
-                                                            {"action", Action},
-                                                            {"object", Object}] ++
-                                                            Conditions}) of
-                {ok, _} -> json_helpers:ok(Domain);
-                {error, Reason} -> json_helpers:error(Domain, Reason)
-            end;
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, updated} = uce_role:deleteAccess(Domain, {Role, Domain},
+                                          #uce_access{object=Object,
+                                                      action=Action,
+                                                      conditions=Conditions}),
+
+    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
+                                               from={Uid, Domain},
+                                               location={"", Domain},
+                                               type="internal.access.delete",
+                                               metadata=[{"role", Role},
+                                                         {"action", Action},
+                                                         {"object", Object}] ++
+                                                   Conditions}),
+
+    json_helpers:ok(Domain).

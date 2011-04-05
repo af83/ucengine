@@ -75,77 +75,59 @@ init() ->
 add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "meeting", "add"),
-    case uce_meeting:add(Domain,
-                         #uce_meeting{id={Name, Domain},
-                                      start_date=Start,
-                                      end_date=End,
-                                      metadata=Metadata}) of
-        {ok, created} -> json_helpers:created(Domain);
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, created} = uce_meeting:add(Domain,
+                                    #uce_meeting{id={Name, Domain},
+                                                 start_date=Start,
+                                                 end_date=End,
+                                                 metadata=Metadata}),
+    json_helpers:created(Domain).
 
 list(Domain, [Status], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "meeting", "list"),
-    case uce_meeting:list(Domain, Status) of
-        {ok, Meetings} -> json_helpers:json(Domain, {array, [meeting_helpers:to_json(Meeting) || Meeting <- Meetings]});
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, Meetings} = uce_meeting:list(Domain, Status),
+    json_helpers:json(Domain, {array, [meeting_helpers:to_json(Meeting) || Meeting <- Meetings]}).
 
 get(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "meeting", "get"),
-    case uce_meeting:get(Domain, {Name, Domain}) of
-        {ok, Meeting} -> json_helpers:json(Domain, meeting_helpers:to_json(Meeting));
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, Meeting} = uce_meeting:get(Domain, {Name, Domain}),
+    json_helpers:json(Domain, meeting_helpers:to_json(Meeting)).
 
 update(Domain, [Name], [Uid, Sid, Start, End, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Name, Domain}, "meeting", "update"),
-    case uce_meeting:update(Domain,
-                            #uce_meeting{id={Name, Domain},
-                                         start_date=Start,
-                                         end_date=End,
-                                         metadata=Metadata}) of
-        {ok, updated} -> json_helpers:ok(Domain);
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, updated} = uce_meeting:update(Domain,
+                                       #uce_meeting{id={Name, Domain},
+                                                    start_date=Start,
+                                                    end_date=End,
+                                                    metadata=Metadata}),
+    json_helpers:ok(Domain).
 
 join(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Name, Domain}, "roster", "add"),
-    case uce_meeting:join(Domain, {Name, Domain}, {Uid, Domain}) of
-        {ok, updated} -> 
-                uce_meeting:join(Domain, {Name, Domain}, {Uid, Domain}),
-                uce_presence:join(Domain, {Sid, Domain}, {Name, Domain}),
-                {ok, _} = uce_event:add(Domain,
-                                        #uce_event{id={none, Domain},
-                                                   type="internal.roster.add",
-                                                   location={Name, Domain},
-                                                   from={Uid, Domain}}),
-                json_helpers:ok(Domain);
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, updated} = uce_meeting:join(Domain, {Name, Domain}, {Uid, Domain}),
+    uce_presence:join(Domain, {Sid, Domain}, {Name, Domain}),
+    {ok, _} = uce_event:add(Domain,
+                            #uce_event{id={none, Domain},
+                                       type="internal.roster.add",
+                                       location={Name, Domain},
+                                       from={Uid, Domain}}),
+    json_helpers:ok(Domain).
 
 %% TODO : Incomplete Sid must be ToSid
 leave(Domain, [Name, User], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Name, Domain}, "roster", "delete"),
-    case uce_meeting:leave(Domain, {Name, Domain}, {User, Domain}) of
-        {ok, updated} ->
-            uce_meeting:leave(Domain, {Name, Domain}, {User, Domain}),
-            uce_presence:leave(Domain, {Sid, Domain}, {Name, Domain}),
-            case uce_event:add(Domain,
-                               #uce_event{id={none, Domain},
-                                          type="internal.roster.delete",
-                                          location={Name, Domain},
-                                          from={User, Domain}}) of
-                {ok, _} -> json_helpers:ok(Domain);
-                {error, Reason} -> json_helpers:error(Domain, Reason)
-            end;
-        {error, Reason} -> json_helpers:error(Domain, Reason)
-    end.
+    {ok, updated} = uce_meeting:leave(Domain, {Name, Domain}, {User, Domain}),
+    uce_presence:leave(Domain, {Sid, Domain}, {Name, Domain}),
+    {ok, _} = uce_event:add(Domain,
+                            #uce_event{id={none, Domain},
+                                       type="internal.roster.delete",
+                                       location={Name, Domain},
+                                       from={User, Domain}}),
+    json_helpers:ok(Domain).
 
 roster(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
