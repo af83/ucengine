@@ -64,8 +64,16 @@ fill_domain(Domain) ->
                                               #uce_access{action="list", object="meeting"},
                                               #uce_access{action="all", object="event"}]}),
 
-    catch uce_role:add(Domain, #uce_role{id={"ower", Domain},
+    catch uce_role:add(Domain, #uce_role{id={"speaker", Domain},
                                          acl=[]}),
+
+    catch uce_role:add(Domain, #uce_role{id={"owner", Domain},
+                                         acl=[#uce_access{action="add",
+                                                          object="user.role",
+                                                          conditions=[{"role", "speaker"}]},
+                                              #uce_access{action="delete",
+                                                          object="user.role",
+                                                          conditions=[{"role", "speaker"}]}]}),
 
     Users = ["thierry.bomandouki@af83.com", "victor.goya@af83.com",
              "louis.ameline@af83.com", "alexandre.eisenchteter@af83.com",
