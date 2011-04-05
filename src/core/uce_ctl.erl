@@ -103,7 +103,7 @@ usage(Object) ->
     if
         Object == none ; Object == user ->
             io:format("Users:~n"),
-            io:format("\tuser add --domain <domain> --name <name> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
+            io:format("\tuser add --domain <domain> --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
             io:format("\tuser update --domain <domain> --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
             io:format("\tuser get --domain <domain> --uid <uid>~n"),
             io:format("\tuser delete --domain <domain> --uid <uid>~n"),
@@ -120,7 +120,7 @@ usage(Object) ->
             io:format("\trole delete --domain <domain> --name <name>~n"),
             io:format("\trole access add --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]~n"),
             io:format("\trole access delete --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]~n"),
-            io:format("\trole access check --domain <domain> --uid <uid> --name <name> --action <action> --object <object> [--<condition> <value>]~n~n");
+            io:format("\trole access check --domain <domain> --name <name> --action <action> --object <object> [--<condition> <value>]~n~n");
         true ->
             nothing
     end,
