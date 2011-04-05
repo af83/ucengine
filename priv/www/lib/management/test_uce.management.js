@@ -37,7 +37,7 @@ Factories.deleteUserRoleEvent = function(from, user, role) {
 
 Factories.requestLeadEvent = function(from) {
     return {
-        type: "chat.lead.request",
+        type: "meeting.lead.request",
         from: from,
         metadata: {}
     };
@@ -79,7 +79,7 @@ module("uce.management", {
                     that.callback_role_add = callback;
                 } else if (eventName == "internal.user.role.delete") {
                     that.callback_role_delete = callback;
-                } else if (eventName == "chat.lead.request") {
+                } else if (eventName == "meeting.lead.request") {
                     that.callback_lead_request = callback;
                 } else if (eventName == "roster.nickname.update") {
                     that.callback_nickname_update = callback;
@@ -252,13 +252,13 @@ jackTest("send a chat.private.start event when clicking on a user", function() {
     $("#management .ui-management-roster li:eq(0) .ui-management-user").click();
 });
 
-jackTest("send a chat.lead.request event when clicking on the 'Request Lead' button", function() {
+jackTest("send a meeting.lead.request event when clicking on the 'Request Lead' button", function() {
     expect(2);
     var ucemeeting = jack.create("ucemeeting", ['push']);
     jack.expect("ucemeeting.push")
         .exactly("1 time")
         .mock(function(type) {
-            equals(type, "chat.lead.request");
+            equals(type, "meeting.lead.request");
         });
     ucemeeting.on = this.ucemeeting.on;
 
@@ -271,13 +271,13 @@ jackTest("send a chat.lead.request event when clicking on the 'Request Lead' but
     $("#management .ui-management-roster li:eq(0) .ui-management-lead-button").click();
 });
 
-test("display a message after a chat.lead.request is received from us", function() {
+test("display a message after a meeting.lead.request is received from us", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_lead_request(Factories.requestLeadEvent('chuck'));
     equals($("#management .ui-management-roster li:eq(0) .ui-management-role").text(), 'Lead Request Pending');
 });
 
-test("display a choice after a chat.lead.request is sent to the owner", function() {
+test("display a choice after a meeting.lead.request is sent to the owner", function() {
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_role_add(Factories.addUserRoleEvent('god', 'chuck', 'owner'));
 

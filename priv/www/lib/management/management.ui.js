@@ -14,7 +14,7 @@ $.uce.widget("management", {
 
         "roster.nickname.update"        : "_handleNicknameUpdate",
 
-        "chat.lead.request"             : "_handleLeadRequest"
+        "meeting.lead.request"          : "_handleLeadRequest"
     },
     _create: function() {
         var that = this;
@@ -257,7 +257,7 @@ $.uce.widget("management", {
                         roleField.text("Lead Request Pending");
                     } else {
                         that._createButton("Request Lead", function() {
-                            meeting.push('chat.lead.request', {});
+                            meeting.push('meeting.lead.request', {});
                         }).appendTo(item);
                     }
                 }
