@@ -124,7 +124,7 @@ usage(Object) ->
         true ->
             nothing
     end,
-                      
+
     io:format("Formatting:~n"),
     io:format("\t<date>: ISO8601 formatted date (ex. '2010-25-12 00:00:01')~n~n"),
     io:format("U.C.Engine (c) AF83 - http://ucengine.org~n"),
@@ -154,7 +154,7 @@ getopt(Keys, Args, Defaults) ->
     {Values, Remaining}.
 
 json_escape({Id, Domain}) ->
-    io:format(" [~p, ~p]", [Id, Domain]);    
+    io:format(" [~p, ~p]", [Id, Domain]);
 json_escape(String) when is_list(String) ->
     re:replace(String, "\"", "\\\"", [{return, list}]);
 json_escape(Integer) when is_integer(Integer) ->
@@ -299,7 +299,7 @@ action(["meeting", "add"], Args) ->
         {[_, none, _, _], _Metadata} ->
             error(missing_parameter);
         {[Domain, Name, Start, End], Metadata} ->
-            {ok, created} = call(meeting, add, [Domain, 
+            {ok, created} = call(meeting, add, [Domain,
                                                 #uce_meeting{id={Name, Domain},
                                                              start_date=parse_date(Start),
                                                              end_date=parse_date(End),
@@ -336,7 +336,7 @@ action(["meeting", "update"], Args) ->
         {[_, none, _, _], _Metadata} ->
             error(missing_parameter);
         {[Domain, Name, Start, End], Metadata} ->
-            {ok, updated} = call(meeting, update, [Domain, 
+            {ok, updated} = call(meeting, update, [Domain,
                                                    #uce_meeting{id={Name, Domain},
                                                                 start_date=parse_date(Start),
                                                                 end_date=parse_date(End),

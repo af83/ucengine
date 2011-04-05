@@ -29,7 +29,7 @@ role_test_() ->
                ?_test(test_add_unauthorized(BaseUrl, Ugly)),
                ?_test(test_add_conflict(BaseUrl, Root)),
                ?_test(test_add_missing_name(BaseUrl, Root)),
-               
+
                ?_test(test_delete_unauthorized(BaseUrl, Ugly)),
                ?_test(test_delete(BaseUrl, Root)),
                ?_test(test_delete_not_found(BaseUrl, Root)),

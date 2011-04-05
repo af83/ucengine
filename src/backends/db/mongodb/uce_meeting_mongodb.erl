@@ -31,7 +31,7 @@
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_meeting{}) -> {ok, created} | {error, bad_parameters} 
+%% @spec (#uce_meeting{}) -> {ok, created} | {error, bad_parameters}
 %% @doc Insert given record #uce_meeting{} in uce_meeting mongodb table
 %% @end
 %%--------------------------------------------------------------------
@@ -45,8 +45,8 @@ add(#uce_meeting{id={_Name,Domain}} = Meeting) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec ({Name::list, Domain::list}) -> {ok, deleted} | {error, bad_parameters} 
-%% @doc Delete record 
+%% @spec ({Name::list, Domain::list}) -> {ok, deleted} | {error, bad_parameters}
+%% @doc Delete record
 %% @end
 %%--------------------------------------------------------------------
 delete({Name, Domain}) ->
@@ -77,7 +77,7 @@ get({Name, Domain}) ->
 
 %%--------------------------------------------------------------------
 %% @spec (#uce_meeting{}) -> {ok, updated} | {error, bad_parameters}
-%% @doc update #uce_meeting record 
+%% @doc update #uce_meeting record
 %% @end
 %%--------------------------------------------------------------------
 update(#uce_meeting{id={Name, Domain}} = Meeting) ->
@@ -92,7 +92,7 @@ update(#uce_meeting{id={Name, Domain}} = Meeting) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list) -> {ok, [#uce_meeting{}, #uce_meeting{}, ..] = Meetings::list} | {error, bad_parameters} 
+%% @spec (Domain::list) -> {ok, [#uce_meeting{}, #uce_meeting{}, ..] = Meetings::list} | {error, bad_parameters}
 %% @doc List all record #uce_meeting for the given domain
 %% @end
 %%--------------------------------------------------------------------
@@ -107,7 +107,7 @@ list(Domain) ->
 
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_meeting{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @spec (#uce_meeting{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
 %% @doc Convert #uce_meeting{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
@@ -124,7 +124,7 @@ to_collection(#uce_meeting{id={Name, Domain},
      {"metadata", Metadata}].
 
 %%--------------------------------------------------------------------
-%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_meeting{} | {error, bad_parameters} 
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_meeting{} | {error, bad_parameters}
 %% @doc Convert collection returned by mongodb to valid record #uce_meeting{}
 %% @end
 %%--------------------------------------------------------------------

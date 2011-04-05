@@ -30,10 +30,10 @@ meeting_test_() ->
 		  ?_test(test_create_bad_start(BaseUrl, Root)),
 		  ?_test(test_create_bad_end(BaseUrl, Root)),
 		  ?_test(test_create_unauthorized(BaseUrl, Ugly)),
-		  
+
 		  ?_test(test_get(BaseUrl, Root)),
 		  ?_test(test_get_not_found_meeting(BaseUrl, Root)),
-		  
+
 		  ?_test(test_list_all(BaseUrl, Root)),
 		  ?_test(test_list_upcoming(BaseUrl, Root)),
 		  ?_test(test_list_closed(BaseUrl, Root)),
@@ -45,12 +45,12 @@ meeting_test_() ->
 		  ?_test(test_update_bad_start(BaseUrl, Root)),
 		  ?_test(test_update_bad_end(BaseUrl, Root)),
 		  ?_test(test_update_unauthorized(BaseUrl, Ugly)),
-		  
+
 		  ?_test(test_join(BaseUrl, Root)),
 		  ?_test(test_join_not_found_meeting(BaseUrl, Root)),
 		  ?_test(test_join_not_found_uid(BaseUrl)),
 		  ?_test(test_join_unauthorized(BaseUrl, Ugly)),
-		  
+
 		  ?_test(test_leave(BaseUrl, Root)),
 		  ?_test(test_leave_not_found_meeting(BaseUrl, Root)),
 		  ?_test(test_leave_not_found_uid(BaseUrl, Root)),
@@ -212,11 +212,11 @@ test_update_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
 test_join(BaseUrl, {RootUid, RootSid}) ->
     Params = [ {"uid", RootUid}
              , {"sid", RootSid}],
-    
+
     {struct, [{"result", "ok"}]} =
 	tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params),
 
-    {struct, [{"result", {array, Array}}]} = 
+    {struct, [{"result", {array, Array}}]} =
         tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster/", Params),
     [{struct,[{"uid",RootUid},
               {"name",_},

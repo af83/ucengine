@@ -309,7 +309,7 @@ test_role_add(Domain) ->
     {error, not_found} = (catch uce_role:get(Domain, {"test_role", Domain})),
     Params = [ {"domain", [Domain]}
                , {"name", ["test_role"]}],
-    
+
     ok = uce_ctl:action(["role", "add"], Params),
 
     {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}).
@@ -317,7 +317,7 @@ test_role_add(Domain) ->
 test_role_add_conflict(Domain) ->
     Params = [ {"domain", [Domain]}
                , {"name", ["test_role"]}],
-    
+
     {error, conflict} = (catch uce_ctl:action(["role", "add"], Params)),
 
     {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}).
@@ -326,14 +326,14 @@ test_role_delete(Domain) ->
     {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}),
     Params = [ {"domain", [Domain]}
                , {"name", ["test_role"]}],
-    
+
     ok = uce_ctl:action(["role", "delete"], Params),
     {error, not_found} = (catch uce_role:get(Domain, {"test_role", Domain})).
 
 test_role_delete_not_found(Domain) ->
     Params = [ {"domain", [Domain]}
                , {"name", ["test_role"]}],
-    
+
     {error, not_found} = (catch uce_ctl:action(["role", "delete"], Params)).
 
 test_role_add_access(Domain) ->
@@ -344,7 +344,7 @@ test_role_add_access(Domain) ->
                , {"action", ["testaction"]}
                , {"a", ["b"]}
                , {"c", ["d"]}],
-    
+
     ok = uce_ctl:action(["role", "access", "add"], Params),
     ok = uce_ctl:action(["role", "access", "add"], Params),
 
@@ -364,7 +364,7 @@ test_role_check_access(Domain) ->
                , {"action", ["testaction"]}
                , {"a", ["b"]}
                , {"c", ["d"]}],
-    
+
     ok = uce_ctl:action(["role", "access", "check"], Params).
 
 test_role_delete_access(Domain) ->
@@ -379,7 +379,7 @@ test_role_delete_access(Domain) ->
                , {"action", ["testaction"]}
                , {"c", ["d"]}
                , {"a", ["b"]}],
-    
+
     ok = uce_ctl:action(["role", "access", "delete"], Params),
     {ok, #uce_role{id={"test_role_2", Domain},
                    acl=[]}} =

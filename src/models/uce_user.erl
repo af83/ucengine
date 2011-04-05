@@ -64,7 +64,7 @@ update(Domain, #uce_user{name=Name} = User) ->
         true ->
             apply(db:get(?MODULE, Domain), update, [Domain, User]);
         false ->
-            throw({error, not_found}) 
+            throw({error, not_found})
    end.
 
 list(Domain) ->

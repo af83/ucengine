@@ -29,7 +29,7 @@
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_event{}) -> {ok, created} | {error, bad_parameters} 
+%% @spec (Domain::list, #uce_event{}) -> {ok, created} | {error, bad_parameters}
 %% @doc Insert given record #uce_event{} in uce_event mongodb table
 %% @end
 %%--------------------------------------------------------------------
@@ -43,7 +43,7 @@ add(Domain, #uce_event{} = Event) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {EventId::list, EventDomain::list}) -> {ok, #uce_event{}} | {error, bad_parameters} 
+%% @spec (Domain::list, {EventId::list, EventDomain::list}) -> {ok, #uce_event{}} | {error, bad_parameters}
 %% @doc Retrieve record #uce_event{} for the given id and domain
 %% @end
 %%--------------------------------------------------------------------
@@ -59,7 +59,7 @@ get(Domain, {EventId, EventDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec ({list, Domain::list} = location, {FromId::list, FromDomain::list} = From::tuple, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list} 
+%% @spec ({list, Domain::list} = location, {FromId::list, FromDomain::list} = From::tuple, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list}
 %% @doc Returns list of record #uce_event which are match with given keys
 %% @end
 %%--------------------------------------------------------------------
@@ -114,7 +114,7 @@ list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
     {ok, Events}.
 
 %%--------------------------------------------------------------------
-%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_user{} | {error, bad_parameters} 
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_user{} | {error, bad_parameters}
 %% @doc Convert collection returned by mongodb to valid record #uce_event{}
 %% @end
 %%--------------------------------------------------------------------
@@ -135,7 +135,7 @@ from_collection(Collection) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_event{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @spec (#uce_event{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
 %% @doc Convert #uce_event{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------

@@ -80,7 +80,7 @@ list(Domain) ->
             throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) when is_list(Id) -> 
+get(_Domain, Id) when is_list(Id) ->
     case mnesia:dirty_match_object({uce_user, '_', Id, '_', '_', '_', '_'}) of
         [] -> throw({error, not_found});
         [Record] -> {ok, Record};

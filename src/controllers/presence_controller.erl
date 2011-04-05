@@ -55,7 +55,7 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                        from=User#uce_user.id,
                                        location={"", Domain},
                                        type="internal.presence.add"}),
-    {Id, _} = User#uce_user.id, 
+    {Id, _} = User#uce_user.id,
     json_helpers:created(Domain, {Id, Sid}).
 
 get(Domain, [Id], [], _) ->

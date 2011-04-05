@@ -31,7 +31,7 @@
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_user{}) -> {ok, created} | {error, bad_parameters} 
+%% @spec (Domain::list, #uce_user{}) -> {ok, created} | {error, bad_parameters}
 %% @doc Insert given record #uce_user{} in uce_user mongodb table
 %% @end
 %%--------------------------------------------------------------------
@@ -45,7 +45,7 @@ add(Domain, #uce_user{} = User) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, deleted} | {error, bad_parameters} 
+%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, deleted} | {error, bad_parameters}
 %% @doc Delete uce_user record which corresponds to given id and domain
 %% @end
 %%--------------------------------------------------------------------
@@ -57,10 +57,10 @@ delete(Domain, {Id, Domain}) ->
             throw({error, bad_parameters});
         _ ->
             {ok, deleted}
-    end.    
+    end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_user{}) -> {ok, updated} | {error, bad_parameters} 
+%% @spec (Domain::list, #uce_user{}) -> {ok, updated} | {error, bad_parameters}
 %% @doc Update given record #uce_user{} in uce_user mongodb table
 %% @end
 %%--------------------------------------------------------------------
@@ -78,7 +78,7 @@ update(Domain, #uce_user{id={Id, UDomain}} = User) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list) -> {ok, [#uce_user{}, #uce_user{}, ...] = Users::list} | {error, bad_parameters} 
+%% @spec (Domain::list) -> {ok, [#uce_user{}, #uce_user{}, ...] = Users::list} | {error, bad_parameters}
 %% @doc List all uce_user record for given domain
 %% @end
 %%--------------------------------------------------------------------
@@ -96,12 +96,12 @@ list(Domain) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, #uce_user{}} | {error, not_found} | {error, bad_parameters} 
+%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, #uce_user{}} | {error, not_found} | {error, bad_parameters}
 %% @doc Get uce_user record for given name or id and domain
 %% @end
 %%--------------------------------------------------------------------
 get(Domain, Name) when is_list(Name) ->
-    case catch emongo:find_one(Domain, "uce_user", [{"name", Name}, 
+    case catch emongo:find_one(Domain, "uce_user", [{"name", Name},
                                                     {"domain", Domain}]) of
         {'EXIT', Reason} ->
             ?ERROR_MSG("~p~n", [Reason]),
@@ -124,7 +124,7 @@ get(Domain, {UId, UDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_user{} | {error, bad_parameters} 
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_user{} | {error, bad_parameters}
 %% @doc Convert collection returned by mongodb to valid record #uce_user{}
 %% @end
 %%--------------------------------------------------------------------
@@ -143,7 +143,7 @@ from_collection(Collection) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_user{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @spec (#uce_user{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
 %% @doc Convert #uce_user{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------

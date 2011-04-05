@@ -31,20 +31,20 @@ init() ->
                            {"start", 0, integer},
                            {"end", ?NEVER_ENDING_MEETING, integer},
                            {"metadata", [], dictionary}]}},
-     
+
      #uce_route{method='GET',
                 regexp="/meeting/([^/]+)",
                 callback={?MODULE, list,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
-     
+
      #uce_route{method='GET',
                 regexp="/meeting/all/([^/]+)",
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
-     
+
      #uce_route{method='PUT',
                 regexp="/meeting/all/([^/]+)",
                 callback={?MODULE, update,
@@ -53,19 +53,19 @@ init() ->
                            {"start", 0, integer},
                            {"end", ?NEVER_ENDING_MEETING, integer},
                            {"metadata", [], dictionary}]}},
-     
+
      #uce_route{method='POST',
                 regexp="/meeting/all/([^/]+)/roster",
                 callback={?MODULE, join,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
-     
+
      #uce_route{method='DELETE',
                 regexp="/meeting/all/([^/]+)/roster/([^/]+)",
                 callback={?MODULE, leave,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
-     
+
      #uce_route{method='GET',
                 regexp="/meeting/all/([^/]+)/roster",
                 callback={?MODULE, roster,

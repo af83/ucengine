@@ -76,7 +76,7 @@ update(Domain, #uce_infos{} = Infos) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_infos{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @spec (#uce_infos{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
 %% @doc Convert #uce_infos{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
@@ -86,7 +86,7 @@ to_collection(#uce_infos{domain=Domain,
      {"metadata", Metadata}].
 
 %%--------------------------------------------------------------------
-%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_infos{} | {error, bad_parameters} 
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_infos{} | {error, bad_parameters}
 %% @doc Convert collection returned by mongodb to valid record #uce_infos{}
 %% @end
 %%--------------------------------------------------------------------

@@ -72,14 +72,14 @@ setup_users(Domain) ->
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason4} -> throw({error, Reason4})
-    end, 
+    end,
 
     case catch uce_role:add(Domain, #uce_role{id={"root", Domain},
                                    acl=[#uce_access{action="all", object="all"}]}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason5} -> throw({error, Reason5})
-    end, 
+    end,
 
     case catch uce_role:add(Domain, #uce_role{id={"participant", Domain},
                                    acl=[#uce_access{action="add", object="presence"},
@@ -108,14 +108,14 @@ setup_users(Domain) ->
         {error, conflict} -> ok;
         {error, Reason8} -> throw({error, Reason8})
     end,
- 
+
     case catch uce_role:add(Domain, #uce_role{id={"anonymous", Domain},
                                    acl=[#uce_access{action="add", object="presence"},
                                    #uce_access{action="delete", object="presence"}]}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason9} -> throw({error, Reason9})
-    end, 
+    end,
 
     ParticipantUid = "participant.user@af83.com",
     ParticipantId = {ParticipantUid, Domain},
@@ -127,31 +127,31 @@ setup_users(Domain) ->
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason10} -> throw({error, Reason10})
-    end, 
+    end,
 
-    case catch uce_user:add_role(Domain, ParticipantId, {"participant", ""}) of 
+    case catch uce_user:add_role(Domain, ParticipantId, {"participant", ""}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason11} -> throw({error, Reason11})
-    end, 
+    end,
 
     case catch uce_user:add_role(Domain, ParticipantId, {"testrole_location", "testmeeting"}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason12} -> throw({error, Reason12})
-    end, 
+    end,
 
     case catch uce_user:add_role(Domain, ParticipantId, {"testrole_without_location", ""}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason13} -> throw({error, Reason13})
-    end, 
+    end,
 
     case catch uce_user:add_role(Domain, ParticipantId, {"participant", ""}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason14} -> throw({error, Reason14})
-    end, 
+    end,
 
 
     AnonymousUid = "anonymous.user@af83.com",
@@ -164,13 +164,13 @@ setup_users(Domain) ->
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason15} -> throw({error, Reason15})
-    end, 
+    end,
 
     case catch uce_user:add_role(Domain, AnonymousId, {"anonymous", ""}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason16} -> throw({error, Reason16})
-    end, 
+    end,
 
     case catch uce_user:add(Domain,
                  #uce_user{id={"token.user@af83.com", Domain},
@@ -180,7 +180,7 @@ setup_users(Domain) ->
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason17} -> throw({error, Reason17})
-    end, 
+    end,
 
     case catch uce_user:add(Domain,
                  #uce_user{id={"user_2", Domain},
@@ -190,7 +190,7 @@ setup_users(Domain) ->
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason18} -> throw({error, Reason18})
-    end, 
+    end,
 
     case catch uce_user:add(Domain,
                  #uce_user{id={"user_3", Domain},
@@ -200,7 +200,7 @@ setup_users(Domain) ->
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason19} -> throw({error, Reason19})
-    end, 
+    end,
 
 
     {ok, RootUid} = uce_user:add(Domain,

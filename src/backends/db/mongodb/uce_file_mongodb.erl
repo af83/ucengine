@@ -31,7 +31,7 @@
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_file{}) -> {ok, created} | {error, bad_parameters} 
+%% @spec (#uce_file{}) -> {ok, created} | {error, bad_parameters}
 %% @doc Insert given record #uce_file{} in uce_file mongodb table
 %% @end
 %%--------------------------------------------------------------------
@@ -45,7 +45,7 @@ add(Domain, #uce_file{} = File) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain, {Location::list, _Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters} 
+%% @spec (Domain, {Location::list, _Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
 %% @doc List all record #uce_file for the given pair location(meeting) and domain
 %% @end
 %%--------------------------------------------------------------------
@@ -60,7 +60,7 @@ list(Domain, {Location, _}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec ({Location::list, Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters} 
+%% @spec ({Location::list, Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
 %% @doc List all record #uce_file for the given domain
 %% @end
 %%--------------------------------------------------------------------
@@ -75,7 +75,7 @@ all(Domain) ->
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, #uce_file{}} | {error, bad_parameters} | {error, not_found}
-%% @doc Get #uce_file record for the given id 
+%% @doc Get #uce_file record for the given id
 %% @end
 %%--------------------------------------------------------------------
 get(Domain, {FileId, _FileDomain}) ->
@@ -91,7 +91,7 @@ get(Domain, {FileId, _FileDomain}) ->
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, deleted} | {error, not_found}
-%% @doc Delete #uce_file record for the given id 
+%% @doc Delete #uce_file record for the given id
 %% @end
 %%--------------------------------------------------------------------
 delete(Domain, {FileId, _FileDomain}) ->
@@ -104,14 +104,14 @@ delete(Domain, {FileId, _FileDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_file{} | {error, bad_parameters} 
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_file{} | {error, bad_parameters}
 %% @doc Convert collection returned by mongodb to valid record #uce_file{}
 %% @end
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
 		   ["id", "domain", "location", "name", "uri", "metadata"]) of
-        [Id, Domain, Location, Name, Uri, Metadata] ->	
+        [Id, Domain, Location, Name, Uri, Metadata] ->
             #uce_file{id={Id, Domain},
                       name=Name,
                       location={Location, Domain},
@@ -122,7 +122,7 @@ from_collection(Collection) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_file{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @spec (#uce_file{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
 %% @doc Convert #uce_file{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------

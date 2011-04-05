@@ -33,7 +33,7 @@
 
 
 %%--------------------------------------------------------------------
-%% @spec (Domain, #uce_presence{}) -> {ok, created} | {error, bad_parameters} 
+%% @spec (Domain, #uce_presence{}) -> {ok, created} | {error, bad_parameters}
 %% @doc Insert given record #uce_presence{} in uce_presence mongodb table
 %% @end
 %%--------------------------------------------------------------------
@@ -48,7 +48,7 @@ add(Domain, #uce_presence{}=Presence) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec ({User::list, Domain::list}) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters} 
+%% @spec ({User::list, Domain::list}) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters}
 %% @doc List all record #uce_presence for the given user and domain
 %% @end
 %%--------------------------------------------------------------------
@@ -67,7 +67,7 @@ list({User, Domain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters} 
+%% @spec (Domain::list) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters}
 %% @doc List all record #uce_presence for the given domain
 %% @end
 %%--------------------------------------------------------------------
@@ -101,8 +101,8 @@ get(Domain, {SId, SDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, deleted} | {error, bad_parameters} 
-%% @doc Delete record 
+%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, deleted} | {error, bad_parameters}
+%% @doc Delete record
 %% @end
 %%--------------------------------------------------------------------
 delete(Domain, {SId, SDomain}) ->
@@ -115,8 +115,8 @@ delete(Domain, {SId, SDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_presence{}) -> {ok, updated} | {error, bad_parameters} 
-%% @doc Update record 
+%% @spec (Domain::list, #uce_presence{}) -> {ok, updated} | {error, bad_parameters}
+%% @doc Update record
 %% @end
 %%--------------------------------------------------------------------
 update(Domain, #uce_presence{}=Presence) ->
@@ -133,7 +133,7 @@ update(Domain, #uce_presence{}=Presence) ->
 
 
 %%--------------------------------------------------------------------
-%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_presence{} | {error, bad_parameters} 
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_presence{} | {error, bad_parameters}
 %% @doc Convert collection returned by mongodb to valid record #uce_meeting{}
 %% @end
 %%--------------------------------------------------------------------
@@ -152,7 +152,7 @@ from_collection(Collection) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_presence{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list 
+%% @spec (#uce_presence{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
 %% @doc Convert #uce_presence{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------

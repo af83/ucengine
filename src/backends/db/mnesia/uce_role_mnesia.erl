@@ -65,7 +65,7 @@ delete(_Domain, Id) ->
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
-	
+
 get(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:read(uce_role, Id)

@@ -109,7 +109,7 @@ setup_root_role(Domain) ->
 
 setup_root_user(Domain, #uce_user{} = User) ->
     case catch uce_user:add(Domain, User) of
-        {ok, UId} -> 
+        {ok, UId} ->
             uce_user:add_role(Domain, {UId, Domain}, {"root", []});
         {error, conflict} ->
             ok;

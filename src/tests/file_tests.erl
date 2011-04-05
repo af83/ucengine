@@ -42,7 +42,7 @@ file_test_() ->
 gen_file(Size, FileName) ->
     Body = string:copies("content", Size),
     "------WebKitFormBoundaryLwCN5mZmxIA54Aif\r\n" ++
-	"Content-Disposition: form-data; name=\"content\"; filename=\"" ++ FileName ++ "\"\r\n" ++ 
+	"Content-Disposition: form-data; name=\"content\"; filename=\"" ++ FileName ++ "\"\r\n" ++
 	"Content-Type: application/octet-stream\r\n\r\n" ++
 	Body ++ "\r\n" ++
 	"------WebKitFormBoundaryLwCN5mZmxIA54Aif--\r\n".
@@ -52,7 +52,7 @@ upload(BaseUrl, Params, File) ->
 
 upload(BaseUrl, Meeting, Params, File) ->
     tests_utils:post(BaseUrl,
-                     "/file/" ++ Meeting ++"/", 
+                     "/file/" ++ Meeting ++"/",
                      Params,
                      "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
                      File).
@@ -72,13 +72,13 @@ test_upload_small(BaseUrl, {RootUid, RootSid}) ->
                                            {"datetime", _},
                                            {"id", _},
                                            {"location", "testmeeting"},
-                                           {"from", RootUid}, 
+                                           {"from", RootUid},
                                            {"metadata", Metadata}]}]}}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
     {struct, [{"id", _},
               {"domain", _},
-              {"name", "small"}, 
-              {"size", "28"}, 
+              {"name", "small"},
+              {"size", "28"},
               {"mime", "text/plain"}]} = Metadata.
 
 test_upload_big(BaseUrl, {RootUid, RootSid}) ->
@@ -136,7 +136,7 @@ test_delete(BaseUrl, {RootUid, RootSid}) ->
                                                                           {"sid", RootSid}],
     {struct,[{"result", "ok"}]} =
         tests_utils:delete(BaseUrl, "/file/testmeeting/" ++ Id, ParamsDelete),
-    
+
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid}],
     {struct,[{"error", "not_found"}]} =

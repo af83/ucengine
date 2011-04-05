@@ -34,7 +34,7 @@ presence_test_() ->
 
                 ?_test(test_presence_get(BaseUrl)),
                 ?_test(test_presence_get_not_found(BaseUrl)),
-                
+
                 ?_test(test_presence_close(BaseUrl)),
                 ?_test(test_presence_close_unauthorized(BaseUrl, Ugly)),
                 ?_test(test_presence_close_not_foundsid(BaseUrl)),

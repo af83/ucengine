@@ -42,7 +42,7 @@ collection_member_to_list(Value) when is_binary(Value) ->
 %%--------------------------------------------------------------------
 %% @spec ([{Key::binary, Value::Binary}, {Key::binary, Value::Binary}, ...] = Collection::list) -> [{Key::list, Value::list}, {Key::binary, Value:Binary}, ...] = NewCollection::list
 %% @doc Convert list of tuple of two binaries returned by mongodb to list of tuple of 2 list
-%% @end 
+%% @end
 %%--------------------------------------------------------------------
 collection_to_list(Collection) ->
     lists:map(fun({Key, Value}) ->
