@@ -139,11 +139,11 @@ test("can be accessed via window.uce", function() {
 
 jackTest("can create a presence", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/presence/", { "name": "name",
-                                                  "credential": "pwd" }, 200, '{"result": {"uid":"uid","sid":"sid"}}');
+    addUceApiCall("post", "/api/" + uce.version + "/presence/", { "uid": "uid",
+                                                  "credential": "pwd" }, 200, '{"result": "sid"}');
     var client = this.client;
     ok(!this.client.connected, "not connected");
-    this.client.auth("name", "pwd", function(err, presence, xhr) {
+    this.client.auth("uid", "pwd", function(err, presence, xhr) {
         start();
         equals(err, null, "shoud not have error");
         equals(presence.user, "uid");
@@ -155,10 +155,10 @@ jackTest("can create a presence", function() {
 
 jackTest("can create a presence with metadata", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/presence/", { "name": "name",
+    addUceApiCall("post", "/api/" + uce.version + "/presence/", { "uid": "uid",
                                                                   "credential": "pwd",
-                                                                  "metadata" : {"nickname": "nick"} }, 200, '{"result": {"uid":"uid", "sid":"sid"}}');
-    this.client.auth("name", "pwd", {nickname: "nick"}, function(err, presence, xhr) {
+                                                                  "metadata" : {"nickname": "nick"} }, 200, '{"result": "sid"}');
+    this.client.auth("uid", "pwd", {nickname: "nick"}, function(err, presence, xhr) {
         start();
         equals(err, null, "shoud not have error");
         equals(presence.user, "uid", "");
@@ -170,20 +170,20 @@ jackTest("can get a presence", function() {
     stop();
     $.mockjax({
         url : '/api/' + uce.version + '/presence/',
-        responseText: {"result": {"uid":"myuid", "sid":"mysid"}}
+        responseText: {"result": "mysid"}
     });
     $.mockjax({
         url : '/api/' + uce.version + '/presence/mysid',
         data: { "uid": "myuid", "sid": "mysid"},
         response: function() {
-            this.responseText = {"result": {"uid": "myuid", "sid":"mysid"}};
+            this.responseText = {"result": {"id": "mysid"}};
         }
     });
     var client = this.client;
-    this.client.auth("name", "pwd", function(err, presence) {
+    this.client.auth("myuid", "pwd", function(err, presence) {
         client.presence(function(err, r, xhr) {
             start();
-            equals(r.result.sid, presence.id);
+            equals(r.result.id, presence.id);
             equals(err, null);
         });
     });
@@ -193,7 +193,7 @@ jackTest("can close a presence", function() {
     stop();
     $.mockjax({
         url : '/api/' + uce.version + '/presence/',
-        responseText: {"result": {"uid":"myuid", "sid":"mysid"}}
+        responseText: {"result": "mysid"}
     });
     $.mockjax({
         url : '/api/' + uce.version + '/presence/mysid',
@@ -203,7 +203,7 @@ jackTest("can close a presence", function() {
         }
     });
     var client = this.client;
-    this.client.auth("name", "pwd", function(err, presence) {
+    this.client.auth("myuid", "pwd", function(err, presence) {
         client.close(function(err, r, xhr) {
             start();
             ok(!client.connected, "not connected");
@@ -566,21 +566,21 @@ test("uce waiter", function() {
 
 jackTest("register new user", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/user/",  {name: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"uid"}');
+    addUceApiCall("post", "/api/" + uce.version + "/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
     this.client.user.register('test@example.net', 'password', 'mypwd', {nickname: 'test'}, function(err, result) {
         start();
         equals(null, err);
-        same(result, {"result":"uid"});
+        same(result, {"result":"created"});
     });
 });
 
 jackTest("register with password", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/user/",  {name: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"uid"}');
+    addUceApiCall("post", "/api/" + uce.version + "/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
     this.client.user.registerWithPassword('test@example.net', 'mypwd', {nickname: 'test'}, function(err, result) {
         start();
         equals(null, err);
-        same(result, {"result":"uid"});
+        same(result, {"result":"created"});
     });
 });
 
