@@ -43,6 +43,14 @@ Factories.requestLeadEvent = function(from) {
     };
 }
 
+Factories.refuseLeadEvent = function(from, user) {
+    return {
+        type: "meeting.lead.refuse",
+        from: from,
+        metadata: {user: user}
+    };
+}
+
 Factories.deleteRosterEvent = function(from) {
     return {
         type: "internal.roster.delete",
@@ -81,6 +89,8 @@ module("uce.management", {
                     that.callback_role_delete = callback;
                 } else if (eventName == "meeting.lead.request") {
                     that.callback_lead_request = callback;
+                } else if (eventName == "meeting.lead.refuse") {
+                    that.callback_lead_refuse = callback;
                 } else if (eventName == "roster.nickname.update") {
                     that.callback_nickname_update = callback;
                 }
@@ -287,4 +297,54 @@ test("display a choice after a meeting.lead.request is sent to the owner", funct
     equals($("#management .ui-management-roster li:eq(1) .ui-management-lead-button").size(), 2);
     ok($("#management .ui-management-roster li:eq(1) .ui-management-lead-button:eq(0) span").hasClass('ui-icon-circle-close'));
     ok($("#management .ui-management-roster li:eq(1) .ui-management-lead-button:eq(1) span").hasClass('ui-icon-circle-check'));
+});
+
+jackTest("send a meeting.lead.refuse event when clicking on the refusal pictogram", function() {
+    expect(3);
+    var ucemeeting = jack.create("ucemeeting", ['push']);
+    jack.expect("ucemeeting.push")
+        .exactly("1 time")
+        .mock(function(type, metadata) {
+            equals(type, "meeting.lead.refuse");
+            equals(metadata.user, "brucelee");
+        });
+    ucemeeting.on = this.ucemeeting.on;
+
+    $('#management').management({
+        ucemeeting: ucemeeting,
+        uceclient: {uid: 'chuck'}
+    });
+
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_role_add(Factories.addUserRoleEvent('god', 'chuck', 'owner'));
+
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
+    this.callback_lead_request(Factories.requestLeadEvent('brucelee'));
+
+    $("#management .ui-management-roster li:eq(1) .ui-management-lead-button:eq(0)").click();
+});
+
+test("display back the 'Lead Request' button after the user received a meeting.lead.refuse event", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
+    this.callback_role_add(Factories.addUserRoleEvent('god', 'brucelee', 'owner'));
+
+    this.callback_lead_request(Factories.requestLeadEvent('chuck'));
+    equals($("#management .ui-management-roster li:eq(0) .ui-management-role").text(), 'Lead Request Pending');
+
+    this.callback_lead_refuse(Factories.refuseLeadEvent('brucelee', 'chuck'));
+    equals($("#management .ui-management-roster li:eq(0) .ui-management-role").text(), 'You');
+});
+
+test("ignore meeting.lead.refuse event from non-owner", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
+
+    this.callback_lead_request(Factories.requestLeadEvent('chuck'));
+    equals($("#management .ui-management-roster li:eq(0) .ui-management-role").text(), 'Lead Request Pending');
+
+    this.callback_lead_refuse(Factories.refuseLeadEvent('brucelee', 'chuck'));
+    equals($("#management .ui-management-roster li:eq(0) .ui-management-role").text(), 'Lead Request Pending');
 });

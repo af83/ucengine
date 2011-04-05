@@ -14,7 +14,8 @@ $.uce.widget("management", {
 
         "roster.nickname.update"        : "_handleNicknameUpdate",
 
-        "meeting.lead.request"          : "_handleLeadRequest"
+        "meeting.lead.request"          : "_handleLeadRequest",
+        "meeting.lead.refuse"           : "_handleLeadRefuse"
     },
     _create: function() {
         var that = this;
@@ -114,6 +115,15 @@ $.uce.widget("management", {
 
     _handleLeadRequest: function(event) {
         this._state.users[event.from].requestLead = true;
+        this._updateRoster();
+    },
+
+    _handleLeadRefuse: function(event) {
+        // Make sure the refusal come from an owner
+        if (!this._state.users[event.from].owner) {
+            return;
+        }
+        this._state.users[event.metadata.user].requestLead = false;
         this._updateRoster();
     },
 
@@ -231,6 +241,7 @@ $.uce.widget("management", {
                     if (user.requestLead) {
                         roleField.text("Request Lead");
                         that._createPictogram("ui-icon-circle-close", function() {
+                            meeting.push('meeting.lead.refuse', {user: user.uid});
                         }).appendTo(item);
                         that._createPictogram("ui-icon-circle-check", function() {
                         }).appendTo(item);
