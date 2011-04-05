@@ -198,7 +198,7 @@ $.uce.widget("management", {
                 .append(" ")
                 .append(roleField);
 
-            if (user.uid != me.uid) {
+            if (user.uid != that.options.uceclient.uid) {
                 userField.click(function() {
                     meeting.trigger({type: 'chat.private.start',
                                      from: 'internal',
@@ -206,7 +206,7 @@ $.uce.widget("management", {
                                          interlocutor: user.uid
                                      }});
                 })
-                if (me.owner) {
+                if (me && me.owner) {
                     var giveLeadButton = $('<a>')
                         .addClass('ui-management-lead-button')
                         .button({label: "Give Lead"})
