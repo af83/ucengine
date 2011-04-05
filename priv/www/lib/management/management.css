@@ -33,7 +33,7 @@
 
 .ui-management .ui-management-roster li input {
     border: 1px solid #D7D7D7;
-    width: 60%;
+    width: 100px;;
     margin-left: -1px;
     margin-right: -1px;
 }
@@ -55,14 +55,20 @@
 }
 
 .ui-management .ui-management-roster a.ui-management-lead-button.ui-button-text-only {
-    display: none;
     line-height: 20px;
     padding-left: 8px;
     padding-right: 8px;
     color: #424242;
+    font-size: 11px;
+    font-weight: bold;
+    width: 100px;
 }
 
-.ui-management .ui-management-roster li.ui-management-user-active a.ui-management-lead-button.ui-button-text-only {
+.ui-management .ui-management-roster a.ui-management-lead-button-give.ui-button-text-only {
+    display: none;
+}
+
+.ui-management .ui-management-roster li.ui-management-user-active a.ui-management-lead-button-give.ui-button-text-only {
     display: block;
 }
 
