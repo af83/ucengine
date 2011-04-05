@@ -72,7 +72,6 @@ check(Domain, User, Location, Object, Action) ->
     check(Domain, User, Location, Object, Action, []).
 check(Domain, User, Location, Object, Action, Conditions) ->
     case uce_user:acl(Domain, User, Location) of
-        {error, _Reason} = Error -> throw(Error);
         {ok, []}  ->
             {ok, false};
         {ok, ACL} ->
