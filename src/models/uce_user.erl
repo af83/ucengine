@@ -41,7 +41,7 @@ add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
     end.
 
 delete(Domain, Id) when is_list(Id) ->
-    case ?MODULE:get(Domain, Id) of
+    case catch ?MODULE:get(Domain, Id) of
         {error, _} -> throw({error, not_found});
         {ok, User} -> apply(db:get(?MODULE, Domain), delete, [Domain, User#uce_user.id])
     end;
@@ -52,7 +52,7 @@ delete(Domain, {Uid, _} = Id) ->
             case catch uce_role:delete(Domain, {Uid, Domain}) of
                 {error, Reason} when Reason /= not_found ->
                     throw({error, Reason});
-                _ ->
+                {ok, deleted}->
                     apply(db:get(?MODULE, Domain), delete, [Domain, Id])
             end;
         false ->
@@ -73,25 +73,16 @@ list(Domain) ->
 get(Domain, User) ->
     apply(db:get(?MODULE, Domain), get, [Domain, User]).
 
-exists(Domain, Id) when is_list(Id) ->
-    case catch ?MODULE:get(Domain, Id) of
-        {error, not_found} -> false;
-        {error, Reason} -> throw({error, Reason});
-        _ -> true
-    end;
+exists(_Domain, {"", _} = _Id) ->
+    true;
 exists(Domain, Id) ->
-    case Id of
-        {"", _} -> % all
-            true;
-        _ ->
-            case catch ?MODULE:get(Domain, Id) of
-                {error, not_found} ->
-                    false;
-                {error, Reason} ->
-                    throw({error, Reason});
-                _ ->
-                    true
-            end
+    case catch ?MODULE:get(Domain, Id) of
+        {error, not_found} ->
+            false;
+        {error, Reason} ->
+            throw({error, Reason});
+        {ok, _User}->
+            true
     end.
 
 add_role(Domain, Id, {Role, Location}) ->

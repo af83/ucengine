@@ -89,7 +89,7 @@ check(Domain, User, {_, _} = Sid) when is_list(User) ->
         UserId ->
             uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
             {ok, true};
-        _ ->
+        _OtherUserId ->
             {ok, false}
     end;
 check(Domain, User, {_, _} = Sid) ->
@@ -98,7 +98,7 @@ check(Domain, User, {_, _} = Sid) ->
         User ->
             uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
             {ok, true};
-        _ ->
+        _OtherUser ->
             {ok, false}
     end.
 
@@ -107,7 +107,7 @@ join(Domain, {_, _}=Sid, Meeting) ->
     case lists:member(Meeting, Record#uce_presence.meetings) of
         true ->
             {ok, updated};
-        _ ->
+        false ->
             Meetings = Record#uce_presence.meetings ++ [Meeting],
             apply(db:get(?MODULE, Domain), update, [Domain, Record#uce_presence{meetings=Meetings}])
     end.
