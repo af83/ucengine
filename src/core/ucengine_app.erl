@@ -52,7 +52,6 @@ start(_, _) ->
 setup() ->
     save_pid(),
     setup_search(),
-    setup_controllers(),
     setup_server(),
     ok.
 
@@ -70,21 +69,6 @@ setup_search() ->
         _ ->
             []
     end.
-
-setup_controllers() ->
-    lists:foreach(fun(Controller) ->
-                          [routes:set(Route) || Route <- Controller:init()]
-                  end,
-                  %% TODO: make this more generic
-                  [user_controller,
-                   presence_controller,
-                   meeting_controller,
-                   role_controller,
-                   event_controller,
-                   file_controller,
-                   time_controller,
-                   infos_controller,
-                   search_controller]).
 
 setup_server() ->
     [{DefaultHost, _Config}|Hosts] = config:get(hosts),

@@ -24,7 +24,6 @@
 -include("uce.hrl").
 
 -export([start_link/0,
-         set/1,
          get/2,
          list/0]).
 
@@ -40,14 +39,35 @@ start_link() ->
 
 get(Method, Path) ->
     gen_server:call(?MODULE, {get, Method, Path}).
-set(#uce_route{} = Route) ->
-    gen_server:cast(?MODULE, {set, Route}).
 
 list() ->
     gen_server:call(?MODULE, list).
 
 init([]) ->
-    {ok, ets:new(uce_routes, [bag, public, {keypos, 1}])}.
+    TableId = ets:new(uce_routes, [bag, public, {keypos, 1}]),
+    setup_routes(TableId),
+    {ok, TableId}.
+
+handle_call({get, Method, Path}, _From, DB) ->
+    {reply, route(Method, Path, ets:tab2list(DB)), DB};
+handle_call(list, _From, DB) ->
+    Routes = lists:map(fun({_, #uce_route{} = Route}) ->
+                               Route
+                       end,
+                       ets:tab2list(DB)),
+    {reply, lists:keysort(1, Routes), DB}.
+
+handle_cast(_Request, DB) ->
+    {noreply, DB}.
+
+code_change(_,State,_) ->
+    {ok, State}.
+
+handle_info(_Info, State) ->
+    {reply, State}.
+
+terminate(_Reason, _State) ->
+    ok.
 
 route(_, _, []) ->
     {error, not_found};
@@ -62,29 +82,21 @@ route(Method, Path, [{PathRoute, #uce_route{method=Method, callback=Handler}}|Ro
 route(Method, Path, [{_PathRoute, #uce_route{method=_RouteMethod, callback=_Handler}}|Routes]) ->
     route(Method, Path, Routes).
 
-handle_call({get, Method, Path}, _From, DB) ->
-    {reply, route(Method, Path, ets:tab2list(DB)), DB};
-handle_call(list, _From, DB) ->
-    Routes = lists:map(fun({_, #uce_route{} = Route}) ->
-                               Route
-                       end,
-                       ets:tab2list(DB)),
-    {reply, lists:keysort(1, Routes), DB}.
+setup_route(Controller, DB) ->
+    [set(Route, DB) || Route <- Controller:init()].
 
-handle_cast({set, #uce_route{regexp=Regexp} = Route}, DB) ->
-    case re:compile("^" ++ Regexp ++ "/?$ ?") of
-        {ok, CompiledRegexp} ->
-            ets:insert(DB, {CompiledRegexp, Route});
-        {error, Reason} ->
-            ?ERROR_MSG("Error during route compilation '~p': ~p~n", [Route, Reason])
-    end,
-    {noreply, DB}.
+setup_routes(DB) ->
+    % TODO : make list of controllers more generic
+    [ setup_route(Controller, DB) || Controller <- [user_controller,
+                                                    presence_controller,
+                                                    meeting_controller,
+                                                    role_controller,
+                                                    event_controller,
+                                                    file_controller,
+                                                    time_controller,
+                                                    infos_controller,
+                                                    search_controller]].
 
-code_change(_,State,_) ->
-    {ok, State}.
-
-handle_info(_Info, State) ->
-    {reply, State}.
-
-terminate(_Reason, _State) ->
-    ok.
+set(#uce_route{regexp=Regexp} = Route, DB) ->
+    {ok, CompiledRegexp} = re:compile("^" ++ Regexp ++ "/?$ ?"),
+    true = ets:insert(DB, {CompiledRegexp, Route}).
