@@ -98,12 +98,12 @@ var Factories = {
         return {type: "video.stream.stop",
                 metadata: {broadcaster: broadcaster}}
     },
-    createMeeting: function(start, end) {
+    createMeeting: function(start, end, description) {
         return {name: "ucemeeting",
                 start_date: start,
                 end_date: end,
                 roster: ["chuck", "bruce"],
-                metadata: {description: "test_description"}};
+                metadata: {description: description || "test_description"}};
     }
 };
 
@@ -291,6 +291,25 @@ jackTest("can get meeting", function() {
         equals(err, null);
         equals(r.name, "mymeeting");
     });
+});
+
+jackTest("can update meeting", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/meeting/all/mymeeting",
+                  {"uid": "myuid",
+                   "sid": "mysid",
+                   "_method": "put",
+                   "start": 42,
+                   "end": 43,
+                   "metadata": {'description': "a brand new description"}},
+                  200, '{"result" : "ok"}');
+    this.client.attachPresence(Factories.createPresence()).meeting("mymeeting")
+        .update(42, 43, {'description': 'a brand new description'},
+                function(err, r, xhr) {
+                    start();
+                    equals(err, null);
+                    equals(r.result, "ok");
+                });
 });
 
 jackTest("can join meeting", function() {

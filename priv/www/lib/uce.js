@@ -212,6 +212,19 @@
                         });
                         return this;
                     },
+                    update: function(start, end, metadata, callback) {
+                        put("/meeting/all/" + meetingname, {'start': start,
+                                                            'end': end,
+                                                            'metadata': metadata,
+                                                            'uid': _presence.user,
+                                                            'sid': _presence.id},
+                            function(err, result, xhr) {
+                                if (!callback) {
+                                    return;
+                                }
+                                callback(err, result, xhr);
+                            });
+                    },
                     join: function(callback) {
                         post("/meeting/all/" + meetingname + "/roster/",
                             {'uid': _presence.user,
