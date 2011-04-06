@@ -122,6 +122,8 @@ out(#arg{} = Arg) ->
             json_helpers:error(Reason)
     end.
 
+process(_Host, _Method, undefined, _Query, _Arg) ->
+    json_helpers:error(not_found);
 process(Host, Method, Path, Query, Arg) ->
     case routes:get(Method, Path) of
         {ok, Match, Handlers} ->
