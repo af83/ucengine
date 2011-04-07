@@ -19,6 +19,8 @@
 
 -author("victor.goya@af83.com").
 
+-include("uce.hrl").
+
 -behaviour(gen_server).
 
 -export([start_link/1,
@@ -32,11 +34,13 @@
          handle_info/2,
          terminate/2]).
 
+
 start_link(Path) ->
     case file:consult(Path) of
         {ok, Configs} ->
             gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []);
         {error, Reason} ->
+            ?ERROR_MSG("gen_server failed to start: ~p~n", [Reason]),
             {error, Reason}
     end.
 

@@ -34,7 +34,13 @@ name(Domain) ->
     list_to_atom(lists:concat([?MODULE, "_", Domain])).
 
 start_link(Domain) ->
-    gen_server:start_link({local, name(Domain)}, ?MODULE, [Domain], []).
+    case gen_server:start_link({local, name(Domain)}, ?MODULE, [Domain], []) of
+        {ok, Pid} ->
+            {ok, Pid};
+        {error, Reason} ->
+            ?ERROR_MSG("gen_server failed to start: ~p~n", [Reason]),
+            {error, Reason}
+    end.
 
 %%
 %% gen_server callbacks

@@ -19,10 +19,18 @@
 
 -behaviour(supervisor).
 
+-include("uce.hrl").
+
 -export([start_link/0, init/1]).
 
 start_link() ->
-    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
+    case supervisor:start_link({local, ?MODULE}, ?MODULE, []) of
+        {ok, Pid} ->
+            {ok, Pid};
+        {error, Reason} ->
+            ?ERROR_MSG("supervisor failed to start: ~p~n", [Reason]),
+            {error, Reason}
+    end.
 
 init([]) ->
     Hosts = config:get(hosts),
