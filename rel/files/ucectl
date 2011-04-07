@@ -82,9 +82,9 @@ case "$1" in
     demo) internal_cmd $@;;
     time) internal_cmd $@;;
     user) internal_cmd $@;;
-    acl) internal_cmd $@;;
+    role) internal_cmd $@;;
     *)
-        echo "Usage: $SCRIPT {infos|meeting|restart|reboot|ping|console|attach}"
+        echo "Usage: $SCRIPT {infos|meeting|user|role|time|demo}"
         exit 1
         ;;
 esac
