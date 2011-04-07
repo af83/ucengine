@@ -80,6 +80,10 @@ add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
                                                  start_date=Start,
                                                  end_date=End,
                                                  metadata=Metadata}),
+    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
+                                               from={Uid, Domain},
+                                               location={"", Domain},
+                                               type="internal.meeting.add"}),
     json_helpers:created(Domain).
 
 list(Domain, [Status], [Uid, Sid], _) ->
@@ -102,6 +106,10 @@ update(Domain, [Name], [Uid, Sid, Start, End, Metadata], _) ->
                                                     start_date=Start,
                                                     end_date=End,
                                                     metadata=Metadata}),
+    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
+                                               from={Uid, Domain},
+                                               location={Name, Domain},
+                                               type="internal.meeting.update"}),
     json_helpers:ok(Domain).
 
 join(Domain, [Name], [Uid, Sid], _) ->
