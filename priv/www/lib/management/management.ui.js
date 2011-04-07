@@ -27,7 +27,7 @@ $.uce.widget("management", {
             .attr('class', 'ui-widget-content')
             .appendTo(this.element);
 
-        this._roster = $('<div>')
+        this._roster = $('<ul>')
             .attr('class', 'ui-management-roster')
             .appendTo(this._content);
 
