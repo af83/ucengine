@@ -1,0 +1,20 @@
+/**
+ * information widget
+ */
+
+.ui-information-list {
+    padding: 10px;
+    list-style: none;
+}
+
+.ui-information-title {
+    color: #424242;
+    font-weight: bold;
+    margin-top: 6px;
+    width: 100px;
+    display: inline-block;
+}
+
+.ui-information-placeholder {
+    color: #AAAAAA;
+}

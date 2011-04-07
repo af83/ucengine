@@ -384,6 +384,11 @@ $.sammy("#meeting", function() {
                                           mode: 'expanded'});
         }
 
+        addWidget("#information", 'information', {ucemeeting: meeting,
+                                                  uceclient: client,
+                                                  mode: 'expanded',
+                                                  fixed: true});
+
         addWidget("#chat", 'chat', {ucemeeting: meeting,
                                     uceclient: client,
                                     title: "Conversations",
