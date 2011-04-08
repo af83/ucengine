@@ -213,11 +213,16 @@
                         return this;
                     },
                     update: function(start, end, metadata, callback) {
-                        put("/meeting/all/" + meetingname, {'start': start,
-                                                            'end': end,
-                                                            'metadata': metadata,
-                                                            'uid': _presence.user,
-                                                            'sid': _presence.id},
+                        params = {'metadata': metadata,
+                                  'uid': _presence.user,
+                                  'sid': _presence.id};
+                        if (start) {
+                            params.start = start;
+                        }
+                        if (end && end != "never") {
+                            params.end = end;
+                        }
+                        put("/meeting/all/" + meetingname, params,
                             function(err, result, xhr) {
                                 if (!callback) {
                                     return;
