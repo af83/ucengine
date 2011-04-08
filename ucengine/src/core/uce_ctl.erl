@@ -87,7 +87,7 @@ usage() ->
     usage(none).
 usage(Object) ->
     io:format("Usage:~n"),
-    io:format("ucectl <object> <action> [--<parameter> <value>]~n~n"),
+    io:format("ucengine-admin <object> <action> [--<parameter> <value>]~n~n"),
 
     if
         Object == none ; Object == meeting ->
@@ -283,7 +283,7 @@ success(Result) ->
 error(Reason) ->
     case Reason of
         nodedown ->
-            io:format("Fatal: U.C.Engine node is not running, call 'ucectl start' to start it.");
+            io:format("Fatal: U.C.Engine node is not running, call 'ucengine start' to start it.");
         _ ->
             io:format("Error: ~p", [Reason])
     end,
