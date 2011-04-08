@@ -34,6 +34,7 @@ start() ->
     application:start(ucengine).
 
 start(_, _) ->
+    error_logger:tty(false),
     application:start(crypto),
     mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
