@@ -276,6 +276,9 @@ timestamp_to_iso(Militimestamp) when is_integer(Militimestamp) ->
     lists:flatten(Date).
 
 
+success(Result) when is_list(Result) ->
+    io:format("Success: ~s", [Result]),
+    ok;
 success(Result) ->
     io:format("Success: ~p", [Result]),
     ok.
@@ -367,13 +370,13 @@ action(["user", "add"], Args) ->
         {[_, _, _, none], _Metadata} ->
             error(missing_parameter);
         {[Domain, Name, Auth, Credential], Metadata} ->
-            {ok, _Uid} = call(user, add, [Domain,
-                                          #uce_user{id={none, Domain},
-                                                    name=Name,
-                                                    auth=Auth,
-                                                    credential=Credential,
-                                                    metadata=Metadata}]),
-           success(created)
+            {ok, Uid} = call(user, add, [Domain,
+                                         #uce_user{id={none, Domain},
+                                                   name=Name,
+                                                   auth=Auth,
+                                                   credential=Credential,
+                                                   metadata=Metadata}]),
+           success(Uid)
     end;
 
 action(["user", "delete"], Args) ->
