@@ -181,3 +181,110 @@ jackTest("send an internal.meeting.update after updating the meeting information
     $('#information .ui-information-description .ui-information-value input').val("new description");
     $('#information .ui-information-description .ui-information-value input').trigger("blur");
 })
+
+test("test that long text are reduced", function() {
+    var ucemeeting = jack.create("ucemeeting", ['get']);
+    jack.expect("ucemeeting.get")
+        .exactly("1 time")
+        .mock(function(callback) {
+            callback(undefined, Factories.createMeeting(0, "never", "default description"), undefined);
+        });
+
+    ucemeeting.on = this.ucemeeting.on;
+    $('#information').information('destroy');
+    $('#information').information({ucemeeting: ucemeeting,
+                                   uceclient: this.uceclient,
+                                   maxlength: 6});
+
+    equals($('#information .ui-information-name .ui-information-value').text(), 'ucemee');
+    equals($('#information .ui-information-name .ui-information-size-toggle').text(), 'More');
+    equals($('#information .ui-information-description .ui-information-value').text(), 'defaul');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'More');
+});
+
+test("test that the 'More' button display all the text", function() {
+    var ucemeeting = jack.create("ucemeeting", ['get']);
+    jack.expect("ucemeeting.get")
+        .exactly("1 time")
+        .mock(function(callback) {
+            callback(undefined, Factories.createMeeting(0, "never", "default description"), undefined);
+        });
+
+    ucemeeting.on = this.ucemeeting.on;
+    $('#information').information('destroy');
+    $('#information').information({ucemeeting: ucemeeting,
+                                   uceclient: this.uceclient,
+                                   maxlength: 6});
+
+    equals($('#information .ui-information-name .ui-information-value').text(), 'ucemee');
+    equals($('#information .ui-information-name .ui-information-size-toggle').text(), 'More');
+    equals($('#information .ui-information-description .ui-information-value').text(), 'defaul');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'More');
+
+    $('#information .ui-information-description .ui-information-size-toggle').click();
+
+    equals($('#information .ui-information-name .ui-information-value').text(), 'ucemee');
+    equals($('#information .ui-information-name .ui-information-size-toggle').text(), 'More');
+    equals($('#information .ui-information-description .ui-information-value').text(), 'default description');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'Less');
+
+    $('#information .ui-information-name .ui-information-size-toggle').click();
+
+    equals($('#information .ui-information-name .ui-information-value').text(), 'ucemeeting');
+    equals($('#information .ui-information-name .ui-information-size-toggle').text(), 'Less');
+    equals($('#information .ui-information-description .ui-information-value').text(), 'default description');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'Less');
+});
+
+test("test that the 'Less' button collapses the text", function() {
+    var ucemeeting = jack.create("ucemeeting", ['get']);
+    jack.expect("ucemeeting.get")
+        .exactly("1 time")
+        .mock(function(callback) {
+            callback(undefined, Factories.createMeeting(0, "never", "default description"), undefined);
+        });
+
+    ucemeeting.on = this.ucemeeting.on;
+    $('#information').information('destroy');
+    $('#information').information({ucemeeting: ucemeeting,
+                                   uceclient: this.uceclient,
+                                   maxlength: 6});
+
+    equals($('#information .ui-information-description .ui-information-value').text(), 'defaul');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'More');
+
+    $('#information .ui-information-description .ui-information-size-toggle').click();
+
+    equals($('#information .ui-information-description .ui-information-value').text(), 'default description');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'Less');
+
+    $('#information .ui-information-description .ui-information-size-toggle').click();
+
+    equals($('#information .ui-information-description .ui-information-value').text(), 'defaul');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'More');
+});
+
+test("test that the editable text is the full text", function() {
+    var ucemeeting = jack.create("ucemeeting", ['get', 'update']);
+    jack.expect("ucemeeting.get")
+        .exactly("1 time")
+        .mock(function(callback) {
+            callback(undefined, Factories.createMeeting(0, "never", "default description"), undefined);
+        });
+
+    ucemeeting.on = this.ucemeeting.on;
+    $('#information').information('destroy');
+    $('#information').information({ucemeeting: ucemeeting,
+                                   uceclient: this.uceclient,
+                                   maxlength: 6});
+
+    equals($('#information .ui-information-description .ui-information-value').text(), 'defaul');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'More');
+
+    $('#information .ui-information-description .ui-information-value').click();
+    equals($('#information .ui-information-description .ui-information-value input').val(), 'default description');
+    $('#information .ui-information-description .ui-information-value input').trigger("blur");
+
+    equals($('#information .ui-information-description .ui-information-value').text(), 'defaul');
+    equals($('#information .ui-information-description .ui-information-size-toggle').text(), 'More');
+});

@@ -3,6 +3,7 @@ $.uce.widget("information", {
         ucemeeting : null,
         uceclient : null,
         title: "Informations",
+        maxlength: 140,
         fields: {'name': {title: "Meeting Name",
                           placeholder: "Enter the name of the meeting room"},
                  'description': {title: "Description",
@@ -59,6 +60,8 @@ $.uce.widget("information", {
             .append($('<span>')
                     .addClass('ui-information-title')
                     .text(title));
+
+        var that = this;
         if (placeholder && (!value || value == "")) {
             this._fields[name] = $('<span>')
                 .addClass('ui-information-placeholder')
@@ -71,19 +74,44 @@ $.uce.widget("information", {
             this._fields[name] = $('<span>')
                 .addClass('ui-information-value')
                 .text(value)
-                .appendTo(field);
+                .appendTo(field)
+
+            if (value.length > this.options.maxlength) {
+                var subValue = value.substring(0, this.options.maxlength);
+                this._fields[name].text(subValue);
+
+                var sizeToggle = $('<a>')
+                    .attr('href', '#')
+                    .addClass('ui-information-size-toggle')
+                    .text("More")
+                    .toggle(
+                        function() {
+                            that._fields[name].text(value);
+                            sizeToggle.text("Less");
+                        },
+                        function() {
+                            that._fields[name].text(subValue);
+                            sizeToggle.text("More");
+                        })
+                    .appendTo(field);
+            }
         }
 
         if (this._canEdit) {
-            var that = this;
-            this._fields[name].editable({onSubmit: function(content) {
-                that.options.ucemeeting.get(function(err, meeting, xhr) {
-                    meeting.metadata[name] = content.current;
-                    that.options.ucemeeting
-                        .update(meeting.start_date,
-                                meeting.end_date,
-                                meeting.metadata)
-                });
+            this._fields[name]
+                .addClass('ui-information-editable')
+                .click(function () {
+                    $(this).text(value);
+                })
+                .editable({onSubmit: function(content) {
+                    that.options.ucemeeting.get(function(err, meeting, xhr) {
+                        meeting.metadata[name] = content.current;
+                        that.options.ucemeeting
+                            .update(meeting.start_date,
+                                    meeting.end_date,
+                                    meeting.metadata)
+                    });
+                    that._updateFields();
             }});
         }
         return (field);
