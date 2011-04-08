@@ -33,7 +33,7 @@ restart: dev
 	rel/ucengine/bin/ucengine restart
 
 tests: dev
-	rel/ucengine/bin/ucectl tests
+	rel/ucengine/bin/ucengine-admin tests
 	./rebar eunit
 
 ###############################################################################
