@@ -1,4 +1,4 @@
-DIRS          = data/files
+DIRS          = rel/ucengine/data/files
 
 all: compile
 
@@ -8,7 +8,7 @@ $(DIRS):
 ###############################################################################
 # Build
 ###############################################################################
-compile: $(DIRS)
+compile:
 	./rebar get-deps
 	./rebar compile
 
@@ -18,7 +18,7 @@ rel: compile
 ###############################################################################
 # Usual targets
 ###############################################################################
-dev: cleanrel rel
+dev: cleanrel rel $(DIRS)
 
 run: dev
 	rel/ucengine/bin/ucengine console
