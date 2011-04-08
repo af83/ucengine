@@ -35,6 +35,7 @@
 start_link() ->
     case gen_server:start_link({local, ?MODULE}, ?MODULE, [], []) of
         {ok, Pid} ->
+            gen_server:cast(?MODULE, run),
             {ok, Pid};
         {error, Reason} ->
             ?ERROR_MSG("gen_server failed to start: ~p~n", [Reason]),
