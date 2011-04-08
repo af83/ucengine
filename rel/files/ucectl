@@ -74,6 +74,14 @@ internal_cmd()
                    "$@"
 }
 
+tests()
+{
+    $ERTS_PATH/erl -noshell $NAME_ARG \
+            -config $RUNNER_ETC_DIR/app.config \
+            -run ucengine_app      \
+            -eval "tests:start()."
+}
+
 # Check the first argument for instructions
 case "$1" in
     --help) internal_cmd $@;;
@@ -83,10 +91,10 @@ case "$1" in
     time) internal_cmd $@;;
     user) internal_cmd $@;;
     role) internal_cmd $@;;
+    tests) tests $@;;
     *)
-        echo "Usage: $SCRIPT {infos|meeting|user|role|time|demo}"
+        echo "Usage: $SCRIPT {infos|meeting|user|role|time|demo|tests}"
         exit 1
         ;;
 esac
 
-exit 0

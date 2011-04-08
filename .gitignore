@@ -1,4 +1,4 @@
-ebin/*
+ucengine/ebin/*
 tmp/*
 ucengine.access
 *.log
