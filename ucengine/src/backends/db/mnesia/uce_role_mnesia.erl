@@ -31,10 +31,13 @@
 -include("uce.hrl").
 
 init() ->
-    catch mnesia:create_table(uce_role,
-                              [{disc_copies, [node()]},
-                               {type, set},
-                               {attributes, record_info(fields, uce_role)}]).
+    case mnesia:create_table(uce_role,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_role)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_role}} -> ok
+    end.
 
 add(_Domain, #uce_role{}=Role) ->
     case mnesia:dirty_write(Role) of

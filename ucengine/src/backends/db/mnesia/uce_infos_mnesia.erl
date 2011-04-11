@@ -33,10 +33,13 @@
 
 
 init() ->
-    catch mnesia:create_table(uce_infos,
-                              [{disc_copies, [node()]},
-                               {type, set},
-                               {attributes, record_info(fields, uce_infos)}]).
+    case mnesia:create_table(uce_infos,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_infos)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_infos}} -> ok
+    end.
 
 get(Domain) ->
     case mnesia:dirty_read({uce_infos, Domain}) of

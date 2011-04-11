@@ -28,10 +28,13 @@
 -include("uce.hrl").
 
 init() ->
-    mnesia:create_table(uce_file,
-                        [{disc_copies, [node()]},
-                         {type, set},
-                         {attributes, record_info(fields, uce_file)}]).
+    case mnesia:create_table(uce_file,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_file)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_meeting}} -> ok
+    end.
 
 add(_Domain, #uce_file{} = File) ->
     case mnesia:dirty_write(File) of

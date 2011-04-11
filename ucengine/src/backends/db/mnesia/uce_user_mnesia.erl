@@ -30,10 +30,13 @@
 -include("uce.hrl").
 
 init() ->
-    mnesia:create_table(uce_user,
-                        [{disc_copies, [node()]},
-                         {type, set},
-                         {attributes, record_info(fields, uce_user)}]).
+    case mnesia:create_table(uce_user,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_user)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_user}} -> ok
+    end.
 
 add(_Domain, #uce_user{} = User) ->
     case mnesia:dirty_write(User) of
