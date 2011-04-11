@@ -73,6 +73,10 @@ $.uce.widget("management", {
                    'class': 'ui-management-url',
                    'readonly': 'readonly'})
             .appendTo(this._invite);
+        this._copyUrl = $('<a>')
+            .attr('class', 'ui-management-copy-button')
+            .button({label: "Copy"})
+            .appendTo(this._invite);
 
         $('<p>').text('Access Code').appendTo(this._invite);
         this._accessCode = $('<input>')
@@ -81,6 +85,28 @@ $.uce.widget("management", {
                    'class': 'ui-management-code',
                    'readonly': 'readonly'})
             .appendTo(this._invite);
+        this._copyCode = $('<a>')
+            .attr('class', 'ui-management-copy-button')
+            .button({label: "Copy"})
+            .appendTo(this._invite);
+
+        if (window.ZeroClipboard) {
+            this._clipUrl = new ZeroClipboard.Client();
+            this._clipUrl.setText('');
+            this._clipUrl.addEventListener( 'mouseDown', function(client) {
+                that._clipUrl.setText(that._inviteUrl.val());
+            });
+
+            this._clipUrl.glue(this._copyUrl.get(0));
+
+            this._clipCode = new ZeroClipboard.Client();
+            this._clipCode.setText('');
+            this._clipCode.addEventListener( 'mouseDown', function(client) {
+                that._clipCode.setText(that._accessCode.val());
+            });
+
+            this._clipCode.glue(this._copyCode.get(0));
+        }
 
         this._state = {};
         this._state.roster = [];
@@ -218,6 +244,11 @@ $.uce.widget("management", {
 
         this._inviteHeader.show();
         this._invite.show()
+
+        if (window.ZeroClipboard) {
+            this._clipUrl.show();
+            this._clipCode.show();
+        }
     },
 
     _showRoster: function() {
@@ -226,6 +257,11 @@ $.uce.widget("management", {
 
         this._inviteHeader.hide();
         this._invite.hide()
+
+        if (window.ZeroClipboard) {
+            this._clipUrl.hide();
+            this._clipCode.hide();
+        }
     },
 
     _updateRoster: function() {

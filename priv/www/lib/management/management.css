@@ -121,3 +121,7 @@
     border: 1px solid #D7D7D7;
     width: 75%;
 }
+
+.ui-management .ui-management-copy-button {
+    margin-left: 10px;
+}
