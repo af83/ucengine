@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([to_json/1]).
+-export([to_json/1, pretty_print/2]).
 
 to_json(#uce_meeting{id={Name, Domain},
                      start_date=StartDate,
@@ -37,3 +37,24 @@ to_json(#uce_meeting{id={Name, Domain},
                                  integer_to_list(EndDate)
                          end},
               {metadata, {struct, Metadata}}]}.
+
+pretty_print(Meetings, Format)
+  when is_list(Meetings) ->
+    lists:flatten([pretty_print(Meeting, Format) ++ "--~n" || Meeting <- Meetings]);
+pretty_print(#uce_meeting{id={Id, _Domain},
+                          start_date=Start,
+                          end_date=End,
+                          roster=_Roster,
+                          metadata=Metadata}, flat) ->
+    Out = [io_lib:format("Id: ~s~n", [Id]),
+           io_lib:format("Start: ~p~n", [Start]),
+           io_lib:format("End: ~p~n", [End])],
+    StrMetadata =
+        if
+            Metadata == [] ->
+                ["Metadata: none~n"];
+            true ->
+                [io_lib:format("Metadata:~n", [])] ++
+                    [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
+        end,
+    lists:flatten(Out ++ StrMetadata).

@@ -64,6 +64,9 @@ start() ->
                     init:stop(2);
                 {ok, nothing} ->
                     init:stop(0);
+                {ok, Result} ->
+                    io:format(Result),
+                    init:stop(0);
                 {'EXIT', {{case_clause, _}, _}} ->
                     usage(list_to_atom(Object));
                 Exception when is_list(Exception) ->
@@ -152,88 +155,6 @@ getopt(Keys, Args, Defaults) ->
                                 Args),
     Remaining = [{Key, string:join(Value, " ")} || {Key, Value} <- RawRemaining],
     {Values, Remaining}.
-
-json_escape({Id, Domain}) ->
-    io:format(" [~p, ~p]", [Id, Domain]);
-json_escape(String) when is_list(String) ->
-    re:replace(String, "\"", "\\\"", [{return, list}]);
-json_escape(Integer) when is_integer(Integer) ->
-    Integer;
-json_escape(Atom) when is_atom(Atom)->
-    String = atom_to_list(Atom),
-    json_escape(String).
-
-display_metadata(json, []) ->
-    [];
-display_metadata(json, [{Key, Value}|Tail]) ->
-    io:format("        ~p: ~p", [json_escape(Key), json_escape(Value)]),
-    case Tail of
-        [] ->
-            io:format("~n");
-        _ ->
-            io:format(",~n")
-    end,
-    display_metadata(json, Tail).
-
-display_roles(json, []) ->
-    [];
-display_roles(json, [{Role, Location}|Tail]) ->
-    io:format("        ~p: ~p", [json_escape(Role), json_escape(Location)]),
-    case Tail of
-        [] ->
-            io:format("~n");
-        _ ->
-            io:format(",~n")
-    end,
-    display_roles(json, Tail).
-
-display_field(json, [], []) ->
-    [];
-display_field(json, [Value|Values], [Field|Fields]) ->
-    case Field of
-        metadata ->
-            io:format("    \"metadata\": {~n"),
-            display_metadata(json, Value),
-            io:format("    }");
-        roles ->
-            io:format("    \"metadata\": {~n"),
-            display_roles(json, Value),
-            io:format("    }");
-        _ ->
-            io:format("    ~p: ~p", [json_escape(atom_to_list(Field)),
-                                     json_escape(Value)])
-    end,
-    case Fields of
-        [] ->
-            io:format("~n");
-        _ ->
-            io:format(",~n")
-    end,
-    display_field(json, Values, Fields).
-
-display_array_elems(json, [], _Fields) ->
-    nothing;
-display_array_elems(json, [Record|Records], Fields) ->
-    display(json, Record, Fields),
-    case Records of
-        [] ->
-            nothing;
-        _ ->
-            io:format(",~n"),
-            display_array_elems(json, Records, Fields)
-    end.
-
-display(json, Records, Fields) when is_list(Records) ->
-    io:format("["),
-    display_array_elems(json, Records, Fields),
-    io:format("]"),
-    ok;
-display(json, Record, Fields) ->
-    [_|Values] = tuple_to_list(Record),
-    io:format("{~n"),
-    display_field(json, Values, Fields),
-    io:format("}"),
-    ok.
 
 call(Object, Action, Args) ->
     Module = list_to_atom("uce_" ++ atom_to_list(Object)),
@@ -329,7 +250,7 @@ action(["meeting", "get"], Args) ->
             error(missing_parameter);
         {[Domain, Name], _} ->
             {ok, Record} = call(meeting, get, [Domain, {Name, Domain}]),
-            display(json, Record, record_info(fields, uce_meeting))
+            {ok, meeting_helpers:pretty_print(Record, flat)}
     end;
 
 action(["meeting", "update"], Args) ->
@@ -353,7 +274,7 @@ action(["meeting", "list"], Args) ->
             error(missing_parameter);
         {[Domain, Status], _} ->
             {ok, Records} = call(meeting, list, [Domain, Status]),
-            display(json, Records, record_info(fields, uce_meeting))
+            {ok, meeting_helpers:pretty_print(Records, flat)}
     end;
 
 %%
@@ -399,7 +320,7 @@ action(["user", "get"], Args) ->
             error(missing_parameter);
         {[Domain, Name], _} ->
             {ok, Record} = call(user, get, [Domain, Name]),
-            display(json, Record, record_info(fields, uce_user));
+            {ok, user_helpers:pretty_print(Record, flat)};
         {[none], _} ->
             error(missing_parameter)
     end;
@@ -432,7 +353,7 @@ action(["user", "list"], Args) ->
             error(missing_parameter);
         {[Domain], _} ->
             {ok, Records} = call(user, list, [Domain]),
-            display(json, Records, record_info(fields, uce_user))
+            {ok, user_helpers:pretty_print(Records, flat)}
     end;
 
 action(["user", "role", "add"], Args) ->
@@ -567,7 +488,7 @@ action(["infos", "get"], Args) ->
             error(missing_parameter);
         {[Domain], _} ->
             {ok, Infos} = call(infos, get, [Domain]),
-            display(json, Infos, record_info(fields, uce_infos))
+            {ok, infos_helpers:pretty_print(Infos, flat)}
     end;
 
 action(["infos", "update"], Args) ->

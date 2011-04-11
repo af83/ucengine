@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([to_json/1]).
+-export([to_json/1, pretty_print/2]).
 
 to_json(#uce_user{id={Id, Domain},
                   name=Name,
@@ -32,3 +32,37 @@ to_json(#uce_user{id={Id, Domain},
               {domain, Domain},
               {auth, Auth},
               {metadata, {struct, Metadata}}]}.
+
+pretty_print(Users, Format)
+  when is_list(Users) ->
+    lists:flatten([pretty_print(User, Format) ++ "--~n" || User <- Users]);
+pretty_print(#uce_user{id={Uid, _Domain},
+                       name=Name,
+                       auth=Auth,
+                       metadata=Metadata,
+                       roles=Roles}, flat) ->
+    Out = [io_lib:format("Id: ~s~n", [Uid]),
+           io_lib:format("Name: ~s~n", [Name]),
+           io_lib:format("Authentification method: ~s~n", [Auth])],
+    StrMetadata =
+        if
+            Metadata == [] ->
+                ["Metadata: none~n"];
+            true ->
+                [io_lib:format("Metadata:~n", [])] ++
+                    [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
+        end,
+    StrRoles =
+        if
+            Roles == [] ->
+                ["Roles: none~n"];
+            true ->
+                [io_lib:format("Roles:~n", [])] ++
+                    [ if
+                          Location == "" ->
+                              io_lib:format("\t~s in all locations~n", [Role]);
+                          true ->
+                              io_lib:format("\t~s in ~s~n", [Role, Location])
+                      end || {Role, Location} <- Roles ]
+        end,
+    lists:flatten(Out ++ StrMetadata ++ StrRoles).
