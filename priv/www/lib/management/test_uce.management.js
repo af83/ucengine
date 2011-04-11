@@ -63,7 +63,7 @@ test("create some elements", function() {
     ok($('#management').hasClass("ui-management"), "should have class ui-management");
     ok($('#management').hasClass("ui-widget"), "should have class ui-widget");
     equals($('#management').children().size(), 2);
-    equals($("#management .ui-widget-content").children().size(), 1);
+    equals($("#management .ui-widget-content").children().size(), 4);
 });
 
 test("destroy delete all elements", function() {
@@ -100,7 +100,9 @@ module("uce.management", {
         $('#management').management({
             ucemeeting: this.ucemeeting,
             uceclient: {uid: 'chuck'},
-            dock: '#management-dock'
+            dock: '#management-dock',
+            url: 'my sweet url',
+            code: '1234'
         });
     },
     teardown: function() {
@@ -156,6 +158,15 @@ test("handle internal.user.role.delete event", function() {
     equals($("#management .ui-management-roster").children().size(), 1);
     equals($("#management .ui-management-roster li:eq(0) .ui-management-user").text(), 'Unnamed 1');
     equals($("#management .ui-management-roster li:eq(0) .ui-management-role").text(), 'You');
+});
+
+test("show the number of users", function() {
+    this.callback_roster_add(Factories.addRosterEvent('chuck'));
+    this.callback_roster_add(Factories.addRosterEvent('brucelee'));
+    equals($("#management .ui-management-roster-header h1").text(), 'Connected users (2)');
+
+    this.callback_roster_delete(Factories.deleteRosterEvent('chuck'));
+    equals($("#management .ui-management-roster-header h1").text(), 'Connected users (1)');
 });
 
 test("sort roster correctly", function() {
@@ -402,8 +413,8 @@ jackTest("add the 'speaker' role when clicking on the accept pictogram", functio
             equals(role, "speaker");
             equals(location, "testmeeting");
         });
-    uceclient = {uid: "chuck", user: userMock};
 
+    var uceclient = {uid: "chuck", user: userMock};
     var ucemeeting = jack.create("ucemeeting", ['push']);
     ucemeeting.on = this.ucemeeting.on;
     ucemeeting.name = this.ucemeeting.name;
@@ -423,4 +434,39 @@ jackTest("add the 'speaker' role when clicking on the accept pictogram", functio
     this.callback_lead_request(Factories.requestLeadEvent('brucelee'));
 
     $("#management .ui-management-roster li:eq(2) .ui-management-lead-button:eq(1)").click();
+});
+
+test("Switch between views when clicking on the invite or roster link", function() {
+    var ucemeeting = jack.create("ucemeeting", ['push']);
+    ucemeeting.on = this.ucemeeting.on;
+    ucemeeting.name = this.ucemeeting.name;
+
+    $('#management').management({
+        ucemeeting: ucemeeting,
+        uceclient: {uid: 'chuck'}
+    });
+
+    equals($('#management .ui-management-roster-header').css('display'), 'block');
+    equals($('#management .ui-management-roster').css('display'), 'block');
+    equals($('#management .ui-management-invite-header').css('display'), 'none');
+    equals($('#management .ui-management-invite').css('display'), 'none');
+
+    $('#management .ui-management-invite-link').click();
+
+    equals($('#management .ui-management-roster-header').css('display'), 'none');
+    equals($('#management .ui-management-roster').css('display'), 'none');
+    equals($('#management .ui-management-invite-header').css('display'), 'block');
+    equals($('#management .ui-management-invite').css('display'), 'block');
+
+    $('#management .ui-management-roster-link').click();
+
+    equals($('#management .ui-management-roster-header').css('display'), 'block');
+    equals($('#management .ui-management-roster').css('display'), 'block');
+    equals($('#management .ui-management-invite-header').css('display'), 'none');
+    equals($('#management .ui-management-invite').css('display'), 'none');
+});
+
+test("Give an url and a code to the widget so the fields will be pre-filled", function() {
+    equals($('#management .ui-management-url').val(), 'my sweet url');
+    equals($('#management .ui-management-code').val(), '1234');
 });

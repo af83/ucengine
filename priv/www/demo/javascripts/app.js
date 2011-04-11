@@ -414,6 +414,8 @@ $.sammy("#meeting", function() {
         addWidget("#management", 'management', {ucemeeting: meeting,
                                                 uceclient: client,
                                                 title: "Meeting Facilitation",
+                                                url: window.location.href,
+                                                code: meeting.name,
                                                 dock: '#management-dock',
                                                 mode: 'reduced',
                                                 fixed: true});

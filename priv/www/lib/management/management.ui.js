@@ -1,6 +1,10 @@
 $.uce.widget("management", {
     options: {
         ucemeeting: null,
+        uceclient: null,
+        url: null,
+        code: null,
+
         title: "Meeting Facilitation",
         mode: 'reduced'
     },
@@ -27,9 +31,56 @@ $.uce.widget("management", {
             .attr('class', 'ui-widget-content')
             .appendTo(this.element);
 
+        this._rosterHeader = $('<div>')
+            .addClass('ui-management-roster-header')
+            .append('<h1>')
+            .appendTo(this._content);
+
+        this._inviteLink = $('<a>')
+            .addClass('ui-management-invite-link')
+            .text("Invite")
+            .click(function() {
+                that._showInvite();
+            })
+            .appendTo(this._rosterHeader);
+
         this._roster = $('<ul>')
             .attr('class', 'ui-management-roster')
             .appendTo(this._content);
+
+        this._inviteHeader = $('<div>')
+            .addClass('ui-management-invite-header')
+            .appendTo(this._content);
+
+        this._rosterLink = $('<a>')
+            .addClass('ui-management-roster-link')
+            .text("Users")
+            .click(function() {
+                that._showRoster();
+            })
+            .appendTo(this._inviteHeader);
+
+        this._inviteHeader.append($('<h1>').text('Add users'))
+
+        this._invite = $('<div>')
+            .addClass('ui-management-invite')
+            .appendTo(this._content);
+
+        $('<p>').text('URL').appendTo(this._invite);
+        this._inviteUrl = $('<input>')
+            .attr({'type': 'text',
+                   'value': this.options.url,
+                   'class': 'ui-management-url',
+                   'readonly': 'readonly'})
+            .appendTo(this._invite);
+
+        $('<p>').text('Access Code').appendTo(this._invite);
+        this._accessCode = $('<input>')
+            .attr({'type': 'text',
+                   'value': this.options.code,
+                   'class': 'ui-management-code',
+                   'readonly': 'readonly'})
+            .appendTo(this._invite);
 
         this._state = {};
         this._state.roster = [];
@@ -69,6 +120,8 @@ $.uce.widget("management", {
                 that._updateNotifications();
             });
         }
+
+        this._showRoster();
     },
 
     clear: function() {
@@ -159,6 +212,22 @@ $.uce.widget("management", {
     /**
      * Internal functions
      */
+    _showInvite: function() {
+        this._rosterHeader.hide();
+        this._roster.hide();
+
+        this._inviteHeader.show();
+        this._invite.show()
+    },
+
+    _showRoster: function() {
+        this._rosterHeader.show();
+        this._roster.show();
+
+        this._inviteHeader.hide();
+        this._invite.hide()
+    },
+
     _updateRoster: function() {
         this._roster.empty();
         var meeting = this.options.ucemeeting;
@@ -201,6 +270,8 @@ $.uce.widget("management", {
             }
             return (0);
         });
+
+        this._rosterHeader.find('h1').text("Connected users (" + roster.length + ")");
 
         var me = this._state.users[this.options.uceclient.uid];
         var that = this;
