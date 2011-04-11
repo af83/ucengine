@@ -39,14 +39,12 @@ init() ->
                                {attributes, record_info(fields, uce_infos)}]).
 
 get(Domain) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read({uce_infos, Domain})
-                            end) of
-        {atomic, [Infos]} ->
+    case mnesia:dirty_read({uce_infos, Domain}) of
+        [Infos] ->
             {ok, Infos};
-        {atomic, []} ->
+        [] ->
             {ok, #uce_infos{domain=Domain, metadata=[]}};
-        _ ->
+        {aborted, _} ->
             throw({error, bad_parameters})
     end.
 

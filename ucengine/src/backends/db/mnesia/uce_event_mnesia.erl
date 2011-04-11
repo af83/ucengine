@@ -36,24 +36,20 @@ init() ->
                          {attributes, record_info(fields, uce_event)}]).
 
 add(_Domain, #uce_event{} = Event) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Event)
-                            end) of
-        {atomic, _} ->
+    case mnesia:dirty_write(Event) of
+        ok ->
             {ok, Event#uce_event.id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
 get(_Domain, Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_event, Id)
-                            end) of
+    case mnesia:dirty_read(uce_event, Id) of
         {aborted, _} ->
             throw({error, bad_parameters});
-        {atomic, []} ->
+        [] ->
             throw({error, not_found});
-        {atomic, [Event]} ->
+        [Event] ->
             {ok, Event}
     end.
 

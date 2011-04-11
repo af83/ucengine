@@ -38,12 +38,10 @@ init() ->
                          {attributes, record_info(fields, uce_meeting)}]).
 
 add(#uce_meeting{} = Meeting) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Meeting)
-                            end) of
+    case mnesia:dirty_write(Meeting) of
         {aborted, _} ->
             throw({error, bad_parameters});
-        {atomic, _} ->
+        ok ->
             {ok, created}
     end.
 
@@ -58,12 +56,10 @@ delete(Id) ->
     end.
 
 get(Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_meeting, Id)
-                            end) of
-        {atomic, [Record]} ->
+    case mnesia:dirty_read(uce_meeting, Id) of
+        [Record] ->
             {ok, Record};
-        {atomic, _} ->
+        [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})
@@ -80,16 +76,14 @@ update(#uce_meeting{} = Meeting) ->
     end.
 
 list(Domain) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_meeting{id={'_', Domain},
-                                                                     start_date='_',
-                                                                     end_date='_',
-                                                                     roster='_',
-                                                                     metadata='_'})
-                            end) of
+    case mnesia:dirty_match_object(#uce_meeting{id={'_', Domain},
+                                                start_date='_',
+                                                end_date='_',
+                                                roster='_',
+                                                metadata='_'}) of
         {aborted, _} ->
             throw({error, bad_parameters});
-        {atomic, Meetings} ->
+        Meetings ->
             {ok, Meetings}
     end.
 

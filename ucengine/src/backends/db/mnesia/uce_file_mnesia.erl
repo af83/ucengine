@@ -34,52 +34,44 @@ init() ->
                          {attributes, record_info(fields, uce_file)}]).
 
 add(_Domain, #uce_file{} = File) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(File)
-                            end) of
-        {atomic, _} ->
+    case mnesia:dirty_write(File) of
+        ok ->
             {ok, File#uce_file.id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
 list(_Domain, {_, _}=Location) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_file{id='_',
-                                                                  name='_',
-                                                                  location=Location,
-                                                                  uri='_',
-                                                                  mime='_',
-                                                                  metadata='_'})
-                            end) of
-        {atomic, Files} ->
+    case mnesia:dirty_match_object(#uce_file{id='_',
+                                             name='_',
+                                             location=Location,
+                                             uri='_',
+                                             mime='_',
+                                             metadata='_'}) of
+        Files when is_list(Files) ->
             {ok, Files};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
 all(Domain) ->
-        case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_file{id={'_', Domain},
-                                                                  name='_',
-                                                                  location='_',
-                                                                  uri='_',
-                                                                  mime='_',
-                                                                  metadata='_'})
-                                end) of
-            {atomic, Files} ->
+        case mnesia:dirty_match_object(#uce_file{id={'_', Domain},
+                                                 name='_',
+                                                 location='_',
+                                                 uri='_',
+                                                 mime='_',
+                                                 metadata='_'}) of
+            Files when is_list(Files) ->
                 {ok, Files};
             {aborted, _} ->
                 throw({error, bad_parameters})
     end.
 
 get(_Domain, {_, _}=Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_file, Id)
-                            end) of
-        {atomic, [File]} ->
+    case mnesia:dirty_read(uce_file, Id) of
+        [File] ->
             {ok, File};
-        {atomic, []} ->
+        [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})

@@ -39,28 +39,24 @@ init() ->
                          {attributes, record_info(fields, uce_presence)}]).
 
 add(_Domain, #uce_presence{}=Presence) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Presence)
-                            end) of
-        {atomic, _} ->
+    case mnesia:dirty_write(Presence) of
+        ok ->
             {ok, Presence#uce_presence.id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
 list(User) ->
-    case mnesia:transaction(fun() ->
-				    mnesia:match_object(#uce_presence{id={'_','_'},
-                                                      user=User,
-                                                      auth='_',
-                                                      timeout='_',
-                                                      last_activity='_',
-                                                      resource='_',
-                                                      metadata='_'})
-                            end) of
-        {atomic, []} ->
+    case mnesia:dirty_match_object(#uce_presence{id={'_','_'},
+                                                 user=User,
+                                                 auth='_',
+                                                 timeout='_',
+                                                 last_activity='_',
+                                                 resource='_',
+                                                 metadata='_'}) of
+        [] ->
             {ok, []};
-        {atomic, Records} ->
+        Records when is_list(Records) ->
             {ok, Records};
         {aborted, _} ->
             throw({error, bad_parameters})
@@ -76,18 +72,16 @@ all(Domain) ->
                                             metadata='_'}) of
         Records when is_list(Records) ->
             {ok, Records};
-        Error ->
+        {aborted, _} = Error ->
             ?ERROR_MSG("uce_presence:all on domain ~s : ~p~n", [Domain, Error]),
             throw({error, bad_parameters})
     end.
 
 get(_Domain, Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_presence, Id)
-                            end) of
-        {atomic, [Record]} ->
+    case mnesia:dirty_read(uce_presence, Id) of
+        [Record] ->
             {ok, Record};
-        {atomic, _} ->
+        [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})

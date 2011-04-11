@@ -36,10 +36,8 @@ init() ->
                          {attributes, record_info(fields, uce_user)}]).
 
 add(_Domain, #uce_user{} = User) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(User)
-                            end) of
-        {atomic, _} ->
+    case mnesia:dirty_write(User) of
+        ok ->
             {ok, created};
         {aborted, _} ->
             throw({error, bad_parameters})
@@ -66,15 +64,13 @@ update(_Domain, #uce_user{} = User) ->
     end.
 
 list(Domain) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_user{id={'_', Domain},
-                                                                  name='_',
-                                                                  auth='_',
-                                                                  credential='_',
-                                                                  metadata='_',
-                                                                  roles='_'})
-                            end) of
-        {atomic, Records} ->
+    case mnesia:dirty_match_object(#uce_user{id={'_', Domain},
+                                             name='_',
+                                             auth='_',
+                                             credential='_',
+                                             metadata='_',
+                                             roles='_'}) of
+        Records when is_list(Records) ->
             {ok, Records};
         {aborted, _} ->
             throw({error, bad_parameters})
@@ -84,15 +80,13 @@ get(_Domain, Id) when is_list(Id) ->
     case mnesia:dirty_match_object({uce_user, '_', Id, '_', '_', '_', '_'}) of
         [] -> throw({error, not_found});
         [Record] -> {ok, Record};
-        _ -> throw({error, bad_parameters})
+        {aborted, _} -> throw({error, bad_parameters})
     end;
 get(_Domain, {_, _} = Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_user, Id)
-                            end) of
-        {atomic, [Record]} ->
+    case mnesia:dirty_read(uce_user, Id) of
+        [Record] ->
             {ok, Record};
-        {atomic, _} ->
+        [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})
