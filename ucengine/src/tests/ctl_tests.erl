@@ -111,7 +111,7 @@ test_meeting_add_missing_parameter() ->
 
 test_meeting_get(Domain) ->
     Params = [{"domain", [Domain]}, {"name", ["testmeeting"]}],
-    ok = uce_ctl:action(["meeting", "get"], Params).
+    {ok, _} = uce_ctl:action(["meeting", "get"], Params).
 test_meeting_get_missing_parameter() ->
     error = uce_ctl:action(["meeting", "get"], []).
 test_meeting_get_not_found(Domain) ->
@@ -162,7 +162,7 @@ test_meeting_delete_not_found(Domain) ->
 
 test_meeting_list(Domain) ->
     Params = [{"domain", [Domain]}, {"status", ["all"]}],
-    ok = uce_ctl:action(["meeting", "list"], Params).
+    {ok, _} = uce_ctl:action(["meeting", "list"], Params).
 test_meeting_list_missing_parameter() ->
     error = uce_ctl:action(["meeting", "list"], []).
 
@@ -196,7 +196,7 @@ test_user_get(Domain) ->
              , {"auth", ["password"]}
              , {"credential", ["pwd"]}
              ],
-    ok = uce_ctl:action(["user", "get"], Params).
+    {ok, _} = uce_ctl:action(["user", "get"], Params).
 
 test_user_get_missing_parameter() ->
     Params = [{"auth", ["password"]}, {"credential", ["pwd"]}],
@@ -210,19 +210,17 @@ test_user_get_not_found(Domain) ->
     {error, not_found} = (catch uce_ctl:action(["user", "get"], Params)).
 
 test_user_update(Domain) ->
-    io:format("Get : ~p~n", [uce_user:get(Domain, "anonymous.user@af83.com")]),
     {ok, #uce_user{id={Uid, Domain},
                    name="anonymous.user@af83.com",
                    auth="none"}} =
         uce_user:get(Domain, "anonymous.user@af83.com"),
-    Params = [ {"id", [Uid]}
+    Params = [ {"uid", [Uid]}
              , {"domain", [Domain]}
              , {"name", ["anonymous.user@af83.com"]}
              , {"auth", ["password"]}
              , {"credential", ["pwd"]}
              ],
     ok = uce_ctl:action(["user", "update"], Params),
-    io:format("Get : ~p~n", [uce_user:get(Domain, "anonymous.user@af83.com")]),
     {ok, #uce_user{id={Uid, Domain},
                    name="anonymous.user@af83.com",
                    auth="password",
@@ -234,7 +232,7 @@ test_user_update_missing_parameter() ->
 
 test_user_update_not_found(Domain) ->
     Params = [ {"domain", [Domain]}
-             , {"id", ["none"]}
+             , {"uid", ["none"]}
              , {"name", ["nobody@af83.com"]}
              , {"auth", ["password"]}
              , {"credential", ["passwd"]}
@@ -300,7 +298,7 @@ test_user_delete_not_found(Domain) ->
     {error, not_found} = (catch uce_ctl:action(["user", "delete"], Params)).
 
 test_user_list(Domain) ->
-    ok = uce_ctl:action(["user", "list"], [{"domain", [Domain]}]).
+    {ok, _} = uce_ctl:action(["user", "list"], [{"domain", [Domain]}]).
 
 %%
 %% Roles
@@ -390,7 +388,7 @@ test_role_delete_access(Domain) ->
 %%
 
 test_infos_get(Domain) ->
-    ok = uce_ctl:action(["infos", "get"], [{"domain", [Domain]}]).
+    {ok, _} = uce_ctl:action(["infos", "get"], [{"domain", [Domain]}]).
 
 test_infos_update(Domain) ->
     {ok, {uce_infos, Domain, []}} = uce_infos:get(Domain),

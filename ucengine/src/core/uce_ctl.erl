@@ -106,13 +106,13 @@ usage(Object) ->
     if
         Object == none ; Object == user ->
             io:format("Users:~n"),
-            io:format("\tuser add --domain <domain> --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
-            io:format("\tuser update --domain <domain> --uid <uid> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
-            io:format("\tuser get --domain <domain> --uid <uid>~n"),
-            io:format("\tuser delete --domain <domain> --uid <uid>~n"),
+            io:format("\tuser add --domain <domain> --name <name> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
+            io:format("\tuser update --domain <domain> [--name <name>|--uid <uid>] --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
+            io:format("\tuser get --domain <domain> [--name <name>|--uid <uid>]~n"),
+            io:format("\tuser delete --domain <domain> [--name <name>|--uid <uid>]~n"),
             io:format("\tuser list --domain <domain>~n"),
-            io:format("\tuser role add --domain <domain> --uid <uid> --role <role> [--location <location>]~n"),
-            io:format("\tuser role delete --domain <domain> --uid <uid> --role <role> [--location <location>]~n~n");
+            io:format("\tuser role add --domain <domain> [--name <name>|--uid <uid>] --role <role> [--location <location>]~n"),
+            io:format("\tuser role delete --domain <domain> [--name <name>|--uid <uid>] --role <role> [--location <location>]~n~n");
         true ->
             nothing
     end,
@@ -301,50 +301,71 @@ action(["user", "add"], Args) ->
     end;
 
 action(["user", "delete"], Args) ->
-    case getopt(["domain", "uid"], Args) of
-        {[none, _], _} ->
+    case getopt(["domain", "name", "uid"], Args) of
+        {[none, _, _], _} ->
             error(missing_parameter);
-        {[_, none], _} ->
-            error(missing_parameter);
-        {[Domain, Id], _} ->
-            {ok, deleted} = call(user, delete, [Domain, {Id, Domain}]),
-            success(deleted)
+        {[Domain, Name, Id], _}
+          when is_list(Name) or is_list(Id) ->
+            FinalId =
+                if
+                    Name /= none ->
+                        {ok, #uce_user{id={TmpId, _}}} = call(user, get, [Domain, Name]),
+                        TmpId;
+                    true ->
+                        Id
+                end,
+            {ok, deleted} = call(user, delete, [Domain, {FinalId, Domain}]),
+            success(deleted);
+        {[_, _, _], _} ->
+            error(missing_parameter)
     end;
 
 
 action(["user", "get"], Args) ->
-    case getopt(["domain", "name"], Args, [none, none]) of
-        {[none, _], _} ->
+    case getopt(["domain", "name", "uid"], Args) of
+        {[none, _, _], _} ->
             error(missing_parameter);
-        {[_, none], _} ->
-            error(missing_parameter);
-        {[Domain, Name], _} ->
-            {ok, Record} = call(user, get, [Domain, Name]),
+        {[Domain, Name, Id], _}
+          when is_list(Name) or is_list(Id) ->
+            {ok, Record} =
+                if
+                    Name /= none ->
+                        call(user, get, [Domain, Name]);
+                    true ->
+                        call(user, get, [Domain, {Id, Domain}])
+                end,
             {ok, user_helpers:pretty_print(Record, flat)};
-        {[none], _} ->
+        {[_, _, _], _} ->
             error(missing_parameter)
     end;
 
 action(["user", "update"], Args) ->
-    case getopt(["domain", "id", "name", "auth", "credential"], Args) of
+    case getopt(["domain", "name", "uid", "auth", "credential"], Args) of
         {[none, _, _, _, _], _Metadata} ->
-            error(missing_parameter);
-        {[_, none, _, _, _], _Metadata} ->
-            error(missing_parameter);
-        {[_, _, none, _, _], _Metadata} ->
             error(missing_parameter);
         {[_, _, _, none, _], _Metadata} ->
             error(missing_parameter);
         {[_, _, _, _, none], _Metadata} ->
             error(missing_parameter);
-        {[Domain, Id, Name, Auth, Credential], Metadata} ->
+        {[Domain, Name, Id, Auth, Credential], Metadata}
+          when is_list(Name) or is_list(Id) ->
+            FinalId =
+                if
+                    Name /= none ->
+                        {ok, #uce_user{id={TmpId, _}}} = call(user, get, [Domain, Name]),
+                        TmpId;
+                    true ->
+                        Id
+                end,
             {ok, updated} = call(user, update, [Domain,
-                                                #uce_user{id={Id, Domain},
+                                                #uce_user{id={FinalId, Domain},
                                                           name=Name,
                                                           auth=Auth,
                                                           credential=Credential,
                                                           metadata=Metadata}]),
-            success(updated)
+            success(updated);
+        {[_, _, _, _, _], _Metadata} ->
+            error(missing_parameter)
     end;
 
 action(["user", "list"], Args) ->
@@ -357,37 +378,55 @@ action(["user", "list"], Args) ->
     end;
 
 action(["user", "role", "add"], Args) ->
-    case getopt(["domain", "uid", "role", "location"], Args, [none, none, none, ""]) of
-        {[none, _, _, _], _Metadata} ->
+    case getopt(["domain", "name", "uid", "role", "location"], Args, [none, none, none, none, ""]) of
+        {[none, _, _, _, _], _Metadata} ->
             error(missing_parameter);
-        {[_, none, _, _], _Metadata} ->
+        {[_, _, _, none, _], _Metadata} ->
             error(missing_parameter);
-        {[_, _, none, _], _Metadata} ->
+        {[_, _, _, _, none], _Metadata} ->
             error(missing_parameter);
-        {[_, _, _, none], _Metadata} ->
-            error(missing_parameter);
-        {[Domain, Uid, Role, Location], _Metadata} ->
+        {[Domain, Name, Id, Role, Location], _Metadata}
+          when is_list(Name) or is_list(Id) ->
+            FinalId =
+                if
+                    Name /= none ->
+                        {ok, #uce_user{id={TmpId, _}}} = call(user, get, [Domain, Name]),
+                        TmpId;
+                    true ->
+                        Id
+                end,
             {ok, updated} = call(user, add_role, [Domain,
-                                                 {Uid, Domain},
-                                                 {Role, Location}]),
-            success(updated)
+                                                  {FinalId, Domain},
+                                                  {Role, Location}]),
+            success(updated);
+        {[_, _, _, _, _], _Metadata} ->
+            error(missing_parameter)
     end;
 
 action(["user", "role", "delete"], Args) ->
-    case getopt(["domain", "uid", "role", "location"], Args, [none, none, none, ""]) of
-        {[none, _, _, _], _Metadata} ->
+    case getopt(["domain", "name", "uid", "role", "location"], Args, [none, none, none, none, ""]) of
+        {[none, _, _, _, _], _Metadata} ->
             error(missing_parameter);
-        {[_, none, _, _], _Metadata} ->
+        {[_, _, _, none, _], _Metadata} ->
             error(missing_parameter);
-        {[_, _, none, _], _Metadata} ->
+        {[_, _, _, _, none], _Metadata} ->
             error(missing_parameter);
-        {[_, _, _, none], _Metadata} ->
-            error(missing_parameter);
-        {[Domain, Uid, Role, Location], _Metadata} ->
+        {[Domain, Name, Id, Role, Location], _Metadata}
+          when is_list(Name) or is_list(Id) ->
+            FinalId =
+                if
+                    Name /= none ->
+                        {ok, #uce_user{id={TmpId, _}}} = call(user, get, [Domain, Name]),
+                        TmpId;
+                    true ->
+                        Id
+                end,
             {ok, updated} = call(user, delete_role, [Domain,
-                                                    {Uid, Domain},
-                                                    {Role, Location}]),
-            success(updated)
+                                                     {FinalId, Domain},
+                                                     {Role, Location}]),
+            success(updated);
+        {[_, _, _, _, _], _Metadata} ->
+            error(missing_parameter)
     end;
 
 %%
