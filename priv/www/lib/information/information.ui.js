@@ -44,7 +44,10 @@ $.uce.widget("information", {
         var that = this;
         $.each(that.options.fields, function(name, field) {
             if (!that._canEdit && (!field.value || field.value == "")) {
-                return;
+                if (!field.text) {
+                    return;
+                }
+                field.value = field.text;
             }
             that._createField(name,
                               field.title,

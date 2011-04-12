@@ -387,7 +387,12 @@ $.sammy("#meeting", function() {
         addWidget("#information", 'information', {ucemeeting: meeting,
                                                   uceclient: client,
                                                   mode: 'expanded',
-                                                  fixed: true});
+                                                  fixed: true,
+                                                  fields: {'name': {title: "Meeting Name",
+                                                                    text: "Unnamed " + meeting.name,
+                                                                    placeholder: "Enter the name of the meeting room"},
+                                                           'description': {title: "Description",
+                                                                           placeholder: "Summarize the topic"}}});
 
         addWidget("#chat", 'chat', {ucemeeting: meeting,
                                     uceclient: client,
