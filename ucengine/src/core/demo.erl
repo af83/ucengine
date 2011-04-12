@@ -71,7 +71,10 @@ fill_domain(Domain) ->
                                          acl=[]}),
 
     catch uce_role:add(Domain, #uce_role{id={"owner", Domain},
-                                         acl=[#uce_access{action="add",
+                                         acl=[#uce_access{action="update",
+                                                          object="meeting",
+                                                          conditions=[]},
+                                              #uce_access{action="add",
                                                           object="user.role",
                                                           conditions=[{"role", "speaker"}]},
                                               #uce_access{action="delete",
