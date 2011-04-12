@@ -542,9 +542,10 @@
                         });
 
                 },
-                can: function(uid, action, object, location, callback) {
+                can: function(uid, action, object, conditions, location, callback) {
                     get("/user/" + uid + "/can/" + action + "/" + object + "/" + location,
-                        {'uid': _presence.user,
+                        {'conditions': conditions,
+                         'uid': _presence.user,
                          'sid': _presence.id},
                         function(err, result, xhr) {
                             if (err)

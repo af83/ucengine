@@ -28,7 +28,7 @@ $.uce.widget("information", {
         this._fields = {};
 
         this.options.uceclient.user
-            .can(this.options.uceclient.uid, "update", "meeting", this.options.ucemeeting.name,
+            .can(this.options.uceclient.uid, "update", "meeting", {}, this.options.ucemeeting.name,
                  function(err, result, xhr) {
                      that._canEdit = result;
                      that._updateInformations();

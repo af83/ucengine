@@ -734,9 +734,10 @@ jackTest("user.deleteRole", function() {
 jackTest("user.can", function() {
     stop();
     addUceApiCall("get", "/api/" + uce.version + "/user/otheruid/can/action/object/mymeeting",
-                  {"uid": "myuid",
+                  {"conditions": {'condition_1': 'value'},
+                   "uid": "myuid",
                    "sid": "mysid"}, 200, '{"result":"true"}');
-    this.client.attachPresence(Factories.createPresence()).user.can("otheruid", "action", "object", "mymeeting", function(err, result) {
+    this.client.attachPresence(Factories.createPresence()).user.can("otheruid", "action", "object", {'condition_1': 'value'}, "mymeeting", function(err, result) {
         start();
         equals(err, null);
         same(result, true);

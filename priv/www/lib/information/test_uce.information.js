@@ -18,7 +18,7 @@ module("uce.information", {
         };
         this.uceclient = {
             user: {
-                can: function(uid, action, object, location, callback) {
+                can: function(uid, action, object, conditions, location, callback) {
                     callback(undefined, true, undefined);
                 }
             }
@@ -36,7 +36,7 @@ jackTest("the widget check the user right to update meeting", function () {
     var user = jack.create("user", ['can']);
     jack.expect("user.can")
         .exactly("1 time")
-        .mock(function(uid, action, object, location, callback) {
+        .mock(function(uid, action, object, conditions, location, callback) {
             equals(uid, "chuck"),
             equals(action, "update"),
             equals(object, "meeting"),
@@ -80,7 +80,7 @@ jackTest("display only filled fields if not owner", function () {
     var user = jack.create("user", ['can']);
     jack.expect("user.can")
         .exactly("1 time")
-        .mock(function(uid, action, object, location, callback) {
+        .mock(function(uid, action, object, conditions, location, callback) {
             callback(undefined, false, undefined);
         });
 
@@ -112,7 +112,7 @@ jackTest("display all editable fields when owner", function() {
     var user = jack.create("user", ['can']);
     jack.expect("user.can")
         .exactly("1 time")
-        .mock(function(uid, action, object, location, callback) {
+        .mock(function(uid, action, object, conditions, location, callback) {
             callback(undefined, true, undefined);
         });
 
