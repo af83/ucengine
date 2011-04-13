@@ -38,10 +38,6 @@
     margin-right: -1px;
 }
 
-.ui-management .ui-management-roster li:first-child {
-    border-top: none;
-}
-
 .ui-management .ui-management-roster .ui-management-role {
     font-weight: bold;
     margin-left: 12px;
@@ -72,8 +68,60 @@
     display: block;
 }
 
-.ui-management .ui-management-roster a.ui-management-lead-button.ui-button-icon-only {
-    border: none;
-    width: 24px;
-    background: none;
+.ui-management .ui-management-invite-header,
+.ui-management .ui-management-roster-header {
+    padding: 10px;
+    height: 2em;
+}
+
+
+.ui-management .ui-management-roster-header h1,
+.ui-management .ui-management-invite-header h1 {
+    font-weight: bold;
+}
+
+
+.ui-management .ui-management-roster-header h1 {
+    float: left;
+}
+
+.ui-management .ui-management-roster-header a.ui-management-invite-link {
+    padding-right: 47px;
+    float: right;
+    background:transparent url(images/next.png) no-repeat scroll 42px 0px;
+}
+
+
+.ui-management .ui-management-invite-header h1 {
+    text-align: center;
+    width: 85%;
+}
+
+.ui-management .ui-management-invite-header a.ui-management-roster-link {
+    padding-left: 35px;
+    float: left;
+    background:transparent url(images/back.png) no-repeat scroll 0px;
+}
+
+.ui-management .ui-management-invite {
+    padding: 10px;
+}
+
+.ui-management .ui-management-invite p:first-child {
+    margin-top: 0px;
+}
+
+.ui-management .ui-management-invite p {
+    margin-top: 10px;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.ui-management .ui-management-invite input {
+    border: 1px solid #D7D7D7;
+    width: 75%;
+}
+
+.ui-management .ui-management-copy-button {
+    margin-left: 10px;
 }
