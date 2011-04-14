@@ -89,7 +89,7 @@
 
 -define(TIMEOUT, 5000).
 
--define(VERSION, "0.4").
+-define(VERSION, "0.5").
 
 -define(SESSION_TIMEOUT, (config:get(presence_timeout) * 1000)).
 
