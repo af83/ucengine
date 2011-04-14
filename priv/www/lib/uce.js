@@ -296,6 +296,22 @@
                     },
 
                     /**
+                     * @param String id
+                     * @param Function callback
+                     */
+                    delFile: function(id, callback) {
+                        del("/file/" + meetingname + "/" + id,
+                            {'uid': _presence.user,
+                             'sid': _presence.id},
+                            function (err, result, xhr) {
+                                if (!callback) {
+                                    return;
+                                }
+                                callback (err, result, xhr);
+                            });
+                    },
+
+                    /**
                      * @param Object params
                      *    search
                      *    start you can use uce.time() (mandatory)
