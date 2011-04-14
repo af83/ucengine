@@ -1,0 +1,139 @@
+%%
+%%  U.C.Engine - Unified Colloboration Engine
+%%  Copyright (C) 2011 af83
+%%
+%%  This program is free software: you can redistribute it and/or modify
+%%  it under the terms of the GNU Affero General Public License as published by
+%%  the Free Software Foundation, either version 3 of the License, or
+%%  (at your option) any later version.
+%%
+%%  This program is distributed in the hope that it will be useful,
+%%  but WITHOUT ANY WARRANTY; without even the implied warranty of
+%%  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%%  GNU Affero General Public License for more details.
+%%
+%%  You should have received a copy of the GNU Affero General Public License
+%%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%%
+-module(uce_file_mongodb).
+
+-author('victor.goya@af83.com').
+
+-behaviour(gen_uce_file).
+
+-export([add/2,
+         list/2,
+         all/1,
+         get/2,
+         delete/2]).
+
+-include("uce.hrl").
+-include("mongodb.hrl").
+
+%%--------------------------------------------------------------------
+%% @spec (#uce_file{}) -> {ok, created} | {error, bad_parameters}
+%% @doc Insert given record #uce_file{} in uce_file mongodb table
+%% @end
+%%--------------------------------------------------------------------
+add(Domain, #uce_file{} = File) ->
+    case catch emongo:insert_sync(Domain, "uce_file", to_collection(File)) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
+            throw({error, bad_parameters});
+        _ ->
+            {ok, File#uce_file.id}
+    end.
+
+%%--------------------------------------------------------------------
+%% @spec (Domain, {Location::list, _Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
+%% @doc List all record #uce_file for the given pair location(meeting) and domain
+%% @end
+%%--------------------------------------------------------------------
+list(Domain, {Location, _}) ->
+    case catch emongo:find_all(Domain, "uce_file", [{"location", Location},
+                                                    {"domain", Domain}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
+            throw({error, bad_parameters});
+        Files ->
+            {ok, [from_collection(File) || File <- Files]}
+    end.
+
+%%--------------------------------------------------------------------
+%% @spec ({Location::list, Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
+%% @doc List all record #uce_file for the given domain
+%% @end
+%%--------------------------------------------------------------------
+all(Domain) ->
+    case catch emongo:find_all(Domain, "uce_file", [{"domain", Domain}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
+            throw({error, bad_parameters});
+        Files ->
+            {ok, [from_collection(File) || File <- Files]}
+    end.
+
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, #uce_file{}} | {error, bad_parameters} | {error, not_found}
+%% @doc Get #uce_file record for the given id
+%% @end
+%%--------------------------------------------------------------------
+get(Domain, {FileId, _FileDomain}) ->
+    case catch emongo:find_one(Domain, "uce_file", [{"id", FileId}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
+            throw({error, bad_parameters});
+        [File] ->
+            {ok, from_collection(File)};
+        _ ->
+            throw({error, not_found})
+    end.
+
+%%--------------------------------------------------------------------
+%% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, deleted} | {error, not_found}
+%% @doc Delete #uce_file record for the given id
+%% @end
+%%--------------------------------------------------------------------
+delete(Domain, {FileId, _FileDomain}) ->
+    case catch emongo:delete_sync(Domain, "uce_file", [{"id", FileId}]) of
+        {'EXIT', Reason} ->
+            ?ERROR_MSG("~p~n", [Reason]),
+            throw({error, bad_parameters});
+        _ ->
+            {ok, deleted}
+    end.
+
+%%--------------------------------------------------------------------
+%% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_file{} | {error, bad_parameters}
+%% @doc Convert collection returned by mongodb to valid record #uce_file{}
+%% @end
+%%--------------------------------------------------------------------
+from_collection(Collection) ->
+    case utils:get(mongodb_helpers:collection_to_list(Collection),
+		   ["id", "domain", "location", "name", "uri", "metadata"]) of
+        [Id, Domain, Location, Name, Uri, Metadata] ->
+            #uce_file{id={Id, Domain},
+                      name=Name,
+                      location={Location, Domain},
+                      uri=Uri,
+                      metadata=Metadata};
+        _ ->
+            throw({error, bad_parameters})
+    end.
+
+%%--------------------------------------------------------------------
+%% @spec (#uce_file{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
+%% @doc Convert #uce_file{} record to valid collection
+%% @end
+%%--------------------------------------------------------------------
+to_collection(#uce_file{id={Id, Domain},
+                        name=Name,
+                        location={Location, _},
+                        uri=Uri,
+                        metadata=Metadata}) ->
+    [{"id", Id},
+     {"domain", Domain},
+     {"location", Location},
+     {"name", Name},
+     {"uri", Uri},
+     {"metadata", Metadata}].

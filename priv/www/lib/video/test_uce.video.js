@@ -80,7 +80,7 @@ jackTest("publish then stop a video stream", function() {
     ucemeeting.uid = 'john';
     $("#video").video("triggerUceEvent", Factories.createStreamNew("john"));
     $("#video .ui-button").click();
-    equals($("#video .ui-button").text(), "Stop publish", "label has changed");
+    equals($("#video .ui-button").text(), "Stop camera", "label has changed");
     equals($("#video .ui-widget-content embed").attr('src'), '/lib/video/publish_video.swf', 'src is publish_video.swf');
     $("#video .ui-button").click();
     equals($("#video .ui-button").text(), "Publish", "label has changed");

@@ -1,0 +1,7 @@
+{application, ucengine, [
+                    {description, "Publish/Subscribe server with persistence."},
+                    {vsn, "0.5"},
+                    {registered, []},
+                    {mod, {ucengine_app, []}},
+                    {applications, [kernel, stdlib]}
+                   ]}.

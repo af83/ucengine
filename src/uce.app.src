@@ -1,7 +1,0 @@
-{application, uce, [
-	      {description, "Secure event recorder"},
-	      {vsn, "0.5"},
-	      {registered, []},
-	      {mod, {uce_app, []}},
-	      {applications, [kernel, stdlib]}
-]}.

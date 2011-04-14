@@ -4,7 +4,7 @@
  * (c) 2011 af83
  */
 (function(g) {
-    var VERSION = "0.4";
+    var VERSION = "0.5";
 
     function UCEngine(baseUrl) {
 
@@ -59,11 +59,13 @@
         return {
             connected : false,
             uid: null,
+            name: null,
             /**
              * Create user presence
              */
-            auth: function(uid, credential, metadata, callback) {
-                var params = {uid: uid};
+            auth: function(uname, credential, metadata, callback) {
+                var params = {name: uname};
+                name = uname;
                 if (credential) {
                     params.credential = credential;
                 }
@@ -77,7 +79,8 @@
                     if (err) {
                         callback(err, result, xhr);
                     } else {
-                        var p = {"user": uid, "id": result.result};
+                        uid = result.result.uid;
+                        var p = {"user": uid, "id": result.result.sid, "name": name};
                         that.attachPresence(p);
                         callback(err, p, xhr);
                     }
@@ -124,6 +127,7 @@
                 _presence = p;
                 this.connected = true;
                 this.uid = p.user;
+                this.name = p.name;
                 return this;
             },
             /**
@@ -166,7 +170,11 @@
             /**
              * Search events
              */
-            search: function(terms, callback) {
+            search: function(terms, params, callback) {
+                if (!callback) {
+                    callback = params;
+                    params = {};
+                }
                 var query = terms.query || '';
                 delete terms.query;
                 var searchTerms = [];
@@ -175,9 +183,9 @@
                 }
                 searchTerms.push(query);
                 get("/search/event",
-                    {'uid': _presence.user,
-                     'sid': _presence.id,
-                     'searchTerms' : searchTerms.join(' ')},
+                    $.extend({'uid': _presence.user,
+                              'sid': _presence.id,
+                              'searchTerms' : searchTerms.join(' ')}, params),
                     function (err, result, xhr) {
                         if (!callback) {
                             return;
@@ -186,7 +194,7 @@
                     });
             },
 
-            meeting : function(meetingname) {
+            meeting: function(meetingname) {
                 var handlers = [];
                 var client = this;
                 return {
@@ -203,6 +211,24 @@
                             }
                         });
                         return this;
+                    },
+                    update: function(start, end, metadata, callback) {
+                        params = {'metadata': metadata,
+                                  'uid': _presence.user,
+                                  'sid': _presence.id};
+                        if (start) {
+                            params.start = start;
+                        }
+                        if (end && end != "never") {
+                            params.end = end;
+                        }
+                        put("/meeting/all/" + meetingname, params,
+                            function(err, result, xhr) {
+                                if (!callback) {
+                                    return;
+                                }
+                                callback(err, result, xhr);
+                            });
                     },
                     join: function(callback) {
                         post("/meeting/all/" + meetingname + "/roster/",
@@ -230,24 +256,37 @@
                                 callback(err, roster, xhr);
                             });
                     },
+
                     /**
                      * Push event
                      */
-                    push: function(type, metadata, callback) {
+                    _push: function(params, callback) {
                         post("/event/" + meetingname,
-                            {'uid': _presence.user,
-                             'sid': _presence.id,
-                             'type': type,
-                             'metadata': metadata},
-                            callback);
+                             $.extend({'uid': _presence.user, 'sid': _presence.id}, params),
+                             callback);
                         return this;
                     },
+                    push: function(type, metadata, callback) {
+                        this._push({'type': type,
+                                    'metadata': metadata},
+                                   callback);
+                        return this;
+                    },
+                    pushTo: function(to, type, metadata, callback) {
+                        this._push({'type': type,
+                                    'to': to,
+                                    'metadata': metadata},
+                                   callback);
+                        return this;
+                    },
+
                     /**
                      * Get file upload url for this meeting
                      */
                     getFileUploadUrl: function() {
                         return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"?uid="+_presence.user+"&sid="+_presence.id;
                     },
+
                     /**
                      * Get file download url
                      * @param String filename
@@ -255,6 +294,7 @@
                     getFileDownloadUrl: function(filename) {
                         return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"/"+ filename +"?uid="+_presence.user+"&sid="+_presence.id;
                     },
+
                     /**
                      * @param Object params
                      *    search
@@ -303,6 +343,7 @@
                         longPolling._start(params, callback);
                         return longPolling;
                     },
+
                     /**
                      * @param Object params
                      *    search
@@ -337,6 +378,7 @@
                             });
                         return this;
                     },
+
                     /**
                      * Trigger event on the internal queue
                      * @param Object event
@@ -440,9 +482,9 @@
                     /**
                      * Search event in current meeting
                      */
-                    search: function(terms, callback) {
+                    search: function(terms, options, callback) {
                         terms.location = meetingname;
-                        client.search(terms, callback);
+                        client.search(terms, options, callback);
                     }
                 };
             },
@@ -466,14 +508,14 @@
                 }
             },
             user: {
-                register: function(uid, auth, credential, metadata, callback) {
-                    post("/user/", $.extend({}, {uid: uid, auth: auth, credential:credential, metadata:metadata}), function(err, result, xhr) {
+                register: function(name, auth, credential, metadata, callback) {
+                    post("/user/", $.extend({}, {name: name, auth: auth, credential:credential, metadata:metadata}), function(err, result, xhr) {
                         callback(err, result, xhr);
                     });
                     return this;
                 },
-                registerWithPassword: function(uid, credential, metadata, callback) {
-                    return this.register(uid, "password", credential, metadata, callback);
+                registerWithPassword: function(name, credential, metadata, callback) {
+                    return this.register(name, "password", credential, metadata, callback);
                 },
                 get: function(uid, callback) {
                     get("/user/"+ uid, $.extend({}, {'uid': _presence.user,
@@ -482,14 +524,72 @@
                             callback(err, result, xhr);
                         });
                 },
-                can: function(uid, object, action, callback) {
-                    get("/user/"+ uid +"/acl/"+ action +"/"+ action, {'uid': _presence.user,
-                                                                      'sid': _presence.id},
-                        function(err, result) {
+                addRole: function(uid, role, location, callback) {
+                    post("/user/" + uid + "/roles", {'uid': _presence.user,
+                                                     'sid': _presence.id,
+                                                     'role': role,
+                                                     'location': location},
+                         function(err, result, xhr) {
+                             callback(err, result, xhr);
+                         });
+                },
+                delRole: function(uid, role, location, callback) {
+                    del("/user/" + uid + "/roles/" + role + "/" + location,
+                        {'uid': _presence.user,
+                         'sid': _presence.id},
+                        function(err, result, xhr) {
+                            callback(err, result, xhr);
+                        });
+
+                },
+                can: function(uid, action, object, conditions, location, callback) {
+                    get("/user/" + uid + "/can/" + action + "/" + object + "/" + location,
+                        {'conditions': conditions,
+                         'uid': _presence.user,
+                         'sid': _presence.id},
+                        function(err, result, xhr) {
                             if (err)
-                                callback(err, result);
+                                callback(err, result, xhr);
                             else
-                                callback(err, result.result === "true");
+                                callback(err, result.result === "true", xhr);
+                        });
+                }
+            },
+            role: {
+                add: function(name, callback) {
+                    post("/role", {'name': name,
+                                   'uid': _presence.user,
+                                   'sid': _presence.id},
+                         function(err, result, xhr) {
+                             callback(err, result, xhr);
+                         });
+                },
+                del: function(name, callback) {
+                    del("/role/" + name,
+                        {'uid': _presence.user,
+                         'sid': _presence.id},
+                        function(err, result, xhr) {
+                            callback(err, result, xhr);
+                        });
+                },
+                addAccess: function(role, action, object, conditions, callback) {
+                    post("/role/" + role + "/acl",
+                         {'action': action,
+                          'object': object,
+                          'conditions': conditions,
+                          'uid': _presence.user,
+                          'sid': _presence.id},
+                         function(err, result, xhr) {
+                             callback(err, result, xhr);
+                         });
+                },
+                delAccess: function(role, action, object, conditions, callback) {
+                    del("/role/" + role + "/acl/" + action + "/" + object,
+                        {'conditions': conditions,
+                         'uid': _presence.user,
+                         'sid': _presence.id},
+                        function(err, result, xhr) {
+                            callback(err, result, xhr);
                         });
                 }
             },
@@ -502,8 +602,7 @@
             },
             time: {
                 get: function(callback) {
-                    get("/time", {'uid': _presence.user,
-                                  'sid': _presence.id},
+                    get("/time", {},
                         function(err, result, xhr) {
                             callback(err, result.result, xhr);
                         });

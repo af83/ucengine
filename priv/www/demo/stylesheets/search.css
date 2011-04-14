@@ -1,0 +1,33 @@
+header .frame {
+  -moz-transform: rotate(45deg);
+  background: none repeat scroll 0 0 #474648;
+  height: 10px;
+  left: 65px;
+  position: absolute;
+  top: 84px;
+  width: 10px;
+}
+
+/* content */
+#content {
+    margin: 2em auto 0;
+    padding: 0 15px;
+    width: 920px;
+    font-size: 1.2em;
+}
+
+#results > p {
+    padding: 1em 0 0.5em;
+    font-size: 1.4em;
+}
+
+#results li {
+    margin: 1em 0;
+    padding: 1em;
+    list-style-type: none;
+    border: solid 1px black;
+}
+
+.timeago {
+    font-style: italic;
+}

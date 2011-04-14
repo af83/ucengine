@@ -1,4 +1,4 @@
-DIRS          = data/files
+DIRS          = rel/ucengine/data/files
 
 all: compile
 
@@ -8,27 +8,32 @@ $(DIRS):
 ###############################################################################
 # Build
 ###############################################################################
-compile: $(DIRS)
+compile:
 	./rebar get-deps
 	./rebar compile
+
+rel: compile
+	./rebar generate
 
 ###############################################################################
 # Usual targets
 ###############################################################################
-run: compile
-	bin/ucectl run
+dev: cleanrel rel $(DIRS)
 
-start: compile
-	bin/ucectl start
+run: dev
+	rel/ucengine/bin/ucengine console
+
+start: dev
+	rel/ucengine/bin/ucengine start
 
 stop:
-	bin/ucectl stop
+	rel/ucengine/bin/ucengine stop
 
-restart:
-	bin/ucectl restart
+restart: dev
+	rel/ucengine/bin/ucengine restart
 
-tests: compile
-	bin/ucectl tests
+tests: dev
+	rel/ucengine/bin/ucengine-admin tests
 	./rebar eunit
 
 ###############################################################################
@@ -36,10 +41,14 @@ tests: compile
 ###############################################################################
 .PHONY: clean
 .PHONY: deepclean
+.PHONY: cleanrel
 clean:
 	-@rm -v tmp/* -fr
 	-@rm -v data/* -fr
 	-@rm -v erl_crash.dump -f
 
-deepclean: clean
+cleanrel:
+	rm -rf rel/ucengine
+
+deepclean: clean cleanrel
 	./rebar clean

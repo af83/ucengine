@@ -98,12 +98,13 @@ var Factories = {
         return {type: "video.stream.stop",
                 metadata: {broadcaster: broadcaster}}
     },
-    createMeeting: function(start, end) {
+    createMeeting: function(start, end, description) {
         return {name: "ucemeeting",
                 start_date: start,
                 end_date: end,
                 roster: ["chuck", "bruce"],
-                metadata: {description: "test_description"}};
+                metadata: {description: description || "test_description",
+                           name: "ucemeeting"}};
     }
 };
 
@@ -139,11 +140,11 @@ test("can be accessed via window.uce", function() {
 
 jackTest("can create a presence", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/presence/", { "uid": "uid",
-                                                  "credential": "pwd" }, 200, '{"result": "sid"}');
+    addUceApiCall("post", "/api/" + uce.version + "/presence/", { "name": "name",
+                                                  "credential": "pwd" }, 200, '{"result": {"uid":"uid","sid":"sid"}}');
     var client = this.client;
     ok(!this.client.connected, "not connected");
-    this.client.auth("uid", "pwd", function(err, presence, xhr) {
+    this.client.auth("name", "pwd", function(err, presence, xhr) {
         start();
         equals(err, null, "shoud not have error");
         equals(presence.user, "uid");
@@ -155,10 +156,10 @@ jackTest("can create a presence", function() {
 
 jackTest("can create a presence with metadata", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/presence/", { "uid": "uid",
+    addUceApiCall("post", "/api/" + uce.version + "/presence/", { "name": "name",
                                                                   "credential": "pwd",
-                                                                  "metadata" : {"nickname": "nick"} }, 200, '{"result": "sid"}');
-    this.client.auth("uid", "pwd", {nickname: "nick"}, function(err, presence, xhr) {
+                                                                  "metadata" : {"nickname": "nick"} }, 200, '{"result": {"uid":"uid", "sid":"sid"}}');
+    this.client.auth("name", "pwd", {nickname: "nick"}, function(err, presence, xhr) {
         start();
         equals(err, null, "shoud not have error");
         equals(presence.user, "uid", "");
@@ -170,20 +171,20 @@ jackTest("can get a presence", function() {
     stop();
     $.mockjax({
         url : '/api/' + uce.version + '/presence/',
-        responseText: {"result": "mysid"}
+        responseText: {"result": {"uid":"myuid", "sid":"mysid"}}
     });
     $.mockjax({
         url : '/api/' + uce.version + '/presence/mysid',
         data: { "uid": "myuid", "sid": "mysid"},
         response: function() {
-            this.responseText = {"result": {"id": "mysid"}};
+            this.responseText = {"result": {"uid": "myuid", "sid":"mysid"}};
         }
     });
     var client = this.client;
-    this.client.auth("myuid", "pwd", function(err, presence) {
+    this.client.auth("name", "pwd", function(err, presence) {
         client.presence(function(err, r, xhr) {
             start();
-            equals(r.result.id, presence.id);
+            equals(r.result.sid, presence.id);
             equals(err, null);
         });
     });
@@ -193,7 +194,7 @@ jackTest("can close a presence", function() {
     stop();
     $.mockjax({
         url : '/api/' + uce.version + '/presence/',
-        responseText: {"result": "mysid"}
+        responseText: {"result": {"uid":"myuid", "sid":"mysid"}}
     });
     $.mockjax({
         url : '/api/' + uce.version + '/presence/mysid',
@@ -203,7 +204,7 @@ jackTest("can close a presence", function() {
         }
     });
     var client = this.client;
-    this.client.auth("myuid", "pwd", function(err, presence) {
+    this.client.auth("name", "pwd", function(err, presence) {
         client.close(function(err, r, xhr) {
             start();
             ok(!client.connected, "not connected");
@@ -291,6 +292,25 @@ jackTest("can get meeting", function() {
         equals(err, null);
         equals(r.name, "mymeeting");
     });
+});
+
+jackTest("can update meeting", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/meeting/all/mymeeting",
+                  {"uid": "myuid",
+                   "sid": "mysid",
+                   "_method": "put",
+                   "start": 42,
+                   "end": 43,
+                   "metadata": {'description': "a brand new description"}},
+                  200, '{"result" : "ok"}');
+    this.client.attachPresence(Factories.createPresence()).meeting("mymeeting")
+        .update(42, 43, {'description': 'a brand new description'},
+                function(err, r, xhr) {
+                    start();
+                    equals(err, null);
+                    equals(r.result, "ok");
+                });
 });
 
 jackTest("can join meeting", function() {
@@ -547,7 +567,7 @@ test("get download file url", function() {
 
 jackTest("this.client.time",  function() {
     stop();
-    addUceApiCall("get", "/api/" + uce.version + "/time",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": "4"}');
+    addUceApiCall("get", "/api/" + uce.version + "/time",  {}, 200, '{"result": "4"}');
     this.client.attachPresence(Factories.createPresence()).time.get(function(err, result, xhr) {
         start();
         equals(null, err);
@@ -566,21 +586,21 @@ test("uce waiter", function() {
 
 jackTest("register new user", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
+    addUceApiCall("post", "/api/" + uce.version + "/user/",  {name: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"uid"}');
     this.client.user.register('test@example.net', 'password', 'mypwd', {nickname: 'test'}, function(err, result) {
         start();
         equals(null, err);
-        same(result, {"result":"created"});
+        same(result, {"result":"uid"});
     });
 });
 
 jackTest("register with password", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/user/",  {uid: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"created"}');
+    addUceApiCall("post", "/api/" + uce.version + "/user/",  {name: "test@example.net", auth: 'password', credential: 'mypwd', metadata: {nickname: 'test'}}, 200, '{"result":"uid"}');
     this.client.user.registerWithPassword('test@example.net', 'mypwd', {nickname: 'test'}, function(err, result) {
         start();
         equals(null, err);
-        same(result, {"result":"created"});
+        same(result, {"result":"uid"});
     });
 });
 
@@ -618,6 +638,14 @@ jackTest("search events in all meetings", function() {
     });
 });
 
+jackTest("search events with options", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "hello", "order": "asc"}, 200, '{"result": {}}');
+    this.client.attachPresence(Factories.createPresence()).search({query: 'hello'}, {order: "asc"}, function(err, result) {
+        start();
+    });
+});
+
 jackTest("complex search events in all meetings", function() {
     stop();
     addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "type:internal.meeting.add,chat.message.new start:42 end:44 hello"}, 200, '{"result": {}}');
@@ -639,6 +667,16 @@ jackTest("search events in a meeting", function() {
     });
 });
 
+jackTest("search events in a meeting with options", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "location:demo hello", "order": "asc"}, 200, '{"result": {}}');
+    this.client.attachPresence(Factories.createPresence()).meeting('demo').search({query: 'hello'}, {order: "asc"}, function(err, result) {
+        start();
+        equals(null, err);
+        same(result, {});
+    });
+});
+
 jackTest("complex search events in a meeting", function() {
     stop();
     addUceApiCall("get", "/api/" + uce.version + "/search/event",  {"uid": "myuid", "sid": "mysid", "searchTerms" : "type:internal.meeting.add,chat.message.new start:42 end:44 location:demo hello"}, 200, '{"result": {}}');
@@ -648,6 +686,129 @@ jackTest("complex search events in a meeting", function() {
                                                                                    query: 'hello'}, function(err, result) {
         start();
     });
+});
+
+module("ucejs.userAccess", {
+    setup:function() {
+        this.client = uce.createClient();
+    }
+});
+
+jackTest("user.addRole", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/user/otheruid/roles", {"uid": "myuid",
+                                                                           "sid": "mysid",
+                                                                           "role": "newrole",
+                                                                           "location": "testmeeting"},
+                  201, '{"result":"created"}');
+    this.client
+        .attachPresence(Factories.createPresence())
+        .user.addRole("otheruid",
+                      "newrole",
+                      "testmeeting",
+                      function(err, result) {
+                          start();
+                          equals(err, null);
+                          same(result.result, "created");
+                      });
+});
+
+jackTest("user.deleteRole", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/user/otheruid/roles/newrole/testmeeting",
+                  {uid: "myuid",
+                   sid: "mysid",
+                   _method: "delete"},
+                  200, '{"result":"ok"}');
+    this.client.attachPresence(Factories.createPresence())
+        .user.delRole("otheruid",
+                         "newrole",
+                         "testmeeting",
+                         function(err, result) {
+                             start();
+                             equals(err, null);
+                             same(result.result, "ok");
+                         });
+});
+
+jackTest("user.can", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/user/otheruid/can/action/object/mymeeting",
+                  {"conditions": {'condition_1': 'value'},
+                   "uid": "myuid",
+                   "sid": "mysid"}, 200, '{"result":"true"}');
+    this.client.attachPresence(Factories.createPresence()).user.can("otheruid", "action", "object", {'condition_1': 'value'}, "mymeeting", function(err, result) {
+        start();
+        equals(err, null);
+        same(result, true);
+    });
+});
+
+module("ucejs.role", {
+    setup:function() {
+        this.client = uce.createClient();
+    }
+});
+
+jackTest("role.add", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/role",
+                  {"name": "newrole",
+                   "uid": "myuid",
+                   "sid": "mysid"}, 201, '{"result":"created"}');
+    this.client.attachPresence(Factories.createPresence())
+        .role.add("newrole", function(err, result) {
+            start();
+            equals(err, null);
+            same(result.result, "created");
+        });
+});
+
+jackTest("role.delete", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/role/newrole",
+                  {"uid": "myuid",
+                   "sid": "mysid",
+                   "_method": "delete"}, 200, '{"result":"ok"}');
+    this.client.attachPresence(Factories.createPresence())
+        .role.del("newrole", function(err, result) {
+            start();
+            equals(err, null);
+            same(result.result, "ok");
+        });
+});
+
+jackTest("role.addAccess", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/role/myrole/acl",
+                  {"action": "access_action",
+                   "object": "access_object",
+                   "conditions": {'a': 'b', 'c': 'd'},
+                   "uid": "myuid",
+                   "sid": "mysid"}, 201, '{"result":"created"}');
+    this.client.attachPresence(Factories.createPresence())
+        .role.addAccess("myrole", "access_action", "access_object", {'a': 'b', 'c': 'd'},
+                        function(err, result) {
+                            start();
+                            equals(err, null);
+                            same(result.result, "created");
+                        });
+});
+
+jackTest("role.deleteAccess", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/role/myrole/acl/access_action/access_object",
+                  {"conditions": {'a': 'b', 'c': 'd'},
+                   "uid": "myuid",
+                   "sid": "mysid",
+                   "_method": "delete"}, 200, '{"result":"ok"}');
+    this.client.attachPresence(Factories.createPresence())
+        .role.delAccess("myrole", "access_action", "access_object", {'a': 'b', 'c': 'd'},
+                        function(err, result) {
+                            start();
+                            equals(err, null);
+                            same(result.result, "ok");
+                        });
 });
 
 module("ucejs.replay", {
@@ -751,20 +912,4 @@ test("can jump to a specific datetime in the past", function() {
         start();
         equals(called, 4);
     }, 4500);
-});
-
-module("ucejs.acl", {
-    setup:function() {
-        this.client = uce.createClient();
-    }
-});
-
-jackTest("user.can", function() {
-    stop();
-    addUceApiCall("get", "/api/" + uce.version + "/user/otheruid/acl/all/all", {"uid": "myuid", "sid": "mysid"}, 200, '{"result":"true"}');
-    this.client.attachPresence(Factories.createPresence()).user.can("otheruid", "all", "all", function(err, result) {
-        start();
-        equals(err, null);
-        same(result, true);
-    });
 });

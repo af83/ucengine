@@ -1,7 +1,5 @@
-ebin/*
-tmp/*
-ucengine.access
+ucengine/ebin/*
 *.log
-data/*
 deps/*
 .eunit
+rel/ucengine/

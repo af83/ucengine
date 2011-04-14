@@ -70,7 +70,7 @@ function sammyapp() {
     function buildHome(callback) {
         var c = {welcome         : 'Welcome To U.C.Engine by af83',
                  description     : infos.description,
-                 not_connected   : (client.uid == "anonymous" || !client.connected),
+                 not_connected   : (client.name == "anonymous" || !client.connected),
                  format: function() {
                      return function(text, render) {
                          var timestamp = render(text);
@@ -150,30 +150,51 @@ function sammyapp() {
         });
     });
     this.get('#/meeting/:name', function(context) {
-        if (!client.connected || client.uid == 'anonymous')
-        {
-            return this.redirect('#/');
-        }
-        this.title('Meeting');
-        var meeting = client.meeting(this.params['name']);
-
         var that = this;
-        meeting.join(function(err, result, xhr) {})
-            .get(function(err, result, xhr) {
+        enterMeeting = function() {
+            that.title('Meeting');
+            var meeting = client.meeting(that.params['name']);
 
-                /* Make the user leave the meeting on window unload */
-                window.onbeforeunload = function() {
-                    client.meeting(that.params['name'])
-                        .leave(function(err, result, xhr) {});
-                };
+            meeting.join(function(err, result, xhr) {})
+                .get(function(err, result, xhr) {
 
-                var c = {meeting_name  : result.name,
-                         meeting_desc  : result.metadata.description,
-                         meeting_users : ""};
-                context.loadPage('templates/meeting.tpl', c, function() {
-                    $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, client]);
+                    /* Make the user leave the meeting on window unload */
+                    window.onbeforeunload = function() {
+                        client.meeting(that.params['name'])
+                            .leave(function(err, result, xhr) {});
+                    };
+
+                    var c = {meeting_name  : result.name,
+                             meeting_desc  : result.metadata.description,
+                             meeting_users : ""};
+                    context.loadPage('templates/meeting.tpl', c, function() {
+                        $.sammy.apps['#meeting'].run().trigger('connect-meeting', [meeting, result, client]);
+                    });
                 });
-            });
+        }
+
+        // Automatically connect the user when coming into the meeting
+        if (!client.connected || client.name == 'anonymous') {
+            var uid = "guest_" + (new Date().getTime());
+            var nickname = name;
+            var password = "default_password";
+
+
+            client.user.registerWithPassword(uid, password, {'nickname': nickname},
+                function(err, result) {
+                    client.auth(uid, password, {nickname: nickname},
+                                function(err, result, xhr) {
+                                    if (err) {
+                                        return;
+                                    }
+
+                                    that.trigger('connected', {me: nickname});
+                                    enterMeeting();
+                                });
+                });
+        } else {
+            enterMeeting();
+        }
     });
     this.get('#/register', function(context) {
         this.title('Register');
@@ -230,7 +251,7 @@ function sammyapp() {
             .attr('class', 'signout')
             .appendTo('header .page');
         var span = $('<span>')
-            .text(client.uid)
+            .text(client.name)
             .appendTo(p);
         var a = $('<a>')
             .attr('href', '#/user/logout')
@@ -384,10 +405,30 @@ $.sammy("#meeting", function() {
                                           mode: 'expanded'});
         }
 
+        addWidget("#information", 'information', {ucemeeting: meeting,
+                                                  uceclient: client,
+                                                  mode: 'expanded',
+                                                  fixed: true,
+                                                  fields: {'name': {title: "Meeting Name",
+                                                                    text: "Unnamed " + meeting.name,
+                                                                    placeholder: "Enter the name of the meeting room"},
+                                                           'description': {title: "Description",
+                                                                           placeholder: "Summarize the topic"}}});
+
         addWidget("#chat", 'chat', {ucemeeting: meeting,
+                                    uceclient: client,
                                     title: "Conversations",
                                     dock: '#chat-dock',
                                     mode: 'reduced'});
+
+        addWidget("#management", 'management', {ucemeeting: meeting,
+                                                uceclient: client,
+                                                title: "Meeting Facilitation",
+                                                url: window.location.href,
+                                                code: meeting.name,
+                                                dock: '#management-dock',
+                                                mode: 'reduced',
+                                                fixed: true});
 
         addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
                                                 dock         : '#whiteboard-dock',
