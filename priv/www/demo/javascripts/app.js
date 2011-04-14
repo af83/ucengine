@@ -385,8 +385,9 @@ $.sammy("#meeting", function() {
         });
 
         addWidget("#fileupload", 'fileupload', {ucemeeting: meeting,
-                                                  mode: 'reduced',
-                                                  dock: '#fileupload-dock'});
+                                                uceclient: client,
+                                                mode: 'reduced',
+                                                dock: '#fileupload-dock'});
 
         addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
                                                   mode: 'reduced',

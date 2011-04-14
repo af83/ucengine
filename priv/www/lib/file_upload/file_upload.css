@@ -29,16 +29,8 @@
     font-weight: bold;
 }
 
-.ui-fileupload .ui-download-link {
-    font-weight: bold;
-}
-
-.ui-fileupload .ui-preview-link {
-    font-weight: bold;
-}
-
-.ui-fileupload .ui-share-link {
-    font-weight: bold;
+.ui-fileupload .ui-link {
+    font-size: 9px;
 }
 
 .ui-fileupload .ui-file-owner {

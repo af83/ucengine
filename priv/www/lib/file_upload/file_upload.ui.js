@@ -9,6 +9,7 @@ $.uce.widget("fileupload", {
     // ucengine events
     meetingsEvents: {
         'internal.file.add'           : '_handleFileAddEvent',
+        'internal.file.delete'        : '_handleFileDeleteEvent',
         'document.conversion.done'    : '_handleFileDocumentEvent'
     },
 
@@ -135,7 +136,7 @@ $.uce.widget("fileupload", {
             .appendTo(preview);
 
         this.stopPreview();
-        this._files = [];
+        this._files = {};
         this._shared = null;
         if (this.options.ucemeeting) {
             if (this.options.upload) {
@@ -190,7 +191,7 @@ $.uce.widget("fileupload", {
 
     clear: function() {
         this.element.find('.ui-fileupload-new').text(this._nbNewFiles);
-        this._files = [];
+        this._files = {};
         this._refreshFiles();
     },
 
@@ -234,21 +235,36 @@ $.uce.widget("fileupload", {
             this._updateNotifications();
         }
 
-        this._files.push($.extend({}, event, {pages: []}));
+        this._files[event.metadata.id] =
+            ($.extend({}, event, {pages: [],
+                                  deletable: false}));
+
+        var that = this;
+        this.options.uceclient.user.can(this.options.uceclient.uid,
+                                        "delete",
+                                        "file",
+                                        {id: event.metadata.id},
+                                        this.options.ucemeeting.name,
+                                        function(err, result, xhr) {
+                                            that._files[event.metadata.id].deletable = result;
+                                            that._refreshFiles();
+                                        });
+    },
+
+    _handleFileDeleteEvent: function(event) {
+        delete this._files[event.metadata.id];
         this._refreshFiles();
     },
 
     _handleFileDocumentEvent: function(event) {
-        $(this._files).each(
-            function(index, file) {
-                if (file.id == event.parent) {
-                    for (var key in event.metadata) {
-                        var value = event.metadata[key];
-                        file.pages[key] = value;
-                    };
-                }
+        $.each(this._files, function(index, file) {
+            if (file.id == event.parent) {
+                for (var key in event.metadata) {
+                    var value = event.metadata[key];
+                    file.pages[key] = value;
+                };
             }
-        );
+        });
         this._refreshFiles();
     },
 
@@ -258,7 +274,7 @@ $.uce.widget("fileupload", {
         var files = this.element.find('.ui-fileupload-list');
         var items = $();
 
-        $(this._files).each(function(index, file) {
+        $.each(this._files, function(index, file) {
             var id = file.metadata.id;
             var mimes = { 'application/pdf' : 'pdf'
                         , 'image/gif'       : 'image'
@@ -276,8 +292,19 @@ $.uce.widget("fileupload", {
                 .text(" " + date + " by " + file.from);
             var downloadLink = $('<a>')
                 .attr('href', ucemeeting.getFileDownloadUrl(id))
-                .attr('class', 'ui-fileupload ui-download-link')
+                .attr('class', 'ui-fileupload ui-link ui-download-link')
                 .text('Download');
+
+            if (file.deletable) {
+               var deleteLink = $('<a>')
+                    .attr('href', '#')
+                    .attr('class', 'ui-fileupload ui-link ui-delete-link')
+                    .text("Delete")
+                    .click(function() {
+                        that.options.ucemeeting.delFile(file.metadata.id);
+                        return false;
+                    });
+            }
 
             var li = $('<li>').attr('class', 'mime ' + mime);
             $('<p>').append(filename).appendTo(li);
@@ -296,7 +323,7 @@ $.uce.widget("fileupload", {
                         that.startPreview();
                         return false;
                     })
-                    .attr('class', 'ui-fileupload ui-preview-link');
+                    .attr('class', 'ui-fileupload ui-link ui-preview-link');
 
                 var shareLink = $('<a>')
                     .attr('href', '#')
@@ -305,20 +332,28 @@ $.uce.widget("fileupload", {
                         that.options.ucemeeting.push("document.share.start", {id: file.metadata.id});
                         return false;
                     })
-                    .attr('class', 'ui-fileupload ui-share-link');
-
-                $('<p>')
-                    .append(downloadLink)
-                    .append(' | ')
-                    .append(viewLink)
-                    .append(' | ')
-                    .append(shareLink)
-                    .appendTo(li);
-            } else {
-                $('<p>')
-                    .append(downloadLink)
-                    .appendTo(li);
+                    .attr('class', 'ui-fileupload ui-link ui-share-link');
             }
+
+            var actionLinks = $('<p>')
+                .append(downloadLink);
+            if (viewLink) {
+                actionLinks
+                    .append(' | ')
+                    .append(viewLink);
+            }
+            if (shareLink) {
+                actionLinks
+                    .append(' | ')
+                    .append(shareLink);
+            }
+            if (deleteLink) {
+                actionLinks
+                    .append(' | ')
+                    .append(deleteLink);
+            }
+            actionLinks.appendTo(li);
+
             items = items.add(li);
         });
 
