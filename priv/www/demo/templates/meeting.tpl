@@ -11,17 +11,17 @@
 
   <div id="widgets">
     <section id="expanded" class="slots">
-      <article id="information" />
-      <article id="video" />
     </section>
 
     <section id="reduced" class="slots">
       <article id="timer" />
+      <article id="management" />
+      <article id="video" />
       <article id="fileupload" />
       <article id="filesharing" />
       <article id="chat" />
-      <article id="management" />
       <article id="whiteboard" />
+      <article id="information" />
     </section>
 
     <section id="replay-mode">

@@ -56,6 +56,7 @@ function sammyapp() {
                 if (err) {
                     return;
                 }
+
                 callback();
             });
         } else {
@@ -384,27 +385,16 @@ $.sammy("#meeting", function() {
             addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
         });
 
-        addWidget("#fileupload", 'fileupload', {ucemeeting: meeting,
-                                                uceclient: client,
-                                                mode: 'reduced',
-                                                dock: '#fileupload-dock'});
-
+        // Expanded widgets
         addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
-                                                  mode: 'reduced',
+                                                  mode: 'expanded',
                                                   dock: '#filesharing-dock'});
 
-        if (inReplay) {
-            addWidget("#video", 'player', {src: result_meeting.metadata.video,
-                                           start: result_meeting.start_date,
-                                           dock: '#video-dock',
-                                           width: 568,
-                                           mode: 'expanded'});
-        } else {
-            addWidget("#video", 'video', {domain: document.location.hostname + "/ucengine",
-                                          ucemeeting : meeting,
-                                          dock: '#video-dock',
-                                          mode: 'expanded'});
-        }
+        addWidget("#chat", 'chat', {ucemeeting: meeting,
+                                    uceclient: client,
+                                    title: "Conversations",
+                                    dock: '#chat-dock',
+                                    mode: 'expanded'});
 
         addWidget("#information", 'information', {ucemeeting: meeting,
                                                   uceclient: client,
@@ -416,12 +406,7 @@ $.sammy("#meeting", function() {
                                                            'description': {title: "Description",
                                                                            placeholder: "Summarize the topic"}}});
 
-        addWidget("#chat", 'chat', {ucemeeting: meeting,
-                                    uceclient: client,
-                                    title: "Conversations",
-                                    dock: '#chat-dock',
-                                    mode: 'reduced'});
-
+        // Reduced widgets
         addWidget("#management", 'management', {ucemeeting: meeting,
                                                 uceclient: client,
                                                 title: "Meeting Facilitation",
@@ -430,6 +415,24 @@ $.sammy("#meeting", function() {
                                                 dock: '#management-dock',
                                                 mode: 'reduced',
                                                 fixed: true});
+
+        if (inReplay) {
+            addWidget("#video", 'player', {src: result_meeting.metadata.video,
+                                           start: result_meeting.start_date,
+                                           dock: '#video-dock',
+                                           width: 568,
+                                           mode: 'expanded'});
+        } else {
+            addWidget("#video", 'video', {domain: document.location.hostname + "/ucengine",
+                                          ucemeeting : meeting,
+                                          dock: '#video-dock',
+                                          mode: 'reduced'});
+        }
+
+        addWidget("#fileupload", 'fileupload', {ucemeeting: meeting,
+                                                uceclient: client,
+                                                mode: 'reduced',
+                                                dock: '#fileupload-dock'});
 
         addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
                                                 dock         : '#whiteboard-dock',
