@@ -1,6 +1,7 @@
 $.widget("ui.adminbar", {
     options: {
-        title: "Owner's features"
+        title: "Owner's features",
+        widgets: {}
     },
 
     _create: function() {
@@ -28,6 +29,35 @@ $.widget("ui.adminbar", {
                 label: "Customize workspace"
             })
             .appendTo(buttons);
+
+        var customizeWorkspaceDescription =
+            $('<p>')
+            .addClass('uce-adminbar-description')
+            .text("Drag and drop widgets from the library to the workspace.")
+            .appendTo(customizeWorkspace);
+
+        var carousel = $('<div>')
+            .addClass('uce-adminbar-carousel')
+            .appendTo(customizeWorkspace);
+
+        var carouselList = $('<ul>')
+            .addClass('jcarousel-skin-ucengine')
+            .appendTo(carousel);
+
+        $.each(this.options.widgets, function(name, widget) {
+            var widgetLabel = $('<div>')
+                .addClass('uce-adminbar-widget');
+
+            $('<p>')
+                .addClass('uce-adminbar-widget-title')
+                .text(widget.title)
+                .appendTo(widgetLabel);
+
+            $('<li>')
+                .append(widgetLabel)
+                .appendTo(carouselList);
+        });
+        carouselList.jcarousel({scroll: 1});
 
         var closeMeeting = $('<div>')
             .addClass('uce-adminbar-content')

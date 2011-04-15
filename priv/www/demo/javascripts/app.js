@@ -292,7 +292,39 @@ $.sammy("#meeting", function() {
 
         inReplay = new Date(parseInt(result_meeting.end_date, 10)) < new Date().getTime();
 
-        $('#adminbar').adminbar();
+        $('#adminbar').adminbar({widgets: {
+            'chat': {
+                title: 'Chat',
+                description: 'Share messages on public and private rooms'
+            },
+            'file_upload': {
+                title: 'File Upload',
+                description: 'Upload your files in the meeting room'
+            },
+            'file_sharing': {
+                title: 'File Sharing',
+                description: 'Share your files in the meeting room'
+            },
+            'video': {
+                title: 'Video',
+                description: 'Webcam streaming'
+            },
+            'timer': {
+                title: 'Timer',
+                description: 'Display meeting duration and elapsed time'
+            },
+            'information': {
+                title: 'Information',
+                description: 'Display meeting informations'
+            },
+            'management': {
+                title: 'Meeting facilitation',
+                description: 'Manage the meeting'
+            },
+            'whiteboard': {
+                title: 'Whiteboard',
+                description: 'Collaborative drawing'
+            }}});
 
         function addWidget(id, widgetName, options) {
             var fold = $('<span>')

@@ -48,11 +48,30 @@
 
 .uce-adminbar .uce-adminbar-content {
     display: none;
-    min-height: 50px;
     background: #505050;
     color: #FFF;
+    padding: 12px;
 }
 
 .uce-adminbar .uce-adminbar-content.uce-adminbar-active {
     display: block;
+}
+
+.uce-adminbar .uce-adminbar-carousel {
+    width: auto;
+    clear: both;
+}
+
+.uce-adminbar .uce-adminbar-carousel li {
+    display: block;
+}
+
+.uce-adminbar .uce-adminbar-description {
+    color: #C6C6C6;
+    margin-bottom: 8px;
+}
+
+.uce-adminbar .uce-adminbar-widget-title {
+    margin-top: 100px;
+    margin-left: 6px;
 }
