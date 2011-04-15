@@ -9,7 +9,7 @@
             </div>
             {{#not_connected}}
             <div class="block-footer">
-                <p><a href="#/register">&gt;&gt; Register now</a></p>
+                <p><a href="#/meeting/demo">&gt;&gt; Test it now: join the demo room</a></p>
             </div>
             {{/not_connected}}
         </div>
