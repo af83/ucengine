@@ -38,26 +38,18 @@ fill_domain(Domain) ->
 
     catch uce_meeting:add(Domain,
                           #uce_meeting{id={"demo", Domain},
-                                       metadata=[{"name", "demo"},
-                                                 {"description", "U.C.Engine demo meetup"}],
+                                       metadata=[{"name", "Demonstration room"},
+                                                 {"description", "U.C.Engine demonstration room"}],
                                        start_date=utils:now(),
                                        end_date=?NEVER_ENDING_MEETING}),
 
     catch uce_meeting:add(Domain,
                           #uce_meeting{id={"demo2", Domain},
-                                       metadata=[{"name", "demo2"},
-                                                 {"description", "Meeting R&D"},
+                                       metadata=[{"name", "Another room"},
+                                                 {"description", "Another test room"},
                                                  {"video", "/test"}],
                                        start_date=utils:now(),
                                        end_date=?NEVER_ENDING_MEETING}),
-
-    catch uce_meeting:add(Domain,
-                          #uce_meeting{id={"agoroom", Domain},
-                                       metadata=[{"name", "agoroom"},
-                                                 {"description", "Meeting agoroom"},
-                                                 {"video", "http://encre.2metz.fr/simonsinek_2009x"}],
-                                       start_date=1287738533649,
-                                       end_date=1287739733649}),
 
     catch uce_role:add(Domain, #uce_role{id={"participant", Domain},
                                          acl=[#uce_access{action="add", object="presence"},
@@ -115,7 +107,7 @@ fill_domain(Domain) ->
                                                            metadata=[{"role", "owner"},
                                                                      {"user", Uid}]})
                   end,
-                  ["demo", "demo2", "agoroom"]),
+                  ["demo", "demo2"]),
 
     catch uce_role:add(Domain, #uce_role{id={"anonymous", Domain},
                                          acl=[#uce_access{action="add", object="presence"},
