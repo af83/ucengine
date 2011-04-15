@@ -1,0 +1,58 @@
+.uce-adminbar {
+    width: 100%;
+    background: #474648;
+}
+
+.uce-adminbar .uce-adminbar-header {
+    min-height: 32px;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-title {
+    float: left;
+    line-height: 32px;
+    color: #A9A9A9;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-buttons {
+    float: right;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button {
+    display: inline-block;
+    border: none;
+    background: transparent;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button.uce-adminbar-active.ui-button-text-only {
+    background: #505050;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button.uce-adminbar-active.ui-button-text-only .ui-button-text {
+    color: #FFF;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button.ui-button-text-only {
+    background: transparent;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button.ui-button-text-only .ui-button-text {
+    color: #A9A9A9;
+    font-size: 12px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    line-height: 32px;
+    border-right: solid 1px #666;
+}
+
+.uce-adminbar .uce-adminbar-content {
+    display: none;
+    min-height: 50px;
+    background: #505050;
+    color: #FFF;
+}
+
+.uce-adminbar .uce-adminbar-content.uce-adminbar-active {
+    display: block;
+}
