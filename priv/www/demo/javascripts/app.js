@@ -292,6 +292,8 @@ $.sammy("#meeting", function() {
 
         inReplay = new Date(parseInt(result_meeting.end_date, 10)) < new Date().getTime();
 
+        $('#adminbar').adminbar();
+
         function addWidget(id, widgetName, options) {
             var fold = $('<span>')
                 .attr('class', 'ui-toolbar-button ui-button-fold')
