@@ -71,7 +71,21 @@
     margin-bottom: 8px;
 }
 
+.uce-adminbar .uce-adminbar-widget.active {
+    background-color: black;
+    opacity: 0.5;
+    color: white;
+}
+
+.uce-adminbar .uce-adminbar-widget-description {
+    margin-left: 6px;
+    width: 140px;
+    position: absolute;
+    bottom: 2em;
+}
+
 .uce-adminbar .uce-adminbar-widget-title {
-    margin-top: 100px;
+    position: absolute;
+    bottom: 0;
     margin-left: 6px;
 }

@@ -25,6 +25,7 @@
     color: black;
     margin: 10px;
     background: #C6C6C6;
+    position: relative;
 }
 
 .jcarousel-skin-ucengine .jcarousel-item-horizontal {

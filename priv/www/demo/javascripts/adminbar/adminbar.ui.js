@@ -47,14 +47,32 @@ $.widget("ui.adminbar", {
             var widgetLabel = $('<div>')
                 .addClass('uce-adminbar-widget');
 
-            $('<p>')
+            var description = $('<p>')
+                .addClass('uce-adminbar-widget-description')
+                .text(widget.description)
+                .hide()
+                .appendTo(widgetLabel);
+
+            var title = $('<p>')
                 .addClass('uce-adminbar-widget-title')
                 .text(widget.title)
                 .appendTo(widgetLabel);
 
             $('<li>')
                 .append(widgetLabel)
+                .hover(function() {
+                    description.show();
+                    var height = title.offset().top + title.height() - description.offset().top + 10;
+                    var marginTop = 120 - height;
+
+                    widgetLabel.css({"height": height, "margin-top": marginTop})
+                        .addClass('active');
+                }, function() {
+                    description.hide();
+                    widgetLabel.removeClass('active');
+                })
                 .appendTo(carouselList);
+
         });
         carouselList.jcarousel({scroll: 1});
 
