@@ -20,6 +20,10 @@ rel: compile
 ###############################################################################
 dev: cleanrel rel $(DIRS)
 
+demo: $(DIRS)
+	-@rm rel/ucengine/priv/ -fr
+	-@cp -r priv rel/ucengine/.
+
 run: dev
 	rel/ucengine/bin/ucengine console
 
