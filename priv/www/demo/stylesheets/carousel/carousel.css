@@ -3,7 +3,7 @@
 }
 
 .jcarousel-skin-ucengine .jcarousel-direction-rtl {
-	direction: rtl;
+    direction: rtl;
 }
 
 .jcarousel-skin-ucengine .jcarousel-container-horizontal {
@@ -45,10 +45,10 @@
  */
 .jcarousel-skin-ucengine .jcarousel-next-horizontal {
     position: absolute;
-    top: 40px;
-    right: 0px;
-    width: 32px;
-    height: 46px;
+    top: 0px;
+    right: -20px;
+    width: 20px;
+    height: 122px;
     cursor: pointer;
     background: transparent url(next-horizontal.png) no-repeat 0 0;
 }
@@ -60,10 +60,10 @@
 
 .jcarousel-skin-ucengine .jcarousel-prev-horizontal {
     position: absolute;
-    top: 40px;
-    left: 0px;
-    width: 32px;
-    height: 46px;
+    top: 0px;
+    left: -20px;
+    width: 20px;
+    height: 122px;
     cursor: pointer;
     background: transparent url(prev-horizontal.png) no-repeat 0 0;
 }

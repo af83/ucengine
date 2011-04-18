@@ -30,10 +30,9 @@ $.widget("ui.adminbar", {
             })
             .appendTo(buttons);
 
-        var customizeWorkspaceDescription =
-            $('<p>')
+        var customizeWorkspaceDescription = $('<p>')
             .addClass('uce-adminbar-description')
-            .text("Drag and drop widgets from the library to the workspace.")
+            .text("Select widgets from the library, and add them in the workspace.")
             .appendTo(customizeWorkspace);
 
         var carousel = $('<div>')

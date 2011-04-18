@@ -50,7 +50,7 @@
     display: none;
     background: #505050;
     color: #FFF;
-    padding: 12px;
+    padding: 12px 12px 12px 44px;
 }
 
 .uce-adminbar .uce-adminbar-content.uce-adminbar-active {
