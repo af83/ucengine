@@ -9,9 +9,9 @@ module("uce.adminbar", {
 test("create basic structure", function () {
     ok($('#adminbar').hasClass('ui-widget'));
     ok($('#adminbar').hasClass('uce-adminbar'));
-    equals($('#adminbar .uce-adminbar-header').children().size(), 2);
-    equals($('#adminbar .uce-adminbar-header .uce-adminbar-buttons').children().size(), 3);
-    equals($('#adminbar .uce-adminbar-header .uce-adminbar-title').text(), "Owner's features");
+    equals($('#adminbar .uce-adminbar-header').children().size(), 2, "The header have children");
+    equals($('#adminbar .uce-adminbar-header .uce-adminbar-buttons').children().size(), 3, "The header have buttons");
+    equals($('#adminbar .uce-adminbar-header .uce-adminbar-title').text(), "Owner's features", "The header have the good label");
 });
 
 test("can toggle buttons", function() {
