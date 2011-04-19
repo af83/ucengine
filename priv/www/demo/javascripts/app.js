@@ -295,35 +295,38 @@ $.sammy("#meeting", function() {
         $('#adminbar').adminbar({widgets: {
             'chat': {
                 title: 'Chat',
-                description: 'Share messages on public and private rooms'
+                description: 'Share messages on public and private rooms',
+                thumbnail: '/demo/images/widgets/chat.jpg'
             },
             'file_upload': {
                 title: 'File Upload',
-                description: 'Upload your files in the meeting room'
+                description: 'Upload your files in the meeting room',
+                thumbnail: '/demo/images/widgets/file_upload.jpg'
             },
             'file_sharing': {
                 title: 'File Sharing',
-                description: 'Share your files in the meeting room'
+                description: 'Share your files in the meeting room',
+                thumbnail: '/demo/images/widgets/file_sharing.jpg'
             },
             'video': {
                 title: 'Video',
-                description: 'Webcam streaming'
-            },
-            'timer': {
-                title: 'Timer',
-                description: 'Display meeting duration and elapsed time'
+                description: 'Webcam streaming',
+                thumbnail: '/demo/images/widgets/video.jpg'
             },
             'information': {
                 title: 'Information',
-                description: 'Display meeting informations'
+                description: 'Display meeting informations',
+                thumbnail: '/demo/images/widgets/information.jpg'
             },
             'management': {
                 title: 'Meeting facilitation',
-                description: 'Manage the meeting'
+                description: 'Manage the meeting',
+                thumbnail: '/demo/images/widgets/management.jpg'
             },
             'whiteboard': {
                 title: 'Whiteboard',
-                description: 'Collaborative drawing'
+                description: 'Collaborative drawing',
+                thumbnail: '/demo/images/widgets/whiteboard.jpg'
             }}});
 
         function addWidget(id, widgetName, options) {
