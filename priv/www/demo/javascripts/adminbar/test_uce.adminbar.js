@@ -11,7 +11,6 @@ test("create basic structure", function () {
     ok($('#adminbar').hasClass('uce-adminbar'));
     equals($('#adminbar .uce-adminbar-header').children().size(), 2);
     equals($('#adminbar .uce-adminbar-header .uce-adminbar-buttons').children().size(), 3);
-    equals($('#adminbar .uce-adminbar-header .uce-adminbar-buttons').children().size(), 3);
     equals($('#adminbar .uce-adminbar-header .uce-adminbar-title').text(), "Owner's features");
 });
 
