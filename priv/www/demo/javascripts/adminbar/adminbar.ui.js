@@ -60,6 +60,7 @@ $.widget("ui.adminbar", {
 
             $('<li>')
                 .append(widgetLabel)
+                .css('background-image', 'url(' + (widget.thumbnail || "") + ")")
                 .hover(function() {
                     description.show();
                     var height = title.offset().top + title.height() - description.offset().top + 10;
