@@ -12,7 +12,6 @@ $.uce.widget("filesharing", {
         'document.share.start'        : '_handleShareStartEvent',
         'document.share.goto'         : '_handleShareGotoEvent',
         'document.share.stop'         : '_handleShareStopEvent',
-        'internal.roster.delete'      : '_handleShareStopEvent'
     },
 
     _create: function() {

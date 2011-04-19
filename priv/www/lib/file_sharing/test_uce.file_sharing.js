@@ -32,31 +32,6 @@ test("clear file to share", function() {
     equals($('#files_shared').find('ul > li').size(), 0, "The widget have no listed files");
 });
 
-jackTest("handle roster delete event", function() {
-    var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
-    var events =
-        [Factories.createFileEvent({eventId: "id_upload_event"}),
-         Factories.createConversionDoneEvent({parent: 'id_upload_event', pages: ["page_1.jpg",
-                                                                                 "page_2.jpg"]}),
-         Factories.createFileEvent({id: "page_1.jpg", name: "page_1.jpg", from: "document"}),
-         Factories.createFileEvent({id: "page_2.jpg", name: "page_2.jpg", from: "document"})];
-
-    $('#files_shared').filesharing({ucemeeting: ucemeeting});
-
-    jack.expect("ucemeeting.getFileDownloadUrl")
-        .atLeast("1 time")
-        .returnValue('#');
-
-    $(events).each(function(index, event) {
-           $('#files_shared').filesharing('triggerUceEvent', event);
-    });
-
-    $('#files_shared').filesharing('triggerUceEvent', Factories.createDocumentShareStartEvent({id : 'norris.pdf'}));
-    $('#files_shared').filesharing('triggerUceEvent', Factories.createRosterDeleteEvent({id : 'chuck_in_roster_deletion'}));
-    equals($("#files_shared").find(".ui-filesharing-toolbar").css('display'), 'none', "The toolbar is not visible");
-    equals($("#files_shared").find(".ui-filesharing-page").css('display'), 'none', "The preview is not visible");
-});
-
 jackTest("handle new document share start", function() {
     var ucemeeting = jack.create("ucemeeting", ['on', 'getFileUploadUrl', 'getFileDownloadUrl', 'push']);
     var events =
