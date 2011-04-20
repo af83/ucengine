@@ -133,3 +133,9 @@ jackTest("update and close the meeting when clicking on 'Close the meeting'", fu
 
     $($('#adminbar .uce-adminbar-meeting .uce-adminbar-button')[0]).click();
 });
+
+test("hide the 'close meeting' tag when clicking on  'Continue the meeting'", function() {
+    $($('#adminbar .uce-adminbar-meeting .uce-adminbar-button')[1]).click();
+    ok(!$($('#adminbar .uce-adminbar-content')[1]).hasClass('uce-adminbar-active'));
+    ok(!$('#adminbar .uce-adminbar-buttons li:eq(1)').hasClass('uce-adminbar-active'));
+});

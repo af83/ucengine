@@ -181,6 +181,10 @@ $.widget("ui.adminbar", {
             .button({
                 label: "Continue the meeting",
             })
+            .click(function() {
+                closeMeetingButton.removeClass('uce-adminbar-active');
+                closeMeeting.removeClass('uce-adminbar-active');
+            })
             .appendTo(closeMeeting);
 
         /**
