@@ -312,6 +312,7 @@ $.sammy("#meeting", function() {
                     });
 
             var widget = $(id);
+            var widgetDock = $(id+"-dock");
 
             function expand() {
                 widget.detach();
@@ -368,8 +369,10 @@ $.sammy("#meeting", function() {
 
             if (options.hidden == true) {
                 widget.hide();
+                widgetDock.hide();
             } else {
                 widget.show(); 
+                widgetDock.show();
             }
         };
 
@@ -572,6 +575,14 @@ $.sammy("#meeting", function() {
                                 }
                                 that.redirect('#/meeting/' + meeting.name + '/quit');
                             });
+        });
+
+        meeting.on('admin.meeting.widgets.add', function(event) {
+            widgets = event.metadata.widgets.split(",");
+            $.each(widgets, function(index, widgetId) {
+               $('#' + widgetId).show();
+               $('#' + widgetId + '-dock').show(); 
+            });  
         });
     });
 

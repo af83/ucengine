@@ -129,6 +129,13 @@ $.widget("ui.adminbar", {
                 .attr('class', 'uce-adminbar-valid-button')
                 .addClass('ui-button')
                 .addClass('ui-button-text-only')
+                .click(function() {
+                    if (that._selectedWidgets.length>0) {
+                        that.options.ucemeeting.push("admin.meeting.widgets.add", {"widgets": that._selectedWidgets.toString()});
+                        that._selectedWidgets = [];
+                    }
+                    return false;
+                    })
                 .appendTo(carousel);
         $('<span>')
             .addClass('ui-button-text')
