@@ -1,3 +1,7 @@
+<nav>
+  <div id="adminbar"></div>
+</nav>
+
 <div class="page" id="meeting">
 
   <ul id="dock">
