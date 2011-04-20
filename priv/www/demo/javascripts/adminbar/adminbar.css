@@ -92,7 +92,7 @@
 
 .uce-adminbar-cancel-button {
     float: left;
-    margin-left: 760px;
+    margin-left: 780px;
     margin-top: -30px;
     color: #000000;
     font-weight: bold;
@@ -101,7 +101,7 @@
 
 .uce-adminbar-valid-button {
     float: left;
-    margin-left: 832px;
+    margin-left: 852px;
     margin-top: -30px;
     color: #000000;
     font-weight: bold;
@@ -128,4 +128,21 @@
 
 .uce-adminbar .uce-adminbar-meeting .uce-adminbar-meeting-confirm {
     font-weight: bold;
+}
+
+.uce-adminbar-widget-hidden {
+    position: absolute;
+    bottom: 0;
+    width: 120px;
+    height: 120px;
+    opacity: 0.5;
+}
+
+.uce-adminbar-widget-visible {
+    position: absolute;
+    bottom: 0;
+    width: 120px;
+    height: 120px;
+    opacity: 0.5;
+    background-color: #000000;
 }

@@ -3,12 +3,13 @@ $.widget("ui.adminbar", {
         title: "Owner's features",
         ucemeeting: null,
         uceclient: null,
-        selectedWidgets: [],
         widgets: {}
     },
 
     _create: function() {
         var that = this;
+
+        this._selectedWidgets = [];
 
         this.element.addClass('ui-widget uce-adminbar');
 
@@ -58,6 +59,9 @@ $.widget("ui.adminbar", {
             var widgetLabel = $('<div>')
                 .addClass('uce-adminbar-widget');
 
+            var linkClass = 'uce-adminbar-widget-'+key+'-link';
+            var linkedWidget = key;
+
             var description = $('<p>')
                 .addClass('uce-adminbar-widget-description')
                 .text(widget.description)
@@ -85,18 +89,22 @@ $.widget("ui.adminbar", {
                 })
                 .appendTo(carouselList);
 
-            var linkClass = 'uce-adminbar-widget-'+key+'-link';
-            var linkedWidget = key;
-
-            $('<a>')
+            var link = $('<a>')
+                .addClass("uce-adminbar-widget-hidden")
                 .addClass(linkClass)
                 .attr('href', '#')
-                .text(widget.title)
-                .click(function() {
+                .appendTo(carouselItem);
+            link.click(function() {
+                        link.removeClass("uce-adminbar-widget-hidden");
+                        link.parent().addClass("uce-adminbar-widget-visible");
+                        link.hide();
                         that.addSelectedWidget(linkedWidget);
                         return false;
-                       })
-                .appendTo(carouselItem);
+                       });
+
+            if ($("#" + linkedWidget).is(":visible")) {
+                that.hideAddWidgetLink(linkedWidget);
+            }
 
         });
         carouselList.jcarousel({scroll: 1});
@@ -240,21 +248,27 @@ $.widget("ui.adminbar", {
     },
 
     addSelectedWidget: function(widgetId) {
-        $('a.uce-adminbar-widget-' + widgetId + '-link').hide();
         $('#' + widgetId).show();
-        this.options.selectedWidgets.push(widgetId);
+        this._selectedWidgets.push(widgetId);
     },
 
     getSelectedWidgets: function() {
-        return this.options.selectedWidgets;
+        return this._selectedWidgets;
     },
 
     cancelSelectedWidgets: function() {
-        $.each(this.options.selectedWidgets, function(index, widgetId) {
+        $.each(this._selectedWidgets, function(index, widgetId) {
             $('#' + widgetId).hide();
-            $('a.uce-adminbar-widget-' + widgetId + '-link').show();
+            $('a.uce-adminbar-widget-' + widgetId + '-link').show()
+                                                            .addClass("uce-adminbar-widget-hidden")
+                                                            .parent().removeClass("uce-adminbar-widget-visible");
         });
-        this.options.selectedWidgets = [];
+        this._selectedWidgets = [];
+    },
+
+    hideAddWidgetLink: function(widget) {
+        $('a.uce-adminbar-widget-' + widget + '-link').parent().addClass("uce-adminbar-widget-visible");
+        $('a.uce-adminbar-widget-' + widget + '-link').hide();
     }
 
 });
