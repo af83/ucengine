@@ -101,10 +101,12 @@ get(Domain, [Name], [Uid, Sid], _) ->
 update(Domain, [Name], [Uid, Sid, Start, End, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Name, Domain}, "meeting", "update"),
+    {ok, Meeting} = uce_meeting:get(Domain, {Name, Domain}),
     {ok, updated} = uce_meeting:update(Domain,
                                        #uce_meeting{id={Name, Domain},
                                                     start_date=Start,
                                                     end_date=End,
+                                                    roster=Meeting#uce_meeting.roster,
                                                     metadata=Metadata}),
     {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
                                                from={Uid, Domain},
