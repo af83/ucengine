@@ -560,6 +560,18 @@ $.sammy("#meeting", function() {
             // start main loop
             loop = meeting.startLoop(0);
         }
+
+        var that = this;
+        meeting.on('admin.meeting.close', function(event) {
+            // Check that the sender can update the meeting
+            client.user.can(event.from, "update", "meeting", {}, meeting.name,
+                            function(err, result, xhr) {
+                                if (result == false) {
+                                    return ;
+                                }
+                                that.redirect('#/meeting/' + meeting.name + '/quit');
+                            });
+        });
     });
 
     this.get('#/meeting/:id', function(context) {});
