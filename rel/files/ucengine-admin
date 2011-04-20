@@ -28,6 +28,8 @@ if [ -z "$NAME_ARG" ]; then
     exit 1
 fi
 
+NODE_ARG=`echo "${NAME_ARG}" | sed -e 's/-name \(.*\)$/--node \1/'`
+
 # Learn how to specify node name for connection from remote nodes
 echo "$NAME_ARG" | grep '^-sname' > /dev/null 2>&1
 if [ "X$?" = "X0" ]; then
@@ -71,7 +73,8 @@ internal_cmd()
                    -object "$1"     \
                    -action "$2"     \
                    -dummy           \
-                   "$@"
+                   "$@"             \
+                   $NODE_ARG
 }
 
 tests()
