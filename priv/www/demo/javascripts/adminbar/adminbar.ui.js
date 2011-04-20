@@ -28,13 +28,17 @@ $.widget("ui.adminbar", {
             .addClass('uce-adminbar-buttons')
             .appendTo(header);
 
+        var page = $('<div>')
+            .addClass('uce-adminbar-page')
+            .appendTo(this.element);
+
         /**
          * Customize workspace tab
          */
         var customizeWorkspace = $('<div>')
             .addClass('uce-adminbar-content')
             .addClass('uce-adminbar-workspace')
-            .appendTo(this.element);
+            .appendTo(page);
         var customizeWorkspaceButton = $('<li>')
             .addClass('uce-adminbar-button')
             .button({
@@ -148,7 +152,7 @@ $.widget("ui.adminbar", {
         var closeMeeting = $('<div>')
             .addClass('uce-adminbar-content')
             .addClass('uce-adminbar-meeting')
-            .appendTo(this.element);
+            .appendTo(page);
         var closeMeetingButton = $('<li>')
             .addClass('uce-adminbar-button')
             .button({
@@ -207,7 +211,7 @@ $.widget("ui.adminbar", {
          */
         var infos = $('<div>')
             .addClass('uce-adminbar-content')
-            .appendTo(this.element);
+            .appendTo(page);
         var infosButton = $('<li>')
             .addClass('uce-adminbar-button')
             .button({

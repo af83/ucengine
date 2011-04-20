@@ -46,11 +46,18 @@
     border-right: solid 1px #666;
 }
 
-.uce-adminbar .uce-adminbar-content {
-    display: none;
+.uce-adminbar .uce-adminbar-page {
+    width: 100%;
     background: #505050;
     color: #FFF;
+}
+
+.uce-adminbar .uce-adminbar-content {
+    display: none;
     padding: 12px 12px 12px 44px;
+    width: 960px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .uce-adminbar .uce-adminbar-content.uce-adminbar-active {
