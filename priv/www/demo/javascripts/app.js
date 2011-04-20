@@ -146,6 +146,7 @@ function sammyapp() {
             if (err) {
                 return;
             }
+            $('#adminbar').adminbar('destroy');
             context.redirect('#/');
         });
     });
@@ -297,18 +298,19 @@ $.sammy("#meeting", function() {
                             if (result == false) {
                                 return;
                             }
-                            $('#adminbar').adminbar({widgets: {
+                            $('#adminbar').adminbar({ucemeeting: meeting,
+                                                     widgets: {
                                 'chat': {
                                     title: 'Chat',
                                     description: 'Share messages on public and private rooms',
                                     thumbnail: '/demo/images/widgets/chat.jpg'
                                 },
-                                'file_upload': {
+                                'fileupload': {
                                     title: 'File Upload',
                                     description: 'Upload your files in the meeting room',
                                     thumbnail: '/demo/images/widgets/file_upload.jpg'
                                 },
-                                'file_sharing': {
+                                'filesharing': {
                                     title: 'File Sharing',
                                     description: 'Share your files in the meeting room',
                                     thumbnail: '/demo/images/widgets/file_sharing.jpg'
@@ -408,6 +410,13 @@ $.sammy("#meeting", function() {
             } else {
                 widget[widgetName]('reduce');
             }
+
+            if (options.hidden == true) {
+                widget.hide(); 
+            } else {
+                widget.show(); 
+                $('a.uce-adminbar-widget-'+id.substring(1)+'-link').hide();
+            }
         };
 
         $('#reduced').sortable({connectWith: '.slots',
@@ -430,11 +439,13 @@ $.sammy("#meeting", function() {
         addWidget("#fileupload", 'fileupload', {ucemeeting: meeting,
                                                 uceclient: client,
                                                 mode: 'reduced',
-                                                dock: '#fileupload-dock'});
+                                                dock: '#fileupload-dock',
+                                                hidden: true});
 
         addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
                                                   mode: 'reduced',
-                                                  dock: '#filesharing-dock'});
+                                                  dock: '#filesharing-dock',
+                                                  hidden: true});
 
         if (inReplay) {
             addWidget("#video", 'player', {src: result_meeting.metadata.video,
@@ -477,7 +488,8 @@ $.sammy("#meeting", function() {
         addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
                                                 dock         : '#whiteboard-dock',
                                                 width        : 574,
-                                                mode         : 'reduced'});
+                                                mode         : 'reduced',
+                                                hidden       : true});
 
         $("#replay-mode").hide();
 

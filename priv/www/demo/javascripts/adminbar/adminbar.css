@@ -89,3 +89,21 @@
     bottom: 0;
     margin-left: 6px;
 }
+
+.uce-adminbar-cancel-button {
+    float: left;
+    margin-left: 760px;
+    margin-top: -30px;
+    color: #000000;
+    font-weight: bold;
+    background: #C6C6C6;
+}
+
+.uce-adminbar-valid-button {
+    float: left;
+    margin-left: 832px;
+    margin-top: -30px;
+    color: #000000;
+    font-weight: bold;
+    background: #C6C6C6;
+}

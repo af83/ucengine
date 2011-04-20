@@ -1,10 +1,14 @@
 $.widget("ui.adminbar", {
     options: {
+        ucemeeting: null,
         title: "Owner's features",
+        selectedWidgets: [],
         widgets: {}
     },
 
     _create: function() {
+        var that = this;
+
         this.element.addClass('ui-widget uce-adminbar');
 
         var header = $('<div>')
@@ -43,7 +47,7 @@ $.widget("ui.adminbar", {
             .addClass('jcarousel-skin-ucengine')
             .appendTo(carousel);
 
-        $.each(this.options.widgets, function(name, widget) {
+        $.each(this.options.widgets, function(key, widget) {
             var widgetLabel = $('<div>')
                 .addClass('uce-adminbar-widget');
 
@@ -58,7 +62,7 @@ $.widget("ui.adminbar", {
                 .text(widget.title)
                 .appendTo(widgetLabel);
 
-            $('<li>')
+            var carouselItem = $('<li>')
                 .append(widgetLabel)
                 .css('background-image', 'url(' + (widget.thumbnail || "") + ")")
                 .hover(function() {
@@ -74,8 +78,47 @@ $.widget("ui.adminbar", {
                 })
                 .appendTo(carouselList);
 
+            var linkClass = 'uce-adminbar-widget-'+key+'-link';
+            var linkedWidget = key;
+
+            $('<a>')
+                .addClass(linkClass)
+                .attr('href', '#')
+                .text(widget.title)
+                .click(function() {
+                        that.addSelectedWidget(linkedWidget);
+                        return false;
+                       })
+                .appendTo(carouselItem);
+
         });
         carouselList.jcarousel({scroll: 1});
+
+        var cancelButton = $('<a>')
+                .attr('href', '#')
+                .attr('class', 'uce-adminbar-cancel-button')
+                .addClass('ui-button')
+                .addClass('ui-button-text-only')
+                .click(function() {
+                        that.cancelSelectedWidgets();
+                        return false;
+                       })
+                .appendTo(carousel);
+        $('<span>')
+            .addClass('ui-button-text')
+            .text('Cancel')
+            .appendTo(cancelButton);
+
+        var validButton = $('<a>')
+                .attr('href', '#')
+                .attr('class', 'uce-adminbar-valid-button')
+                .addClass('ui-button')
+                .addClass('ui-button-text-only')
+                .appendTo(carousel);
+        $('<span>')
+            .addClass('ui-button-text')
+            .text('Valid')
+            .appendTo(validButton);
 
         var closeMeeting = $('<div>')
             .addClass('uce-adminbar-content')
@@ -134,5 +177,24 @@ $.widget("ui.adminbar", {
         this.element.find('*').remove();
         this.element.removeClass('ui-widget uce-adminbar');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
+    },
+
+    addSelectedWidget: function(widgetId) {
+        $('a.uce-adminbar-widget-' + widgetId + '-link').hide();
+        $('#' + widgetId).show();
+        this.options.selectedWidgets.push(widgetId);
+    },
+
+    getSelectedWidgets: function() {
+        return this.options.selectedWidgets;
+    },
+
+    cancelSelectedWidgets: function() {
+        $.each(this.options.selectedWidgets, function(index, widgetId) {
+            $('#' + widgetId).hide();
+            $('a.uce-adminbar-widget-' + widgetId + '-link').show();
+        });
+        this.options.selectedWidgets = [];
     }
+
 });
