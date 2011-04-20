@@ -146,7 +146,6 @@ function sammyapp() {
             if (err) {
                 return;
             }
-            $('#adminbar').adminbar('destroy');
             context.redirect('#/');
         });
     });
@@ -298,43 +297,45 @@ $.sammy("#meeting", function() {
                             if (result == false) {
                                 return;
                             }
-                            $('#adminbar').adminbar({ucemeeting: meeting,
-                                                     widgets: {
-                                'chat': {
-                                    title: 'Chat',
-                                    description: 'Share messages on public and private rooms',
-                                    thumbnail: '/demo/images/widgets/chat.jpg'
-                                },
-                                'fileupload': {
-                                    title: 'File Upload',
-                                    description: 'Upload your files in the meeting room',
-                                    thumbnail: '/demo/images/widgets/file_upload.jpg'
-                                },
-                                'filesharing': {
-                                    title: 'File Sharing',
-                                    description: 'Share your files in the meeting room',
-                                    thumbnail: '/demo/images/widgets/file_sharing.jpg'
-                                },
-                                'video': {
-                                    title: 'Video',
-                                    description: 'Webcam streaming',
-                                    thumbnail: '/demo/images/widgets/video.jpg'
-                                },
-                                'information': {
-                                    title: 'Information',
-                                    description: 'Display meeting informations',
-                                    thumbnail: '/demo/images/widgets/information.jpg'
-                                },
-                                'management': {
-                                    title: 'Meeting facilitation',
-                                    description: 'Manage the meeting',
-                                    thumbnail: '/demo/images/widgets/management.jpg'
-                                },
-                                'whiteboard': {
-                                    title: 'Whiteboard',
-                                    description: 'Collaborative drawing',
-                                    thumbnail: '/demo/images/widgets/whiteboard.jpg'
-                                }}});
+                            $('#adminbar').adminbar({
+                                ucemeeting: meeting,
+                                uceclient: client,
+                                widgets: {
+                                    'chat': {
+                                        title: 'Chat',
+                                        description: 'Share messages on public and private rooms',
+                                        thumbnail: '/demo/images/widgets/chat.jpg'
+                                    },
+                                    'file_upload': {
+                                        title: 'File Upload',
+                                        description: 'Upload your files in the meeting room',
+                                        thumbnail: '/demo/images/widgets/file_upload.jpg'
+                                    },
+                                    'file_sharing': {
+                                        title: 'File Sharing',
+                                        description: 'Share your files in the meeting room',
+                                        thumbnail: '/demo/images/widgets/file_sharing.jpg'
+                                    },
+                                    'video': {
+                                        title: 'Video',
+                                        description: 'Webcam streaming',
+                                        thumbnail: '/demo/images/widgets/video.jpg'
+                                    },
+                                    'information': {
+                                        title: 'Information',
+                                        description: 'Display meeting informations',
+                                        thumbnail: '/demo/images/widgets/information.jpg'
+                                    },
+                                    'management': {
+                                        title: 'Meeting facilitation',
+                                        description: 'Manage the meeting',
+                                        thumbnail: '/demo/images/widgets/management.jpg'
+                                    },
+                                    'whiteboard': {
+                                        title: 'Whiteboard',
+                                        description: 'Collaborative drawing',
+                                        thumbnail: '/demo/images/widgets/whiteboard.jpg'
+                                    }}});
                         });
 
         function addWidget(id, widgetName, options) {
@@ -412,9 +413,9 @@ $.sammy("#meeting", function() {
             }
 
             if (options.hidden == true) {
-                widget.hide(); 
+                widget.hide();
             } else {
-                widget.show(); 
+                widget.show();
                 $('a.uce-adminbar-widget-'+id.substring(1)+'-link').hide();
             }
         };

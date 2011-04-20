@@ -1,4 +1,4 @@
-.uce-adminbar {
+1;2401;0c.uce-adminbar {
     width: 100%;
     background: #474648;
 }
@@ -106,4 +106,25 @@
     color: #000000;
     font-weight: bold;
     background: #C6C6C6;
+
+.uce-adminbar .uce-adminbar-meeting {
+    height: 45px;
+}
+
+.uce-adminbar .uce-adminbar-meeting .uce-adminbar-button {
+    float: right;
+    margin-top: 8px;
+    margin-right: 8px;
+}
+
+.uce-adminbar .uce-adminbar-meeting .uce-adminbar-meeting-infos {
+    float: left;
+}
+
+.uce-adminbar .uce-adminbar-meeting p {
+    margin: 6px;
+}
+
+.uce-adminbar .uce-adminbar-meeting .uce-adminbar-meeting-confirm {
+    font-weight: bold;
 }

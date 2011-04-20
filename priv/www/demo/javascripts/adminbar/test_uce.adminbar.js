@@ -88,3 +88,48 @@ test("can toggle content", function() {
     ok(!$($('#adminbar .uce-adminbar-content')[1]).hasClass('uce-adminbar-active'));
     ok(!$($('#adminbar .uce-adminbar-content')[2]).hasClass('uce-adminbar-active'));
 });
+
+test("create 'close meeting' tab", function() {
+    ok($('#adminbar .uce-adminbar-meeting p').length == 2);
+    ok($('#adminbar .uce-adminbar-meeting .uce-adminbar-button').length == 2);
+    ok($($('#adminbar .uce-adminbar-meeting .uce-adminbar-button')[0]).text() == "Close the meeting");
+    ok($($('#adminbar .uce-adminbar-meeting .uce-adminbar-button')[1]).text() == "Continue the meeting");
+});
+
+jackTest("update and close the meeting when clicking on 'Close the meeting'", function() {
+    var ucemeeting = jack.create("ucemeeting", ['get', 'update', 'push']);
+    jack.expect('ucemeeting.get')
+        .exactly('1 time')
+        .mock(function(callback) {
+            callback(undefined, {start_date: 21,
+                                 end_date: 42,
+                                 metadata: {test: 'value'}}, undefined);
+        });
+    jack.expect('ucemeeting.update')
+        .exactly('1 time')
+        .mock(function(start, end, metadata, callback) {
+            ok(start == 21, "check start");
+            ok(end == 4567, "check end");
+            ok(metadata.test == 'value', "check metadata");
+            callback(undefined, {result: 'ok'}, undefined);
+        });
+    jack.expect('ucemeeting.push')
+        .exactly('1 time')
+        .mock(function(type, metadata, callback) {
+            ok(type == 'admin.meeting.close', 'check type');
+        });
+
+    var time = jack.create('time', ['get']);
+    jack.expect('time.get')
+        .exactly('1 time')
+        .mock(function(callback) {
+            callback(undefined, 4567, undefined);
+        });
+
+    $('#adminbar').adminbar({
+        ucemeeting: ucemeeting,
+        uceclient: {time: time}
+    });
+
+    $($('#adminbar .uce-adminbar-meeting .uce-adminbar-button')[0]).click();
+});

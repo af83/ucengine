@@ -1,7 +1,8 @@
 $.widget("ui.adminbar", {
     options: {
-        ucemeeting: null,
         title: "Owner's features",
+        ucemeeting: null,
+        uceclient: null,
         selectedWidgets: [],
         widgets: {}
     },
@@ -10,6 +11,8 @@ $.widget("ui.adminbar", {
         var that = this;
 
         this.element.addClass('ui-widget uce-adminbar');
+
+        var that = this;
 
         var header = $('<div>')
             .addClass('uce-adminbar-header')
@@ -24,8 +27,12 @@ $.widget("ui.adminbar", {
             .addClass('uce-adminbar-buttons')
             .appendTo(header);
 
+        /**
+         * Customize workspace tab
+         */
         var customizeWorkspace = $('<div>')
             .addClass('uce-adminbar-content')
+            .addClass('uce-adminbar-workspace')
             .appendTo(this.element);
         var customizeWorkspaceButton = $('<li>')
             .addClass('uce-adminbar-button')
@@ -120,8 +127,12 @@ $.widget("ui.adminbar", {
             .text('Valid')
             .appendTo(validButton);
 
+        /**
+         * Close meeting tab
+         */
         var closeMeeting = $('<div>')
             .addClass('uce-adminbar-content')
+            .addClass('uce-adminbar-meeting')
             .appendTo(this.element);
         var closeMeetingButton = $('<li>')
             .addClass('uce-adminbar-button')
@@ -130,6 +141,51 @@ $.widget("ui.adminbar", {
             })
             .appendTo(buttons);
 
+        var closeMeetingInfos = $('<div>')
+            .addClass('uce-adminbar-meeting-infos')
+            .appendTo(closeMeeting);
+
+        $('<p>')
+            .text("You are closing the meeting room, are you sure?")
+            .addClass('uce-adminbar-meeting-confirm')
+            .appendTo(closeMeetingInfos);
+
+        $('<p>')
+            .text("Coming soon: possibility to archive and replay your meeting.")
+            .addClass('uce-adminbar-meeting-comment')
+            .appendTo(closeMeetingInfos);
+
+        $('<span>')
+            .addClass('uce-adminbar-button')
+            .button({
+                label: "Close the meeting",
+            })
+            .click(function() {
+                that.options.uceclient.time.get(function(err, time, xhr) {
+                    that.options.ucemeeting.get(function(err, meeting, xhr) {
+                        meeting.end_date = time;
+                        that.options.ucemeeting
+                            .update(meeting.start_date,
+                                    meeting.end_date,
+                                    meeting.metadata,
+                                    function(err, result, xhr) {
+                                        that.options.ucemeeting.push("admin.meeting.close", {});
+                                    });
+                    })
+                });
+            })
+            .appendTo(closeMeeting);
+
+        $('<span>')
+            .addClass('uce-adminbar-button')
+            .button({
+                label: "Continue the meeting",
+            })
+            .appendTo(closeMeeting);
+
+        /**
+         * Infos tab
+         */
         var infos = $('<div>')
             .addClass('uce-adminbar-content')
             .appendTo(this.element);
