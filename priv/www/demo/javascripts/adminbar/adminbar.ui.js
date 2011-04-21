@@ -113,38 +113,35 @@ $.widget("ui.adminbar", {
         });
         carouselList.jcarousel({scroll: 1});
 
-        var cancelButton = $('<a>')
-                .attr('href', '#')
-                .attr('class', 'uce-adminbar-cancel-button')
-                .addClass('ui-button')
-                .addClass('ui-button-text-only')
-                .click(function() {
-                        that.cancelSelectedWidgets();
-                        return false;
-                       })
-                .appendTo(carousel);
-        $('<span>')
-            .addClass('ui-button-text')
-            .text('Cancel')
-            .appendTo(cancelButton);
+        var infos = $('<p>')
+            .addClass('uce-adminbar-workspace-infos')
+            .text("These changes affect everyone's view of the room.")
+            .appendTo(customizeWorkspace);
 
-        var validButton = $('<a>')
-                .attr('href', '#')
-                .attr('class', 'uce-adminbar-valid-button')
-                .addClass('ui-button')
-                .addClass('ui-button-text-only')
-                .click(function() {
-                    if (that._selectedWidgets.length>0) {
-                        that.options.ucemeeting.push("admin.meeting.widgets.add", {"widgets": that._selectedWidgets.toString()});
-                        that._selectedWidgets = [];
-                    }
-                    return false;
-                    })
-                .appendTo(carousel);
-        $('<span>')
-            .addClass('ui-button-text')
-            .text('Valid')
-            .appendTo(validButton);
+        var validButton = $('<span>')
+            .addClass('uce-adminbar-valid-button')
+            .button({
+                label: 'Valid'
+            })
+            .click(function() {
+                if (that._selectedWidgets.length>0) {
+                    that.options.ucemeeting.push("admin.meeting.widgets.add", {"widgets": that._selectedWidgets.toString()});
+                    that._selectedWidgets = [];
+                }
+                return false;
+            })
+            .appendTo(customizeWorkspace);
+
+        var cancelButton = $('<span>')
+            .addClass('uce-adminbar-cancel-button')
+            .button({
+                label: 'Cancel'
+            })
+            .click(function() {
+                that.cancelSelectedWidgets();
+                return false;
+            })
+            .appendTo(customizeWorkspace);
 
         /**
          * Close meeting tab

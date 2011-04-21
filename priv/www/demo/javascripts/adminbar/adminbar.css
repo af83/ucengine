@@ -64,9 +64,14 @@
     display: block;
 }
 
+.uce-adminbar .uce-adminbar-workspace {
+    height: 150px;
+}
+
 .uce-adminbar .uce-adminbar-carousel {
     width: auto;
     clear: both;
+    float: left;
 }
 
 .uce-adminbar .uce-adminbar-carousel li {
@@ -97,22 +102,21 @@
     margin-left: 6px;
 }
 
-.uce-adminbar-cancel-button {
-    float: left;
-    margin-left: 780px;
-    margin-top: -30px;
-    color: #000000;
-    font-weight: bold;
-    background: #C6C6C6;
+.uce-adminbar .uce-adminbar-workspace-infos {
+    float: right;
+    width: 173px;
 }
 
-.uce-adminbar-valid-button {
-    float: left;
-    margin-left: 852px;
-    margin-top: -30px;
-    color: #000000;
-    font-weight: bold;
-    background: #C6C6C6;
+.uce-adminbar .uce-adminbar-cancel-button {
+    margin-top: 57px;
+    width: 80px;
+    float: right;
+}
+
+.uce-adminbar .uce-adminbar-valid-button {
+    margin-top: 57px;
+    width: 80px;
+    float: right;
 }
 
 .uce-adminbar .uce-adminbar-meeting {

@@ -21,14 +21,14 @@ module("uce.adminbar", {
     }});
 
 test("add widget1 by click on carousel", function () {
-   $('a.uce-adminbar-widget-widget1-link').click();
-   equals($('#adminbar').adminbar('getSelectedWidgets').length, 1); 
+   $('.uce-adminbar-widget-widget1-link').click();
+   equals($('#adminbar').adminbar('getSelectedWidgets').length, 1);
 });
 
 test("add widget1 by click on carousel and cancel", function () {
-   $('a.uce-adminbar-widget-widget1-link').click();
-   equals($('#adminbar').adminbar('getSelectedWidgets').length, 1); 
-   $('a.uce-adminbar-cancel-button').click();
+   $('.uce-adminbar-widget-widget1-link').click();
+   equals($('#adminbar').adminbar('getSelectedWidgets').length, 1);
+   $('.uce-adminbar-cancel-button').click();
    equals($('#adminbar').adminbar('getSelectedWidgets').length, 0);
 });
 
