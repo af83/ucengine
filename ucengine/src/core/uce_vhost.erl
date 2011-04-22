@@ -92,7 +92,9 @@ setup_roles(Domain) ->
 
 setup_role(_, undefined) ->
     ok;
-setup_role(Domain, [{Name, ConfigACL}]) ->
+setup_role(_, []) ->
+    ok;
+setup_role(Domain, [{Name, ConfigACL}|Tail]) ->
     ACL = lists:map(fun({Action, Object, Conditions}) ->
                             #uce_access{action=Action,
                                         object=Object,
@@ -101,10 +103,10 @@ setup_role(Domain, [{Name, ConfigACL}]) ->
                     ConfigACL),
     case catch uce_role:add(Domain, #uce_role{id={Name, Domain}, acl=ACL}) of
         {ok, created} ->
-            ok;
+            setup_role(Domain, Tail);
         {error, conflict} ->
             uce_role:update(Domain, #uce_role{id={Name, Domain}, acl=ACL}),
-            ok;
+            setup_role(Domain, Tail);
         {error, Reason} ->
             throw({error, Reason})
     end.
