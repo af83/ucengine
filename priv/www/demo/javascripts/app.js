@@ -514,6 +514,7 @@ $.sammy("#meeting", function() {
         } else {
 
             $('#adminbar').adminbar({ucemeeting: meeting,
+                                     uceclient: client,
                                      widgets: {
                                          'chat': {
                                             title: 'Chat',
