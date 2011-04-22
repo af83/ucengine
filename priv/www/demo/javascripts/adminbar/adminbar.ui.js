@@ -257,6 +257,7 @@ $.widget("ui.adminbar", {
 
     addSelectedWidget: function(widgetId) {
         $('#' + widgetId).show();
+        $('#' + widgetId + "-dock").show();
         this._selectedWidgets.push(widgetId);
     },
 
@@ -267,6 +268,7 @@ $.widget("ui.adminbar", {
     cancelSelectedWidgets: function() {
         $.each(this._selectedWidgets, function(index, widgetId) {
             $('#' + widgetId).hide();
+            $('#' + widgetId + "-dock").hide();
             $('a.uce-adminbar-widget-' + widgetId + '-link').show()
                                                             .addClass("uce-adminbar-widget-hidden")
                                                             .parent().removeClass("uce-adminbar-widget-visible");

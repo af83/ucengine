@@ -312,7 +312,7 @@ $.sammy("#meeting", function() {
                     });
 
             var widget = $(id);
-            var widgetDock = $(id+"-dock");
+            var widgetDock = $(options.dock);
 
             function expand() {
                 widget.detach();
@@ -582,6 +582,9 @@ $.sammy("#meeting", function() {
             $.each(widgets, function(index, widgetId) {
                $('#' + widgetId).show();
                $('#' + widgetId + '-dock').show(); 
+               if ($('#adminbar').is(':visible')) {
+                    $('#adminbar').adminbar('hideAddWidgetLink', widgetId);
+               }
             });  
         });
     });
