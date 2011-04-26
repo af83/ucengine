@@ -106,7 +106,22 @@ $.uce.widget("information", {
                 .click(function () {
                     $(this).text(value);
                 })
-                .editable({onSubmit: function(content) {
+                .editable({onEdit: function() {
+                    var $this = this;
+                    $this.bind('keyup', function(e) {
+                        if (e.keyCode == 13) { // ENTER key
+                            // simulate blur event to save change
+                            $this.trigger('blur');
+                        }
+                        if (e.keyCode == 27) { // ECHAP key
+                            // holy hack, current options are saved by the plugin
+                            var opts = $this.data('editable.options');
+                            opts.toNonEditable($this, false);
+                            e.preventDefault();
+                        }
+                    })
+                },
+                onSubmit: function(content) {
                     that.options.ucemeeting.get(function(err, meeting, xhr) {
                         meeting.metadata[name] = content.current;
                         that.options.ucemeeting
@@ -115,7 +130,7 @@ $.uce.widget("information", {
                                     meeting.metadata)
                     });
                     that._updateFields();
-            }});
+                }});
         }
         return (field);
     },

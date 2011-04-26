@@ -369,7 +369,22 @@ $.uce.widget("management", {
                     }
                 }
             } else {
-                userField.editable({onSubmit: function(content) {
+                userField.editable({onEdit: function() {
+                    var $this = this;
+                    $this.bind('keyup', function(e) {
+                        if (e.keyCode == 13) { // ENTER key
+                            // simulate blur event to save change
+                            $this.trigger('blur');
+                        }
+                        if (e.keyCode == 27) { // ECHAP key
+                            // holy hack, current options are saved by the plugin
+                            var opts = $this.data('editable.options');
+                            opts.toNonEditable($this, false);
+                            e.preventDefault();
+                        }
+                    })
+                },
+                onSubmit: function(content) {
                     if (content.current == content.previous) {
                         return;
                     }
