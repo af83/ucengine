@@ -91,21 +91,15 @@ $.uce.widget("management", {
             .appendTo(this._invite);
 
         if (window.ZeroClipboard) {
-            this._clipUrl = new ZeroClipboard.Client();
-            this._clipUrl.setText('');
-            this._clipUrl.addEventListener( 'mouseDown', function(client) {
-                that._clipUrl.setText(that._inviteUrl.val());
-            });
-
-            this._clipUrl.glue(this._copyUrl.get(0));
-
-            this._clipCode = new ZeroClipboard.Client();
-            this._clipCode.setText('');
-            this._clipCode.addEventListener( 'mouseDown', function(client) {
-                that._clipCode.setText(that._accessCode.val());
-            });
-
-            this._clipCode.glue(this._copyCode.get(0));
+            function setupZeroClipBoard(elem, text) {
+                var client = new ZeroClipboard.Client();
+                client.setText(text);
+                client.glue(elem);
+                client.setHandCursor(true);
+                return client;
+            }
+            this._clipUrl = setupZeroClipBoard(this._copyUrl.get(0), this._inviteUrl.val());
+            this._clipCode = setupZeroClipBoard(this._copyCode.get(0), this._accessCode.val());
         }
 
         this._state = {};

@@ -89,6 +89,7 @@
     padding-right: 47px;
     float: right;
     background:transparent url(images/next.png) no-repeat scroll 42px 0px;
+    cursor: pointer;
 }
 
 
@@ -101,6 +102,7 @@
     padding-left: 35px;
     float: left;
     background:transparent url(images/back.png) no-repeat scroll 0px;
+    cursor: pointer;
 }
 
 .ui-management .ui-management-invite {
