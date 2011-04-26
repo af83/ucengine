@@ -493,7 +493,7 @@ section > .ui-widget {
 .ui-widget .ui-widget-header-title {
     font: bold 23px Helvetica;
     color: #424242;
-    max-width: 60%;
+    max-width: 75%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -505,12 +505,12 @@ section > .ui-widget {
 }
 
 .ui-widget .ui-widget-header-left > * {
-    margin-right: 1em;
+    margin-right: 0.3em;
 }
 
 .ui-widget .ui-widget-header-title {
     float: left;
-    margin-left: 1em;
+    margin-left: 0.3em;
 }
 
 .ui-widget .ui-widget-header-right {
