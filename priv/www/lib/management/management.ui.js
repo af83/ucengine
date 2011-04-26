@@ -365,6 +365,8 @@ $.uce.widget("management", {
             } else {
                 userField.editable({onEdit: function() {
                     var $this = this;
+                    // select input
+                    $this.find('input').get(0).select();
                     $this.bind('keyup', function(e) {
                         if (e.keyCode == 13) { // ENTER key
                             // simulate blur event to save change
