@@ -60,7 +60,7 @@ $.uce.widget("management", {
             })
             .appendTo(this._inviteHeader);
 
-        this._inviteHeader.append($('<h1>').text('Add users'))
+        this._inviteHeader.append($('<h1>').text('Invite users'))
 
         this._invite = $('<div>')
             .addClass('ui-management-invite')
