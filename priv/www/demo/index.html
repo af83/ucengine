@@ -7,7 +7,9 @@
         <link rel="Shortcut Icon" href="/images/favicon.ico" type="image/x-icon" />
         <link href="stylesheets/base.css" media="screen" rel="stylesheet" type="text/css" />
         <link href="stylesheets/app.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="stylesheets/carousel/carousel.css" media="screen" rel="stylesheet" type="text/css" />
         <link href="stylesheets/ui-lightness/jquery-ui-1.8.4.custom.css" media="screen" rel="stylesheet" type="text/css" />
+        <link href="javascripts/adminbar/adminbar.css" media="screen" rel="stylesheet" type="text/css" />
         <link href="../lib/timer/timer.css" media="screen" rel="stylesheet" type="text/css" />
         <link href="../lib/chat/chat.css" media="screen" rel="stylesheet" type="text/css" />
         <link href="../lib/management/management.css" media="screen" rel="stylesheet" type="text/css" />
@@ -42,9 +44,13 @@
 
         <script type="text/javascript" src="../lib/ZeroClipboard.js"></script>
 
+        <!-- Carousel for admin bar -->
+        <script type="text/javascript" src="javascripts/jquery.jcarousel.min.js"></script>
+
         <script type="text/javascript" src="../lib/uce.js"></script>
         <script type="text/javascript" src="../lib/ucewidget.js"></script>
         <script type="text/javascript" src="javascripts/app.js"></script>
+        <script type="text/javascript" src="javascripts/adminbar/adminbar.ui.js"></script>
         <script type="text/javascript" src="../lib/video/video.ui.js"></script>
         <script type="text/javascript" src="../lib/whiteboard/whiteboard.ui.js"></script>
         <script type="text/javascript" src="../lib/file_upload/file_upload.ui.js"></script>
@@ -79,15 +85,6 @@
                 <div class="frame"></div>
             </div>
         </header>
-
-        <nav>
-            <div class="page">
-                <ul>
-                    <li class="on"><a href="#/">Home</a></li>
-                    <li><a href="#/about">About</a></li>
-                </ul>
-            </div>
-        </nav>
 
         <div id="content"></div>
 

@@ -143,8 +143,11 @@ $.uce.widget("fileupload", {
                 var uploadButton = $('<a>').attr('href', '#')
                     .button({label: "Upload New File"})
 
-                var uploadContainer = $('<div>').append($('<p>').attr('class', 'ui-fileupload-add')
-                                                        .append(uploadButton)).appendTo(files);
+                var uploadContainer = $('<div>')
+                    .append($('<p>')
+                            .attr('class', 'ui-fileupload-add')
+                            .append(uploadButton))
+                    .appendTo(files);
                 new AjaxUpload(uploadContainer.find('a'), {
                     action: this.options.ucemeeting.getFileUploadUrl(),
                     name: 'content',
