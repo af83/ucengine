@@ -77,7 +77,6 @@ validate(Query, [{Name, Default, Types}|ParamsSpecList]) ->
             [convert(RawValue, Types)] ++ validate(Query, ParamsSpecList)
     end.
 
-
 call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
     case catch validate(Query, ParamsSpecList) of
         {error, Reason} ->
@@ -85,22 +84,17 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
         Params ->
             ?DEBUG("~p~n", [Params]),
             ?DEBUG("~p: call ~p:~p matching ~p with ~p~n", [Domain, Module, Function, Match, Params]),
-            case catch Module:Function(Domain, Match, Params, Arg) of
-                {error, Reason} ->
-                    ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Reason, Params]),
-                    json_helpers:error(Domain, Reason);
-                {'EXIT', {function_clause, [{Module, Function,_}|_]}} ->
-                    ?ERROR_MSG("~p: error: ~p:~p: function not found~n", [Domain, Module, Function]),
-                    json_helpers:error(Domain, not_found);
-                {'EXIT', Reason} ->
-                    ?ERROR_MSG("~p: error: ~p:~p: ~p~n", [Domain, Module, Function, Reason]),
-                    json_helpers:error(Domain, Reason);
+            try Module:Function(Domain, Match, Params, Arg) of
                 {streamcontent_from_pid, _, _} = Stream ->
                     cors_helpers:format_cors_headers(Domain) ++ [Stream];
                 Response when is_list(Response) ->
-                    Response;
-                Error ->
-                    ?ERROR_MSG("~p: error: ~p:~p: ~p~n", [Domain, Module, Function, Error]),
+                    Response
+            catch
+                {error, Reason} ->
+                    ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Reason, Params]),
+                    json_helpers:error(Domain, Reason);
+                E ->
+                    ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Params, E]),
                     json_helpers:unexpected_error(Domain)
             end
     end.
