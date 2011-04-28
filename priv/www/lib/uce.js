@@ -335,21 +335,19 @@
                             _start : function(p, callback) {
                                 var that = this;
                                 this.xhr = startLongPolling(p, function(err, result, xhr) {
-                                    try {
-                                        var events = result.result;
-                                        $.each(events, function(index, event) {
-                                            try {
-                                                callback(err, event, xhr);
-                                            } catch (e) {
-                                                // naive but it's better than nothing
-                                                if (window.console) console.error(e);
-                                            }
-                                        });
-                                        if (events.length > 0) {
-                                            p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                    // TODO: we must have a better error handling with a recovery function for instance
+                                    if (err || !result) throw err || "error on long polling";
+                                    var events = result.result;
+                                    $.each(events, function(index, event) {
+                                        try {
+                                            callback(err, event, xhr);
+                                        } catch (e) {
+                                            // naive but it's better than nothing
+                                            if (window.console) console.error(e);
                                         }
-                                    } catch (e) {
-                                        // do nothing
+                                    });
+                                    if (events.length > 0) {
+                                        p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
                                     }
                                     if (that.aborted === false && one_shot !== true) {
                                         that._start(p, callback);
