@@ -338,7 +338,12 @@
                                     try {
                                         var events = result.result;
                                         $.each(events, function(index, event) {
-                                            callback(err, event, xhr);
+                                            try {
+                                                callback(err, event, xhr);
+                                            } catch (e) {
+                                                // naive but it's better than nothing
+                                                if (window.console) console.error(e);
+                                            }
                                         });
                                         if (events.length > 0) {
                                             p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
