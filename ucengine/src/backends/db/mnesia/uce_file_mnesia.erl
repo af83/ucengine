@@ -33,7 +33,7 @@ init() ->
                               {type, set},
                               {attributes, record_info(fields, uce_file)}]) of
         {atomic, ok} -> ok;
-        {aborted, {already_exists, uce_meeting}} -> ok
+        {aborted, {already_exists, uce_file}} -> ok
     end.
 
 add(_Domain, #uce_file{} = File) ->
