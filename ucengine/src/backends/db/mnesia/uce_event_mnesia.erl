@@ -61,8 +61,8 @@ list(Location, From, [], Start, End, Parent) ->
 list(Location, From, Types, Start, End, Parent) ->
     {SelectLocation, ResultLocation} =
         case Location of
-            {"", _} ->
-                {'$3', '$3'};
+            {"", Domain} ->
+                {{'$3', Domain}, {{'$3', Domain}}};
             _ ->
                 {Location, {Location}}
         end,
