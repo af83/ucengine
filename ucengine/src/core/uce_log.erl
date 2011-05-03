@@ -20,19 +20,19 @@
 -export([debug/3, info/3, warning/3, error/3, critical/3]).
 
 debug(Format, ML, Args) ->
-    log(debug, info_msg, "DEBUG: ~p:~p: ", Format, ML, Args).
+    log(debug, Format, ML, Args).
 
 info(Format, ML, Args) ->
-    log(info, info_msg, "~p:~p: ", Format, ML, Args).
+    log(info, Format, ML, Args).
 
 warning(Format, ML, Args) ->
-    log(warning, warning_msg, "~p:~p: ", Format, ML, Args).
+    log(warning, Format, ML, Args).
 
 error(Format, ML, Args) ->
-    log(error, error_msg, "~p:~p: ", Format, ML, Args).
+    log(error, Format, ML, Args).
 
 critical(Format, ML, Args) ->
-    log(critical, critical_msg, "~p:~p: ", Format, ML, Args).
+    log(critical, Format, ML, Args).
 
 
 current_level(debug) ->
@@ -46,14 +46,12 @@ current_level(error) ->
 current_level(critical) ->
     5.
 
-log(Level, Fun, Pre, Format, ML, Args) ->
-    log(current_level(Level), current_level(config:get(log_level)), Fun, Pre, Format, ML, Args).
+log(Level, Format, ML, Args) ->
+    log(current_level(Level), current_level(config:get(log_level)), Format, ML, Args).
 
-log(Level, ConfigLevel, _Fun, _Pre, Format, [Module, Line], Args) when Level >= ConfigLevel ->
+log(Level, ConfigLevel, Format, [Module, Line], Args) when Level >= ConfigLevel ->
     uce_logger:log(Level, Module, Line, Format, Args);
-    %Level, Module, Line, Format, Args
-%%    error_logger:Fun(Pre ++ Format, [Module, Line] ++ Args);
-log(_Level, _Configlevel, _Fun, _Pre, _Format, [_Module, _Line], _Args) ->
+log(_Level, _Configlevel, _Format, [_Module, _Line], _Args) ->
     ok.
 
 -ifdef(TEST).
