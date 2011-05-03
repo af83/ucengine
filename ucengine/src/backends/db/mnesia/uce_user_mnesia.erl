@@ -79,11 +79,19 @@ list(Domain) ->
             throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) when is_list(Id) ->
-    case mnesia:dirty_match_object({uce_user, '_', Id, '_', '_', '_', '_'}) of
-        [] -> throw({error, not_found});
-        [Record] -> {ok, Record};
-        {aborted, _} -> throw({error, bad_parameters})
+get(Domain, Name) when is_list(Name) ->
+    case mnesia:dirty_match_object(#uce_user{id={'_', Domain},
+					     name=Name,
+					     auth='_',
+					     credential='_',
+					     metadata='_',
+					     roles='_'}) of
+        [] ->
+	    throw({error, not_found});
+        [Record] ->
+	    {ok, Record};
+        {aborted, _} ->
+	    throw({error, bad_parameters})
     end;
 get(_Domain, {_, _} = Id) ->
     case mnesia:dirty_read(uce_user, Id) of
