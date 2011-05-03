@@ -100,7 +100,7 @@ log_open(FileName, DateHour) ->
     {?MODULE, LogName, FD}.
 
 log_write({?MODULE, _Name, FD}, [Level, Module, Line, Format, Args]) ->
-    ok = file:write(FD, format_log(Level, Module, Line, Format, Args)).
+    ok = file:write(FD, lists:flatten(format_log(Level, Module, Line, Format, Args))).
 
 log_close({?MODULE, Name, FD}) ->
     io:format("~p: closing log file: ~p~n", [?MODULE, Name]),
@@ -120,8 +120,8 @@ maybe_rotate(State, Time) ->
 format_log(Level, Module, Line, Format, Args) ->
     Msg = io_lib:format(Format, Args),
     Time = fmtnow(),
-    io:format("~s ~p ~p ~p ~p ~n", [Time, Level, Module, Line, Msg]),
-    io_lib:format("~p ~p ~p ~p ~p ~n", [Time, Level, Module, Line, Msg]).
+    Lev = lists:nth(Level, ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
+    io_lib:format("~s ~s [~s:~w] ~s", [Time, Lev, Module, Line, Msg]).
 
 format_req(#wm_log_data{method=Method, 
                         headers=Headers, 
