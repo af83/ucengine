@@ -34,6 +34,7 @@ error(Format, ML, Args) ->
 critical(Format, ML, Args) ->
     log(critical, critical_msg, "~p:~p: ", Format, ML, Args).
 
+
 current_level(debug) ->
     1;
 current_level(info) ->
@@ -48,8 +49,10 @@ current_level(critical) ->
 log(Level, Fun, Pre, Format, ML, Args) ->
     log(current_level(Level), current_level(config:get(log_level)), Fun, Pre, Format, ML, Args).
 
-log(Level, ConfigLevel, Fun, Pre, Format, [Module, Line], Args) when Level >= ConfigLevel ->
-    error_logger:Fun(Pre ++ Format, [Module, Line] ++ Args);
+log(Level, ConfigLevel, _Fun, _Pre, Format, [Module, Line], Args) when Level >= ConfigLevel ->
+    uce_logger:log(Level, Module, Line, Format, Args);
+    %Level, Module, Line, Format, Args
+%%    error_logger:Fun(Pre ++ Format, [Module, Line] ++ Args);
 log(_Level, _Configlevel, _Fun, _Pre, _Format, [_Module, _Line], _Args) ->
     ok.
 

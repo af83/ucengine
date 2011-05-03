@@ -41,5 +41,8 @@ init(ConfigPath) ->
                   permanent, brutal_kill, worker, [?PUBSUB_MODULE]}],
     Vhost = [{uce_vhost_sup, {uce_vhost_sup, start_link, []},
               permanent, infinity, supervisor, [uce_vhost_sup]}],
+    Logger = [{uce_logger,
+            {uce_logger, start_link, ["/tmp"]},
+            permanent, brutal_kill, worker, [uce_logger]}],
     {ok, {{one_for_one, 10, 10},
-          Config ++ Routes ++ Timeout ++ PubSubSup ++ Vhost}}.
+          Config ++ Routes ++ Timeout ++ PubSubSup ++ Vhost ++ Logger}}.
