@@ -51,4 +51,5 @@ wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
                   end,
                   yaws_api:stream_chunk_end(Self)
           end),
-    {streamcontent, "application/json", <<>>}.
+    Timeout = (config:get(long_polling_timeout) + 1) * 1000,
+    {streamcontent_with_timeout, "application/json", <<>>, Timeout}.
