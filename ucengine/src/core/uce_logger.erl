@@ -22,21 +22,6 @@
 -export([init/1, handle_call/3, handle_cast/2, handle_info/2,
          terminate/2, code_change/3]).
 -export([refresh/0, log/5]).
-%-include("webmachine_logger.hrl").
-
--record(wm_log_data, 
-        {resource_module :: atom(),
-         start_time :: tuple(),
-         method :: atom(),
-         headers,
-         peer, 
-         path :: string(),
-         version,
-         response_code,
-         response_length,
-         end_time :: tuple(),
-         finish_time :: tuple(),
-         notes}).
 
 -record(state, {hourstamp, filename, handle}).
 
@@ -65,11 +50,6 @@ log(Level, Module, Line, Format, Args) ->
 
 handle_call(_Msg,_From,State) -> {noreply,State}.
 
-handle_cast({log_access, LogData}, State) ->
-    NewState = maybe_rotate(State, now()),
-    Msg = format_req(LogData),
-    log_write(NewState#state.handle, Msg),
-    {noreply, NewState};
 handle_cast({log, [Level, Module, Line, Format, Args]}, State) ->
     NewState = maybe_rotate(State, now()),
     Msg = [Level, Module, Line, Format, Args],
@@ -123,33 +103,6 @@ format_log(Level, Module, Line, Format, Args) ->
     Lev = lists:nth(Level, ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
     io_lib:format("~s ~s [~s:~w] ~s", [Time, Lev, Module, Line, Msg]).
 
-format_req(#wm_log_data{method=Method, 
-                        headers=Headers, 
-                        peer=Peer, 
-                        path=Path,
-                        version=Version,
-                        response_code=ResponseCode,
-                        response_length=ResponseLength}) ->
-    User = "-",
-    Time = fmtnow(),
-    Status = integer_to_list(ResponseCode),
-    Length = integer_to_list(ResponseLength),
-    Referer = 
-        case mochiweb_headers:get_value("Referer", Headers) of
-            undefined -> "";
-            R -> R
-        end,
-    UserAgent = 
-        case mochiweb_headers:get_value("User-Agent", Headers) of
-            undefined -> "";
-            U -> U
-        end,
-    fmt_alog(Time, Peer, User, fmt_method(Method), Path, Version,
-             Status, Length, Referer, UserAgent).
-
-fmt_method(M) when is_atom(M) -> atom_to_list(M).
-
-
 %% Seek backwards to the last valid log entry
 fix_log(_FD, 0) ->
     ok;
@@ -192,13 +145,6 @@ suffix({Y, M, D, H}) ->
     HS = zeropad(H, 2),
     lists:flatten([$., YS, $_, MS, $_, DS, $_, HS]).
 
-fmt_alog(Time, Ip, User, Method, Path, {VM,Vm},
-         Status,  Length, Referrer, UserAgent) ->
-    [fmt_ip(Ip), " - ", User, [$\s], Time, [$\s, $"], Method, " ", Path,
-     " HTTP/", integer_to_list(VM), ".", integer_to_list(Vm), [$",$\s],
-     Status, [$\s], Length, [$\s,$"], Referrer,
-     [$",$\s,$"], UserAgent, [$",$\n]].
-
 month(1) ->
     "Jan";
 month(2) ->
@@ -235,13 +181,6 @@ zone(Val) when Val < 0 ->
     io_lib:format("-~4..0w", [trunc(abs(Val))]);
 zone(Val) when Val >= 0 ->
     io_lib:format("+~4..0w", [trunc(abs(Val))]).
-
-fmt_ip(IP) when is_tuple(IP) ->
-    inet_parse:ntoa(IP);
-fmt_ip(undefined) ->
-    "0.0.0.0";
-fmt_ip(HostName) ->
-    HostName.
 
 fmtnow() ->
     {{Year, Month, Date}, {Hour, Min, Sec}} = calendar:local_time(),
