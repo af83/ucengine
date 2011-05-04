@@ -29,7 +29,7 @@ alog_path(BaseDir) ->
     filename:join(BaseDir, "ucengine.log").
 
 start_link(BaseDir) ->
-    error_logger:add_report_handler(uce_log_event,[]),
+    error_logger:add_report_handler(uce_log_h,[]),
     gen_server:start_link({local, ?MODULE}, ?MODULE, [BaseDir], []).
 
 init([BaseDir]) ->

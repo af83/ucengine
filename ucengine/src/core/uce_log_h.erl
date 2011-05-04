@@ -1,4 +1,4 @@
--module(uce_log_event).
+-module(uce_log_h).
 -author('Mathieu Lecarme mathieu.lecarme@af83.com').
 
 -export([init/1, terminate/2, handle_event/2, handle_info/2, handle_call/2]).
