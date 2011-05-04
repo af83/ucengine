@@ -79,7 +79,7 @@
                     if (err) {
                         callback(err, result, xhr);
                     } else {
-                        uid = result.result.uid;
+                        var uid = result.result.uid;
                         var p = {"user": uid, "id": result.result.sid, "name": name};
                         that.attachPresence(p);
                         callback(err, p, xhr);
@@ -213,9 +213,9 @@
                         return this;
                     },
                     update: function(start, end, metadata, callback) {
-                        params = {'metadata': metadata,
-                                  'uid': _presence.user,
-                                  'sid': _presence.id};
+                        var params = {'metadata': metadata,
+                                      'uid': _presence.user,
+                                      'sid': _presence.id};
                         if (start) {
                             params.start = start;
                         }
