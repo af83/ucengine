@@ -18,12 +18,12 @@ $.uce.widget("whiteboard", {
         "whiteboard.drawing.clear" : 'handleWhiteboardEvent'
     },
     _create: function() {
-        /* create dock */
         var that = this;
 
         // Default colors
         this.options.colors = [this._randomColor(), this._randomColor(), '#ffffff', '#000000'];
 
+        /* create dock */
         if (this.options.dock) {
             var dock = $('<a>')
                 .attr('class', 'ui-dock-button')
@@ -42,7 +42,7 @@ $.uce.widget("whiteboard", {
         }
 
         this.element.addClass('ui-widget ui-whiteboard');
-        this._addHeader(this.options.title, this.options.buttons);
+        this.addHeader();
 
         this._content = $("<div>").addClass("ui-widget-content").appendTo(this.element);
 

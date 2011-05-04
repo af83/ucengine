@@ -25,7 +25,7 @@ $.uce.widget("management", {
         var that = this;
 
         this.element.addClass('ui-management ui-widget');
-        this._addHeader(this.options.title, this.options.buttons);
+        this.addHeader();
 
         this._content = $('<div>')
             .attr('class', 'ui-widget-content')

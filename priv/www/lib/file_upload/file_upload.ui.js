@@ -18,7 +18,7 @@ $.uce.widget("fileupload", {
         var that = this;
 
         this.element.addClass('ui-widget ui-fileupload');
-        this._addHeader(this.options.title, this.options.buttons);
+        this.addHeader();
 
         var content = $('<div>')
             .attr('class', 'ui-widget-content')

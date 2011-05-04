@@ -18,7 +18,7 @@ $.uce.widget("filesharing", {
         var that = this;
 
         this.element.addClass('ui-widget ui-filesharing');
-        this._addHeader(this.options.title, this.options.buttons);
+        this.addHeader();
 
         var content = $('<div>').attr('class', 'ui-widget-content').appendTo(this.element);
 

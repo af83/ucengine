@@ -19,7 +19,7 @@ $.uce.widget("information", {
         var that = this;
 
         this.element.addClass('ui-widget ui-information');
-        this._addHeader(this.options.title, this.options.buttons);
+        this.addHeader();
 
         this._content = $('<div>')
             .attr('class', 'ui-widget-content')
@@ -145,9 +145,8 @@ $.uce.widget("information", {
         });
     },
 
-    _setOption: function(key, value) {
-        $.Widget.prototype._setOption.apply(this, arguments);
-    },
+    reduce: function() {},
+    expand: function() {},
 
     _handleMeetingUpdateEvent: function(event) {
         this._updateInformations();

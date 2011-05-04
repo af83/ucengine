@@ -128,9 +128,9 @@ $.uce.widget("chat", {
         /* create space for all hashtags */
         this._addHashtag('all');
 
-        var rightButtons = [flags].concat(this.options.buttons.right || []);
-        this._addHeader(this.options.title, {left: this.options.buttons.left,
-                                             right: rightButtons});
+        this.options.buttons.right = [flags].concat(this.options.buttons.right || []);
+        this.options.buttons.left = [];
+        this.addHeader();
 
         /* set highlight to default flag */
         this.element.find('.ui-chat-flag.ui-chat-lang-' + this.options.lang)
@@ -169,6 +169,12 @@ $.uce.widget("chat", {
             });
         }
 
+        // Turn widget into initial mode
+        if (this.options.mode == "reduced") {
+            this.reduce();
+        } else if (this.options.mode == "expanded") {
+            this.expand();
+        }
     },
 
     clear: function() {

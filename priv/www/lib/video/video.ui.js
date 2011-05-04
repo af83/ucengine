@@ -73,9 +73,8 @@ $.uce.widget("video", {
         this._button = $('<a>').attr('href', '#')
             .button({label: 'Publish'})
             .click($.proxy(this._onClickButton, this));
-        var rightButtons = [this._button].concat(this.options.buttons.right);
-        this._addHeader(this.options.title, {left: this.options.buttons.left,
-                                             right: rightButtons});
+        this.options.buttons.right = [this._button].concat(this.options.buttons.right);
+        this.addHeader();
         this._content = $('<div>').addClass('ui-widget-content').appendTo(this.element);
 
         if (!this.options.width && !this.options.height) {
@@ -98,7 +97,7 @@ $.uce.widget("video", {
         }
         else if (!this.options.token) {
             this._button.button("disable");
-        } 
+        }
     },
     _onClickButton: function(e) {
         e.preventDefault();
