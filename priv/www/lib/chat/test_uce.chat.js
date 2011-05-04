@@ -42,7 +42,7 @@ Factories.deleteRosterEvent = function(from) {
 }
 
 Factories.newChatEvent = function(from, text, to) {
-    event = {
+    var event = {
         type: "chat.message.new",
         from: from,
         datetime: 42424242424242,
