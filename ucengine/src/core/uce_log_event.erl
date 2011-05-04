@@ -3,19 +3,14 @@
 
 -export([init/1, terminate/2, handle_event/2, handle_info/2, handle_call/2]).
 
--record(state, {fd, idx}).
-
 init(_) ->
-    {ok, #state{}}.
+    {ok, []}.
 terminate(_, State) ->
     State.
 % handle_event({error, Gleader, {Pid, Format, Data}}, _Data2) ->
 %     uce_logger:log(4, error_logger, 0, "[~w ~w] " ++ Format, [Gleader, Pid] ++ Data);
 % handle_event({error_report, Gleader, {Pid, std_error, Report}}, _Data) ->
 %     uce_logger:log(4, error_logger, 0, "[~w ~w] ~s" , [Gleader, Pid, fmt_report(Report)]);
-handle_event(Event, State) ->
-    uce_logger:log(4, error_logger, 0, "Event received: ~p" , [Event]),
-    {ok, State}.
     
 % handle_event({error_report, Gleader, {Pid, Type, Report}}, Data) ->
 %     ok;
@@ -25,12 +20,17 @@ handle_event(Event, State) ->
 %     ok;
 % handle_event({warning_report, Gleader, {Pid, Type, Report}}, Data) ->
 %     ok;
-% handle_event({info_msg, Gleader, {Pid, Format, Data}}, Data) ->0
-%     ok;
-% handle_event({info_report, Gleader, {Pid, std_info, Report}}, Data) ->
-%     ok;
-% handle_event({info_report, Gleader, {Pid, Type, Report}}, Data) ->
-%     ok.
+handle_event({info_msg, Gleader, {Pid, Format, Data}}, State) ->
+    uce_logger:log(2, error_logger, 0, "[~w ~w] " ++ Format, [Gleader, Pid] ++ Data),
+    {ok, State};
+% handle_event({info_report, Gleader, {Pid, std_info, Report}}, State) ->
+%     {ok, State};
+% handle_event({info_report, Gleader, {Pid, Type, Report}}, State) ->
+%     {ok, State};
+handle_event(Event, State) ->
+    uce_logger:log(4, error_logger, 0, "Event received: ~p" , [Event]),
+    {ok, State}.
+
 
 handle_info(_, State) ->
     {ok, State}.
