@@ -1,6 +1,7 @@
 $.uce.widget("chat", {
     options: {
         ucemeeting: null,
+        uceclient: null,
         title: "Conversations",
         lang: "fr",
         langs: ["fr", "en", "it"],

@@ -1,6 +1,7 @@
 $.uce.widget("fileupload", {
     options: {
         ucemeeting : null,
+        uceclient  : null,
         upload     : true,
         title      : "Files",
         mode       : "expanded"
