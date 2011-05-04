@@ -102,7 +102,7 @@ format_log(Level, Module, Line, Format, Args) ->
     Msg = io_lib:format(Format, Args),
     Time = fmtnow(),
     Lev = lists:nth(Level, ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]),
-    io_lib:format("~s ~s [~s:~w] ~s", [Time, Lev, Module, Line, Msg]).
+    io_lib:format("~s ~s [~s:~w] ~s~n", [Time, Lev, Module, Line, Msg]).
 
 %% Seek backwards to the last valid log entry
 fix_log(_FD, 0) ->
