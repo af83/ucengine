@@ -25,16 +25,17 @@
 
 -record(state, {hourstamp, filename, handle}).
 
-alog_path(BaseDir) ->
+alog_path() ->
+    BaseDir = config:get(log_dir),
     filename:join(BaseDir, "ucengine.log").
 
-start_link(BaseDir) ->
+start_link(_) ->
     error_logger:add_report_handler(uce_log_h,[]),
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [BaseDir], []).
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [""], []).
 
-init([BaseDir]) ->
+init(_) ->
     defer_refresh(),
-    FileName = alog_path(BaseDir),
+    FileName = alog_path(),
     DateHour = datehour(),
     filelib:ensure_dir(FileName),
     Handle = log_open(FileName, DateHour),
