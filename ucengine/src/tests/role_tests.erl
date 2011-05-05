@@ -39,7 +39,10 @@ role_test_() ->
                ?_test(test_add_access_unauthorized(BaseUrl, Ugly)),
                ?_test(test_delete_access(BaseUrl, Root)),
                ?_test(test_delete_access_not_found(BaseUrl, Root)),
-               ?_test(test_delete_access_unauthorized(BaseUrl, Ugly))
+               ?_test(test_delete_access_unauthorized(BaseUrl, Ugly)),
+               ?_test(test_list_access(BaseUrl, Root)),
+               ?_test(test_list_access_not_found(BaseUrl, Root)),
+               ?_test(test_list_access_unauthorized(BaseUrl, Ugly))
               ]
       end
     }.
@@ -136,3 +139,36 @@ test_delete_access_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
               {"conditions[a]", "b"}],
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:delete(BaseUrl, "/role/default/acl/testaction/testobject", Params).
+
+test_list_access(BaseUrl, {RootUid, RootSid}) ->
+    ParamsAdd = [{"uid", RootUid},
+		 {"sid", RootSid},
+		 {"object", "testobject"},
+		 {"action", "testaction"},
+		 {"conditions[a]", "b"}],
+    {struct, [{"result", "ok"}]} =
+        tests_utils:post(BaseUrl, "/role/default/acl", ParamsAdd),
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct, [{"result", {array, [{struct, [{"action", "add"},
+					    {"object", "presence"},
+					    {"conditions", {struct, []}}]},
+				  {struct, [{"action", "delete"},
+					    {"object", "presence"},
+					    {"conditions", {struct, []}}]},
+				  {struct, [{"action", "testaction"},
+					    {"object", "testobject"},
+					    {"conditions", {struct, [{"a", "b"}]}}]}]}}]} =
+        tests_utils:get(BaseUrl, "/role/default/acl", Params).
+
+test_list_access_not_found(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct, [{"error", "not_found"}]} =
+        tests_utils:get(BaseUrl, "/role/unexistent_role/acl", Params).
+
+test_list_access_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
+    Params = [{"uid", UglyUid},
+              {"sid", UglySid}],
+    {struct, [{"error", "unauthorized"}]} =
+        tests_utils:get(BaseUrl, "/role/default/acl", Params).
