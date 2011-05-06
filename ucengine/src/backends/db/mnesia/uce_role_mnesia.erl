@@ -31,16 +31,17 @@
 -include("uce.hrl").
 
 init() ->
-    catch mnesia:create_table(uce_role,
-                              [{disc_copies, [node()]},
-                               {type, set},
-                               {attributes, record_info(fields, uce_role)}]).
+    case mnesia:create_table(uce_role,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_role)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_role}} -> ok
+    end.
 
 add(_Domain, #uce_role{}=Role) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Role)
-                            end) of
-        {atomic, _} ->
+    case mnesia:dirty_write(Role) of
+        ok ->
             {ok, created};
         {aborted, Reason} ->
             {error, Reason}
@@ -67,12 +68,10 @@ delete(_Domain, Id) ->
     end.
 
 get(_Domain, Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_role, Id)
-                            end) of
-        {atomic, [Record]} ->
+    case mnesia:dirty_read(uce_role, Id) of
+        [Record] ->
             {ok, Record};
-        {atomic, _} ->
+        [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})

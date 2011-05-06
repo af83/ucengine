@@ -1,4 +1,11 @@
-$.uce.widget("management", {
+/**
+ * Management Plugin
+ * Depends:
+ *  * ucewidget.js
+ *  * jQueryUI
+ */
+$.uce.Management = function() {}
+$.uce.Management.prototype = {
     options: {
         ucemeeting: null,
         uceclient: null,
@@ -25,7 +32,7 @@ $.uce.widget("management", {
         var that = this;
 
         this.element.addClass('ui-management ui-widget');
-        this._addHeader(this.options.title, this.options.buttons);
+        this.addHeader();
 
         this._content = $('<div>')
             .attr('class', 'ui-widget-content')
@@ -60,7 +67,7 @@ $.uce.widget("management", {
             })
             .appendTo(this._inviteHeader);
 
-        this._inviteHeader.append($('<h1>').text('Add users'))
+        this._inviteHeader.append($('<h1>').text('Invite users'))
 
         this._invite = $('<div>')
             .addClass('ui-management-invite')
@@ -91,21 +98,15 @@ $.uce.widget("management", {
             .appendTo(this._invite);
 
         if (window.ZeroClipboard) {
-            this._clipUrl = new ZeroClipboard.Client();
-            this._clipUrl.setText('');
-            this._clipUrl.addEventListener( 'mouseDown', function(client) {
-                that._clipUrl.setText(that._inviteUrl.val());
-            });
-
-            this._clipUrl.glue(this._copyUrl.get(0));
-
-            this._clipCode = new ZeroClipboard.Client();
-            this._clipCode.setText('');
-            this._clipCode.addEventListener( 'mouseDown', function(client) {
-                that._clipCode.setText(that._accessCode.val());
-            });
-
-            this._clipCode.glue(this._copyCode.get(0));
+            function setupZeroClipBoard(elem, text) {
+                var client = new ZeroClipboard.Client();
+                client.setText(text);
+                client.glue(elem);
+                client.setHandCursor(true);
+                return client;
+            }
+            this._clipUrl = setupZeroClipBoard(this._copyUrl.get(0), this._inviteUrl.val());
+            this._clipCode = setupZeroClipBoard(this._copyCode.get(0), this._accessCode.val());
         }
 
         this._state = {};
@@ -114,55 +115,16 @@ $.uce.widget("management", {
         this._state.me = {};
         this._state.anonCounter = 1;
 
-        /* create dock */
-        if (this.options.dock) {
-            this._dock = $('<a>')
-                .attr('class', 'ui-dock-button')
-                .attr('href', '#')
-                .attr('title', this.options.title)
-                .button({
-                    text: false,
-                    icons: {primary: "ui-icon-note"}
-                }).click(function() {
-                    that.element.effect('bounce');
-                    $(window).scrollTop(that.element.offset().top);
-                    return false;
-                });
-            this._dock.addClass('ui-management-dock');
-            this._dock.appendTo(this.options.dock);
-
-            this._startCount = new Date().getTime();
-            this._newCount = 0;
-
-            this._new = $('<div>')
-                .attr('class', 'ui-widget-dock-notification')
-                .text(this._newCount)
-                .appendTo(this._dock);
-
-            this._updateNotifications();
-
-            this._content.bind('mouseover', function() {
-                that._newCount = 0;
-                that._updateNotifications();
-            });
-        }
-
         this._showRoster();
     },
 
-    clear: function() {
-    },
-
-    reduce: function() {
-    },
-
-    expand: function() {
-    },
+    clear: function() {},
+    reduce: function() {},
+    expand: function() {},
 
     /**
      * Event callbacks
      */
-
     _handleJoin: function(event) {
         if (this._state.users[event.from]) {
             return;
@@ -369,7 +331,24 @@ $.uce.widget("management", {
                     }
                 }
             } else {
-                userField.editable({onSubmit: function(content) {
+                userField.editable({onEdit: function() {
+                    var $this = this;
+                    // select input
+                    $this.find('input').get(0).select();
+                    $this.bind('keyup', function(e) {
+                        if (e.keyCode == 13) { // ENTER key
+                            // simulate blur event to save change
+                            $this.trigger('blur');
+                        }
+                        if (e.keyCode == 27) { // ECHAP key
+                            // holy hack, current options are saved by the plugin
+                            var opts = $this.data('editable.options');
+                            opts.toNonEditable($this, false);
+                            e.preventDefault();
+                        }
+                    })
+                },
+                onSubmit: function(content) {
                     if (content.current == content.previous) {
                         return;
                     }
@@ -436,23 +415,10 @@ $.uce.widget("management", {
         return (button);
     },
 
-    _updateNotifications: function() {
-        this._new.text(this._newCount);
-        if (this._newCount == 0) {
-            this._new.hide();
-        } else {
-            this._new.show();
-        }
-    },
-
-    setOption: function(key, value) {
-        $.Widget.prototype._setOption.apply(this, arguments);
-    },
-
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-management ui-widget');
-        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-});
+};
+$.uce.widget("management", new $.uce.Management());

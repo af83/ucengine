@@ -5,7 +5,7 @@ module("uce.video", {teardown: function() {
 test("create basic html, and destroy", function() {
     $("#video").video();
     equals($("#video .ui-widget-header .ui-widget-header-title").text(), 'Video', 'the widget has a title');
-    equals($("#video .ui-widget-header .ui-button").size(), 1, 'the widget has a publish button');
+    equals($("#video .ui-widget-header .ui-button.ui-video-button-publish").size(), 1, 'the widget has a publish button');
     equals($("#video .ui-widget-content embed").size(), 1, 'has embed');
     ok($("#video").hasClass('ui-widget'), 'has class ui-widget');
     ok($("#video").hasClass('ui-video'), 'has class ui-video');
@@ -94,7 +94,7 @@ jackTest("desactivate/activate the publish button when a stream start and stop",
     $("#video").video({ucemeeting: ucemeeting});
     $("#video").video("triggerUceEvent", Factories.createStreamNew());
     $("#video").video("triggerUceEvent", Factories.createStreamStart("root"));
-    ok($("#video .ui-button").button("option", "disabled"), "button should be disabled");
+    ok($("#video .ui-button.ui-video-button-publish").button("option", "disabled"), "button should be disabled");
     // test click on disabled button
     $("#video .ui-button").click();
     equals($("#video .ui-button").text(), "Publish", "label should not be updated");

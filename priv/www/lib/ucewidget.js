@@ -29,39 +29,48 @@
             triggerUceEvent: function(event) {
                 var methodName = this.meetingsEvents[event.type];
                 this[methodName](event);
-            },
-
-            _addHeader: function(title, buttons) {
-                var header = $('<div>')
-                    .attr('class', 'ui-widget-header ui-corner-all ui-helper-clearfix');
-                header.prependTo(this.element);
-
-                if (buttons && buttons.left) {
-                    var left = $('<span>').attr('class', 'ui-widget-header-left');
-                    left.appendTo(header);
-                    $.each(buttons.left, function(index, elem) {
-                        elem.appendTo(left);
-                    });
-                }
-
-                $('<span>')
-                    .addClass('ui-widget-header-title')
-                    .text(title)
-                    .appendTo(header);
-
-                if (buttons && buttons.right) {
-                    var right = $('<span>').attr('class', 'ui-widget-header-right');
-                    right.appendTo(header);
-                    $.each(buttons.right, function(index, elem) {
-                        elem.appendTo(right);
-                    });
-                }
-            },
-
-            _setTitle: function(title) {
-                this.element.find('.ui-widget-header-title').text(title);
             }
         }
-        $.widget("uce." + name, $.extend(true, base, ucewidget), prototype);
-    }
+        $.widget("uce." + name, $.extend(true, base, ucewidget, $.uce.header), prototype);
+    };
+    /**
+     * Special headers for U.C.Engine
+     */
+    $.uce.header = {
+        addHeader: function() {
+            this._addHeader(this.options.title, this.options.buttons)
+        },
+
+        _addHeader: function(title, buttons) {
+            var header = $('<div>')
+                .attr('class', 'ui-widget-header ui-corner-all ui-helper-clearfix');
+
+            if (buttons && buttons.left) {
+                var left = $('<span>').attr('class', 'ui-widget-header-left');
+                left.appendTo(header);
+                $.each(buttons.left, function(index, elem) {
+                    elem.appendTo(left);
+                });
+            }
+
+            $('<span>')
+                .addClass('ui-widget-header-title')
+                .text(title)
+                .appendTo(header);
+
+            if (buttons && buttons.right) {
+                var right = $('<span>').attr('class', 'ui-widget-header-right');
+                right.appendTo(header);
+                $.each(buttons.right, function(index, elem) {
+                    elem.appendTo(right);
+                });
+            }
+            header.prependTo(this.element);
+        },
+
+        _setTitle: function(title) {
+            this.element.find('.ui-widget-header-title').text(title);
+        }
+    };
+
 })(jQuery);

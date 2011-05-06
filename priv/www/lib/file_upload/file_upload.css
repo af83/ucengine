@@ -10,10 +10,11 @@
 }
 
 .ui-widget .ui-fileupload-files ul li.mime.pdf {
-    background: url("/demo/images/mime/pdf.png") no-repeat scroll 1em 1em transparent;
+    background: url("images/mime/pdf.png") no-repeat scroll 1em 1em transparent;
 }
+.ui-widget .ui-fileupload-files ul li.mime.image,
 .ui-widget .ui-fileupload-files ul li.mime.default {
-    background: url("/demo/images/mime/default.png") no-repeat scroll 1em 1em transparent;
+    background: url("images/mime/default.png") no-repeat scroll 1em 1em transparent;
 }
 
 .ui-widget .ui-fileupload-add {
@@ -29,16 +30,8 @@
     font-weight: bold;
 }
 
-.ui-fileupload .ui-download-link {
-    font-weight: bold;
-}
-
-.ui-fileupload .ui-preview-link {
-    font-weight: bold;
-}
-
-.ui-fileupload .ui-share-link {
-    font-weight: bold;
+.ui-fileupload .ui-link {
+    font-size: 9px;
 }
 
 .ui-fileupload .ui-file-owner {

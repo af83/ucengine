@@ -1,0 +1,159 @@
+.uce-adminbar {
+    width: 100%;
+    background: #474648;
+}
+
+.uce-adminbar .uce-adminbar-header {
+    min-height: 32px;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-title {
+    float: left;
+    line-height: 32px;
+    color: #A9A9A9;
+    font-size: 12px;
+    margin-left: 8px;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-buttons {
+    float: right;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button {
+    display: inline-block;
+    border: none;
+    background: transparent;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button.uce-adminbar-active.ui-button-text-only {
+    background: #505050;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button.uce-adminbar-active.ui-button-text-only .ui-button-text {
+    color: #FFF;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button.ui-button-text-only {
+    background: transparent;
+}
+
+.uce-adminbar .uce-adminbar-header .uce-adminbar-button.ui-button-text-only .ui-button-text {
+    color: #A9A9A9;
+    font-size: 12px;
+    padding-top: 0px;
+    padding-bottom: 0px;
+    line-height: 32px;
+    border-right: solid 1px #666;
+}
+
+.uce-adminbar .uce-adminbar-page {
+    width: 100%;
+    background: #505050;
+    color: #FFF;
+}
+
+.uce-adminbar .uce-adminbar-content {
+    display: none;
+    padding: 12px 12px 12px 44px;
+    width: 960px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.uce-adminbar .uce-adminbar-content.uce-adminbar-active {
+    display: block;
+}
+
+.uce-adminbar .uce-adminbar-workspace {
+    height: 150px;
+}
+
+.uce-adminbar .uce-adminbar-carousel {
+    width: auto;
+    clear: both;
+    float: left;
+}
+
+.uce-adminbar .uce-adminbar-carousel li {
+    display: block;
+}
+
+.uce-adminbar .uce-adminbar-description {
+    color: #C6C6C6;
+    margin-bottom: 8px;
+}
+
+.uce-adminbar .uce-adminbar-widget.active {
+    background-color: black;
+    opacity: 0.5;
+    color: white;
+}
+
+.uce-adminbar .uce-adminbar-widget-description {
+    margin-left: 6px;
+    width: 140px;
+    position: absolute;
+    bottom: 2em;
+}
+
+.uce-adminbar .uce-adminbar-widget-title {
+    position: absolute;
+    bottom: 0;
+    margin-left: 6px;
+}
+
+.uce-adminbar .uce-adminbar-workspace-infos {
+    float: right;
+    width: 173px;
+}
+
+.uce-adminbar .uce-adminbar-cancel-button {
+    margin-top: 57px;
+    width: 80px;
+    float: right;
+}
+
+.uce-adminbar .uce-adminbar-valid-button {
+    margin-top: 57px;
+    width: 80px;
+    float: right;
+}
+
+.uce-adminbar .uce-adminbar-meeting {
+    height: 45px;
+}
+
+.uce-adminbar .uce-adminbar-meeting .uce-adminbar-button {
+    float: right;
+    margin-top: 8px;
+    margin-right: 8px;
+}
+
+.uce-adminbar .uce-adminbar-meeting .uce-adminbar-meeting-infos {
+    float: left;
+}
+
+.uce-adminbar .uce-adminbar-meeting p {
+    margin: 6px;
+}
+
+.uce-adminbar .uce-adminbar-meeting .uce-adminbar-meeting-confirm {
+    font-weight: bold;
+}
+
+.uce-adminbar-widget-hidden {
+    position: absolute;
+    bottom: 0;
+    width: 120px;
+    height: 120px;
+    opacity: 0.5;
+}
+
+.uce-adminbar-widget-visible {
+    position: absolute;
+    bottom: 0;
+    width: 120px;
+    height: 120px;
+    opacity: 0.5;
+    background-color: #000000;
+}

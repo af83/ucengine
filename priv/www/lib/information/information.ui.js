@@ -1,4 +1,5 @@
-$.uce.widget("information", {
+$.uce.Information = function() {}
+$.uce.Information.prototype = {
     options: {
         ucemeeting : null,
         uceclient : null,
@@ -19,7 +20,7 @@ $.uce.widget("information", {
         var that = this;
 
         this.element.addClass('ui-widget ui-information');
-        this._addHeader(this.options.title, this.options.buttons);
+        this.addHeader();
 
         this._content = $('<div>')
             .attr('class', 'ui-widget-content')
@@ -106,7 +107,22 @@ $.uce.widget("information", {
                 .click(function () {
                     $(this).text(value);
                 })
-                .editable({onSubmit: function(content) {
+                .editable({onEdit: function() {
+                    var $this = this;
+                    $this.bind('keyup', function(e) {
+                        if (e.keyCode == 13) { // ENTER key
+                            // simulate blur event to save change
+                            $this.trigger('blur');
+                        }
+                        if (e.keyCode == 27) { // ECHAP key
+                            // holy hack, current options are saved by the plugin
+                            var opts = $this.data('editable.options');
+                            opts.toNonEditable($this, false);
+                            e.preventDefault();
+                        }
+                    })
+                },
+                onSubmit: function(content) {
                     that.options.ucemeeting.get(function(err, meeting, xhr) {
                         meeting.metadata[name] = content.current;
                         that.options.ucemeeting
@@ -115,7 +131,7 @@ $.uce.widget("information", {
                                     meeting.metadata)
                     });
                     that._updateFields();
-            }});
+                }});
         }
         return (field);
     },
@@ -130,9 +146,8 @@ $.uce.widget("information", {
         });
     },
 
-    _setOption: function(key, value) {
-        $.Widget.prototype._setOption.apply(this, arguments);
-    },
+    reduce: function() {},
+    expand: function() {},
 
     _handleMeetingUpdateEvent: function(event) {
         this._updateInformations();
@@ -143,4 +158,5 @@ $.uce.widget("information", {
         this.element.removeClass('ui-widget ui-information');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-    });
+};
+$.uce.widget("information", new $.uce.Information());

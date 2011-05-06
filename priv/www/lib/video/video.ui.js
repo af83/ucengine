@@ -2,7 +2,8 @@
  * Video widget
  * show stream from erlyvideo and publish stream to erlyvideo
  */
-$.uce.widget("video", {
+$.uce.Video = function(){};
+$.uce.Video.prototype = {
     /**
      * Internal state: current publishing or not
      */
@@ -49,33 +50,13 @@ $.uce.widget("video", {
                         height     : this.options.height - 20});
     },
     _create: function() {
-        var that = this;
-
-        /* create dock */
-        if (this.options.dock) {
-            var dock = $('<a>')
-                .attr('class', 'ui-dock-button')
-                .attr('href', '#')
-                .attr('title', this.options.title)
-                .button({
-                    text: false,
-                    icons: {primary: "ui-icon-person"}
-                }).click(function() {
-                    that.element.effect('bounce');
-                    $(window).scrollTop(that.element.offset().top);
-                    return false;
-                });
-            dock.addClass('ui-video-dock');
-            dock.appendTo(this.options.dock);
-        }
-
         this.element.addClass('ui-widget ui-video');
         this._button = $('<a>').attr('href', '#')
             .button({label: 'Publish'})
+            .addClass('ui-video-button-publish')
             .click($.proxy(this._onClickButton, this));
-        var rightButtons = [this._button].concat(this.options.buttons.right);
-        this._addHeader(this.options.title, {left: this.options.buttons.left,
-                                             right: rightButtons});
+        this.options.buttons.right = [this._button].concat(this.options.buttons.right);
+        this.addHeader();
         this._content = $('<div>').addClass('ui-widget-content').appendTo(this.element);
 
         if (!this.options.width && !this.options.height) {
@@ -98,7 +79,7 @@ $.uce.widget("video", {
         }
         else if (!this.options.token) {
             this._button.button("disable");
-        } 
+        }
     },
     _onClickButton: function(e) {
         e.preventDefault();
@@ -179,7 +160,7 @@ $.uce.widget("video", {
     destroy: function() {
         this.element.children().remove();
         this.element.removeClass('ui-widget ui-video');
-        $(this.options.dock).children().remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-});
+};
+$.uce.widget("video", new $.uce.Video());

@@ -1,6 +1,14 @@
-$.uce.widget("chat", {
+/**
+ * Chat widget
+ * Depends:
+ *  * ucewidget.js
+ *  * jqueryUI
+ */
+$.uce.Chat = function(){}
+$.uce.Chat.prototype = {
     options: {
         ucemeeting: null,
+        uceclient: null,
         title: "Conversations",
         lang: "fr",
         langs: ["fr", "en", "it"],
@@ -127,47 +135,20 @@ $.uce.widget("chat", {
         /* create space for all hashtags */
         this._addHashtag('all');
 
-        var rightButtons = [flags].concat(this.options.buttons.right || []);
-        this._addHeader(this.options.title, {left: this.options.buttons.left,
-                                             right: rightButtons});
+        this.options.buttons.right = [flags].concat(this.options.buttons.right || []);
+        this.options.buttons.left = [];
+        this.addHeader();
 
         /* set highlight to default flag */
         this.element.find('.ui-chat-flag.ui-chat-lang-' + this.options.lang)
             .addClass('ui-state-highlight');
 
-        /* create dock */
-        if (this.options.dock) {
-            this._dock = $('<a>')
-                .attr('class', 'ui-dock-button')
-                .attr('href', '#')
-                .attr('title', this.options.title)
-                .button({
-                    text: false,
-                    icons: {primary: "ui-icon-comment"}
-                }).click(function() {
-                    that.element.effect('bounce');
-                    $(window).scrollTop(that.element.offset().top);
-                    return false;
-                });
-            this._dock.addClass('ui-chat-dock');
-            this._dock.appendTo(this.options.dock);
-
-            this._startCount = new Date().getTime();
-            this._newCount = 0;
-
-            this._new = $('<div>')
-                .attr('class', 'ui-widget-dock-notification')
-                .text(this._newCount)
-                .appendTo(this._dock);
-
-            this._updateNotifications();
-
-            this._content.bind('mouseover', function() {
-                that._newCount = 0;
-                that._updateNotifications();
-            });
+        // Turn widget into initial mode
+        if (this.options.mode == "reduced") {
+            this.reduce();
+        } else if (this.options.mode == "expanded") {
+            this.expand();
         }
-
     },
 
     clear: function() {
@@ -276,11 +257,8 @@ $.uce.widget("chat", {
                       this._state.roster[event.from].nickname,
                       event.metadata.text);
         // XXX: Can we refactor this to have a general behaviour when there is no dock ?
-        if (this.options.dock &&
-            event.from != this.options.ucemeeting.uid &&
-            event.datetime > this._startCount) {
-            this._newCount++;
-            this._updateNotifications();
+        if (event.from != this.options.ucemeeting.uid) {
+            this._trigger('updated', event);
         }
     },
 
@@ -537,15 +515,6 @@ $.uce.widget("chat", {
         });
     },
 
-    _updateNotifications: function() {
-        this._new.text(this._newCount);
-        if (this._newCount == 0) {
-            this._new.hide();
-        } else {
-            this._new.show();
-        }
-    },
-
     setOption: function(key, value) {
         $.Widget.prototype._setOption.apply(this, arguments);
     },
@@ -553,7 +522,7 @@ $.uce.widget("chat", {
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-chat ui-widget');
-        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-});
+};
+$.uce.widget("chat", new $.uce.Chat());

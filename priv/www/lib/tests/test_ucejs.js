@@ -565,6 +565,20 @@ test("get download file url", function() {
     equals(url, "/api/" + uce.version + "/file/mymeeting/mydoc2.pdf?uid=myuid&sid=mysid");
 });
 
+jackTest("delete file", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/file/mymeeting/file_id",
+                  {"_method": "delete",
+                   "uid": "myuid",
+                   "sid": "mysid"}, 200, '{"result": "ok"}');
+    this.client.attachPresence(Factories.createPresence()).meeting("mymeeting")
+        .delFile("file_id", function(err, result, xhr) {
+            start();
+            equals(null, err);
+            equals(result.result, "ok");
+        });
+});
+
 jackTest("this.client.time",  function() {
     stop();
     addUceApiCall("get", "/api/" + uce.version + "/time",  {}, 200, '{"result": "4"}');

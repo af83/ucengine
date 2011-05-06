@@ -378,7 +378,7 @@ jackTest("add the 'speaker' role when clicking on the 'Give Lead' button", funct
             equals(role, "speaker");
             equals(location, "testmeeting");
         });
-    uceclient = {uid: "chuck", user: userMock};
+    var uceclient = {uid: "chuck", user: userMock};
 
     $('#management').management({
         ucemeeting: this.ucemeeting,

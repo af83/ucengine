@@ -79,7 +79,7 @@
                     if (err) {
                         callback(err, result, xhr);
                     } else {
-                        uid = result.result.uid;
+                        var uid = result.result.uid;
                         var p = {"user": uid, "id": result.result.sid, "name": name};
                         that.attachPresence(p);
                         callback(err, p, xhr);
@@ -213,9 +213,9 @@
                         return this;
                     },
                     update: function(start, end, metadata, callback) {
-                        params = {'metadata': metadata,
-                                  'uid': _presence.user,
-                                  'sid': _presence.id};
+                        var params = {'metadata': metadata,
+                                      'uid': _presence.user,
+                                      'sid': _presence.id};
                         if (start) {
                             params.start = start;
                         }
@@ -296,6 +296,22 @@
                     },
 
                     /**
+                     * @param String id
+                     * @param Function callback
+                     */
+                    delFile: function(id, callback) {
+                        del("/file/" + meetingname + "/" + id,
+                            {'uid': _presence.user,
+                             'sid': _presence.id},
+                            function (err, result, xhr) {
+                                if (!callback) {
+                                    return;
+                                }
+                                callback (err, result, xhr);
+                            });
+                    },
+
+                    /**
                      * @param Object params
                      *    search
                      *    start you can use uce.time() (mandatory)
@@ -319,16 +335,19 @@
                             _start : function(p, callback) {
                                 var that = this;
                                 this.xhr = startLongPolling(p, function(err, result, xhr) {
-                                    try {
-                                        var events = result.result;
-                                        $.each(events, function(index, event) {
+                                    // TODO: we must have a better error handling with a recovery function for instance
+                                    if (err || !result) throw err || "error on long polling";
+                                    var events = result.result;
+                                    $.each(events, function(index, event) {
+                                        try {
                                             callback(err, event, xhr);
-                                        });
-                                        if (events.length > 0) {
-                                            p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                        } catch (e) {
+                                            // naive but it's better than nothing
+                                            if (window.console) console.error(e);
                                         }
-                                    } catch (e) {
-                                        // do nothing
+                                    });
+                                    if (events.length > 0) {
+                                        p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
                                     }
                                     if (that.aborted === false && one_shot !== true) {
                                         that._start(p, callback);

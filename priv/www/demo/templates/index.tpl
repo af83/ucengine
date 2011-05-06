@@ -9,7 +9,7 @@
             </div>
             {{#not_connected}}
             <div class="block-footer">
-                <p><a href="#/register">&gt;&gt; Register now</a></p>
+                <p><a href="#/meeting/demo">&gt;&gt; Test it now: join the demo room</a></p>
             </div>
             {{/not_connected}}
         </div>
@@ -63,7 +63,7 @@
                 <ul id="currentMeetings">
                     {{#currentmeetings}}
                     <li>
-                        <p><strong>{{name}}</strong></p>
+                        <p><strong>{{#metadata}}{{name}}{{/metadata}}</strong></p>
                         <p>{{#metadata}}{{description}}{{/metadata}}</p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
                         {{^not_connected}}
@@ -72,7 +72,7 @@
                     </li>
                     {{/currentmeetings}}
                     {{^currentmeetings}}
-                     <li>no meetings</li>
+                     <li>No live meeting</li>
                     {{/currentmeetings}}
                 </ul>
             </div>
@@ -88,7 +88,7 @@
                 <ul id="closedMeetings">
                     {{#closedmeetings}}
                     <li>
-                        <p><strong>{{name}}</strong></p>
+                        <p><strong>{{#metadata}}{{name}}{{/metadata}}</strong></p>
                         <p>{{#metadata}}{{description}}{{/metadata}}</p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
                         {{^not_connected}}
@@ -97,7 +97,7 @@
                     </li>
                     {{/closedmeetings}}
                     {{^closedmeetings}}
-                     <li>no meetings</li>
+                     <li>No archived meeting</li>
                     {{/closedmeetings}}
                 </ul>
             </div>
@@ -113,7 +113,7 @@
                 <ul id="upcomingMeetings">
                     {{#upcomingmeetings}}
                     <li>
-                        <p><strong>{{name}}</strong></p>
+                        <p><strong>{{#metadata}}{{name}}{{/metadata}}</strong></p>
                         <p>{{#metadata}}{{description}}{{/metadata}}</p>
                         <p>{{#format}}{{start_date}}{{/format}}</p>
                         {{^not_connected}}
@@ -122,7 +122,7 @@
                     </li>
                     {{/upcomingmeetings}}
                     {{^upcomingmeetings}}
-                     <li>no meetings</li>
+                     <li>No upcoming meeting</li>
                     {{/upcomingmeetings}}
                 </ul>
             </div>

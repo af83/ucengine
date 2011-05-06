@@ -30,30 +30,29 @@
 -include("uce.hrl").
 
 init() ->
-    mnesia:create_table(uce_event,
-                        [{disc_copies, [node()]},
-                         {type, set},
-                         {attributes, record_info(fields, uce_event)}]).
+    case mnesia:create_table(uce_event,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_event)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_event}} -> ok
+    end.
 
 add(_Domain, #uce_event{} = Event) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Event)
-                            end) of
-        {atomic, _} ->
+    case mnesia:dirty_write(Event) of
+        ok ->
             {ok, Event#uce_event.id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
 get(_Domain, Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_event, Id)
-                            end) of
+    case mnesia:dirty_read(uce_event, Id) of
         {aborted, _} ->
             throw({error, bad_parameters});
-        {atomic, []} ->
+        [] ->
             throw({error, not_found});
-        {atomic, [Event]} ->
+        [Event] ->
             {ok, Event}
     end.
 
@@ -62,8 +61,8 @@ list(Location, From, [], Start, End, Parent) ->
 list(Location, From, Types, Start, End, Parent) ->
     {SelectLocation, ResultLocation} =
         case Location of
-            {"", _} ->
-                {'$3', '$3'};
+            {"", Domain} ->
+                {{'$3', Domain}, {{'$3', Domain}}};
             _ ->
                 {Location, {Location}}
         end,

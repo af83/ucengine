@@ -41,18 +41,16 @@ $.widget("uce.activity", {
         }
 
         this.clear();
-        var id = $(this.element).attr('id')
-        graph = Raphael(id, 600, 180).g;
-        fin = function () {
+        var id = $(this.element).attr('id');
+        var graph = Raphael(id, 600, 180).g;
+        var fin = function () {
             this.flag = graph.popup(this.bar.x, this.bar.y, this.bar.value || "0").insertBefore(this);
-        },
-        fout = function () {
+        };
+        var fout = function () {
             this.flag.animate({opacity: 0}, 100, function () {this.remove();});
-        },
+        };
 
-        graph.barchart(10, 10, 600, 180, [values]).hover(fin, fout).click(function(event) {
-
-        });
+        graph.barchart(10, 10, 600, 180, [values]).hover(fin, fout);
         $('<div>').attr('class', 'ui-search-elem-title').text("Activity chart").prependTo(this.element);
         var rec_scene = $('<div>').attr('class', 'ui-search-elem-title').text("Go to the recommended scene");
         var that = this;

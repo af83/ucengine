@@ -56,6 +56,7 @@ function sammyapp() {
                 if (err) {
                     return;
                 }
+
                 callback();
             });
         } else {
@@ -312,6 +313,7 @@ $.sammy("#meeting", function() {
                     });
 
             var widget = $(id);
+            var widgetDock = $(options.dock);
 
             function expand() {
                 widget.detach();
@@ -365,6 +367,14 @@ $.sammy("#meeting", function() {
             } else {
                 widget[widgetName]('reduce');
             }
+
+            if (options.hidden == true) {
+                widget.hide();
+                widgetDock.hide();
+            } else {
+                widget.show(); 
+                widgetDock.show();
+            }
         };
 
         $('#reduced').sortable({connectWith: '.slots',
@@ -384,26 +394,12 @@ $.sammy("#meeting", function() {
             addWidget("#timer", 'timer', {ucemeeting: meeting, start: time});
         });
 
-        addWidget("#fileupload", 'fileupload', {ucemeeting: meeting,
-                                                  mode: 'reduced',
-                                                  dock: '#fileupload-dock'});
 
-        addWidget("#filesharing", 'filesharing', {ucemeeting: meeting,
-                                                  mode: 'reduced',
-                                                  dock: '#filesharing-dock'});
-
-        if (inReplay) {
-            addWidget("#video", 'player', {src: result_meeting.metadata.video,
-                                           start: result_meeting.start_date,
-                                           dock: '#video-dock',
-                                           width: 568,
-                                           mode: 'expanded'});
-        } else {
-            addWidget("#video", 'video', {domain: document.location.hostname + "/ucengine",
-                                          ucemeeting : meeting,
-                                          dock: '#video-dock',
-                                          mode: 'expanded'});
-        }
+        addWidget("#chat", 'chat', {ucemeeting: meeting,
+                                    uceclient: client,
+                                    title: "Conversations",
+                                    dock: '#chat-dock',
+                                    mode: 'expanded'});
 
         addWidget("#information", 'information', {ucemeeting: meeting,
                                                   uceclient: client,
@@ -415,12 +411,7 @@ $.sammy("#meeting", function() {
                                                            'description': {title: "Description",
                                                                            placeholder: "Summarize the topic"}}});
 
-        addWidget("#chat", 'chat', {ucemeeting: meeting,
-                                    uceclient: client,
-                                    title: "Conversations",
-                                    dock: '#chat-dock',
-                                    mode: 'reduced'});
-
+        // Reduced widgets
         addWidget("#management", 'management', {ucemeeting: meeting,
                                                 uceclient: client,
                                                 title: "Meeting Facilitation",
@@ -430,10 +421,36 @@ $.sammy("#meeting", function() {
                                                 mode: 'reduced',
                                                 fixed: true});
 
+        if (inReplay) {
+            addWidget("#video", 'player', {src: result_meeting.metadata.video,
+                                           start: result_meeting.start_date,
+                                           dock: '#video-dock',
+                                           width: 568,
+                                           mode: 'expanded'});
+        } else {
+            addWidget("#video", 'video', {domain: document.location.hostname + "/ucengine",
+                                          ucemeeting : meeting,
+                                          dock: '#video-dock',
+                                          mode: 'reduced'});
+        }
+
+        addWidget("#filesharing", 'filesharing', {ucemeeting  : meeting,
+                                                  uceclient   : client,
+                                                  mode        : 'reduced',
+                                                  dock        : '#filesharing-dock',
+                                                  hidden      : true});
+
+        addWidget("#fileupload", 'fileupload', {ucemeeting  : meeting,
+                                                uceclient   : client,
+                                                mode        : 'reduced',
+                                                dock        : '#fileupload-dock',
+                                                hidden      : true});
+
         addWidget("#whiteboard", 'whiteboard', {ucemeeting       : meeting,
                                                 dock         : '#whiteboard-dock',
                                                 width        : 574,
-                                                mode         : 'reduced'});
+                                                mode         : 'reduced',
+                                                hidden       : true});
 
         $("#replay-mode").hide();
 
@@ -499,10 +516,82 @@ $.sammy("#meeting", function() {
 
             }, false);
         } else {
+
+            $('#adminbar').adminbar({ucemeeting: meeting,
+                                     uceclient: client,
+                                     widgets: {
+                                         'chat': {
+                                            title: 'Chat',
+                                            description: 'Share messages on public and private rooms',
+                                            thumbnail: '/demo/images/widgets/chat.jpg'
+                                            },
+                                        'fileupload': {
+                                            title: 'File Upload',
+                                            description: 'Upload your files in the meeting room',
+                                            thumbnail: '/demo/images/widgets/file_upload.jpg'
+                                            },
+                                        'filesharing': {
+                                            title: 'File Sharing',
+                                            description: 'Share your files in the meeting room',
+                                            thumbnail: '/demo/images/widgets/file_sharing.jpg'
+                                            },
+                                        'video': {
+                                            title: 'Video',
+                                            description: 'Webcam streaming',
+                                            thumbnail: '/demo/images/widgets/video.jpg'
+                                            },
+                                        'information': {
+                                            title: 'Information',
+                                            description: 'Display meeting informations',
+                                            thumbnail: '/demo/images/widgets/information.jpg'
+                                            },
+                                        'management': {
+                                            title: 'Meeting facilitation',
+                                            description: 'Manage the meeting',
+                                            thumbnail: '/demo/images/widgets/management.jpg'
+                                            },
+                                        'whiteboard': {
+                                            title: 'Whiteboard',
+                                            description: 'Collaborative drawing',
+                                            thumbnail: '/demo/images/widgets/whiteboard.jpg'
+                                        }}});            
+            $('#adminbar').hide();
+
+            client.user.can(client.uid, "update", "meeting", {}, meeting.name,
+                        function(err, result, xhr) {
+                            if (result == false) {
+                                return;
+                            }
+                            $('#adminbar').show();
+                        });
+
             $('#video').player("play");
             // start main loop
             loop = meeting.startLoop(0);
         }
+
+        var that = this;
+        meeting.on('admin.meeting.close', function(event) {
+            // Check that the sender can update the meeting
+            client.user.can(event.from, "update", "meeting", {}, meeting.name,
+                            function(err, result, xhr) {
+                                if (result == false) {
+                                    return ;
+                                }
+                                that.redirect('#/meeting/' + meeting.name + '/quit');
+                            });
+        });
+
+        meeting.on('admin.meeting.widgets.add', function(event) {
+            widgets = event.metadata.widgets.split(",");
+            $.each(widgets, function(index, widgetId) {
+               $('#' + widgetId).show();
+               $('#' + widgetId + '-dock').show(); 
+               if ($('#adminbar').is(':visible')) {
+                    $('#adminbar').adminbar('hideAddWidgetLink', widgetId);
+               }
+            });  
+        });
     });
 
     this.get('#/meeting/:id', function(context) {});

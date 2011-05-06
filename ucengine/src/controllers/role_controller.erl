@@ -17,7 +17,7 @@
 %%
 -module(role_controller).
 
--export([init/0, add/4, delete/4, add_access/4, delete_access/4]).
+-export([init/0, add/4, delete/4, list_access/4, add_access/4, delete_access/4]).
 
 -include("uce.hrl").
 
@@ -34,6 +34,12 @@ init() ->
                 callback={?MODULE, delete,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
+
+     #uce_route{method='GET',
+		regexp="/role/([^/]+)/acl",
+		callback={?MODULE, list_access,
+			  [{"uid", required, string},
+			   {"sid", required, string}]}},
 
      #uce_route{method='POST',
                 regexp="/role/([^/]+)/acl",
@@ -73,6 +79,13 @@ delete(Domain, [Name], [Uid, Sid], _) ->
                                                metadata=[{"name", Name}]}),
     {ok, deleted} = uce_role:delete(Domain, {Name, Domain}),
     json_helpers:ok(Domain).
+
+list_access(Domain, [Role], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
+                                   "access", "list", [{"role", Role}]),
+    {ok, ACL} = uce_role:acl(Domain, {Role, Domain}),
+    json_helpers:json(Domain, access_helpers:to_json(ACL)).
 
 add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),

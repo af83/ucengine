@@ -13,12 +13,16 @@ compile:
 	./rebar compile
 
 rel: compile
-	./rebar generate
+	./rebar generate force=1
 
 ###############################################################################
 # Usual targets
 ###############################################################################
-dev: cleanrel rel $(DIRS)
+dev: rel $(DIRS)
+
+demo: $(DIRS)
+	-@rm rel/ucengine/priv/ -fr
+	-@cp -r priv rel/ucengine/.
 
 run: dev
 	rel/ucengine/bin/ucengine console

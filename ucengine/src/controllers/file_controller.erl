@@ -105,4 +105,10 @@ delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "delete", [{"id", Id}]),
     {ok, deleted} = uce_file:delete(Domain, {Id, Domain}),
+    uce_event:add(Domain,
+                  #uce_event{id={none, Domain},
+                             location={Meeting, Domain},
+                             from={Uid, Domain},
+                             type="internal.file.delete",
+                             metadata=[{"id", Id}]}),
     json_helpers:ok(Domain).

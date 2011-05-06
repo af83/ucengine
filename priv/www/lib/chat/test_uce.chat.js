@@ -42,7 +42,7 @@ Factories.deleteRosterEvent = function(from) {
 }
 
 Factories.newChatEvent = function(from, text, to) {
-    event = {
+    var event = {
         type: "chat.message.new",
         from: from,
         datetime: 42424242424242,
@@ -157,8 +157,7 @@ module("uce.chat", {
         };
         $('#chat').chat({
             ucemeeting: this.ucemeeting,
-            uceclient: {uid: 'chuck'},
-            dock: '#chat-dock'
+            uceclient: {uid: 'chuck'}
         });
     },
     teardown: function() {
@@ -219,7 +218,7 @@ test("can show hastag tweet and go back", function() {
     this.callback_tweet(Factories.newTweetEvent({hashtags: '#norris'}));
 
     $("#chat .ui-chat-selector-hashtags.ui-chat-selector-elems li:eq(0)").click();
-    ok($('#chat .ui-chat-container[name="hashtag:#chuck"]').hasClass("ui-chat-current"), 
+    ok($('#chat .ui-chat-container[name="hashtag:#chuck"]').hasClass("ui-chat-current"),
        "should have class ui-chat-current");
 
     ok(!$('#chat .ui-chat-container[name="hashtag:#norris"]').hasClass("ui-chat-current"),
@@ -235,17 +234,17 @@ test("can show hastag tweet and go back", function() {
 
 test("can change language", function() {
     $("#chat .ui-chat-flag.ui-chat-lang-fr").click();
-    ok($('#chat .ui-chat-flag.ui-chat-lang-fr').hasClass("ui-state-highlight"), 
+    ok($('#chat .ui-chat-flag.ui-chat-lang-fr').hasClass("ui-state-highlight"),
            "should have class ui-state-highlight");
-    ok($('#chat .ui-chat-container[name=conversation:all:fr]').hasClass("ui-chat-current"), 
+    ok($('#chat .ui-chat-container[name=conversation:all:fr]').hasClass("ui-chat-current"),
            "should have class ui-state-current");
 
     $("#chat .ui-chat-flag.ui-chat-lang-en").click();
-    ok($('#chat .ui-chat-flag.ui-chat-lang-en').hasClass("ui-state-highlight"), 
+    ok($('#chat .ui-chat-flag.ui-chat-lang-en').hasClass("ui-state-highlight"),
            "should have class ui-state-highlight");
-    ok(!$('#chat .ui-chat-flag.ui-chat-lang-fr').hasClass("ui-state-highlight"), 
+    ok(!$('#chat .ui-chat-flag.ui-chat-lang-fr').hasClass("ui-state-highlight"),
            "should not have class ui-state-highlight");
-    ok($('#chat .ui-chat-container[name=conversation:all:en]').hasClass("ui-chat-current"), 
+    ok($('#chat .ui-chat-container[name=conversation:all:en]').hasClass("ui-chat-current"),
            "should have class ui-state-current");
 });
 
@@ -314,10 +313,12 @@ test("test private message", function() {
            .text(), "hello");
 });
 
-test("test message notification", function() {
+asyncTest("test message notification", function() {
+    $('#chat').bind('chatupdated', function() {
+        start();
+    });
     this.callback_roster_add(Factories.addRosterEvent('chuck'));
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
-    equals($("#chat-dock .ui-widget-dock-notification").text(), "1");
 });
 
 test("test translation", function() {
@@ -338,14 +339,14 @@ test("can show chatroom and go back", function() {
     this.callback_chat(Factories.newChatEvent('chuck', 'hello'));
 
     $("#chat .ui-chat-selector-conversations.ui-chat-selector-all li:eq(0)").click();
-    ok($('#chat .ui-chat-container[name="conversation:all:fr"]').hasClass("ui-chat-current"), 
+    ok($('#chat .ui-chat-container[name="conversation:all:fr"]').hasClass("ui-chat-current"),
        "should have class ui-chat-current");
 
     equals($('#chat .ui-chat-container[name="conversation:all:fr"] .ui-chat-list').children().size(), 1);
 
     $('#chat .ui-chat-container .ui-chat-container-back').click();
 
-    ok(!$('#chat .ui-chat-container[name="conversation:all:fr"]').hasClass("ui-chat-current"), 
+    ok(!$('#chat .ui-chat-container[name="conversation:all:fr"]').hasClass("ui-chat-current"),
        "should not have class ui-chat-current");
 });
 
