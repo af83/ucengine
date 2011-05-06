@@ -1,4 +1,5 @@
-$.uce.widget("filesharing", {
+$.uce.FileSharing = function(){}
+$.uce.FileSharing.prototype = {
     options: {
         ucemeeting : null,
         title      : "File sharing",
@@ -117,26 +118,6 @@ $.uce.widget("filesharing", {
         this.stopSharing();
         this._files = [];
         this._shared = null;
-
-        /*
-         * Dock
-         */
-        if (this.options.dock) {
-            this._dock = dock = $('<a>')
-                .attr('class', 'ui-dock-button')
-                .attr('href', '#')
-                .attr('title', this.options.title)
-                .button({
-                    text: false,
-                    icons: {primary: "ui-icon-transferthick-e-w"}
-                }).click(function() {
-                    that.element.effect('bounce');
-                    $(window).scrollTop(that.element.offset().top);
-                    return false;
-                });
-            this._dock.addClass('ui-filesharing-dock');
-            this._dock.appendTo(this.options.dock);
-        }
     },
 
     clear: function() {
@@ -258,7 +239,7 @@ $.uce.widget("filesharing", {
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-widget ui-filesharing');
-        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-});
+}
+$.uce.widget("filesharing", new $.uce.FileSharing());

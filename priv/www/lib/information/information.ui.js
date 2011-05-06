@@ -1,4 +1,5 @@
-$.uce.widget("information", {
+$.uce.Information = function() {}
+$.uce.Information.prototype = {
     options: {
         ucemeeting : null,
         uceclient : null,
@@ -157,4 +158,5 @@ $.uce.widget("information", {
         this.element.removeClass('ui-widget ui-information');
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-    });
+};
+$.uce.widget("information", new $.uce.Information());

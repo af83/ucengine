@@ -1,4 +1,5 @@
-$.uce.widget("whiteboard", {
+$.uce.WhiteBoard = function() {}
+$.uce.WhiteBoard.prototype = {
     options: {
         /**
          * uce meeting instance
@@ -22,24 +23,6 @@ $.uce.widget("whiteboard", {
 
         // Default colors
         this.options.colors = [this._randomColor(), this._randomColor(), '#ffffff', '#000000'];
-
-        /* create dock */
-        if (this.options.dock) {
-            var dock = $('<a>')
-                .attr('class', 'ui-dock-button')
-                .attr('href', '#')
-                .attr('title', this.options.title)
-                .button({
-                    text: false,
-                    icons: {primary: "ui-icon-image"}
-                }).click(function() {
-                    that.element.effect('bounce');
-                    $(window).scrollTop(that.element.offset().top);
-                    return false;
-                });
-            dock.addClass('ui-whiteboard-dock');
-            dock.appendTo(this.options.dock);
-        }
 
         this.element.addClass('ui-widget ui-whiteboard');
         this.addHeader();
@@ -326,7 +309,7 @@ $.uce.widget("whiteboard", {
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-widget ui-whiteboard');
-        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-});
+};
+$.uce.widget("whiteboard", new $.uce.WhiteBoard());

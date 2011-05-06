@@ -44,7 +44,7 @@ jackTest("the widget check the user right to update meeting", function () {
             callback(undefined, true, undefined);
         });
 
-    uceclient = {uid: 'chuck'};
+    var uceclient = {uid: 'chuck'};
     uceclient.user = user;
     $('#information').information('destroy');
     $('#information').information({ucemeeting: this.ucemeeting,
@@ -84,7 +84,7 @@ jackTest("display only filled fields if not owner", function () {
             callback(undefined, false, undefined);
         });
 
-    uceclient = {},
+    var uceclient = {};
     uceclient.user = user;
     $('#information').information('destroy');
     $('#information').information({ucemeeting: ucemeeting,
@@ -116,7 +116,7 @@ jackTest("display all editable fields when owner", function() {
             callback(undefined, true, undefined);
         });
 
-    uceclient = {},
+    var uceclient = {};
     uceclient.user = user;
     $('#information').information('destroy');
     $('#information').information({ucemeeting: ucemeeting,

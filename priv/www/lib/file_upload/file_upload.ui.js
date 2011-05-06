@@ -1,4 +1,5 @@
-$.uce.widget("fileupload", {
+$.uce.FileUpload = function() {}
+$.uce.FileUpload.prototype = {
     options: {
         ucemeeting : null,
         uceclient  : null,
@@ -158,39 +159,6 @@ $.uce.widget("fileupload", {
                 });
             }
         }
-
-        /* create dock */
-        if (this.options.dock) {
-            this._dock = dock = $('<a>')
-                .attr('class', 'ui-dock-button')
-                .attr('href', '#')
-                .attr('title', this.options.title)
-                .button({
-                    text: false,
-                    icons: {primary: "ui-icon-document"}
-                }).click(function() {
-                    that.element.effect('bounce');
-                    $(window).scrollTop(that.element.offset().top);
-                    return false;
-                });
-            this._dock.addClass('ui-fileupload-dock');
-            this._dock.appendTo(this.options.dock);
-
-            this._startCount = new Date().getTime();
-            this._newCount = 0;
-
-            this._new = $('<div>')
-                .attr('class', 'ui-widget-dock-notification')
-                .text(this._newCount)
-                .appendTo(this._dock);
-
-            this._updateNotifications();
-
-            files.bind('mouseover', function() {
-                that._newCount = 0;
-                that._updateNotifications();
-            });
-        }
     },
 
     clear: function() {
@@ -233,11 +201,7 @@ $.uce.widget("fileupload", {
         if (event.from == "document") {
             return;
         }
-
-        if (event.datetime > this._startCount) {
-            this._newCount++;
-            this._updateNotifications();
-        }
+        this._trigger('updated', event);
 
         this._files[event.metadata.id] =
             ($.extend({}, event, {pages: [],
@@ -390,19 +354,10 @@ $.uce.widget("fileupload", {
         this.currentPreview = file;
     },
 
-    _updateNotifications: function() {
-        this._new.text(this._newCount);
-        if (this._newCount == 0) {
-            this._new.hide();
-        } else {
-            this._new.show();
-        }
-    },
-
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-widget ui-fileupload');
-        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-});
+};
+$.uce.widget('fileupload', new $.uce.FileUpload());

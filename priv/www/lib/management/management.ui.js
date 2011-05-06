@@ -1,4 +1,11 @@
-$.uce.widget("management", {
+/**
+ * Management Plugin
+ * Depends:
+ *  * ucewidget.js
+ *  * jQueryUI
+ */
+$.uce.Management = function() {}
+$.uce.Management.prototype = {
     options: {
         ucemeeting: null,
         uceclient: null,
@@ -108,55 +115,16 @@ $.uce.widget("management", {
         this._state.me = {};
         this._state.anonCounter = 1;
 
-        /* create dock */
-        if (this.options.dock) {
-            this._dock = $('<a>')
-                .attr('class', 'ui-dock-button')
-                .attr('href', '#')
-                .attr('title', this.options.title)
-                .button({
-                    text: false,
-                    icons: {primary: "ui-icon-note"}
-                }).click(function() {
-                    that.element.effect('bounce');
-                    $(window).scrollTop(that.element.offset().top);
-                    return false;
-                });
-            this._dock.addClass('ui-management-dock');
-            this._dock.appendTo(this.options.dock);
-
-            this._startCount = new Date().getTime();
-            this._newCount = 0;
-
-            this._new = $('<div>')
-                .attr('class', 'ui-widget-dock-notification')
-                .text(this._newCount)
-                .appendTo(this._dock);
-
-            this._updateNotifications();
-
-            this._content.bind('mouseover', function() {
-                that._newCount = 0;
-                that._updateNotifications();
-            });
-        }
-
         this._showRoster();
     },
 
-    clear: function() {
-    },
-
-    reduce: function() {
-    },
-
-    expand: function() {
-    },
+    clear: function() {},
+    reduce: function() {},
+    expand: function() {},
 
     /**
      * Event callbacks
      */
-
     _handleJoin: function(event) {
         if (this._state.users[event.from]) {
             return;
@@ -447,23 +415,10 @@ $.uce.widget("management", {
         return (button);
     },
 
-    _updateNotifications: function() {
-        this._new.text(this._newCount);
-        if (this._newCount == 0) {
-            this._new.hide();
-        } else {
-            this._new.show();
-        }
-    },
-
-    setOption: function(key, value) {
-        $.Widget.prototype._setOption.apply(this, arguments);
-    },
-
     destroy: function() {
         this.element.find('*').remove();
         this.element.removeClass('ui-management ui-widget');
-        $(this.options.dock).find('*').remove();
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
-});
+};
+$.uce.widget("management", new $.uce.Management());
