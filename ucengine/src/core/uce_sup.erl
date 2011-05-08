@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([start_link/1, init/1]).
+-export([start_link/1, init/1, start_child/1]).
 
 start_link(ConfigPath) ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, [ConfigPath]).
@@ -43,3 +43,6 @@ init(ConfigPath) ->
               permanent, infinity, supervisor, [uce_vhost_sup]}],
     {ok, {{one_for_one, 10, 10},
           Config ++ Routes ++ Timeout ++ PubSubSup ++ Vhost}}.
+
+start_child(ChildSpec) ->
+    {ok, _Pid} = supervisor:start_child(?MODULE, ChildSpec).
