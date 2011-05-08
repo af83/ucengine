@@ -104,7 +104,7 @@ list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
     Events = lists:map(fun(Collection) ->
                                from_collection(Collection)
                        end,
-                       emongo:find_all(Domain,"uce_event",
+                       emongo:find_all(Domain, "uce_event",
                                        SelectLocation ++
                                            SelectFrom ++
                                            SelectTypes ++

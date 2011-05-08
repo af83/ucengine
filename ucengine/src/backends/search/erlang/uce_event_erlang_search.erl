@@ -55,7 +55,7 @@ filter(Events, Words) ->
                  Events).
 
 list(Domain, Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Max, Order) ->
-    {ok, Events} = apply(db:get(uce_event, Domain), list, [Location, From, Type, DateStart, DateEnd, Parent]),
+    {ok, Events} = (db:get(uce_event, Domain)):list(Location, From, Type, DateStart, DateEnd, Parent),
 
     FilteredEvents = filter(Events, Search),
     OrderedEvents = event_helpers:sort(FilteredEvents, Order),

@@ -37,7 +37,7 @@ add(Domain, #uce_meeting{id=Id} = Meeting) ->
         true ->
             throw({error, conflict});
         false ->
-            apply(db:get(?MODULE, Domain), add, [Meeting])
+            (db:get(?MODULE, Domain)):add(Meeting)
     end.
 
 delete(Domain, Id) ->
@@ -45,22 +45,22 @@ delete(Domain, Id) ->
         false ->
             throw({error, not_found});
         true ->
-            apply(db:get(?MODULE, Domain), delete, [Id])
+            (db:get(?MODULE, Domain)):delete(Id)
     end.
 
 get(Domain, Id) ->
-    apply(db:get(?MODULE, Domain), get, [Id]).
+    (db:get(?MODULE, Domain)):get(Id).
 
 update(Domain, #uce_meeting{id=Id} = Meeting) ->
     case ?MODULE:exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            apply(db:get(?MODULE, Domain), update, [Meeting])
+            (db:get(?MODULE, Domain)):update(Meeting)
     end.
 
 list(Domain, Status) ->
-    {ok, Meetings} = apply(db:get(?MODULE, Domain), list, [Domain]),
+    {ok, Meetings} = (db:get(?MODULE, Domain)):list(Domain),
     if
         Status == "all";
         Status == "upcoming";
