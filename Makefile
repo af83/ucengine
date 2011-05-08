@@ -38,7 +38,7 @@ restart: dev
 
 tests: dev
 	rel/ucengine/bin/ucengine-admin tests
-	./rebar eunit
+	./rebar skip_deps=true eunit
 
 ###############################################################################
 # Cleanup
