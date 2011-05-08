@@ -41,11 +41,19 @@ tests: dev
 	./rebar skip_deps=true eunit
 
 ###############################################################################
+# Benchmark
+###############################################################################
+
+bench:
+	mkdir -p ebin/
+	erlc -o ebin/ tsung/tsung_utils.erl
+	mkdir -p benchmarks/results
+	./utils/benchmark
+	rm -rf ebin
+
+###############################################################################
 # Cleanup
 ###############################################################################
-.PHONY: clean
-.PHONY: deepclean
-.PHONY: cleanrel
 clean:
 	-@rm -v tmp/* -fr
 	-@rm -v data/* -fr
@@ -56,3 +64,5 @@ cleanrel:
 
 deepclean: clean cleanrel
 	./rebar clean
+
+.PHONY: clean deepclean cleanrel bench
