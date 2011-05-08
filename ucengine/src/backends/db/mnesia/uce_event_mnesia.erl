@@ -25,7 +25,7 @@
 
 -export([add/2,
          get/2,
-         list/6]).
+         list/7]).
 
 -include("uce.hrl").
 
@@ -56,9 +56,9 @@ get(_Domain, Id) ->
             {ok, Event}
     end.
 
-list(Location, From, [], Start, End, Parent) ->
-    ?MODULE:list(Location, From, [""], Start, End, Parent);
-list(Location, From, Types, Start, End, Parent) ->
+list(Location, From, [], Start, End, Parent, Order) ->
+    ?MODULE:list(Location, From, [""], Start, End, Parent, Order);
+list(Location, From, Types, Start, End, Parent, Order) ->
     {SelectLocation, ResultLocation} =
         case Location of
             {"", Domain} ->
@@ -115,7 +115,9 @@ list(Location, From, Types, Start, End, Parent) ->
                           mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])
                   end,
                   Types),
-    {ok, lists:flatten(Events)}.
+    %% XXX: mnesia should be able to sort events
+    OrderedEvents = event_helpers:sort(lists:flatten(Events), Order),
+    {ok, OrderedEvents}.
 
 drop() ->
     mnesia:clear_table(uce_event).

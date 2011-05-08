@@ -23,7 +23,7 @@
 
 -export([add/2,
          get/2,
-         list/6]).
+         list/7]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -59,11 +59,11 @@ get(Domain, {EventId, EventDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec ({list, Domain::list} = location, {FromId::list, FromDomain::list} = From::tuple, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list}
+%% @spec ({list, Domain::list} = location, {FromId::list, FromDomain::list} = From::tuple, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list, Order::atom) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list}
 %% @doc Returns list of record #uce_event which are match with given keys
 %% @end
 %%--------------------------------------------------------------------
-list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
+list({_M, Domain}=Location, From, Type, Start, End, Parent, Order) ->
     SelectLocation = case Location of
                          {"", Domain} ->
                              [];
@@ -110,7 +110,7 @@ list({_M, Domain}=Location, From, Type, Start, End, Parent) ->
                                            SelectTypes ++
                                            SelectParent ++
                                            SelectTime,
-                                       [{orderby, [{"this.datetime", asc}]}])),
+                                       [{orderby, [{"datetime", Order}]}])),
     {ok, Events}.
 
 %%--------------------------------------------------------------------
