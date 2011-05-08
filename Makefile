@@ -55,14 +55,7 @@ bench:
 # Cleanup
 ###############################################################################
 clean:
-	-@rm -v tmp/* -fr
-	-@rm -v data/* -fr
 	-@rm -v erl_crash.dump -f
-
-cleanrel:
-	rm -rf rel/ucengine
-
-deepclean: clean cleanrel
 	./rebar clean
 
-.PHONY: clean deepclean cleanrel bench
+.PHONY: clean bench
