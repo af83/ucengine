@@ -95,7 +95,7 @@ list(Domain, [Meeting],
     Keywords = string:tokens(Search, ","),
     Types = string:tokens(Type, ","),
 
-    Start = paginate:index(Count, 0, Page),
+    Start = uce_paginate:index(Count, 0, Page),
     case uce_event:list(Domain,
                         {Meeting, Domain},
                         Keywords,
