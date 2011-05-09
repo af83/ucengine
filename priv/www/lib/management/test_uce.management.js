@@ -100,7 +100,6 @@ module("uce.management", {
         $('#management').management({
             ucemeeting: this.ucemeeting,
             uceclient: {uid: 'chuck'},
-            dock: '#management-dock',
             url: 'my sweet url',
             code: '1234'
         });

@@ -366,27 +366,6 @@ section#expanded article.highlight {
     min-height: 400px;
 }
 
-/* dock */
-#dock {
-    float: left;
-    width: 32px;
-    clear: none;
-    position: fixed;
-    margin-top: 10px;
-}
-
-#dock li {
-    list-style-type: none;
-    min-height: 37px;
-}
-
-#dock .ui-state-default.ui-button-icon-only {
-    background: #EBEBEB;
-    border: 1px solid #DADADA;
-    width: 32px;
-    min-height: 32px;
-}
-
 /* ui-widget */
 section > .ui-widget {
     border: 1px solid #DADADA;

@@ -3,22 +3,6 @@
     margin: 0.1em 16px 0.2em 0;
 }
 
-.ui-management-dock .ui-widget-dock-notification {
-    width: 10px;
-    height: 10px;
-    padding: 0;
-    left: 37px;
-    background: red;
-    border: 1px solid red;
-    -moz-border-radius: 8px;
-    border-radius: 8px;
-    text-align: center;
-    font: bold 7px/10px Helvetica;
-    color: #FFF;
-    margin: -9px 0 0 -17px;
-    float: right;
-}
-
 .ui-management .ui-management-roster li {
     list-style-type: none;
     display: block;
