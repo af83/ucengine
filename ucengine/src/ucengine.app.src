@@ -3,5 +3,5 @@
                     {vsn, "0.5"},
                     {registered, []},
                     {mod, {ucengine_app, []}},
-                    {applications, [kernel, stdlib, ibrowse, emongo]}
+                    {applications, [kernel, stdlib]}
                    ]}.
