@@ -66,7 +66,7 @@ setup_search() ->
             ChildSpec = {uce_solr_commiter,
                          {uce_solr_commiter, start_link, []},
                          permanent, brutal_kill, worker, [uce_solr_commiter]},
-            {ok, _Pid} = supervisor:start_child(uce_sup, ChildSpec);
+            {ok, _Pid} = uce_sup:start_child(ChildSpec);
         _ ->
             []
     end.

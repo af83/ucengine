@@ -73,7 +73,7 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
                          list_to_integer(A)
                  end,
 
-    Start = paginate:index(Count, StartIndex, StartPage),
+    Start = uce_paginate:index(Count, StartIndex, StartPage),
     {ok, NumTotal, Events} = uce_event:search(Domain,
                                               {Location, Domain},
                                               Keywords,

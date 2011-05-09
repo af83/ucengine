@@ -33,17 +33,15 @@ add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
             throw({error,conflict});
         false ->
             uce_role:add(Domain, #uce_role{id={UId, Domain}}),
-
             DefaultRoles = [{"default", ""}, {UId, ""}],
-            apply(db:get(?MODULE, Domain), add,
-                  [Domain, User#uce_user{roles=User#uce_user.roles ++ DefaultRoles}]),
-            {ok, UId}
-    end.
+            (db:get(?MODULE, Domain)):add(Domain,
+                                          User#uce_user{roles=User#uce_user.roles ++ DefaultRoles}),
+            {ok, UId} end.
 
 delete(Domain, Id) when is_list(Id) ->
     case catch ?MODULE:get(Domain, Id) of
         {error, _} -> throw({error, not_found});
-        {ok, User} -> apply(db:get(?MODULE, Domain), delete, [Domain, User#uce_user.id])
+        {ok, User} -> (db:get(?MODULE, Domain)):delete(Domain, User#uce_user.id)
     end;
 delete(Domain, {Uid, _} = Id) ->
     case exists(Domain, Id) of
@@ -53,7 +51,7 @@ delete(Domain, {Uid, _} = Id) ->
                 {error, Reason} when Reason /= not_found ->
                     throw({error, Reason});
                 {ok, deleted}->
-                    apply(db:get(?MODULE, Domain), delete, [Domain, Id])
+                    (db:get(?MODULE, Domain)):delete(Domain, Id)
             end;
         false ->
             throw({error, not_found})
@@ -62,16 +60,16 @@ delete(Domain, {Uid, _} = Id) ->
 update(Domain, #uce_user{name=Name} = User) ->
     case ?MODULE:exists(Domain, Name) of
         true ->
-            apply(db:get(?MODULE, Domain), update, [Domain, User]);
+            (db:get(?MODULE, Domain)):update(Domain, User);
         false ->
             throw({error, not_found})
    end.
 
 list(Domain) ->
-    apply(db:get(?MODULE, Domain), list, [Domain]).
+    (db:get(?MODULE, Domain)):list(Domain).
 
 get(Domain, User) ->
-    apply(db:get(?MODULE, Domain), get, [Domain, User]).
+    (db:get(?MODULE, Domain)):get(Domain, User).
 
 exists(_Domain, {"", _} = _Id) ->
     true;

@@ -1,13 +1,8 @@
 #!/bin/bash
 
-export ERL_LIBS="$ERL_LIB:$UCENGINE_PATH:."
+TSUNG_PATH=$(which tsung)
+TSUNG_SHARE_PATH=$(dirname $TSUNG_PATH)"/.."
 
-BENCH=$1
-: ${BENCH:="quiet"}
-
-echo "Scenario chosen: benchmarks/scenarii/$BENCH.xml"
-
-ulimit -n 300000
-mkdir -p benchmarks/results
-mkdir -p "benchmarks/results/$BENCH"
-tsung -f "benchmarks/scenarii/$BENCH.xml" -l "benchmarks/results/$BENCH/" start
+cp benchmarks/scenarii/tsung.xml benchmarks/results
+sed -i "s=TSUNG_SHARE_PATH=$TSUNG_SHARE_PATH=" benchmarks/results/tsung.xml
+ERL_LIBS="." tsung -f "benchmarks/results/tsung.xml" -l "benchmarks/results/tsung.log" start

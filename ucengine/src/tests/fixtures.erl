@@ -30,7 +30,7 @@ setup() ->
     [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/", setup_testers(Domain, UsersUid)].
 
 teardown([Domain, _, _Testers]) ->
-    apply(list_to_atom(lists:concat([config:get(Domain, db), "_db"])), drop, []),
+    (list_to_atom(lists:concat([config:get(Domain, db), "_db"]))):drop(),
     teardown_solr(Domain),
     ok.
 

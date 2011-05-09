@@ -35,13 +35,13 @@ add(Domain, #uce_role{id=Id} = Role) ->
         true ->
             throw({error, conflict});
         false ->
-            apply(db:get(?MODULE, Domain), add, [Domain, Role])
+            (db:get(?MODULE, Domain)):add(Domain, Role)
     end.
 
 update(Domain, #uce_role{id=Id} = Role) ->
     case exists(Domain, Id) of
         true ->
-            apply(db:get(?MODULE, Domain), update, [Domain, Role]);
+            (db:get(?MODULE, Domain)):update(Domain, Role);
         false ->
             throw({error, not_found})
     end.
@@ -49,13 +49,13 @@ update(Domain, #uce_role{id=Id} = Role) ->
 delete(Domain, Id) ->
     case exists(Domain, Id) of
         true ->
-            apply(db:get(?MODULE, Domain), delete, [Domain, Id]);
+            (db:get(?MODULE, Domain)):delete(Domain, Id);
         false ->
             throw({error, not_found})
     end.
 
 get(Domain, Id) ->
-    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
+    (db:get(?MODULE, Domain)):get(Domain, Id).
 
 exists(Domain, Id) ->
     case catch ?MODULE:get(Domain, Id) of

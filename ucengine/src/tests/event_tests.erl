@@ -682,15 +682,15 @@ test_last(BaseUrl, {RootUid, RootSid}) ->
                      {"sid", RootSid},
                      {"count", "1"},
                      {"order", "desc"}],
-    {struct, [{"result",
-               {array, [{struct, [{"type", "last_event"}
+    ?assertMatch({struct, [{"result",
+                            {array, [{struct, [{"type", "last_event"}
                                   , {"domain", _}
                                   , {"datetime", _}
                                   , {"id", _}
                                   , {"location", "testmeeting"}
                                   , {"from", _}
                                   , {"metadata", {struct, [{"description", "pushed_event"}]}}
-                                 ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetLast).
+                                 ]}]}}]}, tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetLast)).
 
 send_long_polling_event(BaseUrl, {RootUid, RootSid}) ->
     timer:sleep(4000),

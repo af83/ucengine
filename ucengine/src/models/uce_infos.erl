@@ -22,7 +22,7 @@
 -export([get/1, update/2]).
 
 get(Domain) ->
-    apply(db:get(?MODULE, Domain), get, [Domain]).
+    (db:get(?MODULE, Domain)):get(Domain).
 
 update(Domain, #uce_infos{} = Infos) ->
-    apply(db:get(?MODULE, Domain), update, [Domain, Infos]).
+    (db:get(?MODULE, Domain)):update(Domain, Infos).

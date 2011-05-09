@@ -38,21 +38,24 @@ restart: dev
 
 tests: dev
 	rel/ucengine/bin/ucengine-admin tests
-	./rebar eunit
+	./rebar skip_deps=true eunit
+
+###############################################################################
+# Benchmark
+###############################################################################
+
+bench:
+	mkdir -p ebin/
+	erlc -o ebin/ tsung/tsung_utils.erl
+	mkdir -p benchmarks/results
+	./utils/benchmark
+	rm -rf ebin
 
 ###############################################################################
 # Cleanup
 ###############################################################################
-.PHONY: clean
-.PHONY: deepclean
-.PHONY: cleanrel
 clean:
-	-@rm -v tmp/* -fr
-	-@rm -v data/* -fr
 	-@rm -v erl_crash.dump -f
-
-cleanrel:
-	rm -rf rel/ucengine
-
-deepclean: clean cleanrel
 	./rebar clean
+
+.PHONY: clean bench

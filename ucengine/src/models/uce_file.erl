@@ -36,7 +36,7 @@ add(Domain, #uce_file{location=Location, name=Name} = File) ->
                     _ ->
                         {Name ++ "_" ++ utils:random(), "text/plain"}
                 end,
-            apply(db:get(?MODULE, Domain), add, [Domain, File#uce_file{id={Id, Domain}, mime=Mime}])
+            (db:get(?MODULE, Domain)):add(Domain, File#uce_file{id={Id, Domain}, mime=Mime})
     end.
 
 list(Domain, {_, _}=Location) ->
@@ -44,16 +44,16 @@ list(Domain, {_, _}=Location) ->
         false ->
             throw({error, not_found});
         true ->
-            apply(db:get(?MODULE, Domain), list, [Domain, Location])
+            (db:get(?MODULE, Domain)):list(Domain, Location)
     end.
 
 get(Domain, {_, _}=Id) ->
-    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
+    (db:get(?MODULE, Domain)):get(Domain, Id).
 
 delete(Domain, {_, _}=Id) ->
     case ?MODULE:get(Domain, Id) of
         {error, Reason} ->
             {error, Reason};
         {ok, _} ->
-            apply(db:get(?MODULE, Domain), delete, [Domain, Id])
+            (db:get(?MODULE, Domain)):delete(Domain, Id)
     end.

@@ -19,11 +19,11 @@
 
 -author('victor.goya@af83.com').
 
--export([listen/10]).
+-export([listen/9]).
 
 -include("uce.hrl").
 
-listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent, YawsPid) ->
+listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
     ?PUBSUB_MODULE:subscribe(self(), Location, Search, From, Types, Uid, Start, End, Parent),
     Res = receive
               {message, _} ->
@@ -45,18 +45,15 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent, YawsPid) 
                           JSONEvents = mochijson:encode({struct,
                                                          [{result,
                                                            event_helpers:to_json(Events)}]}),
-                          yaws_api:stream_chunk_deliver(YawsPid, list_to_binary(JSONEvents)),
-                          yaws_api:stream_chunk_end(YawsPid),
-                          ok
+                          {ok, JSONEvents}
                   end;
-              _ ->
+              Other ->
+                  ?WARNING_MSG("unattended message ~p", [Other]),
                   ok
           after
               config:get(long_polling_timeout) * 1000 ->
                   JSONEmpty = mochijson:encode({struct, [{result, {array, []}}]}),
-                  yaws_api:stream_chunk_deliver(YawsPid, list_to_binary(JSONEmpty)),
-                  yaws_api:stream_chunk_end(YawsPid),
-                  ok
+                  {ok, JSONEmpty}
           end,
     ?PUBSUB_MODULE:unsubscribe(self()),
     Res.

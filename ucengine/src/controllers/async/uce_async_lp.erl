@@ -34,10 +34,9 @@ wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
                                         Uid,
                                         Start,
                                         End,
-                                        Parent,
-                                        Self) of
-                      ok ->
-                          nothing;
+                                        Parent) of
+                      {ok, JSONEvents} ->
+                          yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents));
                       {error, Reason} ->
                           Error = case http_helpers:error_to_code(Reason) of
                                       500 ->

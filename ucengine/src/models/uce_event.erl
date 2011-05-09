@@ -35,7 +35,7 @@ add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Eve
 
     case {LocationExists, FromExists, ToExists, ParentExists} of
         {true, true, true, true} ->
-            {ok, Id} = apply(db:get(?MODULE, Domain), add, [Domain, Event]),
+            {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
             ?PUBSUB_MODULE:publish(Event),
             ?SEARCH_MODULE:add(Event),
             {ok, Id};
@@ -44,7 +44,7 @@ add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Eve
     end.
 
 get(Domain, Id) ->
-    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
+    (db:get(?MODULE, Domain)):get(Domain, Id).
 
 exists(Domain, Id) ->
     case Id of
