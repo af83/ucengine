@@ -33,7 +33,7 @@ add(Domain, #uce_file{location=Location, name=Name} = File) ->
                     {match, [_, BareName, Extension]} ->
                         {BareName ++ "_" ++ utils:random() ++ "." ++ Extension,
                          yaws_api:mime_type(Name)};
-                    _ ->
+                    nomatch ->
                         {Name ++ "_" ++ utils:random(), "text/plain"}
                 end,
             (db:get(?MODULE, Domain)):add(Domain, File#uce_file{id={Id, Domain}, mime=Mime})

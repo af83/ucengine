@@ -25,27 +25,27 @@ file_test_() ->
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
     , fun([_, BaseUrl, [Root|_]]) ->
-	      [?_test(test_upload_small(BaseUrl, Root)),
-	       ?_test(test_upload_big(BaseUrl, Root)),
-	       ?_test(test_upload_not_found_meeting(BaseUrl, Root)),
+              [?_test(test_upload_small(BaseUrl, Root)),
+               ?_test(test_upload_big(BaseUrl, Root)),
+               ?_test(test_upload_not_found_meeting(BaseUrl, Root)),
 
-	       ?_test(test_list(BaseUrl, Root)),
-	       ?_test(test_list_not_found_meeting(BaseUrl, Root)),
+               ?_test(test_list(BaseUrl, Root)),
+               ?_test(test_list_not_found_meeting(BaseUrl, Root)),
 
-	       ?_test(test_get(BaseUrl, Root)),
-	       ?_test(test_get_not_found(BaseUrl, Root)),
+               ?_test(test_get(BaseUrl, Root)),
+               ?_test(test_get_not_found(BaseUrl, Root)),
 
-	       ?_test(test_delete(BaseUrl, Root))]
+               ?_test(test_delete(BaseUrl, Root))]
       end
     }.
 
 gen_file(Size, FileName) ->
     Body = string:copies("content", Size),
     "------WebKitFormBoundaryLwCN5mZmxIA54Aif\r\n" ++
-	"Content-Disposition: form-data; name=\"content\"; filename=\"" ++ FileName ++ "\"\r\n" ++
-	"Content-Type: application/octet-stream\r\n\r\n" ++
-	Body ++ "\r\n" ++
-	"------WebKitFormBoundaryLwCN5mZmxIA54Aif--\r\n".
+        "Content-Disposition: form-data; name=\"content\"; filename=\"" ++ FileName ++ "\"\r\n" ++
+        "Content-Type: application/octet-stream\r\n\r\n" ++
+        Body ++ "\r\n" ++
+        "------WebKitFormBoundaryLwCN5mZmxIA54Aif--\r\n".
 
 upload(BaseUrl, Params, File) ->
     upload(BaseUrl, "testmeeting", Params, File).
@@ -61,7 +61,7 @@ test_upload_small(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "test_file"}],
-    {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4, "small")),
+    {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4, "small.pdf")),
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
                  {"type", "internal.file.add"},
@@ -77,9 +77,9 @@ test_upload_small(BaseUrl, {RootUid, RootSid}) ->
         tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
     {struct, [{"id", _},
               {"domain", _},
-              {"name", "small"},
+              {"name", "small.pdf"},
               {"size", "28"},
-              {"mime", "text/plain"}]} = Metadata.
+              {"mime", "application/pdf"}]} = Metadata.
 
 test_upload_big(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
@@ -89,8 +89,8 @@ test_upload_big(BaseUrl, {RootUid, RootSid}) ->
 
 test_upload_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"metadata[description]", "test_file"}],
+              {"sid", RootSid},
+              {"metadata[description]", "test_file"}],
     {struct,[{"error", "not_found"}]} = upload(BaseUrl, "testorg", Params, gen_file(4, "small")).
 
 test_list(BaseUrl, {RootUid, RootSid}) ->
