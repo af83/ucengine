@@ -256,7 +256,7 @@ $.uce.Chat.prototype = {
                       event.datetime,
                       this._state.roster[event.from].nickname,
                       event.metadata.text);
-        // XXX: Can we refactor this to have a general behaviour when there is no dock ?
+
         if (event.from != this.options.ucemeeting.uid) {
             this._trigger('updated', event);
         }

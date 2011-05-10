@@ -4,15 +4,6 @@
 
 <div class="page" id="meeting">
 
-  <ul id="dock">
-    <li id="management-dock" />
-    <li id="chat-dock" />
-    <li id="video-dock" />
-    <li id="fileupload-dock" />
-    <li id="filesharing-dock" />
-    <li id="whiteboard-dock" />
-  </ul>
-
   <div id="widgets">
     <section id="expanded" class="slots">
     </section>
