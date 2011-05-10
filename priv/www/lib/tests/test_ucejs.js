@@ -758,6 +758,34 @@ jackTest("user.can", function() {
     });
 });
 
+jackTest("meeting.can", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/user/otheruid/can/action/object/mymeeting",
+                  {"conditions": {'condition_1': 'value'},
+                   "uid": "myuid",
+                   "sid": "mysid"}, 200, '{"result":"true"}');
+    this.client.attachPresence(Factories.createPresence()).
+        meeting('mymeeting').can("otheruid", "action", "object", {'condition_1': 'value'}, function(err, result) {
+        start();
+        equals(err, null);
+        ok(result);
+    });
+});
+
+jackTest("meeting.canCurrentUser", function() {
+    stop();
+    addUceApiCall("get", "/api/" + uce.version + "/user/myuid/can/action/object/mymeeting",
+                  {"conditions": {'condition_1': 'value'},
+                   "uid": "myuid",
+                   "sid": "mysid"}, 200, '{"result":"true"}');
+    this.client.attachPresence(Factories.createPresence()).
+        meeting('mymeeting').canCurrentUser("action", "object", {'condition_1': 'value'}, function(err, result) {
+        start();
+        equals(err, null);
+        ok(result);
+    });
+});
+
 module("ucejs.role", {
     setup:function() {
         this.client = uce.createClient();

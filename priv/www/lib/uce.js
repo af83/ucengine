@@ -503,7 +503,19 @@
                      */
                     search: function(terms, options, callback) {
                         terms.location = meetingname;
-                        client.search(terms, options, callback);
+                        return client.search(terms, options, callback);
+                    },
+                    /**
+                     * Can the user make the action in the current meeting ?
+                     */
+                    can: function(uid, action, object, conditions, callback) {
+                        return client.user.can(uid, action, object, conditions, meetingname, callback);
+                    },
+                    /**
+                     *
+                     */
+                    canCurrentUser: function(action, object, conditions, callback) {
+                        return this.can((_presence || {}).user, action, object, conditions, callback);
                     }
                 };
             },
