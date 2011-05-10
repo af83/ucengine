@@ -110,12 +110,13 @@ delete(Domain, {FileId, _FileDomain}) ->
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		   ["id", "domain", "location", "name", "uri", "metadata"]) of
-        [Id, Domain, Location, Name, Uri, Metadata] ->
+                   ["id", "domain", "location", "name", "mime", "uri", "metadata"]) of
+        [Id, Domain, Location, Name, Mime, Uri, Metadata] ->
             #uce_file{id={Id, Domain},
                       name=Name,
                       location={Location, Domain},
                       uri=Uri,
+                      mime=Mime,
                       metadata=Metadata};
         _ ->
             throw({error, bad_parameters})
@@ -130,10 +131,12 @@ to_collection(#uce_file{id={Id, Domain},
                         name=Name,
                         location={Location, _},
                         uri=Uri,
+                        mime=Mime,
                         metadata=Metadata}) ->
     [{"id", Id},
      {"domain", Domain},
      {"location", Location},
      {"name", Name},
+     {"mime", Mime},
      {"uri", Uri},
      {"metadata", Metadata}].
