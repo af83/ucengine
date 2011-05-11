@@ -60,16 +60,21 @@ add(Domain, [], Params, Arg) ->
 add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "event", "add",
-                                   [{"type", Type},{"to", To}]),
-    {ok, Id} = uce_event:add(Domain,
-                             #uce_event{id={none, Domain},
-                                        location={Meeting, Domain},
-                                        from={Uid, Domain},
-                                        type=Type,
-                                        to={To, Domain},
-                                        parent=Parent,
-                                        metadata=Metadata}),
-    json_helpers:created(Domain, Id).
+                                   [{"type", Type}, {"to", To}]),
+    case Type of
+        "internal."++ _Rest ->
+            throw({error, unauthorized});
+        _OtherEvent ->
+            {ok, Id} = uce_event:add(Domain,
+                                     #uce_event{id={none, Domain},
+                                                location={Meeting, Domain},
+                                                from={Uid, Domain},
+                                                type=Type,
+                                                to={To, Domain},
+                                                parent=Parent,
+                                                metadata=Metadata}),
+            json_helpers:created(Domain, Id)
+    end.
 
 get(Domain, [_, Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),

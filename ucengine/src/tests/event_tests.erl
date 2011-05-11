@@ -58,6 +58,7 @@ event_test_() ->
       , fun fixtures:teardown/1
       , fun([_, BaseUrl, [Root, Participant, Ugly|_]]) ->
                 [?_test(test_push(BaseUrl, Root)),
+                 ?_test(test_push_internal_event(BaseUrl, Root)),
                  ?_test(test_push_without_meeting(BaseUrl, Root)),
                  ?_test(test_push_with_parent(BaseUrl, Root)),
                  ?_test(test_push_to_me(BaseUrl, Root)),
@@ -99,6 +100,13 @@ test_push(BaseUrl, {RootUid, RootSid}) ->
                                       {"from", RootUid},
                                       {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]},
                  tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params)).
+
+test_push_internal_event(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"type", "internal.roster.add"},
+              {"metadata[description]", "pushed_event"}],
+    {struct, [{"error", "unauthorized"}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params).
 
 test_push_without_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
@@ -206,7 +214,7 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
                          {"from", RootUid},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}]}}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsParticipant),
-    
+
     ParamsRootGet = [{"uid", RootUid},
                      {"sid", RootSid},
                      {"type", "test_push_to_other"}],
