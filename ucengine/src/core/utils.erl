@@ -107,9 +107,11 @@ get_values_test() ->
 
 merge_test() ->
     A = [{firstname, "Chuck"}, {lastname, "Norris"}, alive],
-    B = [{firstname, "Robert"}, {shoes, "santiags"}],
+    B = [{firstname, "Robert"}, {shoes, "santiags"}, {lastname, "Norris2"}],
     C = proplist_merge(A, B),
     ?assertEqual("Chuck", proplists:get_value(firstname, C)),
+    ?assertEqual("Chuck", proplists:get_value(firstname, C)),
+    ?assertEqual("Norris", proplists:get_value(lastname, C)),
     ?assertEqual(true, proplists:get_value(alive, C)).
 -endif.
 
