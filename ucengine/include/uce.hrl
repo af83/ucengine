@@ -87,6 +87,11 @@
           regexp,
           callback}).
 
+-record(file_upload, {
+          fd,
+          filename,
+          uri}).
+
 -define(TIMEOUT, 5000).
 
 -define(VERSION, "0.5").

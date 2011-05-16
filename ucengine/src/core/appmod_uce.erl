@@ -24,40 +24,35 @@
 
 -export([out/1]).
 
+convert2(string, Value) ->
+    Value;
+convert2(integer, Value) when is_integer(Value) ->
+    Value;
+convert2(integer, Value) ->
+    case string:to_integer(Value) of
+        {error, _} ->
+            {error, bad_parameters};
+        {Integer, _} ->
+            Integer
+    end;
+convert2(atom, Value) when is_atom(Value) ->
+    Value;
+convert2(atom, Value) ->
+    list_to_atom(Value);
+convert2(dictionary, Value) ->
+    Value;
+convert2(file, Value) when is_record(Value, file_upload) ->
+    Value;
+convert2(file, _Value) ->
+    {error, bad_parameters}.
+
 convert(Param, Type)
   when is_atom(Type) ->
     convert(Param, [Type]);
 convert(_, []) ->
     throw({error, bad_parameters});
 convert(Param, [Type|Tail]) ->
-    Result = if
-                 Type == string ->
-                     Param;
-                 Type == integer,
-                 is_integer(Param) ->
-                     Param;
-                 Type == integer,
-                 is_integer(Param) == false ->
-                     case string:to_integer(Param) of
-                         {error, _} ->
-                             {error, bad_parameters};
-                         {Integer, _} ->
-                             Integer
-                     end;
-                 Type == atom,
-                 is_atom(Param)->
-                     Param;
-                 Type == atom,
-                 is_atom(Param) == false ->
-                     case catch list_to_atom(Param) of
-                         Atom when is_atom(Atom) ->
-                             Atom;
-                         _ ->
-                             {error, bad_parameters}
-                     end;
-                 Type == dictionary ->
-                     Param
-             end,
+    Result = convert2(Type, Param),
     case Result of
         {error, _} ->
             convert(Param, Tail);

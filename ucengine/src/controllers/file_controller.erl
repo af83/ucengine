@@ -29,8 +29,7 @@ init() ->
                 callback={?MODULE, add,
                           [{"uid", required, string},
                            {"sid", required, string},
-                           {"_filename", required, string},
-                           {"_uri", required, string},
+                           {"content", required, file},
                            {"metadata", [], dictionary}]}},
 
      #uce_route{method='GET',
@@ -52,13 +51,13 @@ init() ->
                            {"sid", required, string}]}}].
 
 
-add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
+add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "add"),
     {ok, Id} = uce_file:add(Domain, #uce_file{id={none, Domain},
                                               location={Meeting, Domain},
-                                              name=Name,
-                                              uri=Uri,
+                                              name=FileUploaded#file_upload.filename,
+                                              uri=FileUploaded#file_upload.uri,
                                               metadata=Metadata}),
     {ok, File} = uce_file:get(Domain, Id),
     {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
