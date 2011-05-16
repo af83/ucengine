@@ -30,7 +30,8 @@
          random/1,
          get_values/2,
          get/2,
-         get/3]).
+         get/3,
+         proplist_merge/2]).
 
 %% Get current timestamp
 now() ->
@@ -78,11 +79,37 @@ get_values(Proplist, Keys) ->
               end, Keys).
 
 
+%% Merge two proplist
+proplist_merge(ProplistOne, ProplistTwo) ->
+    lists:foldl(fun(Elem, Acc) ->
+        case Elem of
+            {Key, Value} ->
+                case proplists:is_defined(Key, ProplistOne) of
+                    true ->
+                        Acc;
+                    false -> Acc ++ [{Key, Value}]
+                end;
+            Key ->
+                case proplists:is_defined(Key, ProplistOne) of
+                    true ->
+                        Acc;
+                    false -> Acc ++ [Key]
+                end
+        end
+    end,
+        ProplistOne, ProplistTwo).
+
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
 get_values_test() ->
     ?assertEqual(["chuck", "norris", rocks], get_values([{firstname, "chuck"}, {lastname, "norris"}], [{firstname, ""}, {lastname, ""}, {def, rocks}])).
 
+merge_test() ->
+    A = [{firstname, "Chuck"}, {lastname, "Norris"}, alive],
+    B = [{firstname, "Robert"}, {shoes, "santiags"}],
+    C = proplist_merge(A, B),
+    ?assertEqual("Chuck", proplists:get_value(firstname, C)),
+    ?assertEqual(true, proplists:get_value(alive, C)).
 -endif.
 
