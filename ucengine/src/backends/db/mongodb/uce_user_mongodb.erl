@@ -65,8 +65,6 @@ delete(Domain, {Id, Domain}) ->
 %% @end
 %%--------------------------------------------------------------------
 update(Domain, #uce_user{id={Id, UDomain}} = User) ->
-    UserCollection = to_collection(User),
-    ?DEBUG("UserCollection : ~p~n", [UserCollection]),
     case catch emongo:update_sync(Domain, "uce_user", [{"id", Id},
                                                        {"domain", UDomain}],
                                   to_collection(User), false) of
