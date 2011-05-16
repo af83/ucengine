@@ -16,7 +16,7 @@ describe UCEngineDocument do
   it "should transform small pdf to images" do
     value = File.read('./spec/samples/small.pdf')
     @uce.should_receive(:download).once.with('testmeeting', 'small_12345').and_return(value)
-    @uce.should_receive(:upload).once.with('testmeeting', an_instance_of(Tempfile)).and_return({"result" => "id1"})
+    @uce.should_receive(:upload).once.with('testmeeting', an_instance_of(Tempfile), :uploadedby => 'document').and_return({"result" => "id1"})
     @uce.should_receive(:publish).once.with(hash_including(:location => "testmeeting",
                                                            :parent   => "id",
                                                            :from     => "document",
@@ -32,7 +32,7 @@ describe UCEngineDocument do
   it "should transform big pdf to images" do
     value = File.read('./spec/samples/big.pdf')
     @uce.should_receive(:download).once.with('testmeeting', 'small_12345').and_return(value)
-    @uce.should_receive(:upload).exactly(9).times.with('testmeeting', an_instance_of(Tempfile)).and_return({"result" => "id1"})
+    @uce.should_receive(:upload).exactly(9).times.with('testmeeting', an_instance_of(Tempfile), :uploadedby => 'document').and_return({"result" => "id1"})
     @uce.should_receive(:publish).once.with(hash_including(:location => "testmeeting",
                                                            :parent   => "id",
                                                            :from     => "document",

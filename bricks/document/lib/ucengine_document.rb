@@ -13,7 +13,7 @@ module UCEngineDocument
           image.format = "jpg"
           tmp_image = Tempfile.new(["content-", ".jpg"])
           image.write(tmp_image.path)
-          result = uce.upload(event['location'], tmp_image)
+          result = uce.upload(event['location'], tmp_image, :uploadedby => 'document')
           tmp_image.close!
           images[i] = result['result']
         end
