@@ -63,16 +63,17 @@ add(Domain, [Meeting], [Uid, Sid, Name, Uri, Metadata], _) ->
     {ok, File} = uce_file:get(Domain, Id),
     {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
     {FileId, Domain} = File#uce_file.id,
+    EventMetadata = utils:proplist_merge([{"id", FileId},
+                                          {"domain", Domain},
+                                          {"name", File#uce_file.name},
+                                          {"size", integer_to_list(FileInfo#file_info.size)},
+                                          {"mime", File#uce_file.mime}], Metadata),
     uce_event:add(Domain,
                   #uce_event{id={none, Domain},
                              location={Meeting, Domain},
                              from={Uid, Domain},
                              type="internal.file.add",
-                             metadata=[ {"id", FileId},
-                                        {"domain", Domain},
-                                        {"name", File#uce_file.name},
-                                        {"size", integer_to_list(FileInfo#file_info.size)},
-                                        {"mime", File#uce_file.mime}]}),
+                             metadata=EventMetadata}),
     json_helpers:created(Domain, File#uce_file.id).
 
 list(Domain, [Meeting], [Uid, Sid], _) ->

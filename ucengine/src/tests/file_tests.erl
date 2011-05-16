@@ -79,7 +79,8 @@ test_upload_small(BaseUrl, {RootUid, RootSid}) ->
                            {"domain", _},
                            {"name", "small.pdf"},
                            {"size", "28"},
-                           {"mime", "application/pdf"}]}, Metadata).
+                           {"mime", "application/pdf"},
+                           {"description", "test_file"}]}, Metadata).
 
 test_upload_big(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
