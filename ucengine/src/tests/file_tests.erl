@@ -75,28 +75,28 @@ test_upload_small(BaseUrl, {RootUid, RootSid}) ->
                                            {"from", RootUid},
                                            {"metadata", Metadata}]}]}}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
-    {struct, [{"id", _},
-              {"domain", _},
-              {"name", "small.pdf"},
-              {"size", "28"},
-              {"mime", "application/pdf"}]} = Metadata.
+    ?assertMatch({struct, [{"id", _},
+                           {"domain", _},
+                           {"name", "small.pdf"},
+                           {"size", "28"},
+                           {"mime", "application/pdf"}]}, Metadata).
 
 test_upload_big(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "test_file"}],
-    {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4000, "big")).
+    ?assertMatch({struct,[{"result", _}]}, upload(BaseUrl, Params, gen_file(4000, "big"))).
 
 test_upload_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "test_file"}],
-    {struct,[{"error", "not_found"}]} = upload(BaseUrl, "testorg", Params, gen_file(4, "small")).
+    ?assertEqual({struct,[{"error", "not_found"}]}, upload(BaseUrl, "testorg", Params, gen_file(4, "small"))).
 
 test_list(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct,
+    ?assertMatch({struct,
      [{"result",
        {array,
         [{struct,
@@ -105,12 +105,12 @@ test_list(BaseUrl, {RootUid, RootSid}) ->
            {"name",_},
            {"uri", _},
            {"location", "testmeeting"},
-           {"metadata",{struct,_}}]}|_]}}]} = tests_utils:get(BaseUrl, "/file/testmeeting/", Params).
+           {"metadata",{struct,[{"description", "test_file"}]}}]}|_]}}]}, tests_utils:get(BaseUrl, "/file/testmeeting/", Params)).
 
 test_list_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct,[{"error", "not_found"}]} = tests_utils:get(BaseUrl, "/file/unexistentmeeting/", Params).
+    ?assertMatch({struct,[{"error", "not_found"}]}, tests_utils:get(BaseUrl, "/file/unexistentmeeting/", Params)).
 
 test_get(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
@@ -131,13 +131,11 @@ test_get_not_found(BaseUrl, {RootUid, RootSid}) ->
 test_delete(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct,[{"result", Id}]} =
-        upload(BaseUrl, Params, gen_file(4, "small")),    ParamsDelete = [{"uid", RootUid},
-                                                                          {"sid", RootSid}],
-    {struct,[{"result", "ok"}]} =
-        tests_utils:delete(BaseUrl, "/file/testmeeting/" ++ Id, ParamsDelete),
 
-    ParamsGet = [{"uid", RootUid},
-                 {"sid", RootSid}],
-    {struct,[{"error", "not_found"}]} =
-        tests_utils:get(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet).
+    {struct,[{"result", Id}]} = upload(BaseUrl, Params, gen_file(4, "small")),
+
+    ?assertMatch({struct,[{"result", "ok"}]},
+        tests_utils:delete(BaseUrl, "/file/testmeeting/" ++ Id, Params)),
+
+    ?assertMatch({struct,[{"error", "not_found"}]},
+        tests_utils:get(BaseUrl, "/file/testmeeting/" ++ Id, Params)).
