@@ -30,7 +30,8 @@ init() ->
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"content", required, file},
-                           {"metadata", [], dictionary}]}},
+                           {"metadata", [], dictionary},
+                           {"forceContentType", "application/json", string}]}},
 
      #uce_route{method='GET',
                 regexp="/file/([^/]+)",
@@ -51,7 +52,7 @@ init() ->
                            {"sid", required, string}]}}].
 
 
-add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata], _) ->
+add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "add"),
     {ok, Id} = uce_file:add(Domain, #uce_file{id={none, Domain},
@@ -73,7 +74,16 @@ add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata], _) ->
                              from={Uid, Domain},
                              type="internal.file.add",
                              metadata=EventMetadata}),
-    json_helpers:created(Domain, File#uce_file.id).
+    %% In old webbrowser we cannot send file with xmlhttprequest, so we send a
+    %% file via an iframe, and if we reply with a content-type
+    %% 'application/json', browser show a popup allowing users to select the
+    %% correct programm to show it. This is very annoying.
+    case ForceContentType of
+        "application/json" ->
+            json_helpers:created(Domain, FileId);
+        ContentType ->
+            json_helpers:format_response(201, ContentType, cors_helpers:format_cors_headers(Domain), {struct, [{result, FileId}]})
+    end.
 
 list(Domain, [Meeting], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),

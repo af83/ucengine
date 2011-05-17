@@ -26,6 +26,7 @@ file_test_() ->
     , fun fixtures:teardown/1
     , fun([_, BaseUrl, [Root|_]]) ->
               [?_test(test_upload_small(BaseUrl, Root)),
+               ?_test(test_upload_with_force_content_type(BaseUrl, Root)),
                ?_test(test_upload_big(BaseUrl, Root)),
                ?_test(test_upload_big_param(BaseUrl, Root)),
                ?_test(test_upload_not_found_meeting(BaseUrl, Root)),
@@ -73,6 +74,15 @@ upload(BaseUrl, Meeting, URIParams, Body) ->
                      "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
                      Body).
 
+upload_raw(BaseUrl, Params, Body) ->
+    upload_raw(BaseUrl, "testmeeting", Params, Body).
+upload_raw(BaseUrl, Meeting, URIParams, Body) ->
+    tests_utils:post_raw(BaseUrl,
+                     "/file/" ++ Meeting ++"/",
+                     URIParams,
+                     "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
+                     Body).
+
 test_upload_small(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
@@ -97,6 +107,14 @@ test_upload_small(BaseUrl, {RootUid, RootSid}) ->
                            {"size", "28"},
                            {"mime", "application/pdf"},
                            {"description", "test_file"}]}, Metadata).
+
+test_upload_with_force_content_type(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"metadata[description]", "test_file"},
+              {"forceContentType", "text/html"}],
+    {ok, "201", Headers, _} = upload_raw(BaseUrl, [], gen_file(4, "small.pdf") ++ gen_params(Params)),
+    ?assertEqual(lists:keyfind("Content-Type", 1, Headers), {"Content-Type", "text/html"}).
 
 test_upload_big(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},

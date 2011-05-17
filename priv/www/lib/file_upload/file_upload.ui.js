@@ -151,7 +151,7 @@ $.uce.FileUpload.prototype = {
                             .append(uploadButton))
                     .appendTo(files);
                 new AjaxUpload(uploadContainer.find('a'), {
-                    action: this.options.ucemeeting.getFileUploadUrl(),
+                    action: this.options.ucemeeting.getFileUploadUrl()+"&forceContentType=text/html",
                     name: 'content',
                     onComplete : function(file, response){
                         return true;

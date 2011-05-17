@@ -19,7 +19,8 @@
 
 -compile({no_auto_import,[error/1]}).
 
--export([unexpected_error/0,
+-export([format_response/4,
+         unexpected_error/0,
          unexpected_error/1,
          error/1,
          error/2,
@@ -35,9 +36,12 @@ format_response(Status, Content) ->
     format_response(Status, [], Content).
 
 format_response(Status, Headers, Content) ->
+    format_response(Status, "application/json", Headers, Content).
+
+format_response(Status, ContentType, Headers, Content) ->
     Body = mochijson:encode(Content),
     [{status, Status},
-     {content, "application/json", lists:flatten(Body)}] ++ Headers.
+     {content, ContentType, lists:flatten(Body)}] ++ Headers.
 
 add_cors_headers(Domain) ->
     cors_helpers:format_cors_headers(Domain).
