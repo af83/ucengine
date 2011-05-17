@@ -25,8 +25,8 @@ to_json(ACL)
   when is_list(ACL) ->
     {array, [?MODULE:to_json(Access) || Access <- ACL]};
 to_json(#uce_access{action=Action,
-		    object=Object,
-		    conditions=Conditions}) ->
+                    object=Object,
+                    conditions=Conditions}) ->
     {struct,
      [{action, Action},
       {object, Object},
