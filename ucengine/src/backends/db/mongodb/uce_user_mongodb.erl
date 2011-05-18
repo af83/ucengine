@@ -31,49 +31,34 @@
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_user{}) -> {ok, created} | {error, bad_parameters}
+%% @spec (Domain::list, #uce_user{}) -> {ok, created}
 %% @doc Insert given record #uce_user{} in uce_user mongodb table
 %% @end
 %%--------------------------------------------------------------------
 add(Domain, #uce_user{} = User) ->
-    case catch emongo:insert_sync(Domain, "uce_user", to_collection(User)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, created}
-    end.
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_user", to_collection(User))),
+    {ok, created}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, deleted} | {error, bad_parameters}
+%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, deleted}
 %% @doc Delete uce_user record which corresponds to given id and domain
 %% @end
 %%--------------------------------------------------------------------
 delete(Domain, {Id, Domain}) ->
-    case catch emongo:delete_sync(Domain, "uce_user", [{"id", Id},
-                                                       {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, deleted}
-    end.
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_user", [{"id", Id},
+                                                               {"domain", Domain}])),
+    {ok, deleted}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_user{}) -> {ok, updated} | {error, bad_parameters}
+%% @spec (Domain::list, #uce_user{}) -> {ok, updated}
 %% @doc Update given record #uce_user{} in uce_user mongodb table
 %% @end
 %%--------------------------------------------------------------------
 update(Domain, #uce_user{id={Id, UDomain}} = User) ->
-    case catch emongo:update_sync(Domain, "uce_user", [{"id", Id},
-                                                       {"domain", UDomain}],
-                                  to_collection(User), false) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, updated}
-    end.
+    mongodb_helpers:updated(emongo:update_sync(Domain, "uce_user", [{"id", Id},
+                                                                    {"domain", UDomain}],
+                                               to_collection(User), false)),
+    {ok, updated}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list) -> {ok, [#uce_user{}, #uce_user{}, ...] = Users::list} | {error, bad_parameters}
@@ -81,17 +66,12 @@ update(Domain, #uce_user{id={Id, UDomain}} = User) ->
 %% @end
 %%--------------------------------------------------------------------
 list(Domain) ->
-    case catch emongo:find_all(Domain, "uce_user", [{"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Collections ->
-            Users = lists:map(fun(Collection) ->
-                                      from_collection(Collection)
-                              end,
-                              Collections),
-            {ok, Users}
-    end.
+    Collections = emongo:find_all(Domain, "uce_user", [{"domain", Domain}]),
+    Users = lists:map(fun(Collection) ->
+                              from_collection(Collection)
+                      end,
+                      Collections),
+    {ok, Users}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, #uce_user{}} | {error, not_found} | {error, bad_parameters}
@@ -99,22 +79,16 @@ list(Domain) ->
 %% @end
 %%--------------------------------------------------------------------
 get(Domain, Name) when is_list(Name) ->
-    case catch emongo:find_one(Domain, "uce_user", [{"name", Name},
-                                                    {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    case emongo:find_one(Domain, "uce_user", [{"name", Name},
+                                              {"domain", Domain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->
             throw({error, not_found})
     end;
 get(Domain, {UId, UDomain}) ->
-    case catch emongo:find_one(Domain, "uce_user", [{"id", UId},
-                                                    {"domain", UDomain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    case emongo:find_one(Domain, "uce_user", [{"id", UId},
+                                              {"domain", UDomain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->

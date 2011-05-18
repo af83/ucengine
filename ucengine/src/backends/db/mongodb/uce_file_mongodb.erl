@@ -31,18 +31,13 @@
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_file{}) -> {ok, created} | {error, bad_parameters}
+%% @spec (#uce_file{}) -> {ok, Id}
 %% @doc Insert given record #uce_file{} in uce_file mongodb table
 %% @end
 %%--------------------------------------------------------------------
 add(Domain, #uce_file{} = File) ->
-    case catch emongo:insert_sync(Domain, "uce_file", to_collection(File)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, File#uce_file.id}
-    end.
+    emongo:insert_sync(Domain, "uce_file", to_collection(File)),
+    {ok, File#uce_file.id}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain, {Location::list, _Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
@@ -50,14 +45,9 @@ add(Domain, #uce_file{} = File) ->
 %% @end
 %%--------------------------------------------------------------------
 list(Domain, {Location, _}) ->
-    case catch emongo:find_all(Domain, "uce_file", [{"location", Location},
-                                                    {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Files ->
-            {ok, [from_collection(File) || File <- Files]}
-    end.
+    Files = emongo:find_all(Domain, "uce_file", [{"location", Location},
+                                                 {"domain", Domain}]),
+    {ok, [from_collection(File) || File <- Files]}.
 
 %%--------------------------------------------------------------------
 %% @spec ({Location::list, Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
@@ -65,13 +55,8 @@ list(Domain, {Location, _}) ->
 %% @end
 %%--------------------------------------------------------------------
 all(Domain) ->
-    case catch emongo:find_all(Domain, "uce_file", [{"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Files ->
-            {ok, [from_collection(File) || File <- Files]}
-    end.
+    Files = emongo:find_all(Domain, "uce_file", [{"domain", Domain}]),
+    {ok, [from_collection(File) || File <- Files]}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, #uce_file{}} | {error, bad_parameters} | {error, not_found}
@@ -79,29 +64,21 @@ all(Domain) ->
 %% @end
 %%--------------------------------------------------------------------
 get(Domain, {FileId, _FileDomain}) ->
-    case catch emongo:find_one(Domain, "uce_file", [{"id", FileId}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    case emongo:find_one(Domain, "uce_file", [{"id", FileId}]) of
         [File] ->
             {ok, from_collection(File)};
-        _ ->
+        [] ->
             throw({error, not_found})
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, deleted} | {error, not_found}
+%% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, deleted}
 %% @doc Delete #uce_file record for the given id
 %% @end
 %%--------------------------------------------------------------------
 delete(Domain, {FileId, _FileDomain}) ->
-    case catch emongo:delete_sync(Domain, "uce_file", [{"id", FileId}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, deleted}
-    end.
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_file", [{"id", FileId}])),
+    {ok, deleted}.
 
 %%--------------------------------------------------------------------
 %% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_file{} | {error, bad_parameters}

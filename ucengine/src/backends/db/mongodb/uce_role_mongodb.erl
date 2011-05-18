@@ -30,44 +30,26 @@
 -include("mongodb.hrl").
 
 add(Domain, #uce_role{} = Role) ->
-    case catch emongo:insert_sync(Domain, "uce_role", to_collection(Role)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, created}
-    end.
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_role", to_collection(Role))),
+    {ok, created}.
 
 update(Domain, #uce_role{id={Name, _}} = Role) ->
-    case catch emongo:update_sync(Domain, "uce_role", [{"name", Name},
-                                                       {"domain", Domain}],
-                                  to_collection(Role), false) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, updated}
-    end.
+    mongodb_helpers:updated(emongo:update_sync(Domain, "uce_role", [{"name", Name},
+                                                                    {"domain", Domain}],
+                                               to_collection(Role), false)),
+    {ok, updated}.
 
 delete(Domain, {Name, Domain}) ->
-    case catch emongo:delete_sync(Domain, "uce_role", [{"name", Name},
-                                                       {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, deleted}
-    end.
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_role", [{"name", Name},
+                                                               {"domain", Domain}])),
+    {ok, deleted}.
 
 get(Domain, {Name, Domain}) ->
-    case catch emongo:find_one(Domain, "uce_role", [{"name", Name},
-                                                    {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    case emongo:find_one(Domain, "uce_role", [{"name", Name},
+                                              {"domain", Domain}]) of
         [Record] ->
             {ok, from_collection(Record)};
-        _ ->
+        [] ->
             throw({error, not_found})
     end.
 

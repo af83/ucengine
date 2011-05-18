@@ -29,18 +29,13 @@
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_event{}) -> {ok, created} | {error, bad_parameters}
+%% @spec (Domain::list, #uce_event{}) -> {ok, Id}
 %% @doc Insert given record #uce_event{} in uce_event mongodb table
 %% @end
 %%--------------------------------------------------------------------
 add(Domain, #uce_event{} = Event) ->
-    case catch emongo:insert_sync(Domain, "uce_event", to_collection(Event)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, Event#uce_event.id}
-    end.
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_event", to_collection(Event))),
+    {ok, Event#uce_event.id}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, {EventId::list, EventDomain::list}) -> {ok, #uce_event{}} | {error, bad_parameters}
@@ -48,13 +43,10 @@ add(Domain, #uce_event{} = Event) ->
 %% @end
 %%--------------------------------------------------------------------
 get(Domain, {EventId, EventDomain}) ->
-    case catch emongo:find_one(Domain, "uce_event", [{"id", EventId}, {"domain", EventDomain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    case emongo:find_one(Domain, "uce_event", [{"id", EventId}, {"domain", EventDomain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
-        _ ->
+        [] ->
             throw({error, not_found})
     end.
 

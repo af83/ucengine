@@ -19,7 +19,17 @@
 
 -author('victor.goya@af83.com').
 
--export([collection_to_list/1]).
+-export([ok/1, updated/1, collection_to_list/1]).
+
+ok(Result) ->
+    [[{<<"n">>,_},{<<"connectionId">>, _},{<<"err">>,undefined},{<<"ok">>,1.0}]] = Result.
+
+updated(Result) ->
+    [[{<<"updatedExisting">>,true},
+     {<<"n">>,_},
+     {<<"connectionId">>,_},
+     {<<"err">>,undefined},
+     {<<"ok">>,1.0}]] = Result.
 
 collection_member_to_list({array, Value}) when is_list(Value) ->
     lists:map(fun(Elem) ->

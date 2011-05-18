@@ -31,48 +31,32 @@
 %% @end
 %%--------------------------------------------------------------------
 get(Domain) ->
-    case catch emongo:find_one(Domain, "uce_infos", [{"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    case emongo:find_one(Domain, "uce_infos", [{"domain", Domain}]) of
         [Record] ->
             {ok, from_collection(Record)};
         [] ->
-            {ok, #uce_infos{domain=Domain, metadata=[]}};
-        _ ->
-            throw({error, bad_parameters})
+            {ok, #uce_infos{domain=Domain, metadata=[]}}
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_infos{}) -> {ok, updated} | {error, bad_parameters}
+%% @spec (Domain::list, #uce_infos{}) -> {ok, updated}
 %% @doc Update record #uce_infos for the given domain
 %% @end
 %%--------------------------------------------------------------------
 update(Domain, #uce_infos{} = Infos) ->
-    case catch emongo:find_one(Domain, "uce_infos", [{"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    case emongo:find_one(Domain, "uce_infos", [{"domain", Domain}]) of
         [_] ->
-            case catch emongo:update_sync(Domain, "uce_infos",
+            case  emongo:update_sync(Domain, "uce_infos",
                                           [{"domain", Domain}],
                                           to_collection(Infos), false) of
-                {'EXIT', Reason} ->
-                    ?ERROR_MSG("~p~n", [Reason]),
-                    throw({error, bad_parameters});
                 _ ->
                     {ok, updated}
             end;
         [] ->
-            case catch emongo:insert_sync(Domain, "uce_infos", to_collection(Infos)) of
-                {'EXIT', Reason} ->
-                    ?ERROR_MSG("~p~n", [Reason]),
-                    throw({error, bad_parameters});
+            case emongo:insert_sync(Domain, "uce_infos", to_collection(Infos)) of
                 _ ->
                     {ok, updated}
-            end;
-        _ ->
-            throw({error, bad_parameters})
+            end
     end.
 
 %%--------------------------------------------------------------------

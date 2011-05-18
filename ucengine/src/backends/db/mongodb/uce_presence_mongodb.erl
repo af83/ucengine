@@ -33,19 +33,13 @@
 
 
 %%--------------------------------------------------------------------
-%% @spec (Domain, #uce_presence{}) -> {ok, created} | {error, bad_parameters}
+%% @spec (Domain, #uce_presence{}) -> {ok, Id}
 %% @doc Insert given record #uce_presence{} in uce_presence mongodb table
 %% @end
 %%--------------------------------------------------------------------
 add(Domain, #uce_presence{}=Presence) ->
-    case catch emongo:insert_sync(Domain, "uce_presence", to_collection(Presence)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            %%{Id, Domain} = Presence#uce_presence.id,
-            {ok, Presence#uce_presence.id}
-    end.
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_presence", to_collection(Presence))),
+    {ok, Presence#uce_presence.id}.
 
 %%--------------------------------------------------------------------
 %% @spec ({User::list, Domain::list}) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters}
@@ -53,18 +47,13 @@ add(Domain, #uce_presence{}=Presence) ->
 %% @end
 %%--------------------------------------------------------------------
 list({User, Domain}) ->
-    case catch emongo:find_all(Domain, "uce_presence", [{"user", User},
-                                                        {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Collections ->
-            Records = lists:map(fun(Collection) ->
-                                        from_collection(Collection)
-                                end,
-                                Collections),
-            {ok, Records}
-    end.
+    Collections = emongo:find_all(Domain, "uce_presence", [{"user", User},
+                                                           {"domain", Domain}]),
+    Records = lists:map(fun(Collection) ->
+                                from_collection(Collection)
+                        end,
+                        Collections),
+    {ok, Records}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters}
@@ -72,17 +61,12 @@ list({User, Domain}) ->
 %% @end
 %%--------------------------------------------------------------------
 all(Domain) ->
-    case catch emongo:find_all(Domain, "uce_presence", [{"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Collections ->
-            Records = lists:map(fun(Collection) ->
-                                        from_collection(Collection)
-                                end,
-                                Collections),
-            {ok, Records}
-    end.
+    Collections = emongo:find_all(Domain, "uce_presence", [{"domain", Domain}]),
+    Records = lists:map(fun(Collection) ->
+                                from_collection(Collection)
+                        end,
+                        Collections),
+    {ok, Records}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, #uce_presence{}} | {error, bad_parameters} | {error, not_found}
@@ -90,46 +74,33 @@ all(Domain) ->
 %% @end
 %%--------------------------------------------------------------------
 get(Domain, {SId, SDomain}) ->
-    case catch emongo:find_one(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    case emongo:find_one(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
-        _ ->
+        [] ->
             throw({error, not_found})
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, deleted} | {error, bad_parameters}
+%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, deleted}
 %% @doc Delete record
 %% @end
 %%--------------------------------------------------------------------
 delete(Domain, {SId, SDomain}) ->
-    case catch emongo:delete_sync(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, deleted}
-    end.
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}])),
+    {ok, deleted}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_presence{}) -> {ok, updated} | {error, bad_parameters}
+%% @spec (Domain::list, #uce_presence{}) -> {ok, updated}
 %% @doc Update record
 %% @end
 %%--------------------------------------------------------------------
 update(Domain, #uce_presence{}=Presence) ->
     {Id, Domain} = Presence#uce_presence.id,
-    case catch emongo:update_sync(Domain, "uce_presence",
-                                  [{"id", Id}, {"domain", Domain}],
-                                  to_collection(Presence), false) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, udpated}
-    end.
+    mongodb_helpers:updated(emongo:update_sync(Domain, "uce_presence",
+                                               [{"id", Id}, {"domain", Domain}],
+                                               to_collection(Presence), false)),
+    {ok, udpated}.
 
 
 %%--------------------------------------------------------------------
