@@ -56,7 +56,7 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                        location={"", Domain},
                                        type="internal.presence.add"}),
     {Id, _} = User#uce_user.id,
-    json_helpers:json(Domain, 200, {struct, [{uid, Id}, {sid, Sid}]}).
+    json_helpers:json(Domain, 201, {struct, [{uid, Id}, {sid, Sid}]}).
 
 get(Domain, [Id], [], _) ->
     {ok, Record} = uce_presence:get(Domain, {Id, Domain}),
