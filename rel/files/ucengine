@@ -63,6 +63,7 @@ case "$1" in
         mkdir -p $PIPE_DIR
         # Note the trailing slash on $PIPE_DIR/
         $ERTS_PATH/run_erl -daemon $PIPE_DIR/ $RUNNER_LOG_DIR "exec $RUNNER_BASE_DIR/bin/$SCRIPT console" 2>&1
+        echo "Node is started. Check status with $0 ping"
         ;;
 
     stop)
