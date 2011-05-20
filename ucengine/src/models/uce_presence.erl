@@ -48,7 +48,7 @@ all(Domain) ->
     (db:get(?MODULE, Domain)):all(Domain).
 
 delete(Domain, Id) ->
-    case ?MODULE:exists(Domain, Id) of
+    case exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
@@ -56,7 +56,7 @@ delete(Domain, Id) ->
     end.
 
 update(Domain, #uce_presence{}=Presence) ->
-    case ?MODULE:exists(Domain, Presence#uce_presence.id) of
+    case exists(Domain, Presence#uce_presence.id) of
         false ->
             throw({error, not_found});
         true ->
@@ -64,7 +64,7 @@ update(Domain, #uce_presence{}=Presence) ->
     end.
 
 exists(Domain, Id) ->
-    case catch ?MODULE:get(Domain, Id) of
+    case catch get(Domain, Id) of
         {error, not_found} ->
             false;
         {error, Reason} ->

@@ -37,11 +37,11 @@ now() ->
     erlang:round(((Mega*1000000+Sec)*1000000+Micro)/1000).
 
 random() ->
-    ?MODULE:random(32).
+    random(32).
 random(0) ->
     [];
 random(Length) ->
-    [crypto:rand_uniform(48,58)] ++ ?MODULE:random(Length - 1).
+    [crypto:rand_uniform(48,58)] ++ random(Length - 1).
 
 get(Params, Key) when is_atom(Key) ->
     [Result] = get(Params, [Key]),
@@ -63,7 +63,7 @@ get(Params, [Key|Keys], [Default|Defaults]) ->
                     false ->
                         [Default]
                 end,
-    ValueList ++ ?MODULE:get(Params, Keys, Defaults).
+    ValueList ++ get(Params, Keys, Defaults).
 
 get_values(Proplist, Keys) ->
     lists:map(fun({Name, Default}) ->

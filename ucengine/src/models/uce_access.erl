@@ -29,7 +29,7 @@
 -include("uce.hrl").
 
 exists(#uce_access{} = Access, ACL) ->
-    case ?MODULE:delete(Access, ACL) of
+    case delete(Access, ACL) of
         ACL ->
             false;
         _ ->

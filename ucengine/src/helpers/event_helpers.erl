@@ -24,7 +24,7 @@
 -export([sort/1, sort/2, to_json/1, from_json/1]).
 
 sort(Events) ->
-    ?MODULE:sort(Events, asc).
+    sort(Events, asc).
 sort(Events, asc) ->
     lists:sort(fun(Event1, Event2) ->
                        Event1#uce_event.datetime < Event2#uce_event.datetime
@@ -76,7 +76,7 @@ to_json(#uce_event{id={Id, Domain},
 
 to_json(Events)
   when is_list(Events) ->
-    {array, [?MODULE:to_json(Event) || Event <- Events]}.
+    {array, [to_json(Event) || Event <- Events]}.
 
 from_json({struct, Event}) ->
     case utils:get(Event, ["id", "datetime", "from", "meeting", "type", "parent", "metadata"]) of

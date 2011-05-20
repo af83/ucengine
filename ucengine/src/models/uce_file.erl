@@ -51,7 +51,7 @@ get(Domain, {_, _}=Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
 delete(Domain, {_, _}=Id) ->
-    case ?MODULE:get(Domain, Id) of
+    case get(Domain, Id) of
         {error, Reason} ->
             {error, Reason};
         {ok, _} ->

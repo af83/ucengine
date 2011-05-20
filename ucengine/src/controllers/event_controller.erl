@@ -56,7 +56,7 @@ init() ->
                            {"_async", "no", string}]}}].
 
 add(Domain, [], Params, Arg) ->
-    ?MODULE:add(Domain, [""], Params, Arg);
+    add(Domain, [""], Params, Arg);
 add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "event", "add",
@@ -90,7 +90,7 @@ get(Domain, [_, Id], [Uid, Sid], _) ->
     end.
 
 list(Domain, [], Params, Arg) ->
-    ?MODULE:list(Domain, [""], Params, Arg);
+    list(Domain, [""], Params, Arg);
 list(Domain, [Meeting],
      [Uid, Sid, Search, Type, From, DateStart, DateEnd, Count, Page, Order, Parent, Async], _Arg) ->
 

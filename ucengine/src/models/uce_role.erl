@@ -58,7 +58,7 @@ get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
 exists(Domain, Id) ->
-    case catch ?MODULE:get(Domain, Id) of
+    case catch get(Domain, Id) of
         {error, not_found} ->
             false;
         {error, Reason} ->
@@ -68,24 +68,24 @@ exists(Domain, Id) ->
     end.
 
 acl(Domain, Id) ->
-    {ok, Role} = ?MODULE:get(Domain, Id),
+    {ok, Role} = get(Domain, Id),
     {ok, Role#uce_role.acl}.
 
 add_access(Domain, Id, #uce_access{} = Access) ->
-    {ok, Role} = ?MODULE:get(Domain, Id),
+    {ok, Role} = get(Domain, Id),
     case uce_access:exists(Access, Role#uce_role.acl) of
         true ->
             {ok, updated};
         false ->
-            ?MODULE:update(Domain, Role#uce_role{acl=(Role#uce_role.acl ++ [Access])})
+            update(Domain, Role#uce_role{acl=(Role#uce_role.acl ++ [Access])})
     end.
 
 delete_access(Domain, Id, #uce_access{} = Access) ->
-    {ok, Role} = ?MODULE:get(Domain, Id),
+    {ok, Role} = get(Domain, Id),
     ACL = case uce_access:exists(Access, Role#uce_role.acl) of
               true ->
                   uce_access:delete(Access, Role#uce_role.acl);
               false ->
                   Role#uce_role.acl
           end,
-    ?MODULE:update(Domain, Role#uce_role{acl=ACL}).
+    update(Domain, Role#uce_role{acl=ACL}).

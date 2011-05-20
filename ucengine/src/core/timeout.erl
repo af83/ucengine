@@ -65,7 +65,7 @@ handle_cast(run, State) ->
               end
       end,
       Presences),
-    ?MODULE:handle_cast(run, State),
+    handle_cast(run, State),
     {noreply, State};
 
 handle_cast(_, State) ->

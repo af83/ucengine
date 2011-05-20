@@ -48,7 +48,7 @@ handle_cast(run, State) ->
     timer:sleep(CommitInterval),
     ?DEBUG("Commit to solr.", []),
     {ok, commited} = uce_event_solr_search:commit(),
-    ?MODULE:handle_cast(run, State),
+    handle_cast(run, State),
     {noreply, State};
 
 handle_cast(_, State) ->
@@ -62,4 +62,3 @@ handle_info(_Info, State) ->
 
 terminate(_Reason, _State) ->
     ok.
-

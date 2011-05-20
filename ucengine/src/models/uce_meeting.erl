@@ -33,7 +33,7 @@
 
 
 add(Domain, #uce_meeting{id=Id} = Meeting) ->
-    case ?MODULE:exists(Domain, Id) of
+    case exists(Domain, Id) of
         true ->
             throw({error, conflict});
         false ->
@@ -41,7 +41,7 @@ add(Domain, #uce_meeting{id=Id} = Meeting) ->
     end.
 
 delete(Domain, Id) ->
-    case ?MODULE:exists(Domain, Id) of
+    case exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
@@ -52,7 +52,7 @@ get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Id).
 
 update(Domain, #uce_meeting{id=Id} = Meeting) ->
-    case ?MODULE:exists(Domain, Id) of
+    case exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
@@ -112,7 +112,7 @@ exists(Domain, Id) ->
         {"", _} -> % root
             true;
         _ ->
-            case catch ?MODULE:get(Domain, Id) of
+            case catch get(Domain, Id) of
                 {error, not_found} ->
                     false;
                 {error, Reason} ->
@@ -127,10 +127,10 @@ join(Domain, Id, User) ->
         false ->
             throw({error, not_found});
         true ->
-            {ok, Meeting} = ?MODULE:get(Domain, Id),
+            {ok, Meeting} = get(Domain, Id),
             case lists:member(User, Meeting#uce_meeting.roster) of
                 false ->
-                    ?MODULE:update(Domain, Meeting#uce_meeting{roster=Meeting#uce_meeting.roster ++ [User]});
+                    update(Domain, Meeting#uce_meeting{roster=Meeting#uce_meeting.roster ++ [User]});
                 true ->
                     {ok, updated}
             end
@@ -141,17 +141,17 @@ leave(Domain, Id, User) ->
         false ->
             throw({error, not_found});
         true ->
-            {ok, Meeting} = ?MODULE:get(Domain, Id),
+            {ok, Meeting} = get(Domain, Id),
             case lists:member(User, Meeting#uce_meeting.roster) of
                 false ->
                     throw({error, not_found});
                 true ->
                     Roster = lists:subtract(Meeting#uce_meeting.roster, [User]),
-                    ?MODULE:update(Domain, Meeting#uce_meeting{roster=Roster})
+                    update(Domain, Meeting#uce_meeting{roster=Roster})
             end
     end.
 
 roster(Domain, Id) ->
-    {ok, Meeting} = ?MODULE:get(Domain, Id),
+    {ok, Meeting} = get(Domain, Id),
     {ok, Meeting#uce_meeting.roster}.
 

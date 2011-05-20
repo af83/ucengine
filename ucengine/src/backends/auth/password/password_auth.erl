@@ -24,7 +24,7 @@
 -export([assert/2, check/2]).
 
 assert(User, Credential) ->
-    case ?MODULE:check(User, Credential) of
+    case check(User, Credential) of
         {ok, true} ->
             {ok, true};
         {ok, false} ->

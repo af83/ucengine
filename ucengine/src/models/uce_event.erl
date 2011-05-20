@@ -24,9 +24,9 @@
 -include("uce.hrl").
 
 add(Domain, #uce_event{id={none, Domain}}=Event) ->
-    ?MODULE:add(Domain, Event#uce_event{id={utils:random(), Domain}});
+    add(Domain, Event#uce_event{id={utils:random(), Domain}});
 add(Domain, #uce_event{datetime=undefined}=Event) ->
-    ?MODULE:add(Domain, Event#uce_event{datetime=utils:now()});
+    add(Domain, Event#uce_event{datetime=utils:now()});
 add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Event) ->
     LocationExists = uce_meeting:exists(Domain, Location),
     FromExists = uce_user:exists(Domain, From),
@@ -50,7 +50,7 @@ exists(Domain, Id) ->
     case Id of
         {"", _Domain} -> true;
         _ ->
-            case catch ?MODULE:get(Domain, Id) of
+            case catch get(Domain, Id) of
                 {error, not_found} ->
                    false;
                 {error, Reason} ->

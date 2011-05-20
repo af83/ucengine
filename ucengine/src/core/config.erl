@@ -58,7 +58,7 @@ merge_keys(Config, [{Key, Value}|R]) ->
     end.
 
 get(Key) ->
-    ?MODULE:get(global, Key).
+    get(global, Key).
 
 get(Domain, Key) ->
     gen_server:call(?MODULE, {get, Domain, Key}).

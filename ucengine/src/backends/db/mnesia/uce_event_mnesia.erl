@@ -57,7 +57,7 @@ get(_Domain, Id) ->
     end.
 
 list(Location, From, [], Start, End, Parent, Order) ->
-    ?MODULE:list(Location, From, [""], Start, End, Parent, Order);
+    list(Location, From, [""], Start, End, Parent, Order);
 list(Location, From, Types, Start, End, Parent, Order) ->
     {SelectLocation, ResultLocation} =
         case Location of

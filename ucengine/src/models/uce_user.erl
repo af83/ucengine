@@ -24,9 +24,9 @@
 -include("uce.hrl").
 
 add(Domain, #uce_user{id={none, none}} = User) ->
-    ?MODULE:add(Domain, User#uce_user{id={utils:random(), Domain}});
+    add(Domain, User#uce_user{id={utils:random(), Domain}});
 add(Domain, #uce_user{id={none, Domain}} = User) ->
-    ?MODULE:add(Domain, User#uce_user{id={utils:random(), Domain}});
+    add(Domain, User#uce_user{id={utils:random(), Domain}});
 add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
     case exists(Domain, Name) of
         true ->
@@ -39,7 +39,7 @@ add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
             {ok, UId} end.
 
 delete(Domain, Id) when is_list(Id) ->
-    case catch ?MODULE:get(Domain, Id) of
+    case catch get(Domain, Id) of
         {error, _} -> throw({error, not_found});
         {ok, User} -> (db:get(?MODULE, Domain)):delete(Domain, User#uce_user.id)
     end;
@@ -58,7 +58,7 @@ delete(Domain, {Uid, _} = Id) ->
     end.
 
 update(Domain, #uce_user{name=Name} = User) ->
-    case ?MODULE:exists(Domain, Name) of
+    case exists(Domain, Name) of
         true ->
             (db:get(?MODULE, Domain)):update(Domain, User);
         false ->
@@ -74,7 +74,7 @@ get(Domain, User) ->
 exists(_Domain, {"", _} = _Id) ->
     true;
 exists(Domain, Id) ->
-    case catch ?MODULE:get(Domain, Id) of
+    case catch get(Domain, Id) of
         {error, not_found} ->
             false;
         {error, Reason} ->
@@ -89,12 +89,12 @@ add_role(Domain, Id, {Role, Location}) ->
         true ->
             case uce_role:exists(Domain, {Role, Domain}) of
                 true ->
-                    {ok, User} = ?MODULE:get(Domain, Id),
+                    {ok, User} = get(Domain, Id),
                     case lists:member({Role, Location}, User#uce_user.roles) of
                         true ->
                             {ok, updated};
                         false ->
-                            ?MODULE:update(Domain, User#uce_user{roles=(User#uce_user.roles ++ [{Role, Location}])})
+                            update(Domain, User#uce_user{roles=(User#uce_user.roles ++ [{Role, Location}])})
                     end;
                 false ->
                     throw({error, not_found})
@@ -104,17 +104,17 @@ add_role(Domain, Id, {Role, Location}) ->
     end.
 
 delete_role(Domain, Id, {Role, Location}) ->
-    {ok, User} = ?MODULE:get(Domain, Id),
+    {ok, User} = get(Domain, Id),
     Roles = case lists:member({Role, Location}, User#uce_user.roles) of
                 true ->
                     lists:delete({Role, Location}, User#uce_user.roles);
                 false ->
                     throw({error, not_found})
             end,
-    ?MODULE:update(Domain, User#uce_user{roles=Roles}).
+    update(Domain, User#uce_user{roles=Roles}).
 
 acl(Domain, User, {Location, _}) ->
-    {ok, Record} = ?MODULE:get(Domain, User),
+    {ok, Record} = get(Domain, User),
     ACL = lists:map(fun({RoleName, RoleLocation}) ->
                             {ok, RoleACL} =
                                 if
