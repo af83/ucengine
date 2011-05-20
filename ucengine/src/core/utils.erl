@@ -23,8 +23,6 @@
 -include_lib("yaws/include/yaws_api.hrl").
 
 -export([now/0,
-         token/0,
-         uid/0,
 
          random/0,
          random/1,
@@ -37,12 +35,6 @@
 now() ->
     {Mega,Sec,Micro} = erlang:now(),
     erlang:round(((Mega*1000000+Sec)*1000000+Micro)/1000).
-
-token() ->
-    ?MODULE:random().
-
-uid() ->
-    "uid_" ++ ?MODULE:random().
 
 random() ->
     ?MODULE:random(32).
