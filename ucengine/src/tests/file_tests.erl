@@ -32,6 +32,7 @@ file_test_() ->
                ?_test(test_upload_not_found_meeting(BaseUrl, Root)),
 
                ?_test(test_list(BaseUrl, Root)),
+               ?_test(test_list_reverse(BaseUrl, Root)),
                ?_test(test_list_not_found_meeting(BaseUrl, Root)),
 
                ?_test(test_get(BaseUrl, Root)),
@@ -134,10 +135,10 @@ test_upload_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
               {"metadata[description]", "test_file"}],
     ?assertEqual({struct,[{"error", "not_found"}]}, upload(BaseUrl, "nonexistentmeeting", [], gen_file(4, "small") ++ gen_params(Params))).
 
-
 test_list(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
+    Result = tests_utils:get(BaseUrl, "/file/testmeeting/", Params),
     ?assertMatch({struct,
      [{"result",
        {array,
@@ -147,7 +148,24 @@ test_list(BaseUrl, {RootUid, RootSid}) ->
            {"name",_},
            {"uri", _},
            {"location", "testmeeting"},
-           {"metadata",{struct,[{"description", "test_file"}]}}]}|_]}}]}, tests_utils:get(BaseUrl, "/file/testmeeting/", Params)).
+           {"metadata",{struct,[{"description", "test_file"}]}}]}|_]}}]}, Result).
+
+test_list_reverse(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"order", "desc"}],
+    Result = tests_utils:get(BaseUrl, "/file/testmeeting/", Params),
+    String = string:copies("test_file", 4000),
+    ?assertMatch({struct,
+     [{"result",
+       {array,
+        [{struct,
+          [{"id", _},
+           {"domain", _},
+           {"name",_},
+           {"uri", _},
+           {"location", "testmeeting"},
+           {"metadata",{struct,[{"description", String}]}}]}|_]}}]}, Result).
 
 test_list_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
@@ -161,8 +179,7 @@ test_get(BaseUrl, {RootUid, RootSid}) ->
     {struct,[{"result", Id}]} = upload(BaseUrl, [], gen_file(4, "small") ++ gen_params(Params)),
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid}],
-    tests_utils:get_raw(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet),
-    true.
+    tests_utils:get_raw(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet).
 
 test_get_not_found(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},

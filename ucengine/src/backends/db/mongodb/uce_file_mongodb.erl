@@ -22,7 +22,7 @@
 -behaviour(gen_uce_file).
 
 -export([add/2,
-         list/2,
+         list/3,
          all/1,
          get/2,
          delete/2]).
@@ -44,9 +44,10 @@ add(Domain, #uce_file{} = File) ->
 %% @doc List all record #uce_file for the given pair location(meeting) and domain
 %% @end
 %%--------------------------------------------------------------------
-list(Domain, {Location, _}) ->
+list(Domain, {Location, _}, Order) ->
     Files = emongo:find_all(Domain, "uce_file", [{"location", Location},
-                                                 {"domain", Domain}]),
+                                                 {"domain", Domain}],
+                            [{orderby, [{"datetime", Order}]}]),
     {ok, [from_collection(File) || File <- Files]}.
 
 %%--------------------------------------------------------------------
@@ -87,12 +88,13 @@ delete(Domain, {FileId, _FileDomain}) ->
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-                   ["id", "domain", "location", "name", "mime", "uri", "metadata"]) of
-        [Id, Domain, Location, Name, Mime, Uri, Metadata] ->
+                   ["id", "domain", "location", "name", "datetime", "mime", "uri", "metadata"]) of
+        [Id, Domain, Location, Name, Datetime, Mime, Uri, Metadata] ->
             #uce_file{id={Id, Domain},
                       name=Name,
                       location={Location, Domain},
                       uri=Uri,
+                      datetime=Datetime,
                       mime=Mime,
                       metadata=Metadata};
         _ ->
@@ -108,12 +110,14 @@ to_collection(#uce_file{id={Id, Domain},
                         name=Name,
                         location={Location, _},
                         uri=Uri,
+                        datetime=Datetime,
                         mime=Mime,
                         metadata=Metadata}) ->
     [{"id", Id},
      {"domain", Domain},
      {"location", Location},
      {"name", Name},
+     {"datetime", Datetime},
      {"mime", Mime},
      {"uri", Uri},
      {"metadata", Metadata}].

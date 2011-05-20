@@ -53,6 +53,8 @@
           location = {"", ""},
           % path
           uri = [],
+          %% date (ms from epoch)
+          datetime = undefined,
           % mime type
           mime = "text/plain",
           % name as send by the browser

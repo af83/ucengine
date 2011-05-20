@@ -37,7 +37,8 @@ init() ->
                 regexp="/file/([^/]+)",
                 callback={?MODULE, list,
                           [{"uid", required, string},
-                           {"sid", required, string}]}},
+                           {"sid", required, string},
+                           {"order", asc, atom}]}},
 
      #uce_route{method='GET',
                 regexp="/file/([^/]+)/([^/]+)",
@@ -59,6 +60,7 @@ add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) 
                                               location={Meeting, Domain},
                                               name=FileUploaded#file_upload.filename,
                                               uri=FileUploaded#file_upload.uri,
+                                              datetime=utils:now(),
                                               metadata=Metadata}),
     {ok, File} = uce_file:get(Domain, Id),
     {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
@@ -85,10 +87,10 @@ add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) 
             json_helpers:format_response(201, ContentType, cors_helpers:format_cors_headers(Domain), {struct, [{result, FileId}]})
     end.
 
-list(Domain, [Meeting], [Uid, Sid], _) ->
+list(Domain, [Meeting], [Uid, Sid, Order], _) ->
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "list"),
-    {ok, Files} = uce_file:list(Domain, {Meeting, Domain}),
+    {ok, Files} = uce_file:list(Domain, {Meeting, Domain}, Order),
     json_helpers:json(Domain, {array, [file_helpers:to_json(File) || File <- Files]}).
 
 %%

@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([add/2, list/2, get/2, delete/2]).
+-export([add/2, list/3, get/2, delete/2]).
 
 -include("uce.hrl").
 
@@ -39,12 +39,12 @@ add(Domain, #uce_file{location=Location, name=Name} = File) ->
             (db:get(?MODULE, Domain)):add(Domain, File#uce_file{id={Id, Domain}, mime=Mime})
     end.
 
-list(Domain, {_, _}=Location) ->
+list(Domain, {_, _}=Location, Order) ->
     case location_helpers:exists(Domain, Location) of
         false ->
             throw({error, not_found});
         true ->
-            (db:get(?MODULE, Domain)):list(Domain, Location)
+            (db:get(?MODULE, Domain)):list(Domain, Location, Order)
     end.
 
 get(Domain, {_, _}=Id) ->
