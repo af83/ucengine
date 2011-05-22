@@ -77,7 +77,6 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
         {error, Reason} ->
             json_helpers:error(Domain, Reason);
         Params ->
-            ?DEBUG("~p~n", [Params]),
             ?DEBUG("~p: call ~p:~p matching ~p with ~p~n", [Domain, Module, Function, Match, Params]),
             try Module:Function(Domain, Match, Params, Arg) of
                 {streamcontent_with_timeout, _, _, _} = Stream ->
