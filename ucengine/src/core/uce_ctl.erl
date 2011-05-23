@@ -21,7 +21,7 @@
 
 -export([start/0, stop/0, cmd/2]).
 
--export([infos/3, meeting/3, user/3, user/4, role/3, role/4, time/2]).
+-export([infos/3, meeting/4, user/3, user/4, user/5, user/6, role/4, role/7, time/2]).
 
 -export([parse_date/1, timestamp_to_iso/0, timestamp_to_iso/1]).
 
@@ -98,6 +98,10 @@ timestamp_to_iso(Militimestamp) when is_integer(Militimestamp) ->
                          , [Year, Month, Day, Hours, Minutes, Seconds]),
     lists:flatten(Date).
 
+get_user_uid(Domain, Name) ->
+    {ok, #uce_user{id={Uid, _}}} = call(user, get, [Domain, Name]),
+    {ok, Uid}.
+
 success(Result) when is_list(Result) ->
     io:format("Success: ~s", [Result]),
     ok;
@@ -130,25 +134,20 @@ start() ->
             io:format(Result, []),
             init:stop(0)
     catch
+        error:_Reason ->
+            usage();
         Exception ->
             io:format("Fatal: ~p~n", [Exception]),
             init:stop(2)
     end,
     halt().
 
-cmd({dummy, [Domain, Object, Action]}, Args) ->
-    %% TODO: check domain parameter here
+cmd({dummy, [Domain, Object, Action|Other]}, Args) ->
     Fun = list_to_atom(Object),
-    ?MODULE:Fun(Domain, Action, Args);
-cmd({dummy, [Domain, Object, Action, Action2]}, Args) ->
-    %% TODO: check domain parameter here
-    Fun = list_to_atom(Object),
-    ?MODULE:Fun(Domain, Action, Action2, Args);
+    apply(?MODULE, Fun, [Domain, Action]++Other ++ [Args]);
 cmd({dummy, [Object, Action]}, Args) ->
     Fun = list_to_atom(Object),
-    ?MODULE:Fun(Action, Args);
-cmd({dummy, _Other}, _Args) ->
-    usage().
+    ?MODULE:Fun(Action, Args).
 
 stop() ->
     ok.
@@ -158,27 +157,27 @@ usage() ->
     io:format("ucengine-admin <domain> <object> <action> [--<parameter> <value>]~n~n"),
 
     io:format("Meetings:~n"),
-    io:format("\tmeeting add --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
-    io:format("\tmeeting update --name <name> --start <date> --end <date> [--<metadata> <value>]~n"),
-    io:format("\tmeeting get --name <name>~n"),
-    io:format("\tmeeting delete --name <name>~n"),
-    io:format("\tmeeting list --status <status>~n~n"),
+    io:format("\tmeeting add <name> [--start <date>] [--end <date>] [--<metadata> <value>]~n"),
+    io:format("\tmeeting update <name> [--start <date>] [--end <date>] [--<metadata> <value>]~n"),
+    io:format("\tmeeting get <name>~n"),
+    io:format("\tmeeting delete <name>~n"),
+    io:format("\tmeeting list <status>~n~n"),
 
     io:format("Users:~n"),
-    io:format("\tuser add --name <name> --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
-    io:format("\tuser update [--name <name>|--uid <uid>] --auth <auth> --credential <credential> [--<metadata> <value>]~n"),
-    io:format("\tuser get [--name <name>|--uid <uid>]~n"),
-    io:format("\tuser delete [--name <name>|--uid <uid>]~n"),
+    io:format("\tuser add <name> <auth> <credential> [--<metadata> <value>]~n"),
+    io:format("\tuser update <name> <auth> <credential> [--<metadata> <value>]~n"),
+    io:format("\tuser get <name>~n"),
+    io:format("\tuser delete <name>~n"),
     io:format("\tuser list~n"),
-    io:format("\tuser role add [--name <name>|--uid <uid>] --role <role> [--location <location>]~n"),
-    io:format("\tuser role delete [--name <name>|--uid <uid>] --role <role> [--location <location>]~n~n"),
+    io:format("\tuser role add <name> <role> [--location <location>]~n"),
+    io:format("\tuser role delete <name> <role> [--location <location>]~n~n"),
 
     io:format("Roles:~n"),
-    io:format("\trole add --name <name>~n"),
-    io:format("\trole delete --name <name>~n"),
-    io:format("\trole access add --name <name> --action <action> --object <object> [--<condition> <value>]~n"),
-    io:format("\trole access delete --name <name> --action <action> --object <object> [--<condition> <value>]~n"),
-    io:format("\trole access check --name <name> --action <action> --object <object> [--<condition> <value>]~n~n"),
+    io:format("\trole add <name>~n"),
+    io:format("\trole delete <name>~n"),
+    io:format("\trole access add <name> <action> <object> [--<condition> <value>]~n"),
+    io:format("\trole access delete <name> <action> <object> [--<condition> <value>]~n"),
+    io:format("\trole access check <name> <action> <object> [--<condition> <value>]~n~n"),
 
     io:format("ucengine-admin time get~n~n"),
 
@@ -217,232 +216,177 @@ infos(Domain, "update", Metadata) ->
 %%
 %% Meeting add
 %%
-meeting(Domain, "add", Args) ->
-    case proplists:split(Args, ["name", "start", "end"]) of
-        {[[{"name", Name}], [{"start", Start}], [{"end", End}]], Metadata} ->
-            {ok, created} = call(meeting, add, [Domain,
-                                                #uce_meeting{id={Name, Domain},
-                                                             start_date=parse_date(Start),
-                                                             end_date=parse_date(End),
-                                                             metadata=Metadata}]),
-            success(created);
-        _Other ->
-            error(missing_parameter)
-    end;
+meeting(Domain, "add", Name, Args) ->
+    Start = proplists:get_value("start", Args, 0),
+    End = proplists:get_value("end", Args, 0),
 
-%%
-%% Meeting delete
-%%
-meeting(Domain, "delete", [{"name", Name}]) ->
-    {ok, deleted} = call(meeting, delete, [Domain, {Name, Domain}]),
-    success(deleted);
-meeting(_Domain, "delete", _Args) ->
-    error(missing_parameter);
-
-%%
-%% Meeting get
-%%
-meeting(Domain, "get", [{"name", Name}]) ->
-    {ok, Record} = call(meeting, get, [Domain, {Name, Domain}]),
-    {ok, meeting_helpers:pretty_print(Record, flat)};
-meeting(_Domain, "get", _Args) ->
-    error(missing_parameter);
+    {_, Metadata} =  proplists:split(Args, ["start", "end"]),
+    {ok, created} = call(meeting, add, [Domain,
+                                        #uce_meeting{id={Name, Domain},
+                                                     start_date=parse_date(Start),
+                                                     end_date=parse_date(End),
+                                                     metadata=Metadata}]),
+    success(created);
 
 %%
 %% Meeting update
 %%
-meeting(Domain, "update", Args) ->
-    case proplists:split(Args, ["name", "start", "end"]) of
-        {[[{"name", Name}], [{"start", Start}], [{"end", End}]], Metadata} ->
-            {ok, updated} = call(meeting, update, [Domain,
-                                                   #uce_meeting{id={Name, Domain},
-                                                                start_date=parse_date(Start),
-                                                                end_date=parse_date(End),
-                                                                metadata=Metadata}]),
-            success(updated);
-        _Other ->
-            error(missing_parameter)
-    end;
+meeting(Domain, "update", Name, Args) ->
+    Start = proplists:get_value("start", Args, 0),
+    End = proplists:get_value("end", Args, 0),
+
+    {_, Metadata} =  proplists:split(Args, ["start", "end"]),
+    {ok, updated} = call(meeting, update, [Domain,
+                                           #uce_meeting{id={Name, Domain},
+                                                        start_date=parse_date(Start),
+                                                        end_date=parse_date(End),
+                                                        metadata=Metadata}]),
+    success(updated);
+
+%%
+%% Meeting delete
+%%
+meeting(Domain, "delete", Name, []) ->
+    {ok, deleted} = call(meeting, delete, [Domain, {Name, Domain}]),
+    success(deleted);
+
+%%
+%% Meeting get
+%%
+meeting(Domain, "get", Name, []) ->
+    {ok, Record} = call(meeting, get, [Domain, {Name, Domain}]),
+    {ok, meeting_helpers:pretty_print(Record, flat)};
 
 %%
 %% Meeting list
 %%
-meeting(Domain, "list", [{"status", Status}]) ->
+meeting(Domain, "list", Status, []) ->
     {ok, Records} = call(meeting, list, [Domain, Status]),
-    {ok, meeting_helpers:pretty_print(Records, flat)};
-meeting(_Domain, "list", _Args) ->
-    error(missing_parameter).
+    {ok, meeting_helpers:pretty_print(Records, flat)}.
 
 %%
 %% Users
 %%
-user(Domain, "add", Args) ->
-    case proplists:split(Args, ["name", "auth", "credential"]) of
-        {[[{"name", Name}], [{"auth", Auth}], [{"credential", Credential}]], Metadata} ->
-            {ok, Uid} = call(user, add, [Domain,
-                                         #uce_user{id={none, Domain},
-                                                   name=Name,
-                                                   auth=Auth,
-                                                   credential=Credential,
-                                                   metadata=Metadata}]),
-            success(Uid);
-        _Other ->
-            error(missing_parameter)
-    end;
-
-%%
-%% User delete
-%%
-user(Domain, "delete", [{"name", Name}]) ->
-    {ok, #uce_user{id={Uid, _}}} = call(user, get, [Domain, Name]),
-    user(Domain, "delete", [{"uid", Uid}]);
-user(Domain, "delete", [{"uid", Uid}]) ->
-    {ok, deleted} = call(user, delete, [Domain, {Uid, Domain}]),
-    success(deleted);
-user(_Domain, "delete", _Other) ->
-    error(missing_parameter);
-
-%%
-%% User get
-%%
-user(Domain, "get", [{"name", Name}]) ->
-    {ok, Record} = call(user, get, [Domain, Name]),
-    {ok, user_helpers:pretty_print(Record, flat)};
-user(Domain, "get", [{"uid", Uid}]) ->
-    {ok, Record} = call(user, get, [Domain, {Uid, Domain}]),
-    {ok, user_helpers:pretty_print(Record, flat)};
-user(_Domain, "get", _Other) ->
-    error(missing_parameter);
+user(Domain, "add", Name, Auth, Credential, Metadata) ->
+    {ok, Uid} = call(user, add, [Domain,
+                                 #uce_user{id={none, Domain},
+                                           name=Name,
+                                           auth=Auth,
+                                           credential=Credential,
+                                           metadata=Metadata}]),
+    success(Uid);
 
 %%
 %% User update
 %%
-user(Domain, "update", Args) ->
-    {ok, Uid} = get_user_uid(Domain, Args),
-    case proplists:split(Args, ["name", "auth", "credential"]) of
-        {[[{"name", Name}], [{"auth", Auth}], [{"credential", Credential}]], Metadata} ->
-            {ok, updated} = call(user, update, [Domain,
-                                                #uce_user{id={Uid, Domain},
-                                                          name=Name,
-                                                          auth=Auth,
-                                                          credential=Credential,
-                                                          metadata=Metadata}]),
-            success(updated);
-        _Other ->
-            error(missing_parameter)
-    end;
-
-%%
-%% User list
-%%
-user(Domain, "list", _Args) ->
-    {ok, Records} = call(user, list, [Domain]),
-    {ok, user_helpers:pretty_print(Records, flat)}.
-
-get_user_uid(Domain, Args) ->
-    Uid = proplists:get_value("uid", Args),
-    Name = proplists:get_value("name", Args),
-    case {Uid, Name} of
-        {Uid, _Name} when is_list(Uid) ->
-            {ok, Uid};
-        {_Uid, Name} when is_list(Name) ->
-            {ok, #uce_user{id={TmpId, _}}} = call(user, get, [Domain, Name]),
-            {ok, TmpId};
-        _Other ->
-            {error, not_found}
-    end.
+user(Domain, "update", Name, Auth, Credential, Metadata) ->
+    {ok, Uid} = get_user_uid(Domain, Name),
+    {ok, updated} = call(user, update, [Domain,
+                                        #uce_user{id={Uid, Domain},
+                                                  name=Name,
+                                                  auth=Auth,
+                                                  credential=Credential,
+                                                  metadata=Metadata}]),
+    success(updated);
 
 %%
 %% User add role
 %%
-user(Domain, "role", "add", Args) ->
-    {ok, Uid} = get_user_uid(Domain, Args),
-    Role = proplists:get_value("role", Args, none),
+user(Domain, "role", "add", Name, Role, Args) ->
+    {ok, Uid} = get_user_uid(Domain, Name),
     Location = proplists:get_value("location", Args, ""),
-    case Role of
-        none ->
-            error(missing_parameter);
-        Role ->
-            {ok, updated} = call(user, add_role, [Domain,
-                                                  {Uid, Domain},
-                                                  {Role, Location}]),
-            success(updated)
-        end;
+    {ok, updated} = call(user, add_role, [Domain,
+                                          {Uid, Domain},
+                                          {Role, Location}]),
+    success(updated);
 
 %%
 %% User delete role
 %%
-user(Domain, "role", "delete", Args) ->
-    {ok, Uid} = get_user_uid(Domain, Args),
-    Role = proplists:get_value("role", Args, none),
+user(Domain, "role", "delete", Name, Role, Args) ->
+    {ok, Uid} = get_user_uid(Domain, Name),
     Location = proplists:get_value("location", Args, ""),
-    case Role of
-        none ->
-            error(missing_parameter);
-        Role ->
-            {ok, updated} = call(user, delete_role, [Domain,
-                                                     {Uid, Domain},
-                                                     {Role, Location}]),
-            success(updated)
-    end.
+    {ok, updated} = call(user, delete_role, [Domain,
+                                             {Uid, Domain},
+                                             {Role, Location}]),
+    success(Uid).
+
+%%
+%% Anonymous user add
+%%
+user(Domain, "add", Name, Auth, Metadata) ->
+    {ok, Uid} = call(user, add, [Domain,
+                                 #uce_user{id={none, Domain},
+                                           name=Name,
+                                           auth=Auth,
+                                           metadata=Metadata}]),
+    success(Uid).
+
+%%
+%% User delete
+%%
+user(Domain, "delete", Name, []) ->
+    {ok, #uce_user{id={Uid, _}}} = call(user, get, [Domain, Name]),
+    {ok, deleted} = call(user, delete, [Domain, {Uid, Domain}]),
+    success(deleted);
+
+%%
+%% User get
+%%
+user(Domain, "get", Name, []) ->
+    {ok, Record} = call(user, get, [Domain, Name]),
+    {ok, user_helpers:pretty_print(Record, flat)}.
+
+%%
+%% User list
+%%
+user(Domain, "list", []) ->
+    {ok, Records} = call(user, list, [Domain]),
+    {ok, user_helpers:pretty_print(Records, flat)}.
 
 %%
 %% Role add
 %%
-role(Domain, "add", [{"name", Name}]) ->
+role(Domain, "add", Name, []) ->
     {ok, created} = call(role, add, [Domain, #uce_role{id={Name, Domain}}]),
     success(created);
-role(_Domain, "add", _Other) ->
-    error(missing_parameter);
 
 %%
 %% Role delete
 %%
-role(Domain, "delete", [{"name", Name}]) ->
+role(Domain, "delete", Name, []) ->
     {ok, deleted} = call(role, delete, [Domain, {Name, Domain}]),
-    success(deleted);
-role(_Domain, "delete", _Other) ->
-    error(missing_parameter).
+    success(deleted).
 
 %%
 %% Role access add
 %%
-role(Domain, "access", "add", Args) ->
-    case proplists:split(Args, ["name", "action", "object"]) of
-        {[[{"name", Name}], [{"action", Action}], [{"object", Object}]], Conditions} ->
-            {ok, updated} = call(role, add_access, [Domain, {Name, Domain},
-                                                    #uce_access{action=Action,
-                                                                object=Object,
-                                                                conditions=Conditions}]),
-            success(updated);
-        _Other ->
-            error(missing_parameter)
-     end;
+role(Domain, "access", "add", Name, Action, Object, Conditions) ->
+    {ok, updated} = call(role, add_access, [Domain, {Name, Domain},
+                                            #uce_access{action=Action,
+                                                        object=Object,
+                                                        conditions=Conditions}]),
+    success(updated);
 
 %%
 %% Role access delete
 %%
-role(Domain, "access", "delete", Args) ->
-    case proplists:split(Args, ["name", "action", "object"]) of
-        {[[{"name", Name}], [{"action", Action}], [{"object", Object}]], Conditions} ->
-            {ok, updated} = call(role, delete_access, [Domain, {Name, Domain},
-                                                       #uce_access{action=Action,
-                                                                   object=Object,
-                                                                   conditions=Conditions}]),
-            success(updated);
-        _Other ->
-            error(missing_parameter)
-     end;
+role(Domain, "access", "delete", Name, Action, Object, Conditions) ->
+    {ok, updated} = call(role, delete_access, [Domain, {Name, Domain},
+                                               #uce_access{action=Action,
+                                                           object=Object,
+                                                           conditions=Conditions}]),
+    success(updated);
 
 %%
 %% Role access check
 %%
-role(Domain, "access", "check", Args) ->
-    {ok, Uid} = get_user_uid(Domain, Args),
+role(Domain, "access", "check", Name, Action, Object, Args) ->
+    {ok, Uid} = get_user_uid(Domain, Name),
     Location = proplists:get_value("location", Args, ""),
 
-    case proplists:split(Args, ["action", "object"]) of
-        {[[{"action", Action}], [{"object", Object}]], Conditions} ->
+    case proplists:split(Args, ["location"]) of
+        {_, Conditions} ->
             {ok, Result} = call(access, check, [Domain,
                                                 {Uid, Domain},
                                                 {Location, Domain},
@@ -457,7 +401,7 @@ role(Domain, "access", "check", Args) ->
 %%
 %% Time
 %%
-time("get", _Args) ->
+time("get", []) ->
     io:format("Server time: ~p", [utils:now()]),
     ok.
 
