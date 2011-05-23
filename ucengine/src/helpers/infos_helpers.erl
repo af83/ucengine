@@ -26,12 +26,11 @@
 pretty_print(#uce_infos{domain=Domain,
                         metadata=Metadata}, flat) ->
     Out = [io_lib:format("Domain: ~s~n", [Domain])],
-    StrMetadata =
-        if
-            Metadata == [] ->
-                ["Metadata: none~n"];
-            true ->
-                [io_lib:format("Metadata:~n", [])] ++
-                    [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
-        end,
+    StrMetadata = case Metadata of
+                      [] ->
+                          ["Metadata: none~n"];
+                      Metadata ->
+                          [io_lib:format("Metadata:~n", [])] ++
+                              [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
+                  end,
     lists:flatten(Out ++ StrMetadata).
