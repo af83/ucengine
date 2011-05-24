@@ -49,7 +49,7 @@ args_to_dictionary([]) ->
     [];
 args_to_dictionary([{Key, Value}|Tail]) when is_atom(Key) ->
     args_to_dictionary([{atom_to_list(Key), Value}] ++ Tail);
-args_to_dictionary([{[$- | Key], Value} | Tail]) ->
+args_to_dictionary([{"-" ++ Key, Value} | Tail]) ->
     [{Key, string:join(Value, " ")}] ++ args_to_dictionary(Tail);
 args_to_dictionary([_|Tail]) ->
     [] ++ args_to_dictionary(Tail).
