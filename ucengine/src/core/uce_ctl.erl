@@ -110,12 +110,7 @@ success(Result) ->
     ok.
 
 error(Reason) ->
-    case Reason of
-        nodedown ->
-            io:format("Fatal: U.C.Engine node is not running, call 'ucengine start' to start it.");
-        _ ->
-            io:format("Error: ~p~n", [Reason])
-    end,
+    io:format("Error: ~p~n", [Reason]),
     error.
 
 start() ->
@@ -136,6 +131,8 @@ start() ->
     catch
         error:_Reason ->
             usage();
+        {error, nodedown} ->
+            io:format("Fatal: U.C.Engine node is not running, call 'ucengine start' to start it.~n");
         Exception ->
             io:format("Fatal: ~p~n", [Exception]),
             init:stop(2)
