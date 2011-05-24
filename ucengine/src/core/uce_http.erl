@@ -78,10 +78,21 @@ parse_multipart(Host, Arg, State) ->
     case yaws_api:parse_multipart_post(Arg) of
         {cont, Cont, Res} ->
             NewState = process_part(Host, Arg, Res, State),
-            {get_more, Cont, NewState};
+            case NewState of
+                {error, _Error} ->
+                    NewState;
+                NewState ->
+                    {get_more, Cont, NewState}
+            end;
         {result, Res} ->
-            Params = yaws_api:parse_query(Arg) ++ process_part(Host, Arg, Res, State),
-            {'POST', Arg#arg.pathinfo, parse_query(Params)}
+            FormDataParams = process_part(Host, Arg, Res, State),
+            case FormDataParams of
+                {error, _Error} ->
+                    FormDataParams;
+                FormDataParams ->
+                    Params = yaws_api:parse_query(Arg) ++ FormDataParams,
+                    {'POST', Arg#arg.pathinfo, parse_query(Params)}
+            end
     end.
 
 extract(Host, Arg, State) ->
