@@ -39,8 +39,6 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
                                       0,
                                       infinity,
                                       asc) of
-                      {error, Reason} ->
-                          throw({error, Reason});
                       {ok, Events} ->
                           JSONEvents = mochijson:encode({struct,
                                                          [{result,
@@ -49,7 +47,7 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
                   end;
               Other ->
                   ?WARNING_MSG("unattended message ~p", [Other]),
-                  ok
+                  {ok, []}
           after
               config:get(long_polling_timeout) * 1000 ->
                   JSONEmpty = mochijson:encode({struct, [{result, {array, []}}]}),

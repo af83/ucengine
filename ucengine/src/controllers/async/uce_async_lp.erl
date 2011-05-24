@@ -36,17 +36,7 @@ wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
                                         End,
                                         Parent) of
                       {ok, JSONEvents} ->
-                          yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents));
-                      {error, Reason} ->
-                          Error = case http_helpers:error_to_code(Reason) of
-                                      500 ->
-                                          unexpected_error;
-                                      _ ->
-                                          Reason
-                                  end,
-                          JSONError = list_to_binary(mochijson:encode({struct,
-                                                                       [{error, Error}]})),
-                          yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONError))
+                          yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents))
                   end,
                   yaws_api:stream_chunk_end(Self)
           end),
