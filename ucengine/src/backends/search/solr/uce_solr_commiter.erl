@@ -46,7 +46,6 @@ handle_call(_ , _, State) ->
 handle_cast(run, State) ->
     [CommitInterval] = utils:get(config:get(solr), [commit_interval], [1000]),
     timer:sleep(CommitInterval),
-    ?DEBUG("Commit to solr.", []),
     {ok, commited} = uce_event_solr_search:commit(),
     handle_cast(run, State),
     {noreply, State};
