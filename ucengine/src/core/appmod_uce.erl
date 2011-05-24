@@ -64,8 +64,6 @@ validate(_, []) ->
     [];
 validate(Query, [{Name, Default, Types}|ParamsSpecList]) ->
     case utils:get(Query, [Name], [Default]) of
-        {error, Reason} ->
-            throw({error, Reason});
         [required] ->
             throw({error, missing_parameters});
         [RawValue] ->
@@ -102,9 +100,7 @@ out(#arg{} = Arg) ->
                 {get_more, _, _} = State ->
                     State;
                 {Method, Path, Query} ->
-                    process(Host, Method, Path, Query, Arg);
-                _ ->
-                    json_helpers:unexpected_error()
+                    process(Host, Method, Path, Query, Arg)
             end;
         {error, Reason} ->
             json_helpers:error(Reason)
