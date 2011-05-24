@@ -27,24 +27,22 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
     ?PUBSUB_MODULE:subscribe(self(), Location, Search, From, Types, Uid, Start, End, Parent),
     Res = receive
               {message, _} ->
-                  case uce_event:list(Domain,
-                                      Location,
-                                      Search,
-                                      From,
-                                      Types,
-                                      Uid,
-                                      Start,
-                                      End,
-                                      Parent,
-                                      0,
-                                      infinity,
-                                      asc) of
-                      {ok, Events} ->
-                          JSONEvents = mochijson:encode({struct,
-                                                         [{result,
-                                                           event_helpers:to_json(Events)}]}),
-                          {ok, JSONEvents}
-                  end;
+                  {ok, Events} = uce_event:list(Domain,
+                                                Location,
+                                                Search,
+                                                From,
+                                                Types,
+                                                Uid,
+                                                Start,
+                                                End,
+                                                Parent,
+                                                0,
+                                                infinity,
+                                                asc),
+                  JSONEvents = mochijson:encode({struct,
+                                                 [{result,
+                                                   event_helpers:to_json(Events)}]}),
+                  {ok, JSONEvents};
               Other ->
                   ?WARNING_MSG("unattended message ~p", [Other]),
                   {ok, []}

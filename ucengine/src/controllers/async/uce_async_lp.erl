@@ -26,18 +26,16 @@
 wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
     Self = self(),
     spawn(fun() ->
-                  case uce_async:listen(Domain,
-                                        Location,
-                                        Search,
-                                        From,
-                                        Types,
-                                        Uid,
-                                        Start,
-                                        End,
-                                        Parent) of
-                      {ok, JSONEvents} ->
-                          yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents))
-                  end,
+                  {ok, JSONEvents} = uce_async:listen(Domain,
+                                                      Location,
+                                                      Search,
+                                                      From,
+                                                      Types,
+                                                      Uid,
+                                                      Start,
+                                                      End,
+                                                      Parent),
+                  yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents)),
                   yaws_api:stream_chunk_end(Self)
           end),
     Timeout = (config:get(long_polling_timeout) + 1) * 1000,
