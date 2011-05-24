@@ -43,9 +43,5 @@ test_add(Domain) ->
 
 test_search(Domain) ->
     timer:sleep(2000),
-    ok = case uce_event_solr_search:list(Domain, {"", Domain}, ["This"], {"", Domain}, [], 0, infinity, "", 0, 1, asc) of
-             {error, Reason} ->
-                 {error, Reason};
-             {ok, _NumTotal, [_]} ->
-                 ok
-         end.
+    ?assertMatch({ok, _NumTotal, [_]},
+                 uce_event_solr_search:list(Domain, {"", Domain}, ["This"], {"", Domain}, [], 0, infinity, "", 0, 1, asc)).

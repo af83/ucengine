@@ -60,8 +60,6 @@ gen_params(Body, []) ->
 gen_params(Body, [{Name, Value} | Rest]) ->
     gen_params(Body ++ gen_param(Name, Value), Rest).
 
-gen_params([]) ->
-    "";
 gen_params(Params) when is_list(Params) ->
     gen_params("", Params).
 
