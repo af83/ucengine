@@ -382,18 +382,14 @@ role(Domain, "access", "check", Name, Action, Object, Args) ->
     {ok, Uid} = get_user_uid(Domain, Name),
     Location = proplists:get_value("location", Args, ""),
 
-    case proplists:split(Args, ["location"]) of
-        {_, Conditions} ->
-            {ok, Result} = call(access, check, [Domain,
-                                                {Uid, Domain},
-                                                {Location, Domain},
-                                                Object,
-                                                Action,
-                                                Conditions]),
-            success(Result);
-        _Other ->
-            error(missing_parameter)
-    end.
+    {_, Conditions} = proplists:split(Args, ["location"]),
+    {ok, Result} = call(access, check, [Domain,
+                                        {Uid, Domain},
+                                        {Location, Domain},
+                                        Object,
+                                        Action,
+                                        Conditions]),
+    success(Result).
 
 %%
 %% Time
