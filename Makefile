@@ -40,6 +40,10 @@ tests: dev
 	rel/ucengine/bin/ucengine-admin tests
 	./rebar skip_deps=true eunit
 
+dialyze: compile
+	./rebar skip_deps=true check-plt
+	./rebar skip_deps=true dialyze
+
 ###############################################################################
 # Benchmark
 ###############################################################################
