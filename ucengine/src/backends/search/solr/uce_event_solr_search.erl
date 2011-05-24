@@ -74,17 +74,12 @@ to_solrxml(#uce_event{id={Id, Domain},
     lists:flatten(xmerl:export_simple_element(Add, xmerl_xml)).
 
 params_to_query([{Key, Value}|Tail]) ->
-    case Key of
-        [] ->
-            [];
-        _ ->
-            Key ++ ":"
-    end ++ Value ++ case Tail of
-                        [] ->
-                            [];
-                        _ ->
-                            " AND " ++ params_to_query(Tail)
-                    end;
+    Key ++ ":" ++ Value ++ case Tail of
+                               [] ->
+                                   [];
+                               _ ->
+                                   " AND " ++ params_to_query(Tail)
+                           end;
 params_to_query([Value|Tail])
   when is_list(Value) ->
     Value ++ case Tail of
