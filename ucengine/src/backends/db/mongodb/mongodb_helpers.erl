@@ -51,7 +51,7 @@ collection_member_to_list(Value) when is_list(Value) ->
     collection_to_list(Value);
 
 collection_member_to_list(Value) when is_binary(Value) ->
-    binary_to_list(Value).
+    unicode:characters_to_list(Value).
 
 %%--------------------------------------------------------------------
 %% @spec ([{Key::binary, Value::Binary}, {Key::binary, Value::Binary}, ...] = Collection::list) -> [{Key::list, Value::list}, {Key::binary, Value:Binary}, ...] = NewCollection::list
