@@ -53,7 +53,7 @@ init() ->
 
 add(Domain, [], [Uid, Sid, Name], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "role", "add", [{"name", Name}]),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "role", "add", [{"name", Name}]),
     {ok, created} = uce_role:add(Domain, #uce_role{id={Name, Domain}}),
     {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
                                                from={Uid, Domain},
@@ -65,7 +65,7 @@ add(Domain, [], [Uid, Sid, Name], _) ->
 
 delete(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "role", "delete", [{"name", Name}]),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "role", "delete", [{"name", Name}]),
     {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
                                                from={Uid, Domain},
                                                location={"", Domain},
@@ -76,7 +76,7 @@ delete(Domain, [Name], [Uid, Sid], _) ->
 
 add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
+    {ok, true} = uce_access:assert(Domain, Uid, "",
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
                                                      {"action", Action}]),
@@ -99,7 +99,7 @@ add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
 
 delete_access(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
+    {ok, true} = uce_access:assert(Domain, Uid, "",
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
                                                      {"action", Action}]),

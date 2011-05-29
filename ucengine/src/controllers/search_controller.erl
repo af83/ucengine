@@ -63,7 +63,7 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
                       ["type", "start", "end", "location", "from", "to", "parent"],
                       ["", "0", infinity, "", "", "", ""]),
 
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Location, Domain}, "event", "list",
+    {ok, true} = uce_access:assert(Domain, Uid, Location, "event", "list",
                                    [{"from", From}]),
 
     DateEndInt = case DateEnd of
