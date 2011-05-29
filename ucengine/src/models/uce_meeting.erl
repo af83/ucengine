@@ -37,7 +37,7 @@ add(Domain, #uce_meeting{id=Id} = Meeting) ->
         true ->
             throw({error, conflict});
         false ->
-            (db:get(?MODULE, Domain)):add(Meeting)
+            (db:get(?MODULE, Domain)):add(Domain, Meeting)
     end.
 
 delete(Domain, Id) ->
@@ -45,18 +45,18 @@ delete(Domain, Id) ->
         false ->
             throw({error, not_found});
         true ->
-            (db:get(?MODULE, Domain)):delete(Id)
+            (db:get(?MODULE, Domain)):delete(Domain, Id)
     end.
 
 get(Domain, Id) ->
-    (db:get(?MODULE, Domain)):get(Id).
+    (db:get(?MODULE, Domain)):get(Domain, Id).
 
 update(Domain, #uce_meeting{id=Id} = Meeting) ->
     case exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            (db:get(?MODULE, Domain)):update(Meeting)
+            (db:get(?MODULE, Domain)):update(Domain, Meeting)
     end.
 
 list(Domain, Status) ->

@@ -21,39 +21,39 @@
 
 -behaviour(gen_uce_meeting).
 
--export([add/1,
-         delete/1,
-         get/1,
-         update/1,
+-export([add/2,
+         delete/2,
+         get/2,
+         update/2,
          list/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_meeting{}) -> {ok, created}
+%% @spec (Domain::list, #uce_meeting{}) -> {ok, created}
 %% @doc Insert given record #uce_meeting{} in uce_meeting mongodb table
 %% @end
 %%--------------------------------------------------------------------
-add(#uce_meeting{id={_Name,Domain}} = Meeting) ->
+add(Domain, #uce_meeting{id={_Name, Domain}} = Meeting) ->
     mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_meeting", to_collection(Meeting))),
     {ok, created}.
 
 %%--------------------------------------------------------------------
-%% @spec ({Name::list, Domain::list}) -> {ok, deleted}
+%% @spec (Domain::list, {Name::list, Domain::list}) -> {ok, deleted}
 %% @doc Delete record
 %% @end
 %%--------------------------------------------------------------------
-delete({Name, Domain}) ->
+delete(Domain, {Name, Domain}) ->
     mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_meeting", [{"name", Name}, {"domain", Domain}])),
     {ok, deleted}.
 
 %%--------------------------------------------------------------------
-%% @spec ({Name::list, Domain::list}) -> {ok, #uce_meeting{}} | {error, not_found}
+%% @spec (Domain::list, {Name::list, Domain::list}) -> {ok, #uce_meeting{}} | {error, not_found}
 %% @doc Get record uce_meeting which correspond to the given name and domain
 %% @end
 %%--------------------------------------------------------------------
-get({Name, Domain}) ->
+get(Domain, {Name, Domain}) ->
     case emongo:find_one(Domain, "uce_meeting",
                          [{"name", Name}, {"domain", Domain}]) of
         [Record] ->
@@ -63,11 +63,11 @@ get({Name, Domain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_meeting{}) -> {ok, updated}
+%% @spec (Domain::list, #uce_meeting{}) -> {ok, updated}
 %% @doc update #uce_meeting record
 %% @end
 %%--------------------------------------------------------------------
-update(#uce_meeting{id={Name, Domain}} = Meeting) ->
+update(Domain, #uce_meeting{id={Name, Domain}} = Meeting) ->
     mongodb_helpers:updated(emongo:update_sync(Domain, "uce_meeting",
                                                [{"name", Name}, {"domain", Domain}],
                                                to_collection(Meeting), false)),

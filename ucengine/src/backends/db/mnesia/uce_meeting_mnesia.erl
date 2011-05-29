@@ -23,10 +23,10 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
-         delete/1,
-         get/1,
-         update/1,
+-export([add/2,
+         delete/2,
+         get/2,
+         update/2,
          list/1]).
 
 -include("uce.hrl").
@@ -40,7 +40,7 @@ init() ->
         {aborted, {already_exists, uce_meeting}} -> ok
     end.
 
-add(#uce_meeting{} = Meeting) ->
+add(_Domain, #uce_meeting{} = Meeting) ->
     case mnesia:dirty_write(Meeting) of
         {aborted, _} ->
             throw({error, bad_parameters});
@@ -48,7 +48,7 @@ add(#uce_meeting{} = Meeting) ->
             {ok, created}
     end.
 
-delete(Id) ->
+delete(_Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:delete({uce_meeting, Id})
                             end) of
@@ -58,7 +58,7 @@ delete(Id) ->
             {ok, deleted}
     end.
 
-get(Id) ->
+get(_Domain, Id) ->
     case mnesia:dirty_read(uce_meeting, Id) of
         [Record] ->
             {ok, Record};
@@ -68,7 +68,7 @@ get(Id) ->
             throw({error, bad_parameters})
     end.
 
-update(#uce_meeting{} = Meeting) ->
+update(_Domain, #uce_meeting{} = Meeting) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(Meeting)
                             end) of
