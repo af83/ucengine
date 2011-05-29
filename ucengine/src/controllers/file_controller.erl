@@ -54,7 +54,7 @@ init() ->
 
 
 add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "add"),
     {ok, Id} = uce_file:add(Domain, #uce_file{id={none, Domain},
                                               location={Meeting, Domain},
@@ -89,7 +89,7 @@ add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) 
     end.
 
 list(Domain, [Meeting], [Uid, Sid, Order], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "list"),
     {ok, Files} = uce_file:list(Domain, {Meeting, Domain}, Order),
     json_helpers:json(Domain, {array, [file_helpers:to_json(File) || File <- Files]}).
@@ -103,7 +103,7 @@ get_path(Uri) ->
 
 get(Domain, [Meeting, Id], [Uid, Sid], _) ->
     NormalizedId = unicode_helpers:normalize_unicode(Id),
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "get", [{"id", Id}]),
     {ok, File} = uce_file:get(Domain, {NormalizedId, Domain}),
     Path = get_path(File#uce_file.uri),
@@ -117,7 +117,7 @@ get(Domain, [Meeting, Id], [Uid, Sid], _) ->
 
 delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
     NormalizedId = unicode_helpers:normalize_unicode(Id),
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "delete", [{"id", Id}]),
     {ok, File} = uce_file:get(Domain, {NormalizedId, Domain}),
     {ok, deleted} = uce_file:delete(Domain, {NormalizedId, Domain}),

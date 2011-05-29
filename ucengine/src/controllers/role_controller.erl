@@ -52,7 +52,7 @@ init() ->
                            {"conditions", [], dictionary}]}}].
 
 add(Domain, [], [Uid, Sid, Name], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "role", "add", [{"name", Name}]),
     {ok, created} = uce_role:add(Domain, #uce_role{id={Name, Domain}}),
     {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
@@ -64,7 +64,7 @@ add(Domain, [], [Uid, Sid, Name], _) ->
     json_helpers:created(Domain).
 
 delete(Domain, [Name], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "role", "delete", [{"name", Name}]),
     {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
                                                from={Uid, Domain},
@@ -75,7 +75,7 @@ delete(Domain, [Name], [Uid, Sid], _) ->
     json_helpers:ok(Domain).
 
 add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
@@ -98,7 +98,7 @@ add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
     json_helpers:ok(Domain).
 
 delete_access(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},

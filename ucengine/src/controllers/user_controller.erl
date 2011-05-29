@@ -95,19 +95,19 @@ add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
     json_helpers:created(Domain, UId).
 
 list(Domain, [], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "list"),
     {ok, Users} = uce_user:list(Domain),
     json_helpers:json(Domain, {array, [user_helpers:to_json(User) || User <- Users]}).
 
 get(Domain, [Id], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "get", [{"user", Id}]),
     {ok, Record} = uce_user:get(Domain, {Id, Domain}),
     json_helpers:json(Domain, user_helpers:to_json(Record)).
 
 update(Domain, [Id], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "user", "update", [{"user", Id},
                                                                                        {"auth", Auth}]),
     {ok, Record} = uce_user:get(Domain, {Id, Domain}),
@@ -125,7 +125,7 @@ update(Domain, [Id], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     json_helpers:ok(Domain).
 
 delete(Domain, [Id], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", Domain}, "user", "delete", [{"user", Id}]),
     {ok, deleted} = uce_user:delete(Domain, {Id, Domain}),
     json_helpers:ok(Domain).
@@ -133,7 +133,7 @@ delete(Domain, [Id], [Uid, Sid], _) ->
 check_access(Domain, [Name, Action, Object], [Uid, Sid, Conditions], Arg) ->
     check_access(Domain, [Name, Action, Object, ""], [Uid, Sid, Conditions], Arg);
 check_access(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _Arg) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "access", "check", [{"user", Name},
                                                                                         {"action", Action},
                                                                                         {"object", Object},
@@ -146,7 +146,7 @@ check_access(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _
     end.
 
 add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Location, Domain}, "user.role", "add", [{"user", Name},
                                                                                                    {"role", Role}]),
     {ok, updated} = uce_user:add_role(Domain, {Name, Domain}, {Role, Location}),
@@ -162,7 +162,7 @@ add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
 delete_role(Domain, [User, Role], [Uid, Sid], Arg) ->
     delete_role(Domain, [User, Role, ""], [Uid, Sid], Arg);
 delete_role(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Location, Domain}, "user.role", "delete", [{"user", User},
                                                                                                       {"role", Role}]),
     {ok, updated} = uce_user:delete_role(Domain, {User, Domain}, {Role, Location}),

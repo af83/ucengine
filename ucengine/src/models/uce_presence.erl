@@ -73,8 +73,8 @@ exists(Domain, Id) ->
             true
     end.
 
-assert(Domain, User, {_, _} = Sid) ->
-    case check(Domain, User, Sid) of
+assert(Domain, Uid, Sid) ->
+    case check(Domain, {Uid, Domain}, {Sid, Domain}) of
         {ok, true} ->
             {ok, true};
         {ok, false} ->
