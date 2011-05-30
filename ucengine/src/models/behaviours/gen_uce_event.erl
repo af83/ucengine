@@ -24,7 +24,7 @@
 behaviour_info(callbacks) ->
     [{add, 2},
      {get, 2},
-     {list, 7}];
+     {list, 8}];
 
 behaviour_info(_) ->
     undefined.

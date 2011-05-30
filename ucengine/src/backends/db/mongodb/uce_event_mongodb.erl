@@ -23,7 +23,7 @@
 
 -export([add/2,
          get/2,
-         list/7,
+         list/8,
          get_indexes/0]).
 
 -include("uce.hrl").
@@ -36,7 +36,6 @@
 %%--------------------------------------------------------------------
 add(Domain, #uce_event{} = Event) ->
     mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_event", to_collection(Event))),
-    %%emongo:ensure_index(Domain, "uce_event", Indexes);
     {ok, Event#uce_event.id}.
 
 %%--------------------------------------------------------------------
@@ -53,11 +52,11 @@ get(Domain, {EventId, EventDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec ({list, Domain::list} = location, {FromId::list, FromDomain::list} = From::tuple, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list, Order::atom) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list}
+%% @spec (Domain::list, {list, Domain::list} = location, {FromId::list, FromDomain::list} = From::tuple, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list, Order::atom) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list}
 %% @doc Returns list of record #uce_event which are match with given keys
 %% @end
 %%--------------------------------------------------------------------
-list({_M, Domain}=Location, From, Type, Start, End, Parent, Order) ->
+list(Domain, Location, From, Type, Start, End, Parent, Order) ->
     SelectLocation = case Location of
                          {"", Domain} ->
                              [];

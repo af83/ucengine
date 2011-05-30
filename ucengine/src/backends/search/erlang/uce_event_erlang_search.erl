@@ -55,7 +55,7 @@ filter(Events, Words) ->
                  Events).
 
 list(Domain, Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Max, Order) ->
-    {ok, Events} = (db:get(uce_event, Domain)):list(Location, From, Type, DateStart, DateEnd, Parent, Order),
+    {ok, Events} = (db:get(uce_event, Domain)):list(Domain, Location, From, Type, DateStart, DateEnd, Parent, Order),
 
     FilteredEvents = filter(Events, Search),
     EventPage = uce_paginate:paginate(FilteredEvents, Start, Max),

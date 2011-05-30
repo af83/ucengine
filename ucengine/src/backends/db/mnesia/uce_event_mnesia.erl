@@ -25,7 +25,7 @@
 
 -export([add/2,
          get/2,
-         list/7]).
+         list/8]).
 
 -include("uce.hrl").
 
@@ -56,9 +56,9 @@ get(_Domain, Id) ->
             {ok, Event}
     end.
 
-list(Location, From, [], Start, End, Parent, Order) ->
-    list(Location, From, [""], Start, End, Parent, Order);
-list(Location, From, Types, Start, End, Parent, Order) ->
+list(Domain, Location, From, [], Start, End, Parent, Order) ->
+    list(Domain, Location, From, [""], Start, End, Parent, Order);
+list(Domain, Location, From, Types, Start, End, Parent, Order) ->
     {SelectLocation, ResultLocation} =
         case Location of
             {"", Domain} ->
@@ -68,7 +68,7 @@ list(Location, From, Types, Start, End, Parent, Order) ->
         end,
     {SelectFrom, ResultFrom} =
         case From of
-            {"", _} ->
+            {"", Domain} ->
                 {'$4', '$4'};
             _ ->
                 {From, {From}}
