@@ -10,31 +10,17 @@ U.C.Engine allows you to build real time applications like collaboration based s
 
 U.C.Engine is a free software project written in erlang (server) and javascript (front client). It exposes a ReSTful HTTP API with JSON as its primary exchange format.
 
-## Build and launch
+## Docs
 
-### Dependencies
+http://docs.ucengine.org/
 
-* [Erlang R14A](http://erlang.org/)
-* [yaws](http://yaws.hyber.org/)
+## Contributions, help, discuss
 
-See how to install dependencies in the [installation page](http://docs.ucengine.org/install.html).
+To suggest a feature, report a bug:
+http://github.com/AF83/ucengine/issues/
 
-### Build
-
-    $ git clone git://github.com/AF83/ucengine.git
-    $> cd ucengine
-    $> make rel
-
-If you have some problem when compiling, please see the [installation page](http://docs.ucengine.org/install.html).
-
-### Starting U.C.Engine
-
-    $> cd rel/ucengine
-    $> bin/ucengine start
-
-## More docs
-
-[docs.ucengine.org](http://docs.ucengine.org/)
+General discussion:
+http://groups.google.com/group/ucengine
 
 ## License
 
