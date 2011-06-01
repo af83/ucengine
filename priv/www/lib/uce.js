@@ -55,6 +55,343 @@
             return uce_api_call("post", url, data, callback);
         }
 
+        function UCEMeeting(client, meetingname, presence) {
+            this.handlers = [];
+            this.client = client;
+            this.name = meetingname;
+            this.uid = (presence || {}).user;
+            this.sid = (presence || {}).id;
+            this.params = {
+                merge: function() {
+                    var args = Array.prototype.slice.call(arguments);
+                    args.unshift({}, {'uid': presence.user,
+                                      'sid': presence.id});
+                    return $.extend.apply($, args);
+                }
+            };
+        }
+
+        UCEMeeting.prototype = {
+            get: function(callback) {
+                get("/meeting/all/" + this.name, this.params.merge(),
+                    function(err, result, xhr) {
+                        if (!err) {
+                            callback(err, result.result, xhr);
+                        } else {
+                            callback(err, result, xhr);
+                        }
+                    });
+                return this;
+            },
+            update: function(start, end, metadata, callback) {
+                var params = this.params.merge({'metadata': metadata});
+                if (start) {
+                    params.start = start;
+                }
+                if (end && end != "never") {
+                    params.end = end;
+                }
+                put("/meeting/all/" + this.name, params,
+                    function(err, result, xhr) {
+                        if (!callback) {
+                            return;
+                        }
+                        callback(err, result, xhr);
+                    });
+            },
+            join: function(callback) {
+                post("/meeting/all/" + this.name + "/roster/",
+                     this.params.merge(), callback);
+                return this;
+            },
+            leave: function(callback) {
+                del("/meeting/all/" + this.name + "/roster/" + this.uid,
+                    this.params.merge(),
+                    callback);
+                return this;
+            },
+            getRoster: function(callback) {
+                get("/meeting/all/" + this.name + "/roster",
+                    this.params.merge(),
+                    function (err, result, xhr) {
+                        if (!callback) {
+                            return;
+                        }
+                        var roster = result.result;
+                        callback(err, roster, xhr);
+                    });
+            },
+
+            /**
+             * Push event
+             */
+            _push: function(params, callback) {
+                post("/event/" + this.name,
+                     this.params.merge(params),
+                     callback);
+                return this;
+            },
+            push: function(type, metadata, callback) {
+                this._push({'type': type,
+                            'metadata': metadata},
+                           callback);
+                return this;
+            },
+            pushTo: function(to, type, metadata, callback) {
+                this._push({'type': type,
+                            'to': to,
+                            'metadata': metadata},
+                           callback);
+                return this;
+            },
+
+            /**
+             * Get file upload url for this meeting
+             */
+            getFileUploadUrl: function() {
+                return baseUrl +"/api/"+ VERSION +"/file/"+this.name+"?uid="+this.uid+"&sid="+ this.sid;
+            },
+
+            /**
+             * Get file download url
+             * @param String filename
+             */
+            getFileDownloadUrl: function(filename) {
+                return baseUrl +"/api/"+ VERSION +"/file/"+this.name+"/"+ filename +"?uid="+this.uid+"&sid="+this.sid;
+            },
+
+            /**
+             * List files
+             */
+            listFiles: function(callback) {
+                get('/file/'+ this.name, this.params.merge(), function(err, result, xhr) {
+                    callback(err, result.result, xhr);
+                });
+            },
+
+            /**
+             * @param String id
+             * @param Function callback
+             */
+            delFile: function(id, callback) {
+                del("/file/" + this.name + "/" + id,
+                    this.params.merge(),
+                    function (err, result, xhr) {
+                        if (!callback) {
+                            return;
+                        }
+                        callback (err, result, xhr);
+                    });
+            },
+
+            /**
+             * @param Object params
+             *    search
+             *    start you can use uce.time() (mandatory)
+             *    type
+             *    from
+             * @param Function callback
+             * @param Boolean one_shot
+             * @return Object with a stop() method
+             */
+            waitEvents: function(params, callback, one_shot) {
+                var that = this;
+                function startLongPolling(p, callback) {
+                    var getParams = that.params.merge({'_async': 'lp'}, p);
+                    return get("/event/" + that.name,
+                               getParams,
+                               callback);
+                }
+                var longPolling = {
+                    aborted : false,
+                    _start : function(p, callback) {
+                        var that = this;
+                        this.xhr = startLongPolling(p, function(err, result, xhr) {
+                            try {
+                                var events = result.result;
+                                $.each(events, function(index, event) {
+                                    try {
+                                        callback(err, event, xhr);
+                                    } catch (e) {
+                                        // naive but it's better than nothing
+                                        if (window.console) console.error(e);
+                                    }
+                                });
+                                if (events.length > 0) {
+                                    p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                }
+                            } catch (e) {
+                                // do nothing
+                            }
+                            if (that.aborted === false && one_shot !== true) {
+                                that._start(p, callback);
+                            }
+                        });
+                    },
+                    stop: function() {
+                        this.aborted = true;
+                        this.xhr.abort();
+                    }
+                };
+                longPolling._start(params, callback);
+                return longPolling;
+            },
+
+            /**
+             * @param Object params
+             *    search
+             *    start
+             *    end
+             *    type
+             *    from
+             *    count
+             *    page
+             *    order
+             * @param Function callback
+             * @param Boolen onEachEvent
+             */
+            getEvents: function(params, callback, onEachEvent) {
+                var that = this;
+                params = this.params.merge(params);
+                get("/event/" + this.name,
+                    params,
+                    function(err, result, xhr) {
+                        if (!callback) {
+                            return;
+                        }
+                        var events = result.result;
+                        if (!onEachEvent) {
+                            callback(err, events, xhr);
+                        } else {
+                            $.each(events, function(index, event) {
+                                callback(err, event, xhr);
+                            });
+                        }
+                    });
+                return this;
+            },
+
+            /**
+             * Trigger event on the internal queue
+             * @param Object event
+             *  - type
+             */
+            trigger: function(event) {
+                $.each(this.handlers, function(i, item) {
+                    if (!item.type) {
+                        item.callback(event);
+                    } else {
+                        if (item.type == event.type)
+                            item.callback(event);
+                    }
+                });
+            },
+
+            /**
+             * Start main loop event
+             * [@param Integer start]
+             */
+            startLoop: function(start) {
+                var that = this;
+                return this.waitEvents({start: start || 0}, function(err, result, xhr) {
+                    that.trigger(result);
+                });
+            },
+
+            /**
+             * Start replay loop event
+             * @param Integer start offset
+             * @param Array events
+             */
+            startReplay: function(start, events, index) {
+                this._replay_current_time = start;
+                if (!index) {
+                    this._replay_events = events;
+                    index = 0;
+                }
+                var next = null;
+                while (next = events[index]) {
+                    if (next && start > next.datetime) {
+                        this.trigger(next);
+                        index++;
+                    } else {
+                        break;
+                    }
+                }
+                if (next) {
+                    this._replay_next_index = index;
+                    var that = this;
+                    var offset = 100; // each 100 milisecond
+                    this._replay_temporized = setTimeout(function() {
+                        that.startReplay(start + offset, events, index);
+                    }, offset);
+                }
+            },
+
+            getCurrentReplay: function() {
+                return this._replay_current_time;
+            },
+
+            /**
+             * Jump to a specific datetime
+             */
+            jumpToReplay: function(datetime) {
+                this.stopReplay();
+                if (datetime > this._replay_current_time) {
+                    this.startReplay(datetime, this._replay_events, this._replay_next_index);
+                } else {
+                    this.startReplay(datetime, this._replay_events);
+                }
+            },
+
+            stopReplay: function() {
+                clearTimeout(this._replay_temporized);
+            },
+
+            /**
+             * Alias of on
+             */
+            bind: function() {
+                var args = Array.prototype.slice.call(arguments);
+                return this.on.apply(this, args);
+            },
+
+            /**
+             * Bind event handler
+             * use it with startLoop
+             * [@param String type]
+             * @param Function callback
+             */
+            on: function(type, callback) {
+                if (!callback) {
+                    callback  = type;
+                    type = null;
+                }
+                this.handlers.push({type: type,
+                                    callback: callback});
+                return this;
+            },
+            /**
+             * Search event in current meeting
+             */
+            search: function(terms, options, callback) {
+                terms.location = this.name;
+                return this.client.search(terms, options, callback);
+            },
+            /**
+             * Can the user make the action in the current meeting ?
+             */
+            can: function(uid, action, object, conditions, callback) {
+                return this.client.user.can(uid, action, object, conditions, this.name, callback);
+            },
+            /**
+             *
+             */
+            canCurrentUser: function(action, object, conditions, callback) {
+                return this.can(this.uid, action, object, conditions, callback);
+            }
+        };
+
         var _presence = null;
         return {
             connected : false,
@@ -193,331 +530,11 @@
                         callback(err, result.result, xhr);
                     });
             },
-
+            _meetingsCache : {},
             meeting: function(meetingname) {
-                var handlers = [];
-                var client = this;
-                return {
-                    name: meetingname,
-                    uid: (_presence || {}).user,
-                    get: function(callback) {
-                        get("/meeting/all/" + meetingname, {'uid': _presence.user,
-                                                            'sid': _presence.id},
-                            function(err, result, xhr) {
-                            if (!err) {
-                                callback(err, result.result, xhr);
-                            } else {
-                                callback(err, result, xhr);
-                            }
-                        });
-                        return this;
-                    },
-                    update: function(start, end, metadata, callback) {
-                        var params = {'metadata': metadata,
-                                      'uid': _presence.user,
-                                      'sid': _presence.id};
-                        if (start) {
-                            params.start = start;
-                        }
-                        if (end && end != "never") {
-                            params.end = end;
-                        }
-                        put("/meeting/all/" + meetingname, params,
-                            function(err, result, xhr) {
-                                if (!callback) {
-                                    return;
-                                }
-                                callback(err, result, xhr);
-                            });
-                    },
-                    join: function(callback) {
-                        post("/meeting/all/" + meetingname + "/roster/",
-                            {'uid': _presence.user,
-                             'sid': _presence.id},
-                            callback);
-                        return this;
-                    },
-                    leave: function(callback) {
-                        del("/meeting/all/" + meetingname + "/roster/" + _presence.user,
-                            {'uid': _presence.user,
-                             'sid': _presence.id},
-                            callback);
-                        return this;
-                    },
-                    getRoster: function(callback) {
-                        get("/meeting/all/" + meetingname + "/roster",
-                            {'uid': _presence.user,
-                             'sid': _presence.id},
-                            function (err, result, xhr) {
-                                if (!callback) {
-                                    return;
-                                }
-                                var roster = result.result;
-                                callback(err, roster, xhr);
-                            });
-                    },
-
-                    /**
-                     * Push event
-                     */
-                    _push: function(params, callback) {
-                        post("/event/" + meetingname,
-                             $.extend({'uid': _presence.user, 'sid': _presence.id}, params),
-                             callback);
-                        return this;
-                    },
-                    push: function(type, metadata, callback) {
-                        this._push({'type': type,
-                                    'metadata': metadata},
-                                   callback);
-                        return this;
-                    },
-                    pushTo: function(to, type, metadata, callback) {
-                        this._push({'type': type,
-                                    'to': to,
-                                    'metadata': metadata},
-                                   callback);
-                        return this;
-                    },
-
-                    /**
-                     * Get file upload url for this meeting
-                     */
-                    getFileUploadUrl: function() {
-                        return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"?uid="+_presence.user+"&sid="+_presence.id;
-                    },
-
-                    /**
-                     * Get file download url
-                     * @param String filename
-                     */
-                    getFileDownloadUrl: function(filename) {
-                        return baseUrl +"/api/"+ VERSION +"/file/"+meetingname+"/"+ filename +"?uid="+_presence.user+"&sid="+_presence.id;
-                    },
-
-                    /**
-                     * @param String id
-                     * @param Function callback
-                     */
-                    delFile: function(id, callback) {
-                        del("/file/" + meetingname + "/" + id,
-                            {'uid': _presence.user,
-                             'sid': _presence.id},
-                            function (err, result, xhr) {
-                                if (!callback) {
-                                    return;
-                                }
-                                callback (err, result, xhr);
-                            });
-                    },
-
-                    /**
-                     * @param Object params
-                     *    search
-                     *    start you can use uce.time() (mandatory)
-                     *    type
-                     *    from
-                     * @param Function callback
-                     * @param Boolean one_shot
-                     * @return Object with a stop() method
-                     */
-                    waitEvents: function(params, callback, one_shot) {
-                        function startLongPolling(p, callback) {
-                            var getParams = $.extend({}, {'uid': _presence.user,
-                                                          'sid': _presence.id,
-                                                          '_async': 'lp'}, params);
-                            return get("/event/" + meetingname,
-                                       getParams,
-                                       callback);
-                        }
-                        var longPolling = {
-                            aborted : false,
-                            _start : function(p, callback) {
-                                var that = this;
-                                this.xhr = startLongPolling(p, function(err, result, xhr) {
-                                    // TODO: we must have a better error handling with a recovery function for instance
-                                    if (err || !result) throw err || "error on long polling";
-                                    var events = result.result;
-                                    $.each(events, function(index, event) {
-                                        try {
-                                            callback(err, event, xhr);
-                                        } catch (e) {
-                                            // naive but it's better than nothing
-                                            if (window.console) console.error(e);
-                                        }
-                                    });
-                                    if (events.length > 0) {
-                                        p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
-                                    }
-                                    if (that.aborted === false && one_shot !== true) {
-                                        that._start(p, callback);
-                                    }
-                                });
-                            },
-                            stop: function() {
-                                this.aborted = true;
-                                this.xhr.abort();
-                            }
-                        };
-                        longPolling._start(params, callback);
-                        return longPolling;
-                    },
-
-                    /**
-                     * @param Object params
-                     *    search
-                     *    start
-                     *    end
-                     *    type
-                     *    from
-                     *    count
-                     *    page
-                     *    order
-                     * @param Function callback
-                     * @param Boolen onEachEvent
-                     */
-                    getEvents: function(params, callback, onEachEvent) {
-                        var that = this;
-                        params = $.extend({}, {'uid': _presence.user,
-                                               'sid': _presence.id}, params);
-                        get("/event/" + meetingname,
-                            params,
-                            function(err, result, xhr) {
-                                if (!callback) {
-                                    return;
-                                }
-                                var events = result.result;
-                                if (!onEachEvent) {
-                                    callback(err, events, xhr)
-                                } else {
-                                    $.each(events, function(index, event) {
-                                        callback(err, event, xhr);
-                                    });
-                                }
-                            });
-                        return this;
-                    },
-
-                    /**
-                     * Trigger event on the internal queue
-                     * @param Object event
-                     *  - type
-                     */
-                    trigger: function(event) {
-                        $.each(handlers, function(i, item) {
-                            if (!item.type) {
-                                item.callback(event);
-                            } else {
-                                if (item.type == event.type)
-                                    item.callback(event);
-                            }
-                        });
-                    },
-
-                    /**
-                     * Start main loop event
-                     * [@param Integer start]
-                     */
-                    startLoop: function(start) {
-                        var that = this;
-                        return this.waitEvents({start: start || 0}, function(err, result, xhr) {
-                            that.trigger(result);
-                        });
-                    },
-
-                    /**
-                     * Start replay loop event
-                     * @param Integer start offset
-                     * @param Array events
-                     */
-                    startReplay: function(start, events, index) {
-                        this._replay_current_time = start;
-                        if (!index) {
-                            this._replay_events = events;
-                            index = 0;
-                        }
-                        var next = null;
-                        while (next = events[index]) {
-                            if (next && start > next.datetime) {
-                                this.trigger(next);
-                                index++;
-                            } else {
-                                break;
-                            }
-                        }
-                        if (next) {
-                            this._replay_next_index = index;
-                            var that = this;
-                            var offset = 100; // each 100 milisecond
-                            this._replay_temporized = setTimeout(function() {
-                                that.startReplay(start + offset, events, index);
-                            }, offset);
-                        }
-                    },
-
-                    getCurrentReplay: function() {
-                        return this._replay_current_time;
-                    },
-
-                    /**
-                     * Jump to a specific datetime
-                     */
-                    jumpToReplay: function(datetime) {
-                        this.stopReplay();
-                        if (datetime > this._replay_current_time) {
-                            this.startReplay(datetime, this._replay_events, this._replay_next_index);
-                        } else {
-                            this.startReplay(datetime, this._replay_events);
-                        }
-                    },
-
-                    stopReplay: function() {
-                        clearTimeout(this._replay_temporized);
-                    },
-
-                    /**
-                     * Alias of on
-                     */
-                    bind: function() {
-                        var args = Array.prototype.slice.call(arguments);
-                        return this.on.apply(this, args);
-                    },
-
-                    /**
-                     * Bind event handler
-                     * use it with startLoop
-                     * [@param String type]
-                     * @param Function callback
-                     */
-                    on: function(type, callback) {
-                        if (!callback) {
-                            callback  = type;
-                            type = null;
-                        }
-                        handlers.push({type: type,
-                                       callback: callback});
-                        return this;
-                    },
-                    /**
-                     * Search event in current meeting
-                     */
-                    search: function(terms, options, callback) {
-                        terms.location = meetingname;
-                        return client.search(terms, options, callback);
-                    },
-                    /**
-                     * Can the user make the action in the current meeting ?
-                     */
-                    can: function(uid, action, object, conditions, callback) {
-                        return client.user.can(uid, action, object, conditions, meetingname, callback);
-                    },
-                    /**
-                     *
-                     */
-                    canCurrentUser: function(action, object, conditions, callback) {
-                        return this.can((_presence || {}).user, action, object, conditions, callback);
-                    }
-                };
+                if (!this._meetingsCache[meetingname])
+                    this._meetingsCache[meetingname] = new UCEMeeting(this, meetingname, _presence);
+                return this._meetingsCache[meetingname];
             },
             meetings : {
                 opened: function(callback) {

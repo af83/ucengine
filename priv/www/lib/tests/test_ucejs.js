@@ -284,6 +284,12 @@ jackTest("can get all meetings", function() {
     });
 });
 
+test("meetings are the same", function() {
+    var client = this.client.attachPresence(Factories.createPresence());
+    ok(client.meeting("mymeeting") === client.meeting("mymeeting"));
+    ok(client.meeting("mymeeting") !== client.meeting("meeting"));
+});
+
 jackTest("can get meeting", function() {
     stop();
     addUceApiCall("get", "/api/" + uce.version + "/meeting/all/mymeeting", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : {"name": "mymeeting"}}');
