@@ -607,18 +607,12 @@
                 add: function(name, callback) {
                     post("/role", {'name': name,
                                    'uid': _presence.user,
-                                   'sid': _presence.id},
-                         function(err, result, xhr) {
-                             callback(err, result, xhr);
-                         });
+                                   'sid': _presence.id}, callback);
                 },
                 del: function(name, callback) {
                     del("/role/" + name,
                         {'uid': _presence.user,
-                         'sid': _presence.id},
-                        function(err, result, xhr) {
-                            callback(err, result, xhr);
-                        });
+                         'sid': _presence.id}, callback);
                 },
                 addAccess: function(role, action, object, conditions, callback) {
                     post("/role/" + role + "/acl",
@@ -626,19 +620,13 @@
                           'object': object,
                           'conditions': conditions,
                           'uid': _presence.user,
-                          'sid': _presence.id},
-                         function(err, result, xhr) {
-                             callback(err, result, xhr);
-                         });
+                          'sid': _presence.id}, callback);
                 },
                 delAccess: function(role, action, object, conditions, callback) {
                     del("/role/" + role + "/acl/" + action + "/" + object,
                         {'conditions': conditions,
                          'uid': _presence.user,
-                         'sid': _presence.id},
-                        function(err, result, xhr) {
-                            callback(err, result, xhr);
-                        });
+                         'sid': _presence.id}, callback);
                 }
             },
             users: {
