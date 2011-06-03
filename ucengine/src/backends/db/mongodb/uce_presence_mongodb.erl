@@ -110,13 +110,14 @@ update(Domain, #uce_presence{}=Presence) ->
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-                   ["id", "domain", "user", "auth", "last_activity", "timeout", "metadata"]) of
-        [Id, Domain, User, Auth, LastActivity, Timeout, Metadata] ->
+                   ["id", "domain", "user", "auth", "last_activity", "timeout", "meetings", "metadata"]) of
+        [Id, Domain, User, Auth, LastActivity, Timeout, Meetings, Metadata] ->
             #uce_presence{id={Id, Domain},
                           user={User, Domain},
                           auth=Auth,
                           last_activity=list_to_integer(LastActivity),
                           timeout=list_to_integer(Timeout),
+                          meetings=Meetings,
                           metadata=Metadata};
         _ ->
             throw({error, bad_parameters})
@@ -132,6 +133,7 @@ to_collection(#uce_presence{id={Id, Domain},
                             auth=Auth,
                             last_activity=LastActivity,
                             timeout=Timeout,
+                            meetings=Meetings,
                             metadata=Metadata}) ->
     [{"id", Id},
      {"domain", Domain},
@@ -139,4 +141,5 @@ to_collection(#uce_presence{id={Id, Domain},
      {"auth", Auth},
      {"last_activity", integer_to_list(LastActivity)},
      {"timeout", integer_to_list(Timeout)},
+     {"meetings", Meetings},
      {"metadata", Metadata}].
