@@ -62,6 +62,7 @@ add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) 
                                               uri=FileUploaded#file_upload.uri,
                                               datetime=utils:now(),
                                               metadata=Metadata}),
+
     {ok, File} = uce_file:get(Domain, Id),
     {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
     {FileId, Domain} = File#uce_file.id,
@@ -101,9 +102,10 @@ get_path(Uri) ->
     re:replace(Uri, "file\:\/\/", "", [{return, list}]).
 
 get(Domain, [Meeting, Id], [Uid, Sid], _) ->
+    NormalizedId = unicode_helpers:normalize_unicode(Id),
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "get", [{"id", Id}]),
-    {ok, File} = uce_file:get(Domain, {Id, Domain}),
+    {ok, File} = uce_file:get(Domain, {NormalizedId, Domain}),
     Path = get_path(File#uce_file.uri),
     case file:read_file(Path) of
         {error, Reason} ->
@@ -114,10 +116,11 @@ get(Domain, [Meeting, Id], [Uid, Sid], _) ->
     end.
 
 delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
+    NormalizedId = unicode_helpers:normalize_unicode(Id),
     {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
     {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Meeting, Domain}, "file", "delete", [{"id", Id}]),
-    {ok, File} = uce_file:get(Domain, {Id, Domain}),
-    {ok, deleted} = uce_file:delete(Domain, {Id, Domain}),
+    {ok, File} = uce_file:get(Domain, {NormalizedId, Domain}),
+    {ok, deleted} = uce_file:delete(Domain, {NormalizedId, Domain}),
     uce_event:add(Domain,
                   #uce_event{id={none, Domain},
                              location={Meeting, Domain},

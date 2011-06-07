@@ -28,13 +28,17 @@ add(Domain, #uce_file{location=Location, name=Name} = File) ->
         false ->
             throw({error, not_found});
         true ->
+            Extension = filename:extension(Name),
+            Base64Name = binary_to_list(base64:encode(unicode:characters_to_binary(Name))),
+            Rnd = utils:random(),
             {Id, Mime} =
-                case re:run(Name, "([^/]+)\\.([^/]+)$ ?", [{capture, all, list}]) of
-                    {match, [_, BareName, Extension]} ->
-                        {BareName ++ "_" ++ utils:random() ++ "." ++ Extension,
-                         yaws_api:mime_type(Name)};
-                    nomatch ->
-                        {Name ++ "_" ++ utils:random(), "text/plain"}
+                case Extension of
+                    [] ->
+                        {Base64Name ++ "_" ++ Rnd,
+                         "text/plain"};
+                    _ ->
+                        {Base64Name ++ "_" ++ Rnd ++ Extension,
+                         yaws_api:mime_type(Name)}
                 end,
             (db:get(?MODULE, Domain)):add(Domain, File#uce_file{id={Id, Domain}, mime=Mime})
     end.

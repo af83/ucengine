@@ -178,17 +178,19 @@ parse_query(AsciiDirtyQuery) ->
     Query = lists:map(fun({Key, Value}) ->
                               case Value of
                                   undefined ->
-                                      {unicode:characters_to_list(list_to_binary(Key), unicode), ""};
+                                      {unicode_helpers:normalize_unicode(Key), ""};
                                   Value when is_record(Value, file_upload) ->
-                                      {unicode:characters_to_list(list_to_binary(Key), unicode), Value};
+                                      FileName = Value#file_upload.filename,
+                                      {unicode_helpers:normalize_unicode(Key), Value#file_upload{
+                                        filename=unicode_helpers:normalize_unicode(FileName)
+                                     }};
                                   _ ->
-                                      {unicode:characters_to_list(list_to_binary(Key), unicode),
-                                       unicode:characters_to_list(list_to_binary(Value), unicode)}
+                                      {unicode_helpers:normalize_unicode(Key),
+                                       unicode_helpers:normalize_unicode(Value)}
                               end
                       end,
                       AsciiQuery),
     parse_query_elems(Query).
-
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
