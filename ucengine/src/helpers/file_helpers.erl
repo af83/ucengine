@@ -22,8 +22,7 @@
 -include("uce.hrl").
 
 -export([to_json/1,
-         download/3,
-         split_ext/2]).
+         download/3]).
 
 to_json(#uce_file{id={Id, Domain},
                   name=Name,
@@ -46,24 +45,3 @@ download(_Domain, Id, Content) ->
     [{status, 200},
      {header, {"Content-Disposition", "filename=" ++ yaws_api:url_encode(Id)}},
      {content, "application/octet-stream", Content}].
-
-%% Split a filename in {Body, Ext}
-%% Char . : 46
-split_ext(FileName, Char) ->
-    split_ext(FileName, Char, length(FileName)).
-split_ext(FileName, Char, Poz) ->
-    case Poz of
-         0 -> {FileName, none};
-         _ ->
-             case lists:nth(Poz, FileName) of 
-                 Char -> {lists:sublist(FileName, Poz -1), lists:sublist(FileName, Poz+1, length(FileName))};
-                 _ -> split_ext(FileName, Char, Poz -1)
-             end
-    end.
-
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
-    split_test() ->
-        {[101,769], "e"} = split_ext([101,769,46,101], 46),
-        {"pépé", "jpg"}  = split_ext("pépé.jpg", 46).
--endif.
