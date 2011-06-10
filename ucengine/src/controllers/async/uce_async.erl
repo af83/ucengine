@@ -26,7 +26,10 @@
 listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
     ?PUBSUB_MODULE:subscribe(self(), Location, Search, From, Types, Uid, Start, End, Parent),
     Res = receive
-              {message, _} ->
+              % TODO: filter messages in _Message according to the request criterias.
+              % For now _Message is ignored and the whole thing is used as a
+              % callback to retrieve new events from the database.
+              {message, _Message} ->
                   {ok, Events} = uce_event:list(Domain,
                                                 Location,
                                                 Search,
