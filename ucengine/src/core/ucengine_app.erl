@@ -39,6 +39,7 @@ start(_, _) ->
     mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
     ibrowse:start(),
+    application:start(metrics),
 
     Arguments = init:get_arguments(),
     [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),

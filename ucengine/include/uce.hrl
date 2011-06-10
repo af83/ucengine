@@ -124,6 +124,42 @@
 
 -define(PRESENCE_EXPIRED_EVENT, "internal.presence.expired").
 
+-define(COUNTER(Name), (
+    fun() ->
+        case config:get(metrics) of
+            ok ->
+                metrics_counter:incr(Name, 1)
+        end
+    end())).
+
+-define(TIMER_START(Timer), (
+    fun() ->
+        case config:get(metrics) of
+            ok ->
+                metrics_timer:init(Timer)
+        end
+    end()
+)).
+
+-define(TIMER_GET(Timer), (
+    fun() ->
+        case config:get(metrics) of
+            ok ->
+                metrics_timer:get_and_reset(Timer)
+        end
+    end()
+)).
+
+-define(GAUGE_APPEND(Gauge, Value), (
+    fun() ->
+        case config:get(metrics) of
+            ok ->
+                metrics_gauge:append(Gauge, Value)
+        end
+    end()
+)).
+
+
 % Backends
 
 -define(PUBSUB_MODULE, mnesia_pubsub).
