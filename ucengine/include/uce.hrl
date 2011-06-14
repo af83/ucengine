@@ -128,7 +128,8 @@
     fun() ->
         case config:get(metrics) of
             ok ->
-                metrics_counter:incr(Name)
+                metrics_counter:incr(Name);
+            _ -> ok
         end
     end())).
 
@@ -136,7 +137,8 @@
     fun() ->
         case config:get(metrics) of
             ok ->
-                metrics_gauge:append_timer(Name, Timer)
+                metrics_gauge:append_timer(Name, Timer);
+            _ -> ok
         end
     end())).
 
@@ -144,7 +146,8 @@
     fun() ->
         case config:get(metrics) of
             ok ->
-                metrics_gauge:append(Gauge, Value)
+                metrics_gauge:append(Gauge, Value);
+            _ -> ok
         end
     end()
 )).
