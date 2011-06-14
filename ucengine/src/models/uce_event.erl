@@ -94,7 +94,7 @@ search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, S
     {ok, NumTotal, filter_private(Events, Uid)}.
 
 list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
-    ?TIMER_START(event_list_timer),
+    N = now(),
     {ok, _Num, Events} = uce_event_erlang_search:list(Domain,
                                                       Location,
                                                       Search,
@@ -106,7 +106,6 @@ list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Sta
                                                       Start,
                                                       Max,
                                                       Order),
-    T = ?TIMER_GET(event_list_timer),
-    ?GAUGE_APPEND(event_list, T),
+    ?TIMER_APPEND(event_list, N),
     ?COUNTER(event_list),
     {ok, filter_private(Events, Uid)}.

@@ -128,27 +128,17 @@
     fun() ->
         case config:get(metrics) of
             ok ->
-                metrics_counter:incr(Name, 1)
+                metrics_counter:incr(Name)
         end
     end())).
 
--define(TIMER_START(Timer), (
+-define(TIMER_APPEND(Name, Timer), (
     fun() ->
         case config:get(metrics) of
             ok ->
-                metrics_timer:init(Timer)
+                metrics_gauge:append_timer(Name, Timer)
         end
-    end()
-)).
-
--define(TIMER_GET(Timer), (
-    fun() ->
-        case config:get(metrics) of
-            ok ->
-                metrics_timer:get_and_reset(Timer)
-        end
-    end()
-)).
+    end())).
 
 -define(GAUGE_APPEND(Gauge, Value), (
     fun() ->
