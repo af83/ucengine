@@ -38,6 +38,7 @@ add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Eve
             {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
             ?PUBSUB_MODULE:publish(Event),
             ?SEARCH_MODULE:add(Event),
+            ?COUNTER({event_add, Event#uce_event.type}),
             {ok, Id};
         true ->
             throw({error, not_found})
@@ -89,9 +90,11 @@ search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, S
                                                  Start,
                                                  Max,
                                                  Order),
+    ?COUNTER(event_search),
     {ok, NumTotal, filter_private(Events, Uid)}.
 
 list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
+    N = now(),
     {ok, _Num, Events} = uce_event_erlang_search:list(Domain,
                                                       Location,
                                                       Search,
@@ -103,4 +106,6 @@ list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Sta
                                                       Start,
                                                       Max,
                                                       Order),
+    ?TIMER_APPEND(event_list, N),
+    ?COUNTER(event_list),
     {ok, filter_private(Events, Uid)}.
