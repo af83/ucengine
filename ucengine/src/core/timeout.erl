@@ -53,7 +53,8 @@ handle_cast(run, State) ->
               if
                   LastActivity + (Timeout * 1000) < Now ->
                       ok = presence_helpers:clean(Domain, Presence),
-                      {ok, deleted} = uce_presence:delete(Domain, Id);
+                      {ok, deleted} = uce_presence:delete(Domain, Id),
+                      ?COUNTER(timeout);
                   true ->
                       nothing
               end
