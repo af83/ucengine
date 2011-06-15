@@ -3,6 +3,6 @@
 TSUNG_PATH=$(which tsung)
 TSUNG_SHARE_PATH=$(dirname $TSUNG_PATH)"/.."
 
-cp benchmarks/scenarii/tsung.xml benchmarks/results
-sed -i "s=TSUNG_SHARE_PATH=$TSUNG_SHARE_PATH=" benchmarks/results/tsung.xml
-ERL_LIBS="." tsung -f "benchmarks/results/tsung.xml" -l "benchmarks/results/tsung.log" start
+cp "benchmarks/scenarii/$1.xml" benchmarks/results
+sed -i "s=TSUNG_SHARE_PATH=$TSUNG_SHARE_PATH=" "benchmarks/results/$1.xml"
+ERL_LIBS="." tsung -f "benchmarks/results/$1.xml" -l "benchmarks/results/$1.log" start

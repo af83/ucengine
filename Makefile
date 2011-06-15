@@ -52,7 +52,7 @@ bench:
 	mkdir -p ebin/
 	erlc -o ebin/ tsung/tsung_utils.erl
 	mkdir -p benchmarks/results
-	./utils/benchmark
+	./utils/benchmark $(SCENARIO)
 	rm -rf ebin
 
 ###############################################################################
