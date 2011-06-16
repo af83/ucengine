@@ -1,0 +1,14 @@
+#!/usr/bin/env escript
+%% -*- erlang -*-
+%%! -pa ebin
+
+main([Folder]) ->
+    ok = application:start(inets),
+    net_kernel:start([metrics_dump@localhost]),
+    auth:set_cookie(node(), ucengine),
+    N = 'ucengine@127.0.0.1',
+    pong = net_adm:ping(N),
+    io:format("~p~n", [rpc:call(N, metrics_counter, to_file, [io_lib:format("~s/counter.csv", [Folder])])]),
+    io:format("~p~n", [rpc:call(N, metrics_gauge, to_file, [io_lib:format("~s/gauge.csv", [Folder])])]);
+main(_) ->
+    ok.
