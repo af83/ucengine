@@ -76,10 +76,12 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
             json_helpers:error(Domain, Reason);
         Params ->
             ?DEBUG("~p: call ~p:~p matching ~p with ~p~n", [Domain, Module, Function, Match, Params]),
+            Now = now(),
             try Module:Function(Domain, Match, Params, Arg) of
                 {streamcontent_with_timeout, _, _, _} = Stream ->
                     cors_helpers:format_cors_headers(Domain) ++ [Stream];
                 Response when is_list(Response) ->
+                    ?TIMER_APPEND(atom_to_list(Module) ++ "_" ++ atom_to_list(Function), Now),
                     Response
             catch
                 {error, Reason} ->
