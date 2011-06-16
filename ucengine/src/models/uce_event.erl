@@ -38,7 +38,7 @@ add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Eve
             {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
             ?PUBSUB_MODULE:publish(Event),
             ?SEARCH_MODULE:add(Event),
-            ?COUNTER({event_add, Event#uce_event.type}),
+            ?COUNTER("event_add:" ++ Event#uce_event.type),
             {ok, Id};
         true ->
             throw({error, not_found})
