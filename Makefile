@@ -54,7 +54,6 @@ bench:
 	mkdir -p benchmarks/results
 	./utils/benchmark $(SCENARIO)
 	rm -rf ebin
-	./utils/fetch_metrics `pwd`/`find  benchmarks/results -name "20*" | sort -r | head -1`
 
 ###############################################################################
 # Cleanup

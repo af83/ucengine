@@ -6,3 +6,8 @@ TSUNG_SHARE_PATH=$(dirname $TSUNG_PATH)"/.."
 cp "benchmarks/scenarii/$1.xml" benchmarks/results
 sed -i "s=TSUNG_SHARE_PATH=$TSUNG_SHARE_PATH=" "benchmarks/results/$1.xml"
 ERL_LIBS="." tsung -f "benchmarks/results/$1.xml" -l "benchmarks/results/$1.log" start
+
+LAST_BENCH=$(pwd)/$(find  benchmarks/results -name "20*" -type d | sort -r | head -1)
+
+./utils/fetch_metrics $LAST_BENCH
+cd $LAST_BENCH && tsung_stats.pl --stats $SCENARIO.log
