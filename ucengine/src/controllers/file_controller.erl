@@ -105,7 +105,7 @@ get(Domain, [Meeting, Id], [Uid, Sid], _) ->
     NormalizedId = unicode_helpers:normalize_unicode(Id),
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "get", [{"id", Id}]),
-    {ok, File} = uce_file:get(Domain, NormalizedId),
+    {ok, File} = uce_file:get(Domain, {NormalizedId, Domain}),
     Path = get_path(File#uce_file.uri),
     case file:read_file(Path) of
         {error, Reason} ->
@@ -119,8 +119,8 @@ delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
     NormalizedId = unicode_helpers:normalize_unicode(Id),
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "delete", [{"id", Id}]),
-    {ok, File} = uce_file:get(Domain, NormalizedId),
-    {ok, deleted} = uce_file:delete(Domain, NormalizedId),
+    {ok, File} = uce_file:get(Domain, {NormalizedId, Domain}),
+    {ok, deleted} = uce_file:delete(Domain, {NormalizedId, Domain}),
     uce_event:add(Domain,
                   #uce_event{id={none, Domain},
                              location={Meeting, Domain},
