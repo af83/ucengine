@@ -23,7 +23,7 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_file{location=Location, name=Name} = File) ->
+add(Domain, #uce_file{location={Location, Domain}, name=Name} = File) ->
     case location_helpers:exists(Domain, Location) of
         false ->
             throw({error, not_found});
@@ -43,18 +43,18 @@ add(Domain, #uce_file{location=Location, name=Name} = File) ->
             (db:get(?MODULE, Domain)):add(Domain, File#uce_file{id={Id, Domain}, mime=Mime})
     end.
 
-list(Domain, {_, _}=Location, Order) ->
-    case location_helpers:exists(Domain, Location) of
+list(Domain, Id, Order) ->
+    case location_helpers:exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            (db:get(?MODULE, Domain)):list(Domain, Location, Order)
+            (db:get(?MODULE, Domain)):list(Domain, Id, Order)
     end.
 
-get(Domain, {_, _}=Id) ->
+get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
-delete(Domain, {_, _}=Id) ->
+delete(Domain, Id) ->
     case get(Domain, Id) of
         {error, Reason} ->
             {error, Reason};

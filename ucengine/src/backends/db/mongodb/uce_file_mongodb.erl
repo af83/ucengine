@@ -40,11 +40,11 @@ add(Domain, #uce_file{} = File) ->
     {ok, File#uce_file.id}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain, {Location::list, _Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
+%% @spec (Domain, Location::list) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
 %% @doc List all record #uce_file for the given pair location(meeting) and domain
 %% @end
 %%--------------------------------------------------------------------
-list(Domain, {Location, _}, Order) ->
+list(Domain, Location, Order) ->
     Files = emongo:find_all(Domain, "uce_file", [{"location", Location},
                                                  {"domain", Domain}],
                             [{orderby, [{"datetime", Order}]}]),
@@ -60,11 +60,11 @@ all(Domain) ->
     {ok, [from_collection(File) || File <- Files]}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, #uce_file{}} | {error, bad_parameters} | {error, not_found}
+%% @spec (Domain::list, FileId::list) -> {ok, #uce_file{}} | {error, bad_parameters} | {error, not_found}
 %% @doc Get #uce_file record for the given id
 %% @end
 %%--------------------------------------------------------------------
-get(Domain, {FileId, _FileDomain}) ->
+get(Domain, FileId) ->
     case emongo:find_one(Domain, "uce_file", [{"id", FileId}]) of
         [File] ->
             {ok, from_collection(File)};
@@ -73,11 +73,11 @@ get(Domain, {FileId, _FileDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, deleted}
+%% @spec (Domain::list, FileId::list) -> {ok, deleted}
 %% @doc Delete #uce_file record for the given id
 %% @end
 %%--------------------------------------------------------------------
-delete(Domain, {FileId, _FileDomain}) ->
+delete(Domain, FileId) ->
     mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_file", [{"id", FileId}])),
     {ok, deleted}.
 

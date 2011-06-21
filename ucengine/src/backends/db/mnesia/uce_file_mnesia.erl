@@ -46,7 +46,7 @@ add(_Domain, #uce_file{} = File) ->
             throw({error, bad_parameters})
     end.
 
-list(_Domain, {_, _}=Location, Order) ->
+list(Domain, Id, Order) ->
     FunOrder = case Order of
                    asc ->
                        fun(A, B) ->
@@ -58,7 +58,7 @@ list(_Domain, {_, _}=Location, Order) ->
                        end
                end,
     Transaction = fun() ->
-                          Query = qlc:q([File || File <- mnesia:table(uce_file), File#uce_file.location == Location]),
+                          Query = qlc:q([File || File <- mnesia:table(uce_file), File#uce_file.location == {Id, Domain}]),
                           qlc:eval(qlc:sort(Query, [{order, FunOrder}]))
           end,
     case mnesia:transaction(Transaction) of
@@ -83,8 +83,8 @@ all(Domain) ->
                 throw({error, bad_parameters})
     end.
 
-get(_Domain, {_, _}=Id) ->
-    case mnesia:dirty_read(uce_file, Id) of
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_file, {Id, Domain}) of
         [File] ->
             {ok, File};
         [] ->
@@ -93,9 +93,9 @@ get(_Domain, {_, _}=Id) ->
             throw({error, bad_parameters})
     end.
 
-delete(_Domain, {_, _}=Id) ->
+delete(Domain, Id) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:delete({uce_file, Id})
+                                    mnesia:delete({uce_file, {Id, Domain}})
                             end) of
         {atomic, ok} ->
             {ok, deleted};
