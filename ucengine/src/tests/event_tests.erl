@@ -104,10 +104,10 @@ test_push(BaseUrl, {RootUid, RootSid}) ->
 
 test_push_big(BaseUrl, {RootUid, RootSid}) ->
     Text = string:copies("pushed_event", 5000),
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "test_push_1"},
-              {"metadata[description]", Text}],
+    BaseParams = [{"uid", RootUid},
+                  {"sid", RootSid}],
+    Params = BaseParams ++ [{"type", "test_push_1"},
+                            {"metadata[description]", Text}],
     {struct, [{"result", Id}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
     ?assertMatch({struct, [{"result",
                             {struct, [{"type", "test_push_1"},
@@ -117,7 +117,7 @@ test_push_big(BaseUrl, {RootUid, RootSid}) ->
                                       {"location", "testmeeting"},
                                       {"from", RootUid},
                                       {"metadata", {struct, [{"description", Text}]}}]}}]},
-                 tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params)).
+                 tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, BaseParams)).
 
 test_push_internal_event(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
