@@ -79,6 +79,7 @@ setup_server() ->
                          {listen, {0,0,0,0}},
                          {port, config:get(port)},
                          {access_log, true},
+                         {partial_post_size, nolimit},
                          {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}],
                         [{auth_log, false},
                          {logdir, config:get(log_dir)},

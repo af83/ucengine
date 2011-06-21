@@ -58,6 +58,7 @@ event_test_() ->
       , fun fixtures:teardown/1
       , fun([_, BaseUrl, [Root, Participant, Ugly|_]]) ->
                 [?_test(test_push(BaseUrl, Root)),
+                 ?_test(test_push_big(BaseUrl, Root)),
                  ?_test(test_push_internal_event(BaseUrl, Root)),
                  ?_test(test_push_without_meeting(BaseUrl, Root)),
                  ?_test(test_push_with_parent(BaseUrl, Root)),
@@ -99,6 +100,23 @@ test_push(BaseUrl, {RootUid, RootSid}) ->
                                       {"location", "testmeeting"},
                                       {"from", RootUid},
                                       {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]},
+                 tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params)).
+
+test_push_big(BaseUrl, {RootUid, RootSid}) ->
+    Text = string:copies("pushed_event", 5000),
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"type", "test_push_1"},
+              {"metadata[description]", Text}],
+    {struct, [{"result", Id}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+    ?assertMatch({struct, [{"result",
+                            {struct, [{"type", "test_push_1"},
+                                      {"domain", _},
+                                      {"datetime", _},
+                                      {"id", Id},
+                                      {"location", "testmeeting"},
+                                      {"from", RootUid},
+                                      {"metadata", {struct, [{"description", Text}]}}]}}]},
                  tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params)).
 
 test_push_internal_event(BaseUrl, {RootUid, RootSid}) ->
