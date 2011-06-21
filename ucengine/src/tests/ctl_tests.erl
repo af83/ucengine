@@ -90,13 +90,13 @@ ctl_infos_test_() ->
 %%
 
 test_meeting_add(Domain) ->
-    false = uce_meeting:exists(Domain, {"newmeeting", Domain}),
+    false = uce_meeting:exists(Domain, "newmeeting"),
     Params = [{"description", ""}],
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "add", "newmeeting"]}, Params),
     Expected = {ok, #uce_meeting{id={"newmeeting", Domain},
                                  start_date=0, end_date=0,
                                  metadata=[{"description", ""}]}},
-    ?assertEqual(Expected, uce_meeting:get(Domain, {"newmeeting", Domain})).
+    ?assertEqual(Expected, uce_meeting:get(Domain, "newmeeting")).
 
 test_meeting_get(Domain) ->
     ?assertMatch({ok, _}, uce_ctl:cmd({dummy, [Domain, "meeting", "get", "testmeeting"]}, [])).
@@ -109,7 +109,7 @@ test_meeting_update(Domain) ->
                      , start_date=Start
                      , end_date=End
                      , metadata=[{"description", _Description}]
-                     }} = uce_meeting:get(Domain, {"testmeeting", Domain}),
+                     }} = uce_meeting:get(Domain, "testmeeting"),
     StartDate = uce_ctl:timestamp_to_iso(Start),
     EndDate = uce_ctl:timestamp_to_iso(End),
     Params = [{"description", "A new description"}, {"start", StartDate}, {"end", EndDate}],
@@ -119,7 +119,7 @@ test_meeting_update(Domain) ->
                                 , end_date=uce_ctl:parse_date(EndDate)
                                 , metadata=[{"description", "A new description"}]
                                 }},
-    ?assertMatch(Expected, uce_meeting:get(Domain, {"testmeeting", Domain})).
+    ?assertMatch(Expected, uce_meeting:get(Domain, "testmeeting")).
 
 test_meeting_update_not_found(Domain) ->
     {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "meeting", "update",
@@ -130,9 +130,9 @@ test_meeting_delete(Domain) ->
                      , start_date=_Start
                      , end_date=_End
                      , metadata=[{"description", _Description}]
-                     }} = uce_meeting:get(Domain, {"testmeeting", Domain}),
+                     }} = uce_meeting:get(Domain, "testmeeting"),
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "delete", "testmeeting"]}, []),
-    false = uce_meeting:exists(Domain, {"testmeeting", Domain}).
+    false = uce_meeting:exists(Domain, "testmeeting").
 
 test_meeting_delete_not_found(Domain) ->
     {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "meeting", "delete", "meeting that doesn't exists"]}, [])).

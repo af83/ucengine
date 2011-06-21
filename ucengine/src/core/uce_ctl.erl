@@ -244,14 +244,14 @@ meeting(Domain, "update", Name, Args) ->
 %% Meeting delete
 %%
 meeting(Domain, "delete", Name, []) ->
-    {ok, deleted} = call(meeting, delete, [Domain, {Name, Domain}]),
+    {ok, deleted} = call(meeting, delete, [Domain, Name]),
     success(deleted);
 
 %%
 %% Meeting get
 %%
 meeting(Domain, "get", Name, []) ->
-    {ok, Record} = call(meeting, get, [Domain, {Name, Domain}]),
+    {ok, Record} = call(meeting, get, [Domain, Name]),
     {ok, meeting_helpers:pretty_print(Record, flat)};
 
 %%

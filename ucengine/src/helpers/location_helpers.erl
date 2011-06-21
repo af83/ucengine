@@ -28,5 +28,5 @@ exists(Domain, Location) ->
         "" -> % root
             true;
         Meeting->
-            uce_meeting:exists(Domain, {Meeting, Domain})
+            uce_meeting:exists(Domain, Meeting)
     end.

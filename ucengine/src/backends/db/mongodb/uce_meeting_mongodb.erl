@@ -40,20 +40,20 @@ add(Domain, #uce_meeting{id={_Name, Domain}} = Meeting) ->
     {ok, created}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Name::list, Domain::list}) -> {ok, deleted}
+%% @spec (Domain::list, Name::list) -> {ok, deleted}
 %% @doc Delete record
 %% @end
 %%--------------------------------------------------------------------
-delete(Domain, {Name, Domain}) ->
+delete(Domain, Name) ->
     mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_meeting", [{"name", Name}, {"domain", Domain}])),
     {ok, deleted}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Name::list, Domain::list}) -> {ok, #uce_meeting{}} | {error, not_found}
+%% @spec (Domain::list, Name::list) -> {ok, #uce_meeting{}} | {error, not_found}
 %% @doc Get record uce_meeting which correspond to the given name and domain
 %% @end
 %%--------------------------------------------------------------------
-get(Domain, {Name, Domain}) ->
+get(Domain, Name) ->
     case emongo:find_one(Domain, "uce_meeting",
                          [{"name", Name}, {"domain", Domain}]) of
         [Record] ->

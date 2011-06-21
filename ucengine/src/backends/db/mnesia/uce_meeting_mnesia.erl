@@ -48,9 +48,9 @@ add(_Domain, #uce_meeting{} = Meeting) ->
             {ok, created}
     end.
 
-delete(_Domain, Id) ->
+delete(Domain, Id) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:delete({uce_meeting, Id})
+                                    mnesia:delete({uce_meeting, {Id, Domain}})
                             end) of
         {aborted, _} ->
             throw({error, bad_parameters});
@@ -58,8 +58,8 @@ delete(_Domain, Id) ->
             {ok, deleted}
     end.
 
-get(_Domain, Id) ->
-    case mnesia:dirty_read(uce_meeting, Id) of
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_meeting, {Id, Domain}) of
         [Record] ->
             {ok, Record};
         [] ->

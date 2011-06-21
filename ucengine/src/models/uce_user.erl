@@ -85,7 +85,7 @@ exists(Domain, Id) ->
 
 add_role(Domain, Id, {Role, Location}) ->
     % Just ensure the role and location exists
-    case uce_meeting:exists(Domain, {Location, Domain}) of
+    case uce_meeting:exists(Domain, Location) of
         true ->
             case uce_role:exists(Domain, {Role, Domain}) of
                 true ->

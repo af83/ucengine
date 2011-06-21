@@ -27,7 +27,7 @@ add(Domain, #uce_event{id={none, Domain}}=Event) ->
     add(Domain, Event#uce_event{id={utils:random(), Domain}});
 add(Domain, #uce_event{datetime=undefined}=Event) ->
     add(Domain, Event#uce_event{datetime=utils:now()});
-add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Event) ->
+add(Domain, #uce_event{location={Location, Domain}, from=From, to=To, parent=Parent} = Event) ->
     LocationExists = uce_meeting:exists(Domain, Location),
     FromExists = uce_user:exists(Domain, From),
     ToExists = uce_user:exists(Domain, To),

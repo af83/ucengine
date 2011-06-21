@@ -41,11 +41,12 @@ clean(Domain, #uce_presence{
                           uce_event:add(Domain, #uce_event{id={none, Domain},
                                                            from=User,
                                                            type="internal.roster.delete",
-                                                           location=Meeting}),
+                                                           location={Meeting, Domain}}),
                           uce_meeting:leave(Domain, Meeting, User)
                   end,
                   Meetings),
     uce_event:add(Domain, #uce_event{id={none, Domain},
                                      from=User,
-                                     type="internal.presence.delete"}),
+                                     type="internal.presence.delete",
+                                     location={"", Domain}}),
     ok.
