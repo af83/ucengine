@@ -118,7 +118,7 @@ join(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "add"),
     {ok, updated} = uce_meeting:join(Domain, {Name, Domain}, {Uid, Domain}),
-    uce_presence:join(Domain, {Sid, Domain}, {Name, Domain}),
+    uce_presence:join(Domain, Sid, {Name, Domain}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id={none, Domain},
                                        type="internal.roster.add",

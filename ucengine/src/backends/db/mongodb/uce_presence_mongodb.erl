@@ -83,12 +83,12 @@ get(Domain, SId) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, deleted}
+%% @spec (Domain::list, Sid::list) -> {ok, deleted}
 %% @doc Delete record
 %% @end
 %%--------------------------------------------------------------------
-delete(Domain, {SId, SDomain}) ->
-    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}])),
+delete(Domain, Sid) ->
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_presence", [{"id", Sid}, {"domain", Domain}])),
     {ok, deleted}.
 
 %%--------------------------------------------------------------------

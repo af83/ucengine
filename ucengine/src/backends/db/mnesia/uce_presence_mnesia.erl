@@ -90,9 +90,9 @@ get(Domain, Id) ->
             throw({error, bad_parameters})
     end.
 
-delete(_Domain, Id) ->
+delete(Domain, Id) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:delete({uce_presence, Id})
+                                    mnesia:delete({uce_presence, {Id, Domain}})
                             end) of
         {atomic, _} ->
             {ok, deleted};
