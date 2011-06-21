@@ -70,12 +70,12 @@ all(Domain) ->
     {ok, Records}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, #uce_presence{}} | {error, bad_parameters} | {error, not_found}
+%% @spec (Domain::list, Sid::list) -> {ok, #uce_presence{}} | {error, bad_parameters} | {error, not_found}
 %% @doc Get record uce_presence which correspond to the given id and domain
 %% @end
 %%--------------------------------------------------------------------
-get(Domain, {SId, SDomain}) ->
-    case emongo:find_one(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
+get(Domain, SId) ->
+    case emongo:find_one(Domain, "uce_presence", [{"id", SId}, {"domain", Domain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->

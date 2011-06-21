@@ -131,7 +131,7 @@ leave(Domain, [Name, User], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "delete"),
     {ok, updated} = uce_meeting:leave(Domain, {Name, Domain}, {User, Domain}),
-    uce_presence:leave(Domain, {Sid, Domain}, {Name, Domain}),
+    uce_presence:leave(Domain, Sid, {Name, Domain}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id={none, Domain},
                                        type="internal.roster.delete",

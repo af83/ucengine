@@ -63,7 +63,7 @@ update(Domain, #uce_presence{}=Presence) ->
             (db:get(?MODULE, Domain)):update(Domain, Presence)
     end.
 
-exists(Domain, Id) ->
+exists(Domain, {Id, Domain}) ->
     case catch get(Domain, Id) of
         {error, not_found} ->
             false;
@@ -81,7 +81,7 @@ assert(Domain, Uid, Sid) ->
             throw({error, unauthorized})
     end.
 
-check(Domain, User, {_, _} = Sid) when is_list(User) ->
+check(Domain, User, {Sid, Domain}) when is_list(User) ->
     {ok, RecordUser} = uce_user:get(Domain, User),
     UserId = RecordUser#uce_user.id,
     {ok, Record} = uce_presence:get(Domain, Sid),
@@ -92,7 +92,7 @@ check(Domain, User, {_, _} = Sid) when is_list(User) ->
         _OtherUserId ->
             {ok, false}
     end;
-check(Domain, User, {_, _} = Sid) ->
+check(Domain, User, {Sid, Domain}) ->
     {ok, Record} = uce_presence:get(Domain, Sid),
     case Record#uce_presence.user of
         User ->
@@ -102,7 +102,7 @@ check(Domain, User, {_, _} = Sid) ->
             {ok, false}
     end.
 
-join(Domain, {_, _}=Sid, Meeting) ->
+join(Domain, {Sid, Domain}, Meeting) ->
     {ok, Record} = (db:get(?MODULE, Domain)):get(Domain, Sid),
     case lists:member(Meeting, Record#uce_presence.meetings) of
         true ->
@@ -114,14 +114,5 @@ join(Domain, {_, _}=Sid, Meeting) ->
 
 leave(Domain, Sid, Meeting) ->
     {ok, Record} = (db:get(?MODULE, Domain)):get(Domain, Sid),
-    Meetings = del_entry(Record#uce_presence.meetings, Meeting),
+    Meetings = lists:delete(Meeting, Record#uce_presence.meetings),
     (db:get(?MODULE, Domain)):update(Domain, Record#uce_presence{meetings=Meetings}).
-
-del_entry([Entry], Entry) ->
-    [];
-del_entry([Entry | Tl], Entry) ->
-    Tl;
-del_entry([Hd | Tl], Entry) ->
-    [Hd] ++ del_entry(Tl, Entry);
-del_entry([], _Entry) ->
-    [].

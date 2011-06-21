@@ -80,8 +80,8 @@ all(Domain) ->
             throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
-    case mnesia:dirty_read(uce_presence, Id) of
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_presence, {Id, Domain}) of
         [Record] ->
             {ok, Record};
         [] ->

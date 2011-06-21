@@ -59,12 +59,12 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
     json_helpers:json(Domain, 201, {struct, [{uid, Id}, {sid, Sid}]}).
 
 get(Domain, [Id], [], _) ->
-    {ok, Record} = uce_presence:get(Domain, {Id, Domain}),
+    {ok, Record} = uce_presence:get(Domain, Id),
     json_helpers:json(Domain, presence_helpers:to_json(Record)).
 
 delete(Domain, [Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, Record} = uce_presence:get(Domain, {Id, Domain}),
+    {ok, Record} = uce_presence:get(Domain, Id),
     {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "delete",
                                    [{"id", Record#uce_presence.id}]),
 
