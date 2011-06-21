@@ -74,28 +74,17 @@ exists(Domain, Id) ->
     end.
 
 assert(Domain, Uid, Sid) ->
-    case check(Domain, {Uid, Domain}, Sid) of
+    case check(Domain, Uid, Sid) of
         {ok, true} ->
             {ok, true};
         {ok, false} ->
             throw({error, unauthorized})
     end.
 
-check(Domain, User, Sid) when is_list(User) ->
-    {ok, RecordUser} = uce_user:get(Domain, User),
-    UserId = RecordUser#uce_user.id,
+check(Domain, Uid, Sid) ->
     {ok, Record} = uce_presence:get(Domain, Sid),
     case Record#uce_presence.user of
-        UserId ->
-            uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
-            {ok, true};
-        _OtherUserId ->
-            {ok, false}
-    end;
-check(Domain, User, Sid) ->
-    {ok, Record} = uce_presence:get(Domain, Sid),
-    case Record#uce_presence.user of
-        User ->
+        {Uid, Domain} ->
             uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
             {ok, true};
         _OtherUser ->
