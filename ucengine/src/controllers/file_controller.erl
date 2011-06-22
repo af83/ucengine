@@ -56,8 +56,7 @@ init() ->
 add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "add"),
-    {ok, {Id, Domain}} = uce_file:add(Domain, #uce_file{id={none, Domain},
-                                              location={Meeting, Domain},
+    {ok, Id} = uce_file:add(Domain, #uce_file{location=Meeting,
                                               name=FileUploaded#file_upload.filename,
                                               uri=FileUploaded#file_upload.uri,
                                               datetime=utils:now(),
@@ -65,8 +64,7 @@ add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) 
 
     {ok, File} = uce_file:get(Domain, Id),
     {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
-    {FileId, Domain} = File#uce_file.id,
-    EventMetadata = utils:proplist_merge([{"id", FileId},
+    EventMetadata = utils:proplist_merge([{"id", Id},
                                           {"domain", Domain},
                                           {"name", File#uce_file.name},
                                           {"size", integer_to_list(FileInfo#file_info.size)},
@@ -83,16 +81,16 @@ add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) 
     %% correct programm to show it. This is very annoying.
     case ForceContentType of
         "application/json" ->
-            json_helpers:created(Domain, FileId);
+            json_helpers:created(Domain, Id);
         ContentType ->
-            json_helpers:format_response(201, ContentType, cors_helpers:format_cors_headers(Domain), {struct, [{result, FileId}]})
+            json_helpers:format_response(201, ContentType, cors_helpers:format_cors_headers(Domain), {struct, [{result, Id}]})
     end.
 
 list(Domain, [Meeting], [Uid, Sid, Order], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "list"),
     {ok, Files} = uce_file:list(Domain, Meeting, Order),
-    json_helpers:json(Domain, {array, [file_helpers:to_json(File) || File <- Files]}).
+    json_helpers:json(Domain, {array, [file_helpers:to_json(Domain, File) || File <- Files]}).
 
 %%
 %% @doc Get real path from encoded uri of record uce_file
@@ -111,8 +109,7 @@ get(Domain, [Meeting, Id], [Uid, Sid], _) ->
         {error, Reason} ->
             throw({error, Reason});
         {ok, Content} ->
-            {FileId, _} = File#uce_file.id,
-            file_helpers:download(Domain, FileId, Content)
+            file_helpers:download(Domain, File#uce_file.id, Content)
     end.
 
 delete(Domain, [Meeting, Id], [Uid, Sid], _) ->

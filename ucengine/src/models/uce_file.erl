@@ -23,7 +23,7 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_file{location={Location, Domain}, name=Name} = File) ->
+add(Domain, #uce_file{location=Location, name=Name} = File) ->
     case location_helpers:exists(Domain, Location) of
         false ->
             throw({error, not_found});
@@ -40,7 +40,7 @@ add(Domain, #uce_file{location={Location, Domain}, name=Name} = File) ->
                         {Base64Name ++ "_" ++ Rnd ++ Extension,
                          yaws_api:mime_type(Name)}
                 end,
-            (db:get(?MODULE, Domain)):add(Domain, File#uce_file{id={Id, Domain}, mime=Mime})
+            (db:get(?MODULE, Domain)):add(Domain, File#uce_file{id=Id, mime=Mime})
     end.
 
 list(Domain, Id, Order) ->

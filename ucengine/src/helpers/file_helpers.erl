@@ -21,20 +21,15 @@
 
 -include("uce.hrl").
 
--export([to_json/1,
+-export([to_json/2,
          download/3]).
 
-to_json(#uce_file{id={Id, Domain},
-                  name=Name,
-                  location=Location,
-                  uri=Uri,
-                  metadata=Metadata}) ->
-    JSONLocation = case Location of
-                       {Meeting, _} ->
-                           [{location, Meeting}];
-                       [] ->
-                           []
-                   end,
+to_json(Domain, #uce_file{id=Id,
+                          name=Name,
+                          location=Location,
+                          uri=Uri,
+                          metadata=Metadata}) ->
+    JSONLocation = [{location, Location}],
     {struct, [{id, Id},
               {domain, Domain},
               {name, Name},

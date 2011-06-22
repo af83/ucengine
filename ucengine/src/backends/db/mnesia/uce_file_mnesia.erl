@@ -38,15 +38,15 @@ init() ->
         {aborted, {already_exists, uce_file}} -> ok
     end.
 
-add(_Domain, #uce_file{} = File) ->
-    case mnesia:dirty_write(File) of
+add(Domain, #uce_file{id=Id} = File) ->
+    case mnesia:dirty_write(File#uce_file{id={Id, Domain}}) of
         ok ->
-            {ok, File#uce_file.id};
+            {ok, Id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-list(Domain, Id, Order) ->
+list(Domain, Meeting, Order) ->
     FunOrder = case Order of
                    asc ->
                        fun(A, B) ->
@@ -58,12 +58,12 @@ list(Domain, Id, Order) ->
                        end
                end,
     Transaction = fun() ->
-                          Query = qlc:q([File || File <- mnesia:table(uce_file), File#uce_file.location == {Id, Domain}]),
+                          Query = qlc:q([File || File <- mnesia:table(uce_file), File#uce_file.location == Meeting, element(2, File#uce_file.id) == Domain]),
                           qlc:eval(qlc:sort(Query, [{order, FunOrder}]))
           end,
     case mnesia:transaction(Transaction) of
         {atomic, Files} ->
-            {ok, Files};
+            {ok, remove_domain_from_id(Files)};
         {aborded, Error} ->
                 ?ERROR_MSG("ERROR ~p~n", [Error]),
                 throw({error, Error})
@@ -78,7 +78,7 @@ all(Domain) ->
                                                  mime='_',
                                                  metadata='_'}) of
             Files when is_list(Files) ->
-                {ok, Files};
+                {ok, remove_domain_from_id(Files)};
             {aborted, _} ->
                 throw({error, bad_parameters})
     end.
@@ -105,3 +105,8 @@ delete(Domain, Id) ->
 
 drop() ->
     mnesia:clear_table(uce_file).
+
+remove_domain_from_id(Files) ->
+    lists:map(fun(#uce_file{id={Id, _Domain}} = File) ->
+                      File#uce_file{id=Id}
+              end, Files).

@@ -36,7 +36,7 @@
 %% @end
 %%--------------------------------------------------------------------
 add(Domain, #uce_file{} = File) ->
-    emongo:insert_sync(Domain, "uce_file", to_collection(File)),
+    emongo:insert_sync(Domain, "uce_file", to_collection(Domain, File)),
     {ok, File#uce_file.id}.
 
 %%--------------------------------------------------------------------
@@ -89,10 +89,10 @@ delete(Domain, FileId) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["id", "domain", "location", "name", "datetime", "mime", "uri", "metadata"]) of
-        [Id, Domain, Location, Name, Datetime, Mime, Uri, Metadata] ->
-            #uce_file{id={Id, Domain},
+        [Id, _Domain, Location, Name, Datetime, Mime, Uri, Metadata] ->
+            #uce_file{id=Id,
                       name=Name,
-                      location={Location, Domain},
+                      location=Location,
                       uri=Uri,
                       datetime=Datetime,
                       mime=Mime,
@@ -106,13 +106,13 @@ from_collection(Collection) ->
 %% @doc Convert #uce_file{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
-to_collection(#uce_file{id={Id, Domain},
-                        name=Name,
-                        location={Location, _},
-                        uri=Uri,
-                        datetime=Datetime,
-                        mime=Mime,
-                        metadata=Metadata}) ->
+to_collection(Domain, #uce_file{id=Id,
+                                name=Name,
+                                location=Location,
+                                uri=Uri,
+                                datetime=Datetime,
+                                mime=Mime,
+                                metadata=Metadata}) ->
     [{"id", Id},
      {"domain", Domain},
      {"location", Location},
