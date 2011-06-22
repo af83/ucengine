@@ -24,27 +24,27 @@
 
 
 setup_events(Domain) ->
-    {ok, Participant} = uce_user:get(Domain, "participant.user@af83.com"),
-    {ok, User2} = uce_user:get(Domain, "user_2"),
-    {ok, User3} = uce_user:get(Domain, "user_3"),
+    {ok, Participant} = uce_user:get_by_name(Domain, "participant.user@af83.com"),
+    {ok, User2} = uce_user:get_by_name(Domain, "user_2"),
+    {ok, User3} = uce_user:get_by_name(Domain, "user_3"),
 
     uce_event:add(Domain,
                   #uce_event{ id={none, Domain},
                               type="test_event_1",
                               location={"testmeeting", Domain},
-                              from=Participant#uce_user.id}),
+                              from={Participant#uce_user.id, Domain}}),
     timer:sleep(10),
     uce_event:add(Domain,
                   #uce_event{ id={none, Domain},
                               type="test_event_2",
                               location={"testmeeting", Domain},
-                              from=User2#uce_user.id}),
+                              from={User2#uce_user.id, Domain}}),
     timer:sleep(10),
     uce_event:add(Domain,
                   #uce_event{ id={none, Domain},
                               type="test_event_3",
                               location={"testmeeting", Domain},
-                              from=User3#uce_user.id,
+                              from={User3#uce_user.id, Domain},
                               metadata=[{"description", "test"}]}),
     ok.
 

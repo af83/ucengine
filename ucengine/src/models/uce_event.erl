@@ -33,14 +33,14 @@ add(Domain, #uce_event{location={Location, Domain}, from=From, to=To, parent=Par
     ToExists = uce_user:exists(Domain, To),
     ParentExists = uce_event:exists(Domain, {Parent, Domain}),
 
-    if
-        LocationExists, FromExists, ToExists, ParentExists ->
+    case {LocationExists, FromExists, ToExists, ParentExists} of
+        {true, true, true, true} ->
             {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
             ?PUBSUB_MODULE:publish(Event),
             ?SEARCH_MODULE:add(Event),
             ?COUNTER("event_add:" ++ Event#uce_event.type),
             {ok, Id};
-        true ->
+        _ ->% [TODO] throw the missing exist
             throw({error, not_found})
     end.
 

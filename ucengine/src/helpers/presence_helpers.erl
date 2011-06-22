@@ -24,7 +24,7 @@
 -export([clean/2, to_json/2]).
 
 to_json(Domain, #uce_presence{id=Id,
-                              user={User, _},
+                              user=User,
                               auth=Auth,
                               metadata=Metadata}) ->
     {struct,
@@ -39,14 +39,14 @@ clean(Domain, #uce_presence{
                     meetings=Meetings}) ->
     lists:foreach(fun(Meeting) ->
                           uce_event:add(Domain, #uce_event{id={none, Domain},
-                                                           from=User,
+                                                           from={User, Domain},
                                                            type="internal.roster.delete",
                                                            location={Meeting, Domain}}),
                           uce_meeting:leave(Domain, Meeting, User)
                   end,
                   Meetings),
     uce_event:add(Domain, #uce_event{id={none, Domain},
-                                     from=User,
+                                     from={User, Domain},
                                      type="internal.presence.delete",
                                      location={"", Domain}}),
     ok.

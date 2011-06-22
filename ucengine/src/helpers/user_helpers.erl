@@ -21,12 +21,12 @@
 
 -include("uce.hrl").
 
--export([to_json/1, pretty_print/2]).
+-export([to_json/2, pretty_print/2]).
 
-to_json(#uce_user{id={Id, Domain},
-                  name=Name,
-                  auth=Auth,
-                  metadata=Metadata}) ->
+to_json(Domain, #uce_user{id=Id,
+                          name=Name,
+                          auth=Auth,
+                          metadata=Metadata}) ->
     {struct, [{uid, Id},
               {name, Name},
               {domain, Domain},
@@ -36,7 +36,7 @@ to_json(#uce_user{id={Id, Domain},
 pretty_print(Users, Format)
   when is_list(Users) ->
     lists:flatten([pretty_print(User, Format) ++ "--~n" || User <- Users]);
-pretty_print(#uce_user{id={Uid, _Domain},
+pretty_print(#uce_user{id=Uid,
                        name=Name,
                        auth=Auth,
                        metadata=Metadata,

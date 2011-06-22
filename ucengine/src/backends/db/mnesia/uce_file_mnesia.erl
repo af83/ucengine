@@ -85,8 +85,8 @@ all(Domain) ->
 
 get(Domain, Id) ->
     case mnesia:dirty_read(uce_file, {Id, Domain}) of
-        [#uce_file{id={Id, Domain}} = File] ->
-            {ok, File#uce_file{id=Id}};
+        [File] ->
+            {ok, remove_domain_from_id(File)};
         [] ->
             throw({error, not_found});
         {aborted, _} ->
@@ -107,6 +107,4 @@ drop() ->
     mnesia:clear_table(uce_file).
 
 remove_domain_from_id(Files) ->
-    lists:map(fun(#uce_file{id={Id, _Domain}} = File) ->
-                      File#uce_file{id=Id}
-              end, Files).
+    ?REMOVE_ID_FROM_RECORD(Files, uce_file).

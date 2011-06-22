@@ -25,7 +25,8 @@
          delete/2,
          update/2,
          list/1,
-         get/2]).
+         get/2,
+         get_by_name/2]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -36,15 +37,15 @@
 %% @end
 %%--------------------------------------------------------------------
 add(Domain, #uce_user{} = User) ->
-    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_user", to_collection(User))),
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_user", to_collection(Domain, User))),
     {ok, created}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, deleted}
+%% @spec (Domain::list, Id::list) -> {ok, deleted}
 %% @doc Delete uce_user record which corresponds to given id and domain
 %% @end
 %%--------------------------------------------------------------------
-delete(Domain, {Id, Domain}) ->
+delete(Domain, Id) ->
     mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_user", [{"id", Id},
                                                                {"domain", Domain}])),
     {ok, deleted}.
@@ -54,10 +55,10 @@ delete(Domain, {Id, Domain}) ->
 %% @doc Update given record #uce_user{} in uce_user mongodb table
 %% @end
 %%--------------------------------------------------------------------
-update(Domain, #uce_user{id={Id, UDomain}} = User) ->
+update(Domain, #uce_user{id=Id} = User) ->
     mongodb_helpers:updated(emongo:update_sync(Domain, "uce_user", [{"id", Id},
-                                                                    {"domain", UDomain}],
-                                               to_collection(User), false)),
+                                                                    {"domain", Domain}],
+                                               to_collection(Domain, User), false)),
     {ok, updated}.
 
 %%--------------------------------------------------------------------
@@ -74,21 +75,22 @@ list(Domain) ->
     {ok, Users}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, #uce_user{}} | {error, not_found} | {error, bad_parameters}
+%% @spec (Domain::list, Id::list) -> {ok, #uce_user{}} | {error, not_found} | {error, bad_parameters}
 %% @doc Get uce_user record for given name or id and domain
 %% @end
 %%--------------------------------------------------------------------
-get(Domain, Name) when is_list(Name) ->
+get_by_name(Domain, Name) ->
     case emongo:find_one(Domain, "uce_user", [{"name", Name},
                                               {"domain", Domain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->
             throw({error, not_found})
-    end;
-get(Domain, {UId, UDomain}) ->
+    end.
+
+get(Domain, UId) ->
     case emongo:find_one(Domain, "uce_user", [{"id", UId},
-                                              {"domain", UDomain}]) of
+                                              {"domain", Domain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->
@@ -103,8 +105,8 @@ get(Domain, {UId, UDomain}) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["id", "name", "domain", "auth", "credential", "metadata", "roles"]) of
-        [Id, Name, Domain, Auth, Credential, Metadata, Roles] ->
-            #uce_user{id={Id, Domain},
+        [Id, Name, _Domain, Auth, Credential, Metadata, Roles] ->
+            #uce_user{id=Id,
                       name=Name,
                       auth=Auth,
                       credential=Credential,
@@ -119,12 +121,12 @@ from_collection(Collection) ->
 %% @doc Convert #uce_user{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
-to_collection(#uce_user{id={Id, Domain},
-                        name=Name,
-                        auth=Auth,
-                        credential=Credential,
-                        metadata=Metadata,
-                        roles=Roles}) ->
+to_collection(Domain, #uce_user{id=Id,
+                                name=Name,
+                                auth=Auth,
+                                credential=Credential,
+                                metadata=Metadata,
+                                roles=Roles}) ->
     [{"id", Id},
      {"name", Name},
      {"domain", Domain},

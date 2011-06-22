@@ -82,10 +82,10 @@ assert(Domain, Uid, Sid) ->
     end.
 
 check(Domain, Uid, Sid) ->
-    {ok, Record} = uce_presence:get(Domain, Sid),
-    case Record#uce_presence.user of
-        {Uid, Domain} ->
-            uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
+    {ok, Presence} = uce_presence:get(Domain, Sid),
+    case Presence#uce_presence.user of
+        Uid ->
+            uce_presence:update(Domain, Presence#uce_presence{last_activity=utils:now()}),
             {ok, true};
         _OtherUser ->
             {ok, false}

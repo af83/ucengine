@@ -96,9 +96,9 @@ update(Domain, #uce_presence{id=Id}=Presence) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["id", "domain", "user", "auth", "last_activity", "timeout", "meetings", "metadata"]) of
-        [Id, Domain, User, Auth, LastActivity, Timeout, Meetings, Metadata] ->
+        [Id, _Domain, User, Auth, LastActivity, Timeout, Meetings, Metadata] ->
             #uce_presence{id=Id,
-                          user={User, Domain},
+                          user=User,
                           auth=Auth,
                           last_activity=list_to_integer(LastActivity),
                           timeout=list_to_integer(Timeout),
@@ -114,7 +114,7 @@ from_collection(Collection) ->
 %% @end
 %%--------------------------------------------------------------------
 to_collection(Domain, #uce_presence{id=Id,
-                                    user={User, _},
+                                    user=User,
                                     auth=Auth,
                                     last_activity=LastActivity,
                                     timeout=Timeout,

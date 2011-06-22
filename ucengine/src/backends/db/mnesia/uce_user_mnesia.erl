@@ -25,7 +25,8 @@
          delete/2,
          update/2,
          list/1,
-         get/2]).
+         get/2,
+         get_by_name/2]).
 
 -include("uce.hrl").
 
@@ -38,17 +39,17 @@ init() ->
         {aborted, {already_exists, uce_user}} -> ok
     end.
 
-add(_Domain, #uce_user{} = User) ->
-    case mnesia:dirty_write(User) of
+add(Domain, #uce_user{id=Id} = User) ->
+    case mnesia:dirty_write(User#uce_user{id={Id, Domain}}) of
         ok ->
             {ok, created};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-delete(_Domain, Id) ->
+delete(Domain, Id) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:delete({uce_user, Id})
+                                    mnesia:delete({uce_user, {Id, Domain}})
                             end) of
         {atomic, ok} ->
             {ok, deleted};
@@ -56,9 +57,9 @@ delete(_Domain, Id) ->
             throw({error, bad_parameters})
     end.
 
-update(_Domain, #uce_user{} = User) ->
+update(Domain, #uce_user{id=Id} = User) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:write(User)
+                                    mnesia:write(User#uce_user{id={Id, Domain}})
                             end) of
         {atomic, _} ->
             {ok, updated};
@@ -73,30 +74,31 @@ list(Domain) ->
                                              credential='_',
                                              metadata='_',
                                              roles='_'}) of
-        Records when is_list(Records) ->
-            {ok, Records};
+        Users when is_list(Users) ->
+            {ok, remove_domain_from_id(Users)};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-get(Domain, Name) when is_list(Name) ->
+get_by_name(Domain, Name) ->
     case mnesia:dirty_match_object(#uce_user{id={'_', Domain},
-					     name=Name,
-					     auth='_',
-					     credential='_',
-					     metadata='_',
-					     roles='_'}) of
+                                             name=Name,
+                                             auth='_',
+                                             credential='_',
+                                             metadata='_',
+                                             roles='_'}) of
+        [User] ->
+            {ok, remove_domain_from_id(User)};
         [] ->
-	    throw({error, not_found});
-        [Record] ->
-	    {ok, Record};
+            throw({error, not_found});
         {aborted, _} ->
-	    throw({error, bad_parameters})
-    end;
-get(_Domain, {_, _} = Id) ->
-    case mnesia:dirty_read(uce_user, Id) of
-        [Record] ->
-            {ok, Record};
+            throw({error, bad_parameters})
+    end.
+
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_user, {Id, Domain}) of
+        [User] ->
+            {ok, remove_domain_from_id(User)};
         [] ->
             throw({error, not_found});
         {aborted, _} ->
@@ -105,3 +107,6 @@ get(_Domain, {_, _} = Id) ->
 
 drop() ->
     mnesia:clear_table(uce_user).
+
+remove_domain_from_id(Users) ->
+    ?REMOVE_ID_FROM_RECORD(Users, uce_user).

@@ -19,16 +19,14 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/2, delete/2, update/2, list/1, get/2, exists/2, acl/3, add_role/3, delete_role/3]).
+-export([add/2, delete/2, update/2, list/1, get/2, get_by_name/2, exists/2, acl/3, add_role/3, delete_role/3]).
 
 -include("uce.hrl").
 
-add(Domain, #uce_user{id={none, none}} = User) ->
-    add(Domain, User#uce_user{id={utils:random(), Domain}});
-add(Domain, #uce_user{id={none, Domain}} = User) ->
-    add(Domain, User#uce_user{id={utils:random(), Domain}});
-add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
-    case exists(Domain, Name) of
+add(Domain, #uce_user{id=none} = User) ->
+    add(Domain, User#uce_user{id=utils:random()});
+add(Domain, #uce_user{id=UId, name=Name} = User) ->
+    case exists_by_name(Domain, Name) of
         true ->
             throw({error,conflict});
         false ->
@@ -36,29 +34,25 @@ add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
             DefaultRoles = [{"default", ""}, {UId, ""}],
             (db:get(?MODULE, Domain)):add(Domain,
                                           User#uce_user{roles=User#uce_user.roles ++ DefaultRoles}),
-            {ok, UId} end.
+            {ok, UId}
+    end.
 
-delete(Domain, Id) when is_list(Id) ->
-    case catch get(Domain, Id) of
-        {error, _} -> throw({error, not_found});
-        {ok, User} -> (db:get(?MODULE, Domain)):delete(Domain, User#uce_user.id)
-    end;
-delete(Domain, {Uid, _} = Id) ->
-    case exists(Domain, Id) of
+delete(Domain, Uid) ->
+    case exists(Domain, Uid) of
         true ->
             % delete the default role
             case catch uce_role:delete(Domain, Uid) of
                 {error, Reason} when Reason /= not_found ->
                     throw({error, Reason});
                 {ok, deleted}->
-                    (db:get(?MODULE, Domain)):delete(Domain, Id)
+                    (db:get(?MODULE, Domain)):delete(Domain, Uid)
             end;
         false ->
             throw({error, not_found})
     end.
 
-update(Domain, #uce_user{name=Name} = User) ->
-    case exists(Domain, Name) of
+update(Domain, #uce_user{id=Uid} = User) ->
+    case exists(Domain, Uid) of
         true ->
             (db:get(?MODULE, Domain)):update(Domain, User);
         false ->
@@ -71,8 +65,18 @@ list(Domain) ->
 get(Domain, User) ->
     (db:get(?MODULE, Domain)):get(Domain, User).
 
-exists(_Domain, {"", _} = _Id) ->
+get_by_name(Domain, Name) ->
+    (db:get(?MODULE, Domain)):get_by_name(Domain, Name).
+
+exists(_Domain, "") ->
     true;
+%%
+%% TODO: remove this after refacto
+%%
+exists(_Domain, {"", ""}) ->
+    true;
+exists(Domain, {Id, Domain}) ->
+    exists(Domain, Id);
 exists(Domain, Id) ->
     case catch get(Domain, Id) of
         {error, not_found} ->
@@ -83,13 +87,23 @@ exists(Domain, Id) ->
             true
     end.
 
-add_role(Domain, Id, {Role, Location}) ->
+exists_by_name(Domain, Name) ->
+    case catch get_by_name(Domain, Name) of
+        {error, not_found} ->
+            false;
+        {error, Reason} ->
+            throw({error, Reason});
+        {ok, _User}->
+            true
+    end.
+
+add_role(Domain, Uid, {Role, Location}) ->
     % Just ensure the role and location exists
     case uce_meeting:exists(Domain, Location) of
         true ->
             case uce_role:exists(Domain, Role) of
                 true ->
-                    {ok, User} = get(Domain, Id),
+                    {ok, User} = get(Domain, Uid),
                     case lists:member({Role, Location}, User#uce_user.roles) of
                         true ->
                             {ok, updated};
@@ -114,7 +128,7 @@ delete_role(Domain, Id, {Role, Location}) ->
     update(Domain, User#uce_user{roles=Roles}).
 
 acl(Domain, User, Location) ->
-    {ok, Record} = get(Domain, {User, Domain}),
+    {ok, Record} = get(Domain, User),
     ACL = lists:map(fun({RoleName, RoleLocation}) ->
                             {ok, RoleACL} =
                                 if

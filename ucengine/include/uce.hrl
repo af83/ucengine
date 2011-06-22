@@ -49,8 +49,8 @@
           id = none,
           % name
           name,
-          % {Meeting, Domain}
-          location = {"", ""},
+          % Meeting
+          location = "",
           % path
           uri = [],
           %% date (ms from epoch)
@@ -62,8 +62,8 @@
          }).
 
 -record(uce_user, {
-          %% User (uid, domain)
-          id = {none, none},
+          %% User uid
+          id = none,
           %% name
           name,
           auth,
@@ -170,3 +170,14 @@
                  list_to_atom(atom_to_list(?MODULE) ++ "_"
                               ++ atom_to_list(config:get(search)) ++ "_search")
          end())).
+
+-define(REMOVE_ID_FROM_RECORD(Params, Record),
+        case Params of
+            Params when is_list(Params) ->
+                lists:map(fun(#Record{id={Id, _Domain}} = Param) ->
+                                  Param#Record{id=Id}
+                          end, Params);
+            Params when is_record(Params, Record) ->
+                {Id, _Domain} = Params#Record.id,
+                Params#Record{id=Id}
+        end).

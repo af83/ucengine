@@ -25,12 +25,12 @@ setup() ->
     Hosts = config:get(hosts),
     {Domain, _Config} = hd(Hosts),
     Port = config:get(port),
+    (list_to_atom(lists:concat([config:get(Domain, db), "_db"]))):drop(),
     setup_meetings(Domain),
     UsersUid = setup_users(Domain),
     [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/", setup_testers(Domain, UsersUid)].
 
 teardown([Domain, _, _Testers]) ->
-    (list_to_atom(lists:concat([config:get(Domain, db), "_db"]))):drop(),
     teardown_solr(Domain),
     ok.
 
@@ -118,9 +118,8 @@ setup_users(Domain) ->
     end,
 
     ParticipantUid = "participant.user@af83.com",
-    ParticipantId = {ParticipantUid, Domain},
 
-    case catch uce_user:add(Domain, #uce_user{id=ParticipantId,
+    case catch uce_user:add(Domain, #uce_user{id=ParticipantUid,
                                               name=ParticipantUid,
                                               auth="password",
                                               credential="pwd"}) of
@@ -129,25 +128,25 @@ setup_users(Domain) ->
         {error, Reason10} -> throw({error, Reason10})
     end,
 
-    case catch uce_user:add_role(Domain, ParticipantId, {"participant", ""}) of
+    case catch uce_user:add_role(Domain, ParticipantUid, {"participant", ""}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason11} -> throw({error, Reason11})
     end,
 
-    case catch uce_user:add_role(Domain, ParticipantId, {"testrole_location", "testmeeting"}) of
+    case catch uce_user:add_role(Domain, ParticipantUid, {"testrole_location", "testmeeting"}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason12} -> throw({error, Reason12})
     end,
 
-    case catch uce_user:add_role(Domain, ParticipantId, {"testrole_without_location", ""}) of
+    case catch uce_user:add_role(Domain, ParticipantUid, {"testrole_without_location", ""}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason13} -> throw({error, Reason13})
     end,
 
-    case catch uce_user:add_role(Domain, ParticipantId, {"participant", ""}) of
+    case catch uce_user:add_role(Domain, ParticipantUid, {"participant", ""}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason14} -> throw({error, Reason14})
@@ -155,9 +154,8 @@ setup_users(Domain) ->
 
 
     AnonymousUid = "anonymous.user@af83.com",
-    AnonymousId = {AnonymousUid, Domain},
 
-    case catch uce_user:add(Domain, #uce_user{id=AnonymousId,
+    case catch uce_user:add(Domain, #uce_user{id=AnonymousUid,
                                    name=AnonymousUid,
                                    auth="none",
                                    roles=[]}) of
@@ -166,14 +164,14 @@ setup_users(Domain) ->
         {error, Reason15} -> throw({error, Reason15})
     end,
 
-    case catch uce_user:add_role(Domain, AnonymousId, {"anonymous", ""}) of
+    case catch uce_user:add_role(Domain, AnonymousUid, {"anonymous", ""}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason16} -> throw({error, Reason16})
     end,
 
     case catch uce_user:add(Domain,
-                 #uce_user{id={"token.user@af83.com", Domain},
+                 #uce_user{id="token.user@af83.com",
                            name="token.user@af83.com",
                            auth="token",
                            credential="4444"}) of
@@ -183,7 +181,7 @@ setup_users(Domain) ->
     end,
 
     case catch uce_user:add(Domain,
-                 #uce_user{id={"user_2", Domain},
+                 #uce_user{id="user_2",
                            name="user_2",
                            auth="password",
                            credential="pwd"}) of
@@ -193,7 +191,7 @@ setup_users(Domain) ->
     end,
 
     case catch uce_user:add(Domain,
-                 #uce_user{id={"user_3", Domain},
+                 #uce_user{id="user_3",
                            name="user_3",
                            auth="password",
                            credential="pwd"}) of
@@ -216,26 +214,26 @@ setup_users(Domain) ->
                                            credential="pwd",
                                            roles=[]}),
 
-    uce_user:delete_role(Domain, {UglyUid, Domain}, {"default", ""}),
+    uce_user:delete_role(Domain, UglyUid, {"default", ""}),
 
     {RootUid, ParticipantUid, UglyUid, AnonymousUid}.
 
 setup_testers(Domain, {RootUid, ParticipantUid, UglyUid, AnonymousUid}) ->
     {ok, RootSid} = uce_presence:add(Domain,
                                      #uce_presence{id=none,
-                                                   user={RootUid, Domain},
+                                                   user=RootUid,
                                                    auth="password",
                                                    metadata=[]}),
 
     {ok, ParticipantSid} = uce_presence:add(Domain,
                                             #uce_presence{id=none,
-                                                          user={ParticipantUid, Domain},
+                                                          user=ParticipantUid,
                                                           auth="password",
                                                           metadata=[]}),
 
     {ok, UglySid} = uce_presence:add(Domain,
                                      #uce_presence{id=none,
-                                                   user={UglyUid, Domain},
+                                                   user=UglyUid,
                                                    auth="password",
                                                    metadata=[]}),
 

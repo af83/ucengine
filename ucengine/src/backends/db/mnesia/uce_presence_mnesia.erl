@@ -65,8 +65,8 @@ all(Domain) ->
 
 get(Domain, Id) ->
     case mnesia:dirty_read(uce_presence, {Id, Domain}) of
-        [#uce_presence{id={Id, Domain}} = Presence] ->
-            {ok, Presence#uce_presence{id=Id}};
+        [Presence] ->
+            {ok, remove_domain_from_id(Presence)};
         [] ->
             throw({error, not_found});
         {aborted, _} ->
@@ -96,11 +96,5 @@ update(_Domain, #uce_presence{}=Presence) ->
 drop() ->
     mnesia:clear_table(uce_presence).
 
-
--define(REMOVE(Params, Record),
-        lists:map(fun(#Record{id={Id, _Domain}} = Param) ->
-                          Param#Record{id=Id}
-                  end, Params)).
-
 remove_domain_from_id(Presences) ->
-    ?REMOVE(Presences, uce_presence).
+    ?REMOVE_ID_FROM_RECORD(Presences, uce_presence).

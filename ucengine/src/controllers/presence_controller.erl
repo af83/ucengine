@@ -41,25 +41,24 @@ init() ->
                            {"sid", required, string}]}}].
 
 add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
-    {ok, #uce_user{id = {Id, Domain}} = User} = uce_user:get(Domain, Name),
-    {ok, true} = uce_access:assert(Domain, Id, "", "presence", "add"),
+    {ok, #uce_user{id = Uid} = User} = uce_user:get_by_name(Domain, Name),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "add"),
     {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
     {ok, Sid} = uce_presence:add(Domain,
                                  #uce_presence{id=none,
-                                               user=User#uce_user.id,
+                                               user=Uid,
                                                timeout=Timeout,
                                                auth=User#uce_user.auth,
                                                metadata=Metadata}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id={none, Domain},
-                                       from=User#uce_user.id,
+                                       from={User#uce_user.id, Domain},
                                        location={"", Domain},
                                        type="internal.presence.add"}),
-    {Id, _} = User#uce_user.id,
-    json_helpers:json(Domain, 201, {struct, [{uid, Id}, {sid, Sid}]}).
+    json_helpers:json(Domain, 201, {struct, [{uid, Uid}, {sid, Sid}]}).
 
-get(Domain, [Id], [], _) ->
-    {ok, Presence} = uce_presence:get(Domain, Id),
+get(Domain, [Sid], [], _) ->
+    {ok, Presence} = uce_presence:get(Domain, Sid),
     json_helpers:json(Domain, presence_helpers:to_json(Domain, Presence)).
 
 delete(Domain, [Id], [Uid, Sid], _) ->

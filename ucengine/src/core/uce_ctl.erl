@@ -99,7 +99,7 @@ timestamp_to_iso(Militimestamp) when is_integer(Militimestamp) ->
     lists:flatten(Date).
 
 get_user_uid(Domain, Name) ->
-    {ok, #uce_user{id={Uid, _}}} = call(user, get, [Domain, Name]),
+    {ok, #uce_user{id=Uid}} = call(user, get, [Domain, Name]),
     {ok, Uid}.
 
 success(Result) when is_list(Result) ->
@@ -266,7 +266,7 @@ meeting(Domain, "list", Status, []) ->
 %%
 user(Domain, "add", Name, Auth, Credential, Metadata) ->
     {ok, Uid} = call(user, add, [Domain,
-                                 #uce_user{id={none, Domain},
+                                 #uce_user{id=none,
                                            name=Name,
                                            auth=Auth,
                                            credential=Credential,
@@ -279,7 +279,7 @@ user(Domain, "add", Name, Auth, Credential, Metadata) ->
 user(Domain, "update", Name, Auth, Credential, Metadata) ->
     {ok, Uid} = get_user_uid(Domain, Name),
     {ok, updated} = call(user, update, [Domain,
-                                        #uce_user{id={Uid, Domain},
+                                        #uce_user{id=Uid,
                                                   name=Name,
                                                   auth=Auth,
                                                   credential=Credential,
@@ -313,7 +313,7 @@ user(Domain, "role", "delete", Name, Role, Args) ->
 %%
 user(Domain, "add", Name, Auth, Metadata) ->
     {ok, Uid} = call(user, add, [Domain,
-                                 #uce_user{id={none, Domain},
+                                 #uce_user{id=none,
                                            name=Name,
                                            auth=Auth,
                                            metadata=Metadata}]),
@@ -323,8 +323,8 @@ user(Domain, "add", Name, Auth, Metadata) ->
 %% User delete
 %%
 user(Domain, "delete", Name, []) ->
-    {ok, #uce_user{id={Uid, _}}} = call(user, get, [Domain, Name]),
-    {ok, deleted} = call(user, delete, [Domain, {Uid, Domain}]),
+    {ok, #uce_user{id=Uid}} = call(user, get, [Domain, Name]),
+    {ok, deleted} = call(user, delete, [Domain, Uid]),
     success(deleted);
 
 %%

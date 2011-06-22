@@ -117,7 +117,7 @@ update(Domain, [Name], [Uid, Sid, Start, End, Metadata], _) ->
 join(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "add"),
-    {ok, updated} = uce_meeting:join(Domain, Name, {Uid, Domain}),
+    {ok, updated} = uce_meeting:join(Domain, Name, Uid),
     uce_presence:join(Domain, Sid, {Name, Domain}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id={none, Domain},
@@ -130,7 +130,7 @@ join(Domain, [Name], [Uid, Sid], _) ->
 leave(Domain, [Name, User], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "delete"),
-    {ok, updated} = uce_meeting:leave(Domain, Name, {User, Domain}),
+    {ok, updated} = uce_meeting:leave(Domain, Name, User),
     uce_presence:leave(Domain, Sid, {Name, Domain}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id={none, Domain},
@@ -146,6 +146,6 @@ roster(Domain, [Name], [Uid, Sid], _) ->
     json_helpers:json(Domain,
                       {array, lists:map(fun(Member) ->
                                                 {ok, User} = uce_user:get(Domain, Member),
-                                                user_helpers:to_json(User)
+                                                user_helpers:to_json(Domain, User)
                                         end,
                                         Roster)}).
