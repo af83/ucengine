@@ -76,7 +76,7 @@ add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "meeting", "add"),
     {ok, created} = uce_meeting:add(Domain,
-                                    #uce_meeting{id={Name, Domain},
+                                    #uce_meeting{id=Name,
                                                  start_date=Start,
                                                  end_date=End,
                                                  metadata=Metadata}),
@@ -90,20 +90,20 @@ list(Domain, [Status], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "meeting", "list"),
     {ok, Meetings} = uce_meeting:list(Domain, Status),
-    json_helpers:json(Domain, {array, [meeting_helpers:to_json(Meeting) || Meeting <- Meetings]}).
+    json_helpers:json(Domain, {array, [meeting_helpers:to_json(Domain, Meeting) || Meeting <- Meetings]}).
 
 get(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "meeting", "get"),
     {ok, Meeting} = uce_meeting:get(Domain, Name),
-    json_helpers:json(Domain, meeting_helpers:to_json(Meeting)).
+    json_helpers:json(Domain, meeting_helpers:to_json(Domain, Meeting)).
 
 update(Domain, [Name], [Uid, Sid, Start, End, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "meeting", "update"),
     {ok, Meeting} = uce_meeting:get(Domain, Name),
     {ok, updated} = uce_meeting:update(Domain,
-                                       #uce_meeting{id={Name, Domain},
+                                       #uce_meeting{id=Name,
                                                     start_date=Start,
                                                     end_date=End,
                                                     roster=Meeting#uce_meeting.roster,

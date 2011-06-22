@@ -37,7 +37,7 @@ teardown([Domain, _, _Testers]) ->
 setup_meetings(Domain) ->
     Now = utils:now(),
     case catch uce_meeting:add(Domain,
-                              #uce_meeting{id={"testmeeting", Domain},
+                              #uce_meeting{id="testmeeting",
                                            metadata=[{"description", "Meeting"}],
                                            start_date=Now,
                                            end_date=?NEVER_ENDING_MEETING}) of
@@ -46,7 +46,7 @@ setup_meetings(Domain) ->
         {error, Reason1} -> throw({error, Reason1})
     end,
     case catch uce_meeting:add(Domain,
-                              #uce_meeting{id={"closedmeeting", Domain},
+                              #uce_meeting{id="closedmeeting",
                                            metadata=[{"description", "Meeting"}],
                                            start_date=Now,
                                            end_date=Now}) of
@@ -55,7 +55,7 @@ setup_meetings(Domain) ->
         {error, Reason2} -> throw({error, Reason2})
     end,
     case catch uce_meeting:add(Domain,
-                          #uce_meeting{id={"upcomingmeeting", Domain},
+                          #uce_meeting{id="upcomingmeeting",
                                        metadata=[{"description", "Meeting"}],
                                        start_date=2569256203952,
                                        end_date=?NEVER_ENDING_MEETING}) of

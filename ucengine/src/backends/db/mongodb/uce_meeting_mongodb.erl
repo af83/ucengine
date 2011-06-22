@@ -35,8 +35,8 @@
 %% @doc Insert given record #uce_meeting{} in uce_meeting mongodb table
 %% @end
 %%--------------------------------------------------------------------
-add(Domain, #uce_meeting{id={_Name, Domain}} = Meeting) ->
-    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_meeting", to_collection(Meeting))),
+add(Domain, #uce_meeting{} = Meeting) ->
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_meeting", to_collection(Domain, Meeting))),
     {ok, created}.
 
 %%--------------------------------------------------------------------
@@ -67,10 +67,10 @@ get(Domain, Name) ->
 %% @doc update #uce_meeting record
 %% @end
 %%--------------------------------------------------------------------
-update(Domain, #uce_meeting{id={Name, Domain}} = Meeting) ->
+update(Domain, #uce_meeting{id=Name} = Meeting) ->
     mongodb_helpers:updated(emongo:update_sync(Domain, "uce_meeting",
                                                [{"name", Name}, {"domain", Domain}],
-                                               to_collection(Meeting), false)),
+                                               to_collection(Domain, Meeting), false)),
     {ok, updated}.
 
 %%--------------------------------------------------------------------
@@ -88,11 +88,11 @@ list(Domain) ->
 %% @doc Convert #uce_meeting{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
-to_collection(#uce_meeting{id={Name, Domain},
-                           start_date=Start,
-                           end_date=End,
-                           roster=Roster,
-                           metadata=Metadata}) ->
+to_collection(Domain, #uce_meeting{id=Name,
+                                   start_date=Start,
+                                   end_date=End,
+                                   roster=Roster,
+                                   metadata=Metadata}) ->
     [{"name", Name},
      {"domain", Domain},
      {"start_date", integer_to_list(Start)},
@@ -108,8 +108,8 @@ to_collection(#uce_meeting{id={Name, Domain},
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["name", "domain", "start_date", "end_date", "roster", "metadata"]) of
-        [Name, Domain, Start, End, Roster, Metadata] ->
-            #uce_meeting{id={Name, Domain},
+        [Name, _Domain, Start, End, Roster, Metadata] ->
+            #uce_meeting{id=Name,
                      start_date=list_to_integer(Start),
                      end_date=list_to_integer(End),
                      roster=Roster,

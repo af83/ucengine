@@ -21,12 +21,12 @@
 
 -include("uce.hrl").
 
--export([to_json/1, pretty_print/2]).
+-export([to_json/2, pretty_print/2]).
 
-to_json(#uce_meeting{id={Name, Domain},
-                     start_date=StartDate,
-                     end_date=EndDate,
-                     metadata=Metadata}) ->
+to_json(Domain, #uce_meeting{id=Name,
+                             start_date=StartDate,
+                             end_date=EndDate,
+                             metadata=Metadata}) ->
     {struct, [{name, Name},
               {domain, Domain},
               {start_date, StartDate},
@@ -41,7 +41,7 @@ to_json(#uce_meeting{id={Name, Domain},
 pretty_print(Meetings, Format)
   when is_list(Meetings) ->
     lists:flatten([pretty_print(Meeting, Format) ++ "--~n" || Meeting <- Meetings]);
-pretty_print(#uce_meeting{id={Id, _Domain},
+pretty_print(#uce_meeting{id=Id,
                           start_date=Start,
                           end_date=End,
                           roster=_Roster,

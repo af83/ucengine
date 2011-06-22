@@ -93,7 +93,7 @@ test_meeting_add(Domain) ->
     false = uce_meeting:exists(Domain, "newmeeting"),
     Params = [{"description", ""}],
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "add", "newmeeting"]}, Params),
-    Expected = {ok, #uce_meeting{id={"newmeeting", Domain},
+    Expected = {ok, #uce_meeting{id="newmeeting",
                                  start_date=0, end_date=0,
                                  metadata=[{"description", ""}]}},
     ?assertEqual(Expected, uce_meeting:get(Domain, "newmeeting")).
@@ -105,7 +105,7 @@ test_meeting_get_not_found(Domain) ->
     {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "meeting", "get", "meeting that doesn't exists"]}, [])).
 
 test_meeting_update(Domain) ->
-    {ok, #uce_meeting{ id={"testmeeting", Domain}
+    {ok, #uce_meeting{ id="testmeeting"
                      , start_date=Start
                      , end_date=End
                      , metadata=[{"description", _Description}]
@@ -114,7 +114,7 @@ test_meeting_update(Domain) ->
     EndDate = uce_ctl:timestamp_to_iso(End),
     Params = [{"description", "A new description"}, {"start", StartDate}, {"end", EndDate}],
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "update", "testmeeting"]}, Params),
-    Expected = {ok, #uce_meeting{ id={"testmeeting", Domain}
+    Expected = {ok, #uce_meeting{ id="testmeeting"
                                 , start_date=uce_ctl:parse_date(StartDate)
                                 , end_date=uce_ctl:parse_date(EndDate)
                                 , metadata=[{"description", "A new description"}]
@@ -126,7 +126,7 @@ test_meeting_update_not_found(Domain) ->
                                                      "meeting that doesnt exists"]}, [])).
 
 test_meeting_delete(Domain) ->
-    {ok, #uce_meeting{ id={"testmeeting", Domain}
+    {ok, #uce_meeting{ id="testmeeting"
                      , start_date=_Start
                      , end_date=_End
                      , metadata=[{"description", _Description}]

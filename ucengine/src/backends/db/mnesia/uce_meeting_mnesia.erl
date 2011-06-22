@@ -40,8 +40,8 @@ init() ->
         {aborted, {already_exists, uce_meeting}} -> ok
     end.
 
-add(_Domain, #uce_meeting{} = Meeting) ->
-    case mnesia:dirty_write(Meeting) of
+add(Domain, #uce_meeting{id=Id} = Meeting) ->
+    case mnesia:dirty_write(Meeting#uce_meeting{id={Id, Domain}}) of
         {aborted, _} ->
             throw({error, bad_parameters});
         ok ->
@@ -60,17 +60,17 @@ delete(Domain, Id) ->
 
 get(Domain, Id) ->
     case mnesia:dirty_read(uce_meeting, {Id, Domain}) of
-        [Record] ->
-            {ok, Record};
+        [Meeting] ->
+            {ok, remove_domain_from_id(Meeting)};
         [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-update(_Domain, #uce_meeting{} = Meeting) ->
+update(Domain, #uce_meeting{id=Id} = Meeting) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:write(Meeting)
+                                    mnesia:write(Meeting#uce_meeting{id={Id, Domain}})
                             end) of
         {aborted, _} ->
             throw({error, bad_parameters});
@@ -87,8 +87,11 @@ list(Domain) ->
         {aborted, _} ->
             throw({error, bad_parameters});
         Meetings ->
-            {ok, Meetings}
+            {ok, remove_domain_from_id(Meetings)}
     end.
 
 drop() ->
     mnesia:clear_table(uce_meeting).
+
+remove_domain_from_id(Meetings) ->
+    ?REMOVE_ID_FROM_RECORD(Meetings, uce_meeting).

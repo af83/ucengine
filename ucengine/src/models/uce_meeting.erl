@@ -32,7 +32,7 @@
 -include("uce.hrl").
 
 
-add(Domain, #uce_meeting{id={Id, Domain}} = Meeting) ->
+add(Domain, #uce_meeting{id=Id} = Meeting) ->
     case exists(Domain, Id) of
         true ->
             throw({error, conflict});
@@ -51,7 +51,7 @@ delete(Domain, Id) ->
 get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
-update(Domain, #uce_meeting{id={Id, Domain}} = Meeting) ->
+update(Domain, #uce_meeting{id=Id} = Meeting) ->
     case exists(Domain, Id) of
         false ->
             throw({error, not_found});

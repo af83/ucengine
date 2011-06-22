@@ -219,7 +219,7 @@ meeting(Domain, "add", Name, Args) ->
 
     {_, Metadata} =  proplists:split(Args, ["start", "end"]),
     {ok, created} = call(meeting, add, [Domain,
-                                        #uce_meeting{id={Name, Domain},
+                                        #uce_meeting{id=Name,
                                                      start_date=parse_date(Start),
                                                      end_date=parse_date(End),
                                                      metadata=Metadata}]),
@@ -234,7 +234,7 @@ meeting(Domain, "update", Name, Args) ->
 
     {_, Metadata} =  proplists:split(Args, ["start", "end"]),
     {ok, updated} = call(meeting, update, [Domain,
-                                           #uce_meeting{id={Name, Domain},
+                                           #uce_meeting{id=Name,
                                                         start_date=parse_date(Start),
                                                         end_date=parse_date(End),
                                                         metadata=Metadata}]),
