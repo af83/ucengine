@@ -37,13 +37,7 @@
 -record(uce_mnesia_pubsub, {pid, location, uid, search, type, from}).
 
 start_link() ->
-    case gen_server:start_link({local, ?MODULE}, ?MODULE, [], []) of
-        {ok, Pid} ->
-            {ok, Pid};
-        {error, Reason} ->
-            ?ERROR_MSG("gen_server failed to start: ~p~n", [Reason]),
-            {error, Reason}
-    end.
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
     mnesia:create_table(uce_mnesia_pubsub,

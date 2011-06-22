@@ -38,9 +38,9 @@
 start_link(Path) ->
     case file:consult(Path) of
         {ok, Configs} ->
-            gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []);
+            {ok, _Pid} = gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []);
         {error, Reason} ->
-            ?ERROR_MSG("gen_server failed to start: ~p~n", [Reason]),
+            ?ERROR_MSG("config file error: ~p~n", [Reason]),
             {error, Reason}
     end.
 

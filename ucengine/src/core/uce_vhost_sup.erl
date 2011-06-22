@@ -24,13 +24,7 @@
 -export([start_link/0, init/1]).
 
 start_link() ->
-    case supervisor:start_link({local, ?MODULE}, ?MODULE, []) of
-        {ok, Pid} ->
-            {ok, Pid};
-        {error, Reason} ->
-            ?ERROR_MSG("supervisor failed to start: ~p~n", [Reason]),
-            {error, Reason}
-    end.
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
     Hosts = config:get(hosts),
