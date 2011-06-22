@@ -33,7 +33,7 @@ add(Domain, #uce_file{location=Location, name=Name} = File) ->
             Rnd = utils:random(),
             {Id, Mime} =
                 case Extension of
-                    [] ->
+                    "" ->
                         {Base64Name ++ "_" ++ Rnd,
                          "text/plain"};
                     _ ->

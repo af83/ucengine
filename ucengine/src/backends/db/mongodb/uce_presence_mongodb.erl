@@ -22,7 +22,6 @@
 -behaviour(gen_uce_presence).
 
 -export([add/2,
-         list/1,
          get/2,
          delete/2,
          update/2,
@@ -38,23 +37,9 @@
 %% @doc Insert given record #uce_presence{} in uce_presence mongodb table
 %% @end
 %%--------------------------------------------------------------------
-add(Domain, #uce_presence{}=Presence) ->
-    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_presence", to_collection(Presence))),
-    {ok, Presence#uce_presence.id}.
-
-%%--------------------------------------------------------------------
-%% @spec ({User::list, Domain::list}) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters}
-%% @doc List all record #uce_presence for the given user and domain
-%% @end
-%%--------------------------------------------------------------------
-list({User, Domain}) ->
-    Collections = emongo:find_all(Domain, "uce_presence", [{"user", User},
-                                                           {"domain", Domain}]),
-    Records = lists:map(fun(Collection) ->
-                                from_collection(Collection)
-                        end,
-                        Collections),
-    {ok, Records}.
+add(Domain, #uce_presence{id=Id} = Presence) ->
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_presence", to_collection(Domain, Presence))),
+    {ok, Id}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters}
@@ -63,11 +48,11 @@ list({User, Domain}) ->
 %%--------------------------------------------------------------------
 all(Domain) ->
     Collections = emongo:find_all(Domain, "uce_presence", [{"domain", Domain}]),
-    Records = lists:map(fun(Collection) ->
-                                from_collection(Collection)
-                        end,
-                        Collections),
-    {ok, Records}.
+    Presences = lists:map(fun(Collection) ->
+                                  from_collection(Collection)
+                          end,
+                          Collections),
+    {ok, Presences}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, Sid::list) -> {ok, #uce_presence{}} | {error, bad_parameters} | {error, not_found}
@@ -96,11 +81,10 @@ delete(Domain, Sid) ->
 %% @doc Update record
 %% @end
 %%--------------------------------------------------------------------
-update(Domain, #uce_presence{}=Presence) ->
-    {Id, Domain} = Presence#uce_presence.id,
+update(Domain, #uce_presence{id=Id}=Presence) ->
     mongodb_helpers:updated(emongo:update_sync(Domain, "uce_presence",
                                                [{"id", Id}, {"domain", Domain}],
-                                               to_collection(Presence), false)),
+                                               to_collection(Domain, Presence), false)),
     {ok, udpated}.
 
 
@@ -113,7 +97,7 @@ from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["id", "domain", "user", "auth", "last_activity", "timeout", "meetings", "metadata"]) of
         [Id, Domain, User, Auth, LastActivity, Timeout, Meetings, Metadata] ->
-            #uce_presence{id={Id, Domain},
+            #uce_presence{id=Id,
                           user={User, Domain},
                           auth=Auth,
                           last_activity=list_to_integer(LastActivity),
@@ -129,13 +113,13 @@ from_collection(Collection) ->
 %% @doc Convert #uce_presence{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
-to_collection(#uce_presence{id={Id, Domain},
-                            user={User, _},
-                            auth=Auth,
-                            last_activity=LastActivity,
-                            timeout=Timeout,
-                            meetings=Meetings,
-                            metadata=Metadata}) ->
+to_collection(Domain, #uce_presence{id=Id,
+                                    user={User, _},
+                                    auth=Auth,
+                                    last_activity=LastActivity,
+                                    timeout=Timeout,
+                                    meetings=Meetings,
+                                    metadata=Metadata}) ->
     [{"id", Id},
      {"domain", Domain},
      {"user", User},

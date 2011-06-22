@@ -33,16 +33,13 @@ init(ConfigPath) ->
     Routes = [{routes,
                {routes, start_link, []},
                permanent, brutal_kill, worker, [routes]}],
-    Timeout = [{timeout,
-                {timeout, start_link, []},
-                permanent, brutal_kill, worker, [timeout]}],
     PubSubSup = [{?PUBSUB_MODULE,
                   {?PUBSUB_MODULE, start_link, []},
                   permanent, brutal_kill, worker, [?PUBSUB_MODULE]}],
     Vhost = [{uce_vhost_sup, {uce_vhost_sup, start_link, []},
               permanent, infinity, supervisor, [uce_vhost_sup]}],
     {ok, {{one_for_one, 10, 10},
-          Config ++ Routes ++ Timeout ++ PubSubSup ++ Vhost}}.
+          Config ++ Routes ++ PubSubSup ++ Vhost}}.
 
 start_child(ChildSpec) ->
     {ok, _Pid} = supervisor:start_child(?MODULE, ChildSpec).

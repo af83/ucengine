@@ -23,7 +23,7 @@
 
 -include("uce.hrl").
 
--export([start_link/0]).
+-export([start_link/1]).
 
 -export([init/1,
          code_change/3,
@@ -32,24 +32,24 @@
          handle_info/2,
          terminate/2]).
 
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+start_link(Domain) ->
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [Domain], []).
 
-init([]) ->
+init([Domain]) ->
     gen_server:cast(?MODULE, run),
-    {ok, nothing}.
+    {ok, Domain}.
 
 handle_call(_ , _, State) ->
     {reply, ok, State}.
 
-handle_cast(run, State) ->
+handle_cast(run, Domain) ->
     timer:sleep(config:get(timeout_refresh) * 1000),
-    {ok, Presences} = get_all_presences(),
+    {ok, Presences} = uce_presence:all(Domain),
 
     % delete expired presences
     Now = utils:now(),
     lists:foreach(
-      fun(#uce_presence{id={Sid, Domain}, last_activity=LastActivity, timeout=Timeout} = Presence) ->
+      fun(#uce_presence{id=Sid, last_activity=LastActivity, timeout=Timeout} = Presence) ->
               if
                   LastActivity + (Timeout * 1000) < Now ->
                       ok = presence_helpers:clean(Domain, Presence),
@@ -60,8 +60,8 @@ handle_cast(run, State) ->
               end
       end,
       Presences),
-    handle_cast(run, State),
-    {noreply, State};
+    handle_cast(run, Domain),
+    {noreply, Domain};
 
 handle_cast(_, State) ->
     {noreply, State}.
@@ -74,11 +74,3 @@ handle_info(_Info, State) ->
 
 terminate(_Reason, _State) ->
     ok.
-
-get_all_presences() ->
-    {ok, get_all_presences(config:get(hosts))}.
-
-get_all_presences([{Host, _} | TlHost]) ->
-    {ok, Presences} = uce_presence:all(Host),
-    Presences ++ get_all_presences(TlHost);
-get_all_presences([]) -> [].

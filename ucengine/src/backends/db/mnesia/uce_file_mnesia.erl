@@ -85,8 +85,8 @@ all(Domain) ->
 
 get(Domain, Id) ->
     case mnesia:dirty_read(uce_file, {Id, Domain}) of
-        [File] ->
-            {ok, File};
+        [#uce_file{id={Id, Domain}} = File] ->
+            {ok, File#uce_file{id=Id}};
         [] ->
             throw({error, not_found});
         {aborted, _} ->

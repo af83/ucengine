@@ -17,8 +17,8 @@
           metadata = []}).
 
 -record(uce_presence, {
-          %% {presenceid, domain}
-          id = {none, none},
+          %% presenceid
+          id = none,
           %% user id
           user,
           %% authification method
@@ -45,8 +45,8 @@
           metadata = []}).
 
 -record(uce_file, {
-          % {fileid, domain}
-          id = {none, none},
+          % fileid
+          id = none,
           % name
           name,
           % {Meeting, Domain}

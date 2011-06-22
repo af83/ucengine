@@ -121,9 +121,9 @@ setup_users(Domain) ->
     ParticipantId = {ParticipantUid, Domain},
 
     case catch uce_user:add(Domain, #uce_user{id=ParticipantId,
-                                   name=ParticipantUid,
-                                   auth="password",
-                                   credential="pwd"}) of
+                                              name=ParticipantUid,
+                                              auth="password",
+                                              credential="pwd"}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason10} -> throw({error, Reason10})
@@ -221,23 +221,23 @@ setup_users(Domain) ->
     {RootUid, ParticipantUid, UglyUid, AnonymousUid}.
 
 setup_testers(Domain, {RootUid, ParticipantUid, UglyUid, AnonymousUid}) ->
-    {ok, {RootSid, _Domain}} = uce_presence:add(Domain,
-                                                 #uce_presence{id={none, Domain},
-                                                               user={RootUid, Domain},
-                                                               auth="password",
-                                                               metadata=[]}),
+    {ok, RootSid} = uce_presence:add(Domain,
+                                     #uce_presence{id=none,
+                                                   user={RootUid, Domain},
+                                                   auth="password",
+                                                   metadata=[]}),
 
-    {ok, {ParticipantSid, _Domain}} = uce_presence:add(Domain,
-                                                       #uce_presence{id={none, Domain},
-                                                                     user={ParticipantUid, Domain},
-                                                                     auth="password",
-                                                                     metadata=[]}),
+    {ok, ParticipantSid} = uce_presence:add(Domain,
+                                            #uce_presence{id=none,
+                                                          user={ParticipantUid, Domain},
+                                                          auth="password",
+                                                          metadata=[]}),
 
-    {ok, {UglySid, _Domain}} = uce_presence:add(Domain,
-                                                 #uce_presence{id={none, Domain},
-                                                               user={UglyUid, Domain},
-                                                               auth="password",
-                                                               metadata=[]}),
+    {ok, UglySid} = uce_presence:add(Domain,
+                                     #uce_presence{id=none,
+                                                   user={UglyUid, Domain},
+                                                   auth="password",
+                                                   metadata=[]}),
 
     [{RootUid, RootSid}, {ParticipantUid, ParticipantSid}, {UglyUid, UglySid}, {AnonymousUid, ""}].
 

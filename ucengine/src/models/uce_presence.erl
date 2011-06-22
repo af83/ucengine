@@ -32,8 +32,8 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_presence{id={none,Domain}}=Presence) ->
-    add(Domain, Presence#uce_presence{id={utils:random(),Domain}});
+add(Domain, #uce_presence{id=none}=Presence) ->
+    add(Domain, Presence#uce_presence{id=utils:random()});
 add(Domain, #uce_presence{last_activity=0}=Presence) ->
     add(Domain, Presence#uce_presence{last_activity=utils:now()});
 add(Domain, #uce_presence{timeout=0}=Presence) ->
@@ -55,7 +55,7 @@ delete(Domain, Id) ->
             (db:get(?MODULE, Domain)):delete(Domain, Id)
     end.
 
-update(Domain, #uce_presence{id={Id, Domain}}=Presence) ->
+update(Domain, #uce_presence{id=Id}=Presence) ->
     case exists(Domain, Id) of
         false ->
             throw({error, not_found});

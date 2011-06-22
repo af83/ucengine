@@ -24,7 +24,6 @@
 -export([init/0, drop/0]).
 
 -export([add/2,
-         list/1,
          get/2,
          delete/2,
          update/2,
@@ -41,40 +40,24 @@ init() ->
         {aborted, {already_exists, uce_presence}} -> ok
     end.
 
-add(_Domain, #uce_presence{}=Presence) ->
-    case mnesia:dirty_write(Presence) of
+add(Domain, #uce_presence{id=Id} = Presence) ->
+    case mnesia:dirty_write(Presence#uce_presence{id={Id, Domain}}) of
         ok ->
-            {ok, Presence#uce_presence.id};
-        {aborted, _} ->
-            throw({error, bad_parameters})
-    end.
-
-list(User) ->
-    case mnesia:dirty_match_object(#uce_presence{id={'_','_'},
-                                                 user=User,
-                                                 auth='_',
-                                                 timeout='_',
-                                                 last_activity='_',
-                                                 resource='_',
-                                                 metadata='_'}) of
-        [] ->
-            {ok, []};
-        Records when is_list(Records) ->
-            {ok, Records};
+            {ok, Id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
 all(Domain) ->
     case  mnesia:dirty_match_object(#uce_presence{id={'_', Domain},
-                                            user='_',
-                                            auth='_',
-                                            timeout='_',
-                                            last_activity='_',
-                                            resource='_',
-                                            metadata='_'}) of
+                                                  user='_',
+                                                  auth='_',
+                                                  timeout='_',
+                                                  last_activity='_',
+                                                  resource='_',
+                                                  metadata='_'}) of
         Records when is_list(Records) ->
-            {ok, Records};
+            {ok, remove_domain_from_id(Records)};
         {aborted, _} = Error ->
             ?ERROR_MSG("uce_presence:all on domain ~s : ~p~n", [Domain, Error]),
             throw({error, bad_parameters})
@@ -82,8 +65,8 @@ all(Domain) ->
 
 get(Domain, Id) ->
     case mnesia:dirty_read(uce_presence, {Id, Domain}) of
-        [Record] ->
-            {ok, Record};
+        [#uce_presence{id={Id, Domain}} = Presence] ->
+            {ok, Presence#uce_presence{id=Id}};
         [] ->
             throw({error, not_found});
         {aborted, _} ->
@@ -112,3 +95,12 @@ update(_Domain, #uce_presence{}=Presence) ->
 
 drop() ->
     mnesia:clear_table(uce_presence).
+
+
+-define(REMOVE(Params, Record),
+        lists:map(fun(#Record{id={Id, _Domain}} = Param) ->
+                          Param#Record{id=Id}
+                  end, Params)).
+
+remove_domain_from_id(Presences) ->
+    ?REMOVE(Presences, uce_presence).
