@@ -23,7 +23,8 @@
 
 -export([add/2,
          get/2,
-         list/7]).
+         list/7,
+         get_indexes/0]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -35,6 +36,7 @@
 %%--------------------------------------------------------------------
 add(Domain, #uce_event{} = Event) ->
     mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_event", to_collection(Event))),
+    %%emongo:ensure_index(Domain, "uce_event", Indexes);
     {ok, Event#uce_event.id}.
 
 %%--------------------------------------------------------------------
@@ -148,3 +150,15 @@ to_collection(#uce_event{id={Id, Domain},
      {"datetime", Datetime},
      {"type", Type},
      {"parent", Parent}].
+
+
+%%--------------------------------------------------------------------
+%% @spec () -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Indexes::list
+%% @doc Convert #uce_event{} record to valid collection
+%% @end
+%%--------------------------------------------------------------------
+get_indexes() ->
+    [{"domain", 1},
+     {"datetime", 1},
+     {"type", 1}].
+
