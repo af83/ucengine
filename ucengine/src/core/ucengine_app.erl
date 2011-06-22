@@ -76,7 +76,7 @@ setup_server() ->
     [{DefaultHost, _Config}|Hosts] = config:get(hosts),
     yaws:start_embedded(config:get(DefaultHost, root),
                         [{servername, DefaultHost},
-                         {listen, {0,0,0,0}},
+                         {listen, config:get(bind_ip)},
                          {port, config:get(port)},
                          {access_log, true},
                          {partial_post_size, nolimit},
