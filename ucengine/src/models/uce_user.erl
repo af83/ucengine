@@ -32,7 +32,7 @@ add(Domain, #uce_user{id={UId, _}, name=Name} = User) ->
         true ->
             throw({error,conflict});
         false ->
-            uce_role:add(Domain, #uce_role{id={UId, Domain}}),
+            uce_role:add(Domain, #uce_role{id=UId}),
             DefaultRoles = [{"default", ""}, {UId, ""}],
             (db:get(?MODULE, Domain)):add(Domain,
                                           User#uce_user{roles=User#uce_user.roles ++ DefaultRoles}),
@@ -47,7 +47,7 @@ delete(Domain, {Uid, _} = Id) ->
     case exists(Domain, Id) of
         true ->
             % delete the default role
-            case catch uce_role:delete(Domain, {Uid, Domain}) of
+            case catch uce_role:delete(Domain, Uid) of
                 {error, Reason} when Reason /= not_found ->
                     throw({error, Reason});
                 {ok, deleted}->
@@ -87,7 +87,7 @@ add_role(Domain, Id, {Role, Location}) ->
     % Just ensure the role and location exists
     case uce_meeting:exists(Domain, Location) of
         true ->
-            case uce_role:exists(Domain, {Role, Domain}) of
+            case uce_role:exists(Domain, Role) of
                 true ->
                     {ok, User} = get(Domain, Id),
                     case lists:member({Role, Location}, User#uce_user.roles) of
@@ -113,15 +113,15 @@ delete_role(Domain, Id, {Role, Location}) ->
             end,
     update(Domain, User#uce_user{roles=Roles}).
 
-acl(Domain, User, {Location, _}) ->
-    {ok, Record} = get(Domain, User),
+acl(Domain, User, Location) ->
+    {ok, Record} = get(Domain, {User, Domain}),
     ACL = lists:map(fun({RoleName, RoleLocation}) ->
                             {ok, RoleACL} =
                                 if
                                     RoleLocation == "" ->
-                                        uce_role:acl(Domain, {RoleName, Domain});
+                                        uce_role:acl(Domain, RoleName);
                                     RoleLocation == Location ->
-                                        uce_role:acl(Domain, {RoleName, Domain});
+                                        uce_role:acl(Domain, RoleName);
                                     true ->
                                         {ok, []}
                                 end,

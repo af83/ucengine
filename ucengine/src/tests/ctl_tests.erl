@@ -213,34 +213,34 @@ test_user_list(Domain) ->
 %% Roles
 %%
 test_role_add(Domain) ->
-    {error, not_found} = (catch uce_role:get(Domain, {"test_role", Domain})),
+    {error, not_found} = (catch uce_role:get(Domain, "test_role")),
     ok = uce_ctl:cmd({dummy, [Domain, "role", "add", "test_role"]}, []),
-    {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}).
+    {ok, #uce_role{id="test_role", acl=[]}} = uce_role:get(Domain, "test_role").
 
 test_role_add_conflict(Domain) ->
     {error, conflict} = (catch uce_ctl:cmd({dummy, [Domain, "role", "add", "test_role"]}, [])),
-    {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}).
+    {ok, #uce_role{id="test_role", acl=[]}} = uce_role:get(Domain, "test_role").
 
 test_role_delete(Domain) ->
-    {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}),
+    {ok, #uce_role{id="test_role", acl=[]}} = uce_role:get(Domain, "test_role"),
     ok = uce_ctl:cmd({dummy, [Domain, "role", "delete", "test_role"]}, []),
-    {error, not_found} = (catch uce_role:get(Domain, {"test_role", Domain})).
+    {error, not_found} = (catch uce_role:get(Domain, "test_role")).
 
 test_role_delete_not_found(Domain) ->
     {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "role", "delete", "test_role"]}, [])).
 
 test_role_add_access(Domain) ->
-    uce_role:add(Domain, #uce_role{id={"test_role_2", Domain}}),
+    uce_role:add(Domain, #uce_role{id="test_role_2"}),
     Params = [ {"a", "b"}
              , {"c", "d"}],
 
     ok = uce_ctl:cmd({dummy, [Domain, "role", "access", "add", "test_role_2", "testaction", "testobject"]}, Params),
 
-    {ok, #uce_role{id={"test_role_2", Domain},
+    {ok, #uce_role{id="test_role_2",
                    acl=[#uce_access{object="testobject",
                                     action="testaction",
                                     conditions=[{"a", "b"}, {"c", "d"}]}]}} =
-                 uce_role:get(Domain, {"test_role_2", Domain}).
+                 uce_role:get(Domain, "test_role_2").
 
 test_role_check_access(Domain) ->
     {ok, Anonymous} = uce_user:get(Domain, "anonymous.user@af83.com"),
@@ -253,17 +253,17 @@ test_role_check_access(Domain) ->
     ok = uce_ctl:cmd({dummy, [Domain, "role", "access", "check", "anonymous.user@af83.com", "testobject", "testaction"]}, Params).
 
 test_role_delete_access(Domain) ->
-    {ok, #uce_role{id={"test_role_2", Domain},
+    {ok, #uce_role{id="test_role_2",
                    acl=[#uce_access{object="testobject",
                                     action="testaction",
                                     conditions=[{"a", "b"}, {"c", "d"}]}]}} =
-        uce_role:get(Domain, {"test_role_2", Domain}),
+        uce_role:get(Domain, "test_role_2"),
     Params = [ {"c", "d"}
              , {"a", "b"}],
 
     ok = uce_ctl:cmd({dummy, [Domain, "role", "access", "delete", "test_role_2", "testaction", "testobject"]}, Params),
-    ?assertMatch({ok, #uce_role{id={"test_role_2", Domain},
-                   acl=[]}}, uce_role:get(Domain, {"test_role_2", Domain})).
+    ?assertMatch({ok, #uce_role{id="test_role_2",
+                   acl=[]}}, uce_role:get(Domain, "test_role_2")).
 
 %%
 %% Infos

@@ -30,21 +30,21 @@
 -include("mongodb.hrl").
 
 add(Domain, #uce_role{} = Role) ->
-    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_role", to_collection(Role))),
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_role", to_collection(Domain, Role))),
     {ok, created}.
 
-update(Domain, #uce_role{id={Name, _}} = Role) ->
+update(Domain, #uce_role{id=Name} = Role) ->
     mongodb_helpers:updated(emongo:update_sync(Domain, "uce_role", [{"name", Name},
                                                                     {"domain", Domain}],
-                                               to_collection(Role), false)),
+                                               to_collection(Domain, Role), false)),
     {ok, updated}.
 
-delete(Domain, {Name, Domain}) ->
+delete(Domain, Name) ->
     mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_role", [{"name", Name},
                                                                {"domain", Domain}])),
     {ok, deleted}.
 
-get(Domain, {Name, Domain}) ->
+get(Domain, Name) ->
     case emongo:find_one(Domain, "uce_role", [{"name", Name},
                                               {"domain", Domain}]) of
         [Record] ->
@@ -56,16 +56,16 @@ get(Domain, {Name, Domain}) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["name", "domain", "acl"]) of
-        [Name, Domain, ACL] ->
-            #uce_role{id={Name, Domain},
+        [Name, _Domain, ACL] ->
+            #uce_role{id=Name,
                       acl=[#uce_access{object=Object, action=Action, conditions=Conditions} ||
                               [Object, Action, Conditions] <- ACL]};
         _ ->
             throw({error, bad_parameters})
     end.
 
-to_collection(#uce_role{id={Name, Domain},
-                        acl=ACL}) ->
+to_collection(Domain, #uce_role{id=Name,
+                                acl=ACL}) ->
     [{"name", Name},
      {"domain", Domain},
      {"acl", [[Object, Action, Conditions] || #uce_access{object=Object,

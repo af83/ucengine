@@ -293,7 +293,7 @@ user(Domain, "role", "add", Name, Role, Args) ->
     {ok, Uid} = get_user_uid(Domain, Name),
     Location = proplists:get_value("location", Args, ""),
     {ok, updated} = call(user, add_role, [Domain,
-                                          {Uid, Domain},
+                                          Uid,
                                           {Role, Location}]),
     success(updated);
 
@@ -304,7 +304,7 @@ user(Domain, "role", "delete", Name, Role, Args) ->
     {ok, Uid} = get_user_uid(Domain, Name),
     Location = proplists:get_value("location", Args, ""),
     {ok, updated} = call(user, delete_role, [Domain,
-                                             {Uid, Domain},
+                                             Uid,
                                              {Role, Location}]),
     success(Uid).
 
@@ -345,21 +345,21 @@ user(Domain, "list", []) ->
 %% Role add
 %%
 role(Domain, "add", Name, []) ->
-    {ok, created} = call(role, add, [Domain, #uce_role{id={Name, Domain}}]),
+    {ok, created} = call(role, add, [Domain, #uce_role{id=Name}]),
     success(created);
 
 %%
 %% Role delete
 %%
 role(Domain, "delete", Name, []) ->
-    {ok, deleted} = call(role, delete, [Domain, {Name, Domain}]),
+    {ok, deleted} = call(role, delete, [Domain, Name]),
     success(deleted).
 
 %%
 %% Role access add
 %%
 role(Domain, "access", "add", Name, Action, Object, Conditions) ->
-    {ok, updated} = call(role, add_access, [Domain, {Name, Domain},
+    {ok, updated} = call(role, add_access, [Domain, Name,
                                             #uce_access{action=Action,
                                                         object=Object,
                                                         conditions=Conditions}]),
@@ -369,7 +369,7 @@ role(Domain, "access", "add", Name, Action, Object, Conditions) ->
 %% Role access delete
 %%
 role(Domain, "access", "delete", Name, Action, Object, Conditions) ->
-    {ok, updated} = call(role, delete_access, [Domain, {Name, Domain},
+    {ok, updated} = call(role, delete_access, [Domain, Name,
                                                #uce_access{action=Action,
                                                            object=Object,
                                                            conditions=Conditions}]),
@@ -384,8 +384,8 @@ role(Domain, "access", "check", Name, Action, Object, Args) ->
 
     {_, Conditions} = proplists:split(Args, ["location"]),
     {ok, Result} = call(access, check, [Domain,
-                                        {Uid, Domain},
-                                        {Location, Domain},
+                                        Uid,
+                                        Location,
                                         Object,
                                         Action,
                                         Conditions]),

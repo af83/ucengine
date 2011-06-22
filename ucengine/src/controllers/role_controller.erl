@@ -54,7 +54,7 @@ init() ->
 add(Domain, [], [Uid, Sid, Name], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "role", "add", [{"name", Name}]),
-    {ok, created} = uce_role:add(Domain, #uce_role{id={Name, Domain}}),
+    {ok, created} = uce_role:add(Domain, #uce_role{id=Name}),
     {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
                                                from={Uid, Domain},
                                                location={"", Domain},
@@ -71,7 +71,7 @@ delete(Domain, [Name], [Uid, Sid], _) ->
                                                location={"", Domain},
                                                type="internal.role.delete",
                                                metadata=[{"name", Name}]}),
-    {ok, deleted} = uce_role:delete(Domain, {Name, Domain}),
+    {ok, deleted} = uce_role:delete(Domain, Name),
     json_helpers:ok(Domain).
 
 add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
@@ -81,7 +81,7 @@ add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
                                                      {"object", Object},
                                                      {"action", Action}]),
 
-    {ok, updated} = uce_role:add_access(Domain, {Role, Domain},
+    {ok, updated} = uce_role:add_access(Domain, Role,
                                        #uce_access{object=Object,
                                                    action=Action,
                                                    conditions=Conditions}),
@@ -104,7 +104,7 @@ delete_access(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
                                                      {"object", Object},
                                                      {"action", Action}]),
 
-    {ok, updated} = uce_role:delete_access(Domain, {Role, Domain},
+    {ok, updated} = uce_role:delete_access(Domain, Role,
                                           #uce_access{object=Object,
                                                       action=Action,
                                                       conditions=Conditions}),

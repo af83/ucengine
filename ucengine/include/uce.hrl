@@ -72,7 +72,7 @@
           roles=[]}).
 
 -record(uce_role, {
-          id = {"", ""},
+          id = "",
           acl=[]}).
 
 -record(uce_access, {

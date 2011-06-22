@@ -138,7 +138,7 @@ check_access(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _
                                                                         {"action", Action},
                                                                         {"object", Object},
                                                                         {"location", Location}]),
-    case uce_access:check(Domain, {Name, Domain}, {Location, Domain}, Object, Action, Conditions) of
+    case uce_access:check(Domain, Name, Location, Object, Action, Conditions) of
         {ok, true} ->
             json_helpers:true(Domain);
         {ok, false} ->

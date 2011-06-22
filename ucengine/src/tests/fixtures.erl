@@ -66,7 +66,7 @@ setup_meetings(Domain) ->
     ok.
 
 setup_users(Domain) ->
-    case catch uce_role:add(Domain, #uce_role{id={"default", Domain},
+    case catch uce_role:add(Domain, #uce_role{id="default",
                                               acl=[#uce_access{action="add", object="presence"},
                                               #uce_access{action="delete", object="presence"}]}) of
         {ok, _} -> ok;
@@ -74,14 +74,14 @@ setup_users(Domain) ->
         {error, Reason4} -> throw({error, Reason4})
     end,
 
-    case catch uce_role:add(Domain, #uce_role{id={"root", Domain},
+    case catch uce_role:add(Domain, #uce_role{id="root",
                                    acl=[#uce_access{action="all", object="all"}]}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason5} -> throw({error, Reason5})
     end,
 
-    case catch uce_role:add(Domain, #uce_role{id={"participant", Domain},
+    case catch uce_role:add(Domain, #uce_role{id="participant",
                                    acl=[#uce_access{action="add", object="presence"},
                                         #uce_access{action="delete", object="presence"},
                                         #uce_access{action="add", object="event"},
@@ -95,21 +95,21 @@ setup_users(Domain) ->
         {error, Reason6} -> throw({error, Reason6})
     end,
 
-    case catch uce_role:add(Domain, #uce_role{id={"testrole_location", Domain},
+    case catch uce_role:add(Domain, #uce_role{id="testrole_location",
                                    acl=[#uce_access{action="testaction", object="testobject", conditions=[{"a", "b"}]}]}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason7} -> throw({error, Reason7})
     end,
 
-    case catch uce_role:add(Domain, #uce_role{id={"testrole_without_location", Domain},
+    case catch uce_role:add(Domain, #uce_role{id="testrole_without_location",
                                    acl=[#uce_access{action="testaction_global", object="testobject_global", conditions=[{"c", "d"}]}]}) of
         {ok, _} -> ok;
         {error, conflict} -> ok;
         {error, Reason8} -> throw({error, Reason8})
     end,
 
-    case catch uce_role:add(Domain, #uce_role{id={"anonymous", Domain},
+    case catch uce_role:add(Domain, #uce_role{id="anonymous",
                                    acl=[#uce_access{action="add", object="presence"},
                                    #uce_access{action="delete", object="presence"}]}) of
         {ok, _} -> ok;
@@ -208,7 +208,7 @@ setup_users(Domain) ->
                                            auth="password",
                                            credential="pwd"}),
 
-    uce_role:add_access(Domain, {RootUid, Domain}, #uce_access{action="all", object="all"}),
+    uce_role:add_access(Domain, RootUid, #uce_access{action="all", object="all"}),
 
     {ok, UglyUid} = uce_user:add(Domain,
                                  #uce_user{name="ugly.user@af83.com",

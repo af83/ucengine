@@ -74,7 +74,7 @@ setup_db(Domain) ->
     DBBackendModule:init(Domain, DBConfig).
 
 setup_roles(Domain) ->
-    case catch uce_role:add(Domain, #uce_role{id={"default", Domain}, acl=[]}) of
+    case catch uce_role:add(Domain, #uce_role{id="default", acl=[]}) of
         {ok, created} ->
             ok;
         {error, conflict} ->
@@ -95,18 +95,18 @@ setup_role(Domain, [{Name, ConfigACL}|Tail]) ->
                                         conditions=Conditions}
                     end,
                     ConfigACL),
-    case catch uce_role:add(Domain, #uce_role{id={Name, Domain}, acl=ACL}) of
+    case catch uce_role:add(Domain, #uce_role{id=Name, acl=ACL}) of
         {ok, created} ->
             setup_role(Domain, Tail);
         {error, conflict} ->
-            uce_role:update(Domain, #uce_role{id={Name, Domain}, acl=ACL}),
+            uce_role:update(Domain, #uce_role{id=Name, acl=ACL}),
             setup_role(Domain, Tail);
         {error, Reason} ->
             throw({error, Reason})
     end.
 
 setup_root_role(Domain) ->
-    case catch uce_role:add(Domain, #uce_role{id={"root", Domain},
+    case catch uce_role:add(Domain, #uce_role{id="root",
                                               acl=[#uce_access{action="all", object="all"}]}) of
         {ok, created} ->
             ok;

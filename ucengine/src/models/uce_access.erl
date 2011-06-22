@@ -61,7 +61,7 @@ delete(#uce_access{} = Access, ACL) ->
 assert(Domain, User, Location, Object, Action) ->
     assert(Domain, User, Location, Object, Action, []).
 assert(Domain, User, Location, Object, Action, Conditions) ->
-    case check(Domain, {User, Domain}, {Location, Domain}, Object, Action, Conditions) of
+    case check(Domain, User, Location, Object, Action, Conditions) of
         {ok, false} ->
             throw({error, unauthorized});
         {ok, true} ->
