@@ -158,8 +158,11 @@ to_collection(Domain, #uce_event{id=Id,
 %%--------------------------------------------------------------------
 index(Domain) ->
     Indexes = [{"domain", 1},
+               {"meeting", 1},
+               {"from", 1},
+               {"parent", 1},
                {"datetime", 1},
                {"type", 1}],
-    emongo:ensure_index(Domain, "uce_event", Indexes),
+    [emongo:ensure_index(Domain, "uce_event", [Index]) || Index <- Indexes],
     ok.
 
