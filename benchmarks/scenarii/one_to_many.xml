@@ -1,7 +1,11 @@
 <?xml version="1.0"?>
 <!DOCTYPE tsung SYSTEM "TSUNG_SHARE_PATH/share/tsung/tsung-1.0.dtd" [] >
+<!--
+Use the following root element if you want to debug the scenario.
+This should be uncommented only for developement purpose.
 <tsung loglevel="debug" dumptraffic="true" version="1.0">
-<!-- <tsung> -->
+-->
+<tsung>
   <!-- Client side setup -->
   <clients>
     <client host="localhost" use_controller_vm="true" maxusers="10000" />
