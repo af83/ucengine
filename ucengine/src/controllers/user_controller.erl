@@ -23,7 +23,7 @@
 
 init() ->
     [#uce_route{method='POST',
-                regexp="/user",
+                path=["user"],
                 callback={?MODULE, add,
                           [{"name", required, string},
                            {"auth", required, string},
@@ -31,19 +31,19 @@ init() ->
                            {"metadata", [], dictionary}]}},
 
      #uce_route{method='GET',
-                regexp="/user",
+                path=["user"],
                 callback={?MODULE, list,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='GET',
-                regexp="/user/([^/]+)",
+                path=["user", id],
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='PUT',
-                regexp="/user/([^/]+)",
+                path=["user", id],
                 callback={?MODULE, update,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -53,20 +53,20 @@ init() ->
                            {"metadata", [], dictionary}]}},
 
      #uce_route{method='DELETE',
-                regexp="/user/([^/]+)",
+                path=["user", id],
                 callback={?MODULE, delete,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='GET',
-                regexp="/user/([^/]+)/can/([^/]+)/([^/]+)/?([^/]+)?",
+                path=["user", id, "can", action, object, '...'],
                 callback={?MODULE, check_access,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"conditions", [], dictionary}]}},
 
      #uce_route{method='POST',
-                regexp="/user/([^/]+)/roles",
+                path=["user", id, "roles"],
                 callback={?MODULE, add_role,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -74,7 +74,7 @@ init() ->
                            {"location", "", string}]}},
 
      #uce_route{method='DELETE',
-                regexp="/user/([^/]+)/roles/([^/]+)/?([^/]+)?",
+                path=["user", id, "roles", role, '...'],
                 callback={?MODULE, delete_role,
                           [{"uid", required, string},
                            {"sid", required, string}]}}].
@@ -100,13 +100,13 @@ list(Domain, [], [Uid, Sid], _) ->
     {ok, Users} = uce_user:list(Domain),
     json_helpers:json(Domain, {array, [user_helpers:to_json(Domain, User) || User <- Users]}).
 
-get(Domain, [Id], [Uid, Sid], _) ->
+get(Domain, [{id, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", [{"user", Id}]),
     {ok, Record} = uce_user:get(Domain, Id),
     json_helpers:json(Domain, user_helpers:to_json(Domain, Record)).
 
-update(Domain, [Id], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
+update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "update", [{"user", Id},
                                                                        {"auth", Auth}]),
@@ -124,7 +124,7 @@ update(Domain, [Id], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
 
     json_helpers:ok(Domain).
 
-delete(Domain, [Id], [Uid, Sid], _) ->
+delete(Domain, [{id, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "delete", [{"user", Id}]),
     {ok, deleted} = uce_user:delete(Domain, Id),
@@ -132,7 +132,7 @@ delete(Domain, [Id], [Uid, Sid], _) ->
 
 check_access(Domain, [Name, Action, Object], [Uid, Sid, Conditions], Arg) ->
     check_access(Domain, [Name, Action, Object, ""], [Uid, Sid, Conditions], Arg);
-check_access(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _Arg) ->
+check_access(Domain, [{id, Name}, {action, Action}, {object, Object}, Location], [Uid, Sid, Conditions], _Arg) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "access", "check", [{"user", Name},
                                                                         {"action", Action},
@@ -145,7 +145,7 @@ check_access(Domain, [Name, Action, Object, Location], [Uid, Sid, Conditions], _
             json_helpers:false(Domain)
     end.
 
-add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
+add_role(Domain, [{id, Name}], [Uid, Sid, Role, Location], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Location, "user.role", "add", [{"user", Name},
                                                                                {"role", Role}]),
@@ -161,7 +161,7 @@ add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
 
 delete_role(Domain, [User, Role], [Uid, Sid], Arg) ->
     delete_role(Domain, [User, Role, ""], [Uid, Sid], Arg);
-delete_role(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
+delete_role(Domain, [{id, User}, {role, Role}, Location], [Uid, Sid], _Arg) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Location, "user.role", "delete", [{"user", User},
                                                                                   {"role", Role}]),

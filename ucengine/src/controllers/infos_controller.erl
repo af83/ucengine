@@ -23,13 +23,13 @@
 
 init() ->
     [#uce_route{method='GET',
-                regexp="/infos",
+                path=["infos"],
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='PUT',
-                regexp="/infos",
+                path=["infos"],
                 callback={?MODULE, update,
                           [{"uid", required, string},
                            {"sid", required, string},

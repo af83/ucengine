@@ -24,7 +24,7 @@
 
 init() ->
     [#uce_route{method='POST',
-                regexp="/event/?([^/]+)?",
+                path=["event", '...'],
                 callback={?MODULE, add,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -34,13 +34,13 @@ init() ->
                            {"metadata", [], dictionary}]}},
 
      #uce_route{method='GET',
-                regexp="/event/([^/]+)/([^/]+)",
+                path=["event", meeting, id],
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='GET',
-                regexp="/event/?([^/]+)?",
+                path=["event", '...'],
                 callback={?MODULE, list,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -76,7 +76,7 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
             json_helpers:created(Domain, Id)
     end.
 
-get(Domain, [_, Id], [Uid, Sid], _) ->
+get(Domain, [_, {id, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "event", "get", [{"id", Id}]),
     {ok, #uce_event{to=To} = Event} = uce_event:get(Domain, Id),

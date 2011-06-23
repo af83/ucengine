@@ -23,7 +23,7 @@
 
 init() ->
     [#uce_route{method='GET',
-                regexp="/time",
+                path=["time"],
                 callback={?MODULE, get, []}}].
 
 get(Domain, _, [], _) ->

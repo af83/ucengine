@@ -25,7 +25,7 @@
 
 init() ->
     [#uce_route{method='POST',
-                regexp="/file/([^/]+)",
+                path=["file", meeting],
                 callback={?MODULE, add,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -34,26 +34,26 @@ init() ->
                            {"forceContentType", "application/json", string}]}},
 
      #uce_route{method='GET',
-                regexp="/file/([^/]+)",
+                path=["file", meeting],
                 callback={?MODULE, list,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"order", asc, atom}]}},
 
      #uce_route{method='GET',
-                regexp="/file/([^/]+)/([^/]+)",
+                path=["file", meeting, id],
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='DELETE',
-                regexp="/file/([^/]+)/([^/]+)",
+                path=["file", meeting, id],
                 callback={?MODULE, delete,
                           [{"uid", required, string},
                            {"sid", required, string}]}}].
 
 
-add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) ->
+add(Domain, [{meeting, Meeting}], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "add"),
     {ok, Id} = uce_file:add(Domain, #uce_file{location=Meeting,
@@ -86,7 +86,7 @@ add(Domain, [Meeting], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) 
             json_helpers:format_response(201, ContentType, cors_helpers:format_cors_headers(Domain), {struct, [{result, Id}]})
     end.
 
-list(Domain, [Meeting], [Uid, Sid, Order], _) ->
+list(Domain, [{meeting, Meeting}], [Uid, Sid, Order], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "list"),
     {ok, Files} = uce_file:list(Domain, Meeting, Order),
@@ -99,7 +99,7 @@ list(Domain, [Meeting], [Uid, Sid, Order], _) ->
 get_path(Uri) ->
     re:replace(Uri, "file\:\/\/", "", [{return, list}]).
 
-get(Domain, [Meeting, Id], [Uid, Sid], _) ->
+get(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
     NormalizedId = unicode_helpers:normalize_unicode(Id),
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "get", [{"id", Id}]),
@@ -112,7 +112,7 @@ get(Domain, [Meeting, Id], [Uid, Sid], _) ->
             file_helpers:download(Domain, File#uce_file.id, Content)
     end.
 
-delete(Domain, [Meeting, Id], [Uid, Sid], _) ->
+delete(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
     NormalizedId = unicode_helpers:normalize_unicode(Id),
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "delete", [{"id", Id}]),

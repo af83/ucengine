@@ -44,21 +44,16 @@ list() ->
     gen_server:call(?MODULE, list).
 
 init([]) ->
-    TableId = ets:new(uce_routes, [bag, public, {keypos, 1}]),
-    setup_routes(TableId),
-    {ok, TableId}.
+    ?DEBUG("routes ~p~n", [setup_routes()]),
+    {ok, setup_routes()}.
 
-handle_call({get, Method, Path}, _From, DB) ->
-    {reply, route(Method, Path, ets:tab2list(DB)), DB};
-handle_call(list, _From, DB) ->
-    Routes = lists:map(fun({_, #uce_route{} = Route}) ->
-                               Route
-                       end,
-                       ets:tab2list(DB)),
-    {reply, lists:keysort(1, Routes), DB}.
+handle_call({get, Method, Path}, _From, Routes) ->
+    {reply, route(Method, Path, Routes), Routes};
+handle_call(list, _From, Routes) ->
+    {reply, lists:keysort(1, Routes), Routes}.
 
-handle_cast(_Request, DB) ->
-    {noreply, DB}.
+handle_cast(_Request, Routes) ->
+    {noreply, Routes}.
 
 code_change(_,State,_) ->
     {ok, State}.
@@ -71,32 +66,99 @@ terminate(_Reason, _State) ->
 
 route(_, _, []) ->
     {error, not_found};
-route(Method, Path, [{PathRoute, #uce_route{method=Method, callback=Handler}}|Routes]) ->
-    case re:run(Path, PathRoute, [{capture, all, list}]) of
-        {match, Match} ->
-            [_|Tail] = Match,
-            {ok, Tail, Handler};
-        _ ->
-            route(Method, Path, Routes)
+route(Method, Path, [#uce_route{method=Method, callback=Callback} = Route|Routes]) ->
+    case match_path(Path, Route) of
+        false ->
+            route(Method, Path, Routes);
+        {ok, Binds, List} ->
+            {ok, lists:reverse(Binds) ++ List, Callback}
     end;
-route(Method, Path, [{_PathRoute, #uce_route{method=_RouteMethod, callback=_Handler}}|Routes]) ->
+route(Method, Path, [#uce_route{}|Routes]) ->
     route(Method, Path, Routes).
 
-setup_route(Controller, DB) ->
-    [set(Route, DB) || Route <- Controller:init()].
+match_path("/"++ Path, #uce_route{path=PathRule}) ->
+    List = re:split(Path, "[/]", [{return,list}, trim]),
+    case list_match(List, PathRule, []) of
+        false ->
+            false;
+        {true, Binds, undefined} ->
+            {ok, Binds, []};
+        {true, Binds, List2} ->
+            {ok, Binds, List2}
+    end.
 
-setup_routes(DB) ->
-    % TODO : make list of controllers more generic
-    [ setup_route(Controller, DB) || Controller <- [user_controller,
-                                                    presence_controller,
-                                                    meeting_controller,
-                                                    role_controller,
-                                                    event_controller,
-                                                    file_controller,
-                                                    time_controller,
-                                                    infos_controller,
-                                                    search_controller]].
+% We are too lazy
+% we have stolen this code from cowboy
+% https://github.com/extend/cowboy/blob/master/src/cowboy_dispatcher.erl
+% Cowboy: Loïc Hoguin, Hans Ulrich Niedermann, Anthony Ramine
 
-set(#uce_route{regexp=Regexp} = Route, DB) ->
-    {ok, CompiledRegexp} = re:compile("^" ++ Regexp ++ "/?$ ?"),
-    true = ets:insert(DB, {CompiledRegexp, Route}).
+-type bindings() :: list({atom(), binary()}).
+-type path_tokens() :: list(binary()).
+-type match_rule() :: '_' | '*' | list(binary() | '_' | atom()).
+
+-spec list_match(path_tokens(), match_rule(), bindings())
+         -> {true, bindings(), undefined | path_tokens()} | false.
+%% Atom '...' matches any trailing path, stop right now.
+list_match(List, ['...'], Binds) ->
+    {true, Binds, List};
+%% Atom '_' matches anything, continue.
+list_match([_E|Tail], ['_'|TailMatch], Binds) ->
+    list_match(Tail, TailMatch, Binds);
+%% Both values match, continue.
+list_match([E|Tail], [E|TailMatch], Binds) ->
+    list_match(Tail, TailMatch, Binds);
+%% Bind E to the variable name V and continue.
+list_match([E|Tail], [V|TailMatch], Binds) when is_atom(V) ->
+    list_match(Tail, TailMatch, [{V, E}|Binds]);
+%% Match complete.
+list_match([], [], Binds) ->
+    {true, Binds, undefined};
+%% Values don't match, stop.
+list_match(_List, _Match, _Binds) ->
+    false.
+
+setup_routes([]) ->
+    [];
+setup_routes([Controller|Controllers]) ->
+    Controller:init() ++ setup_routes(Controllers).
+
+% TODO : make list of controllers more generic
+setup_routes() ->
+    setup_routes([user_controller,
+                  presence_controller,
+                  meeting_controller,
+                  role_controller,
+                  event_controller,
+                  file_controller,
+                  time_controller,
+                  infos_controller,
+                  search_controller]).
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+route_test() ->
+    Routes = [#uce_route{method='GET',
+                         path=["user"],
+                         callback={?MODULE, get, []}},
+             #uce_route{method='GET',
+                         path=["user", name],
+                         callback={?MODULE, get_user, []}},
+             #uce_route{method='GET',
+                         path=["user", name, id],
+                         callback={?MODULE, get_user_name_id, []}},
+              #uce_route{method='POST',
+                         path=["user", name],
+                         callback={?MODULE, update_user, []}},
+             #uce_route{method='PUT',
+                         path=["user", name, '...'],
+                         callback={?MODULE, put_user_plop, []}}],
+    ?assertMatch({error, not_found}, route('GET', "/user/", [])),
+    ?assertMatch({ok, [], {?MODULE, get, []}}, route('GET', "/user/", Routes)),
+    ?assertMatch({ok, [], {?MODULE, get, []}}, route('GET', "/user", Routes)),
+    ?assertMatch({ok, [{name, "plop"}], {?MODULE, get_user, []}}, route('GET', "/user/plop", Routes)),
+    ?assertMatch({ok, [{name, "plop"}, {id, "myid"}], {?MODULE, get_user_name_id, []}}, route('GET', "/user/plop/myid", Routes)),
+    ?assertMatch({ok, [{name, "plop"}], {?MODULE, update_user, []}}, route('POST', "/user/plop", Routes)),
+    ?assertMatch({ok, [{name, "plop"}, "plip"], {?MODULE, put_user_plop, []}}, route('PUT', "/user/plop/plip", Routes)).
+
+-endif.
