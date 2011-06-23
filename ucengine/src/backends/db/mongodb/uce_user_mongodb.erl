@@ -26,7 +26,8 @@
          update/2,
          list/1,
          get/2,
-         get_by_name/2]).
+         get_by_name/2,
+         get_indexes/0]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -134,3 +135,13 @@ to_collection(Domain, #uce_user{id=Id,
      {"credential", Credential},
      {"metadata", Metadata},
      {"roles", [[Role, Location] || {Role, Location} <- Roles]}].
+
+%%--------------------------------------------------------------------
+%% @spec () -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Indexes::list
+%% @doc Return keys of #uce_user{} record to use in index
+%% @end
+%%--------------------------------------------------------------------
+get_indexes() ->
+    [{"id", 1},
+     {"name", 1},
+     {"domain", 1}].

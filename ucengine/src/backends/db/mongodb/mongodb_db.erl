@@ -32,7 +32,7 @@ create_indexes(Domain) ->
                      Indexes = Module:get_indexes(),
                      emongo:ensure_index(Domain, Collection, Indexes)
                   end,
-                  ["uce_event", "uce_presence"]).
+                  ["uce_event", "uce_presence", "uce_user"]).
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, MongoPoolInfos::list) -> any()
