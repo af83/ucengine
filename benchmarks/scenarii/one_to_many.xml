@@ -44,7 +44,7 @@ This should be uncommented only for developement purpose.
 
         <request subst="true">
           <dyn_variable name="events" jsonpath="result"/>
-          <http url='/api/0.5/event/?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=0&amp;count=1' method='GET' />
+          <http url='/api/0.5/event/?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=0&amp;count=1&amp;order=desc' method='GET' />
         </request>
         <setdynvars sourcetype="erlang" callback="tsung_utils:extract_last_timestamp">
           <var name="last" />
