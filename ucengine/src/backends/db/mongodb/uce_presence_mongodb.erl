@@ -26,7 +26,8 @@
          get/2,
          delete/2,
          update/2,
-         all/1]).
+         all/1,
+         get_indexes/0]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -143,3 +144,12 @@ to_collection(#uce_presence{id={Id, Domain},
      {"timeout", integer_to_list(Timeout)},
      {"meetings", Meetings},
      {"metadata", Metadata}].
+
+%%--------------------------------------------------------------------
+%% @spec () -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Indexes::list
+%% @doc Return keys of #uce_presence{} record to use in index
+%% @end
+%%--------------------------------------------------------------------
+get_indexes() ->
+    [{"id", 1},
+     {"domain", 1}].
