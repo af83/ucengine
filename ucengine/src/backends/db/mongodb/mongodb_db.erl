@@ -27,12 +27,10 @@
 -include("mongodb.hrl").
 
 create_indexes(Domain) ->
-    lists:foreach(fun(Collection) ->
-                     Module = list_to_atom(Collection ++ "_mongodb"),
-                     Indexes = Module:get_indexes(),
-                     emongo:ensure_index(Domain, Collection, Indexes)
+    lists:foreach(fun(Module) ->
+                     Module:index(Domain)
                   end,
-                  ["uce_event", "uce_presence", "uce_user"]).
+                  [uce_event, uce_presence, uce_user, uce_role]).
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, MongoPoolInfos::list) -> any()
