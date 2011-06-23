@@ -80,5 +80,5 @@ to_collection(Domain, #uce_role{id=Name,
 %%--------------------------------------------------------------------
 index(Domain) ->
     Indexes = [{"name", 1}, {"domain", 1}],
-    emongo:ensure_index(Domain, "uce_user", Indexes),
+    emongo:ensure_index(Domain, "uce_role", Indexes),
     ok.

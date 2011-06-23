@@ -152,7 +152,7 @@ to_collection(Domain, #uce_event{id=Id,
 
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list) -> ok::atom
+%% @spec (Domain) -> ok::list
 %% @doc Create index for uce_event collection in database 
 %% @end
 %%--------------------------------------------------------------------

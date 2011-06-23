@@ -27,10 +27,8 @@
 -include("mongodb.hrl").
 
 create_indexes(Domain) ->
-    lists:foreach(fun(Module) ->
-                     Module:index(Domain)
-                  end,
-                  [uce_event, uce_presence, uce_user, uce_role]).
+    Modules = [uce_event_mongodb, uce_presence_mongodb, uce_user_mongodb, uce_role_mongodb],
+    [ Module:index(Domain) || Module <- Modules].
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, MongoPoolInfos::list) -> any()
