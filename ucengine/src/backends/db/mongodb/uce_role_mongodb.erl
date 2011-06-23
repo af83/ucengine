@@ -24,7 +24,8 @@
 -export([add/2,
          delete/2,
          update/2,
-         get/2]).
+         get/2,
+         index/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -71,3 +72,13 @@ to_collection(Domain, #uce_role{id=Name,
      {"acl", [[Object, Action, Conditions] || #uce_access{object=Object,
                                                           action=Action,
                                                           conditions=Conditions} <- ACL]}].
+
+%%--------------------------------------------------------------------
+%% @spec (Domain::list) -> ok::atom
+%% @doc Create index for uce_role collection in database 
+%% @end
+%%--------------------------------------------------------------------
+index(Domain) ->
+    Indexes = [{"name", 1}, {"domain", 1}],
+    emongo:ensure_index(Domain, "uce_role", Indexes),
+    ok.

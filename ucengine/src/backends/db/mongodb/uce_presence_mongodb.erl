@@ -26,7 +26,7 @@
          delete/2,
          update/2,
          all/1,
-         get_indexes/0]).
+         index/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -130,10 +130,11 @@ to_collection(Domain, #uce_presence{id=Id,
      {"metadata", Metadata}].
 
 %%--------------------------------------------------------------------
-%% @spec () -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Indexes::list
-%% @doc Return keys of #uce_presence{} record to use in index
+%% @spec (Domain::list) -> ok::atom
+%% @doc Create index for uce_presence collection in database 
 %% @end
 %%--------------------------------------------------------------------
-get_indexes() ->
-    [{"id", 1},
-     {"domain", 1}].
+index(Domain) ->
+    Indexes = [{"id", 1}, {"domain", 1}],
+    emongo:ensure_index(Domain, "uce_presence", Indexes),
+    ok.

@@ -24,7 +24,7 @@
 -export([add/2,
          get/2,
          list/8,
-         get_indexes/0]).
+         index/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -152,12 +152,14 @@ to_collection(Domain, #uce_event{id=Id,
 
 
 %%--------------------------------------------------------------------
-%% @spec () -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Indexes::list
-%% @doc Return keys of #uce_event{} record to use in index
+%% @spec (Domain) -> ok::list
+%% @doc Create index for uce_event collection in database 
 %% @end
 %%--------------------------------------------------------------------
-get_indexes() ->
-    [{"domain", 1},
-     {"datetime", 1},
-     {"type", 1}].
+index(Domain) ->
+    Indexes = [{"domain", 1},
+               {"datetime", 1},
+               {"type", 1}],
+    emongo:ensure_index(Domain, "uce_event", Indexes),
+    ok.
 

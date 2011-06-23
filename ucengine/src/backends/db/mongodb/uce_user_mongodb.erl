@@ -26,7 +26,8 @@
          update/2,
          list/1,
          get/2,
-         get_by_name/2]).
+         get_by_name/2,
+         index/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
@@ -134,3 +135,16 @@ to_collection(Domain, #uce_user{id=Id,
      {"credential", Credential},
      {"metadata", Metadata},
      {"roles", [[Role, Location] || {Role, Location} <- Roles]}].
+
+%%--------------------------------------------------------------------
+%% @spec (Domain::list) -> ok::atom
+%% @doc Create index for uce_user collection in database 
+%% @end
+%%--------------------------------------------------------------------
+index(Domain) ->
+    Indexes = [
+                [{"id", 1}, {"domain", 1}],
+                [{"name", 1}, {"domain", 1}]
+              ],
+    [emongo:ensure_index(Domain, "uce_user", Index) || Index <- Indexes],
+    ok.
