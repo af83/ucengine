@@ -23,21 +23,21 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_event{id={none, Domain}}=Event) ->
-    add(Domain, Event#uce_event{id={utils:random(), Domain}});
+add(Domain, #uce_event{id=none}=Event) ->
+    add(Domain, Event#uce_event{id=utils:random()});
 add(Domain, #uce_event{datetime=undefined}=Event) ->
     add(Domain, Event#uce_event{datetime=utils:now()});
-add(Domain, #uce_event{location={Location, Domain}, from=From, to=To, parent=Parent} = Event) ->
+add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Event) ->
     LocationExists = uce_meeting:exists(Domain, Location),
     FromExists = uce_user:exists(Domain, From),
     ToExists = uce_user:exists(Domain, To),
-    ParentExists = uce_event:exists(Domain, {Parent, Domain}),
+    ParentExists = uce_event:exists(Domain, Parent),
 
     case {LocationExists, FromExists, ToExists, ParentExists} of
         {true, true, true, true} ->
             {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
-            ?PUBSUB_MODULE:publish(Event),
-            ?SEARCH_MODULE:add(Event),
+            ?PUBSUB_MODULE:publish(Domain, Event),
+            ?SEARCH_MODULE:add(Domain, Event),
             ?COUNTER("event_add:" ++ Event#uce_event.type),
             {ok, Id};
         _ ->% [TODO] throw the missing exist
@@ -47,30 +47,26 @@ add(Domain, #uce_event{location={Location, Domain}, from=From, to=To, parent=Par
 get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
+exists(_Domain, "") ->
+    true;
 exists(Domain, Id) ->
-    case Id of
-        {"", _Domain} -> true;
+    case catch get(Domain, Id) of
+        {error, not_found} ->
+            false;
+        {error, Reason} ->
+            throw({error, Reason});
         _ ->
-            case catch get(Domain, Id) of
-                {error, not_found} ->
-                   false;
-                {error, Reason} ->
-                    throw({error, Reason});
-                _ ->
-                    true
-            end
+            true
     end.
 
-filter_private(Events, {Name, Domain}) ->
+filter_private(Events, Name) ->
     lists:filter(fun(#uce_event{to=To, from=From}) ->
                          if
-                             To == {"", ""} ->     % all
+                             To == "" ->     % all
                                  true;
-                             To == {"", Domain} -> % all
+                             To == Name ->
                                  true;
-                             To == {Name, Domain} ->
-                                 true;
-                             From == {Name, Domain} ->
+                             From == Name ->
                                  true;
                              true ->
                                  false

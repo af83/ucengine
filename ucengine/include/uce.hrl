@@ -1,14 +1,14 @@
 -record(uce_event, {
-          %% {eventid, Domain}
-          id = {none, none},
+          %% eventid
+          id = none,
           %% date (ms from epoch)
           datetime = undefined,
           %% location = [Meeting]
-          location = {"", ""},
+          location = "",
           %% From: uid|brick
           from,
           %% To : string
-          to = {"", ""},
+          to = "",
           %% Type event : string
           type,
           %% parent id
@@ -36,7 +36,7 @@
 
 -record(uce_meeting, {
           %% uce meeting id
-          id = {"", ""},
+          id = none,
           %% start_date and end_date format : ms since epoch
           start_date = none,
           end_date = none,

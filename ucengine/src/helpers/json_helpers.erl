@@ -72,8 +72,6 @@ false(Domain) ->
 created(Domain) ->
     format_response(201, add_cors_headers(Domain), {struct, [{result, created}]}).
 
-created(Domain, {Elmt1, _}) ->
-    format_response(201, add_cors_headers(Domain), {struct, [{result, Elmt1}]});
 created(Domain, Id) ->
     format_response(201, add_cors_headers(Domain), {struct, [{result, Id}]}).
 

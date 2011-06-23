@@ -38,47 +38,49 @@ init() ->
         {aborted, {already_exists, uce_event}} -> ok
     end.
 
-add(_Domain, #uce_event{} = Event) ->
-    case mnesia:dirty_write(Event) of
+add(Domain, #uce_event{id=Id} = Event) ->
+    case mnesia:dirty_write(Event#uce_event{id={Id, Domain}}) of
         ok ->
-            {ok, Event#uce_event.id};
+            {ok, Id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
-    case mnesia:dirty_read(uce_event, Id) of
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_event, {Id, Domain}) of
         {aborted, _} ->
             throw({error, bad_parameters});
         [] ->
             throw({error, not_found});
         [Event] ->
-            {ok, Event}
+            {ok, remove_domain_from_id(Event)}
     end.
 
 list(Domain, Location, From, [], Start, End, Parent, Order) ->
     list(Domain, Location, From, [""], Start, End, Parent, Order);
 list(Domain, Location, From, Types, Start, End, Parent, Order) ->
+    {SelectId, ResultId} = {{'$1', Domain}, {{'$1', Domain}}},
     {SelectLocation, ResultLocation} =
         case Location of
-            {"", Domain} ->
-                {{'$3', Domain}, {{'$3', Domain}}};
+            "" ->
+                {'$3', '$3'};
             _ ->
-                {Location, {Location}}
+                {Location, Location}
         end,
     {SelectFrom, ResultFrom} =
         case From of
-            {"", Domain} ->
+            "" ->
                 {'$4', '$4'};
             _ ->
-                {From, {From}}
+                {From, From}
         end,
-    SelectParent = if
-                       Parent == "" ->
-                           '$7';
-                       true ->
-                           Parent
-                   end,
+    SelectParent =
+        case Parent of
+            "" ->
+                '$7';
+            _ ->
+                Parent
+        end,
     Guard = if
                 Start /= 0, End /= infinity ->
                     [{'>=', '$2', Start}, {'=<', '$2', End}];
@@ -102,7 +104,7 @@ list(Domain, Location, From, Types, Start, End, Parent, Order) ->
                                                Type
                                        end,
 
-                          Match = #uce_event{id='$1',
+                          Match = #uce_event{id=SelectId,
                                              datetime='$2',
                                              location=SelectLocation,
                                              from=SelectFrom,
@@ -110,14 +112,17 @@ list(Domain, Location, From, Types, Start, End, Parent, Order) ->
                                              type=SelectType,
                                              parent=SelectParent,
                                              metadata='$8'},
-                          Result = {{'uce_event', '$1', '$2', ResultLocation,
+                          Result = {{'uce_event', ResultId, '$2', ResultLocation,
                                      ResultFrom, '$5', SelectType, SelectParent, '$8'}},
                           mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])
                   end,
                   Types),
     %% XXX: mnesia should be able to sort events
     OrderedEvents = event_helpers:sort(lists:flatten(Events), Order),
-    {ok, OrderedEvents}.
+    {ok, remove_domain_from_id(OrderedEvents)}.
 
 drop() ->
     mnesia:clear_table(uce_event).
+
+remove_domain_from_id(Events) ->
+    ?REMOVE_ID_FROM_RECORD(Events, uce_event).

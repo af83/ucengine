@@ -19,11 +19,12 @@
 
 -author('victor.goya@af83.com').
 
--export([add/1, list/11]).
+-export([add/2, list/11]).
 
 -include("uce.hrl").
 
-add(_) ->
+%% It is not needed to index something here
+add(_, _) ->
     {ok, created}.
 
 search_value(_, []) ->

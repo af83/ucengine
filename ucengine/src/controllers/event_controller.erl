@@ -66,11 +66,11 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
             throw({error, unauthorized});
         _OtherEvent ->
             {ok, Id} = uce_event:add(Domain,
-                                     #uce_event{id={none, Domain},
-                                                location={Meeting, Domain},
-                                                from={Uid, Domain},
+                                     #uce_event{id=none,
+                                                location=Meeting,
+                                                from=Uid,
                                                 type=Type,
-                                                to={To, Domain},
+                                                to=To,
                                                 parent=Parent,
                                                 metadata=Metadata}),
             json_helpers:created(Domain, Id)
@@ -79,12 +79,12 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
 get(Domain, [_, Id], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "event", "get", [{"id", Id}]),
-    {ok, #uce_event{to=To} = Event} = uce_event:get(Domain, {Id, Domain}),
+    {ok, #uce_event{to=To} = Event} = uce_event:get(Domain, Id),
     case To of
-        {"", _} ->
-            json_helpers:json(Domain, event_helpers:to_json(Event));
-        {Uid, Domain} ->
-            json_helpers:json(Domain, event_helpers:to_json(Event));
+        "" ->
+            json_helpers:json(Domain, event_helpers:to_json(Domain, Event));
+        Uid ->
+            json_helpers:json(Domain, event_helpers:to_json(Domain, Event));
         _ ->
             throw({error, unauthorized})
     end.
@@ -102,11 +102,11 @@ list(Domain, [Meeting],
 
     Start = uce_paginate:index(Count, 0, Page),
     case uce_event:list(Domain,
-                        {Meeting, Domain},
+                        Meeting,
                         Keywords,
-                        {From, Domain},
+                        From,
                         Types,
-                        {Uid, Domain},
+                        Uid,
                         DateStart,
                         DateEnd,
                         Parent,
@@ -116,19 +116,19 @@ list(Domain, [Meeting],
         {ok, []} ->
             case Async of
                 "no" ->
-                    json_helpers:json(Domain, event_helpers:to_json([]));
+                    json_helpers:json(Domain, event_helpers:to_json(Domain, []));
                 "lp" ->
                     uce_async_lp:wait(Domain,
-                                      {Meeting, Domain},
+                                      Meeting,
                                       Keywords,
-                                      {From, Domain},
+                                      From,
                                       Types,
-                                      {Uid, Domain},
+                                      Uid,
                                       DateStart,
                                       DateEnd,
                                       Parent);
                 _ ->
                     {error, bad_parameters}
             end;
-        {ok, Events} -> json_helpers:json(Domain, event_helpers:to_json(Events))
+        {ok, Events} -> json_helpers:json(Domain, event_helpers:to_json(Domain, Events))
     end.

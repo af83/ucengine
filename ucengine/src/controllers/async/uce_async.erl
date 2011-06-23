@@ -24,7 +24,7 @@
 -include("uce.hrl").
 
 listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
-    ?PUBSUB_MODULE:subscribe(self(), Location, Search, From, Types, Uid, Start, End, Parent),
+    ?PUBSUB_MODULE:subscribe(self(), Domain, Location, Search, From, Types, Uid, Start, End, Parent),
     Res = receive
               % TODO: filter messages in _Message according to the request criterias.
               % For now _Message is ignored and the whole thing is used as a
@@ -44,7 +44,7 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
                                                 asc),
                   JSONEvents = mochijson:encode({struct,
                                                  [{result,
-                                                   event_helpers:to_json(Events)}]}),
+                                                   event_helpers:to_json(Domain, Events)}]}),
                   {ok, JSONEvents};
               Other ->
                   ?WARNING_MSG("unattended message ~p", [Other]),

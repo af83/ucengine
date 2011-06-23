@@ -87,9 +87,9 @@ add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
                                                credential=Credential,
                                                metadata=Metadata}),
 
-    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
-                                               from={UId, Domain},
-                                               location={"", Domain},
+    {ok, _} = uce_event:add(Domain, #uce_event{id=none,
+                                               from=UId,
+                                               location="",
                                                type="internal.user.add"}),
 
     json_helpers:created(Domain, UId).
@@ -117,9 +117,9 @@ update(Domain, [Id], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
                                                             metadata=Metadata}),
 
     {ok, _} = uce_event:add(Domain,
-                            #uce_event{id={none, Domain},
-                                       from={Id, Domain},
-                                       location={"", Domain},
+                            #uce_event{id=none,
+                                       from=Id,
+                                       location="",
                                        type="internal.user.update"}),
 
     json_helpers:ok(Domain).
@@ -151,9 +151,9 @@ add_role(Domain, [Name], [Uid, Sid, Role, Location], _) ->
                                                                                {"role", Role}]),
     {ok, updated} = uce_user:add_role(Domain, Name, {Role, Location}),
     {ok, _} = uce_event:add(Domain,
-                            #uce_event{id={none, Domain},
-                                       from={Uid, Domain},
-                                       location={Location, Domain},
+                            #uce_event{id=none,
+                                       from=Uid,
+                                       location=Location,
                                        type="internal.user.role.add",
                                        metadata=[{"role", Role},
                                                  {"user", Name}]}),
@@ -167,9 +167,9 @@ delete_role(Domain, [User, Role, Location], [Uid, Sid], _Arg) ->
                                                                                   {"role", Role}]),
     {ok, updated} = uce_user:delete_role(Domain, User, {Role, Location}),
     {ok, _} = uce_event:add(Domain,
-                            #uce_event{id={none, Domain},
-                                       from={Uid, Domain},
-                                       location={Location, Domain},
+                            #uce_event{id=none,
+                                       from=Uid,
+                                       location=Location,
                                        type="internal.user.role.delete",
                                        metadata=[{"role", Role},
                                                  {"user", User}]}),

@@ -68,15 +68,10 @@ get(Domain, User) ->
 get_by_name(Domain, Name) ->
     (db:get(?MODULE, Domain)):get_by_name(Domain, Name).
 
+% "" value are used in uce_event:add
+% From or To can be empty
 exists(_Domain, "") ->
     true;
-%%
-%% TODO: remove this after refacto
-%%
-exists(_Domain, {"", ""}) ->
-    true;
-exists(Domain, {Id, Domain}) ->
-    exists(Domain, Id);
 exists(Domain, Id) ->
     case catch get(Domain, Id) of
         {error, not_found} ->

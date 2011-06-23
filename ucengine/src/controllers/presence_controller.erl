@@ -51,9 +51,9 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                                auth=User#uce_user.auth,
                                                metadata=Metadata}),
     {ok, _} = uce_event:add(Domain,
-                            #uce_event{id={none, Domain},
-                                       from={User#uce_user.id, Domain},
-                                       location={"", Domain},
+                            #uce_event{id=none,
+                                       from=User#uce_user.id,
+                                       location="",
                                        type="internal.presence.add"}),
     json_helpers:json(Domain, 201, {struct, [{uid, Uid}, {sid, Sid}]}).
 

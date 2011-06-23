@@ -34,17 +34,17 @@
 %% @doc Insert given record #uce_event{} in uce_event mongodb table
 %% @end
 %%--------------------------------------------------------------------
-add(Domain, #uce_event{} = Event) ->
-    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_event", to_collection(Event))),
-    {ok, Event#uce_event.id}.
+add(Domain, #uce_event{id=Id} = Event) ->
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_event", to_collection(Domain, Event))),
+    {ok, Id}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {EventId::list, EventDomain::list}) -> {ok, #uce_event{}} | {error, bad_parameters}
+%% @spec (Domain::list, EventId::list) -> {ok, #uce_event{}} | {error, bad_parameters}
 %% @doc Retrieve record #uce_event{} for the given id and domain
 %% @end
 %%--------------------------------------------------------------------
-get(Domain, {EventId, EventDomain}) ->
-    case emongo:find_one(Domain, "uce_event", [{"id", EventId}, {"domain", EventDomain}]) of
+get(Domain, EventId) ->
+    case emongo:find_one(Domain, "uce_event", [{"id", EventId}, {"domain", Domain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->
@@ -52,21 +52,21 @@ get(Domain, {EventId, EventDomain}) ->
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {list, Domain::list} = location, {FromId::list, FromDomain::list} = From::tuple, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list, Order::atom) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list}
+%% @spec (Domain::list, location::list, FromId::list, Type::list, Start::(integer|atom), End::({integer|atom), Parent::list, Order::atom) -> {ok, [#uce_event{}, #uce_event{}, ...] = Events::list}
 %% @doc Returns list of record #uce_event which are match with given keys
 %% @end
 %%--------------------------------------------------------------------
 list(Domain, Location, From, Type, Start, End, Parent, Order) ->
     SelectLocation = case Location of
-                         {"", Domain} ->
+                         "" ->
                              [];
-                         {Meeting, Domain} ->
+                         Meeting ->
                              [{"meeting", Meeting}]
                      end,
     SelectFrom = case From of
-                     {"", _} ->
+                     "" ->
                          [];
-                     {Uid, _} ->
+                     Uid ->
                          [{"from", Uid}]
                  end,
     SelectTypes = if
@@ -114,12 +114,12 @@ list(Domain, Location, From, Type, Start, End, Parent, Order) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
               ["id", "domain", "meeting", "from", "metadata", "datetime", "type", "parent", "to"]) of
-        [Id, Domain, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
-            #uce_event{id={Id, Domain},
+        [Id, _Domain, Meeting, From, Metadata, Datetime, Type, Parent, To] ->
+            #uce_event{id=Id,
                        datetime=Datetime,
-                       from={From, Domain},
-                       to={To, Domain},
-                       location={Meeting, Domain},
+                       from=From,
+                       to=To,
+                       location=Meeting,
                        type=Type,
                        parent=Parent,
                        metadata=Metadata};
@@ -132,14 +132,14 @@ from_collection(Collection) ->
 %% @doc Convert #uce_event{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
-to_collection(#uce_event{id={Id, Domain},
-                         location={Meeting, _},
-                         from={From, _},
-                         to={To, _},
-                         metadata=Metadata,
-                         datetime=Datetime,
-                         type=Type,
-                         parent=Parent}) ->
+to_collection(Domain, #uce_event{id=Id,
+                                 location=Meeting,
+                                 from=From,
+                                 to=To,
+                                 metadata=Metadata,
+                                 datetime=Datetime,
+                                 type=Type,
+                                 parent=Parent}) ->
     [{"domain", Domain},
      {"id", Id},
      {"meeting", Meeting},

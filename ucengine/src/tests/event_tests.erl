@@ -29,22 +29,22 @@ setup_events(Domain) ->
     {ok, User3} = uce_user:get_by_name(Domain, "user_3"),
 
     uce_event:add(Domain,
-                  #uce_event{ id={none, Domain},
+                  #uce_event{ id=none,
                               type="test_event_1",
-                              location={"testmeeting", Domain},
-                              from={Participant#uce_user.id, Domain}}),
+                              location="testmeeting",
+                              from=Participant#uce_user.id}),
     timer:sleep(10),
     uce_event:add(Domain,
-                  #uce_event{ id={none, Domain},
+                  #uce_event{ id=none,
                               type="test_event_2",
-                              location={"testmeeting", Domain},
-                              from={User2#uce_user.id, Domain}}),
+                              location="testmeeting",
+                              from=User2#uce_user.id}),
     timer:sleep(10),
     uce_event:add(Domain,
-                  #uce_event{ id={none, Domain},
+                  #uce_event{ id=none,
                               type="test_event_3",
-                              location={"testmeeting", Domain},
-                              from={User3#uce_user.id, Domain},
+                              location="testmeeting",
+                              from=User3#uce_user.id,
                               metadata=[{"description", "test"}]}),
     ok.
 
@@ -72,9 +72,10 @@ event_test_() ->
                  ?_test(test_push_not_found_to(BaseUrl, Root)),
 
                  ?_test(test_get(BaseUrl, Root)),
+                 ?_test(test_get_without_meeting(BaseUrl, Root)),
                  ?_test(test_get_with_keywords(BaseUrl, Root)),
                  ?_test(test_get_with_keywords_without_meeting(BaseUrl, Root)),
-                 ?_test(test_get_with_keywords_with_from(BaseUrl, Root)),
+                 ?_test(test_get_with_keywords_with_from(BaseUrl, Root, Participant)),
                  ?_test(test_get_with_keywords_in_metadata(BaseUrl, Root)),
                  ?_test(test_get_with_keywords_and_timestart_and_timeend(BaseUrl, Root)),
                  ?_test(test_get_with_type(BaseUrl, Root)),
@@ -311,7 +312,51 @@ test_get(BaseUrl, {RootUid, RootSid}) ->
                                      ]}|_]
                          }}]}, tests_utils:get(BaseUrl, "/event/testmeeting", Params)).
 
-test_get_with_keywords(BaseUrl, {RootUid, RootSid}) ->
+test_get_without_meeting(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"type", "non_global_event"},
+              {"metadata[description]", "plop2"}],
+    {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+
+    Params2 = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"type", "global_event"},
+              {"metadata[description]", "plop"}],
+    {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event", Params2),
+
+    timer:sleep(1000),
+
+    ParamsGet = [{"uid", RootUid},
+                 {"sid", RootSid},
+                 {"order", "desc"},
+                 {"count", "1"}],
+    ?assertMatch({struct, [{"result", {array,
+                          [{struct, [{"type", "global_event"}
+                                     , {"domain", _}
+                                     , {"datetime", _}
+                                     , {"id", _}
+                                     , {"from", RootUid}
+                                     , {"metadata", {struct, [{"description", "plop"}]}}
+                                    ]}]}}]},
+                 tests_utils:get(BaseUrl, "/event/", ParamsGet)),
+
+    ParamsGetMeeting = [{"uid", RootUid},
+                        {"sid", RootSid},
+                        {"order", "desc"},
+                        {"count", "1"}],
+    ?assertMatch({struct, [{"result", {array,
+                          [{struct, [{"type", "non_global_event"}
+                                     , {"domain", _}
+                                     , {"datetime", _}
+                                     , {"id", _}
+                                     , {"location", "testmeeting"}
+                                     , {"from", RootUid}
+                                     , {"metadata", {struct, [{"description", "plop2"}]}}
+                                    ]}]}}]},
+                 tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGetMeeting)).
+
+test_get_with_keywords(BaseUrl,  {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"type", "search_event"},
@@ -356,12 +401,18 @@ test_get_with_keywords_without_meeting(BaseUrl, {RootUid, RootSid}) ->
                                      , {"metadata", {struct, [{"description", "lonely hungry event"}]}}
                                     ]}]}}]}, tests_utils:get(BaseUrl, "/event/", ParamsGet)).
 
-test_get_with_keywords_with_from(BaseUrl, {RootUid, RootSid}) ->
+test_get_with_keywords_with_from(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
-              {"type", "search_event"},
+              {"type", "search_event_test_from"},
               {"metadata[description]", "lonely event"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+
+    Params2 = [{"uid", ParticipantUid},
+              {"sid", ParticipantSid},
+              {"type", "search_event_test_from"},
+              {"metadata[description]", "lonely event"}],
+    {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params2),
 
     timer:sleep(1000),
 
@@ -369,9 +420,10 @@ test_get_with_keywords_with_from(BaseUrl, {RootUid, RootSid}) ->
                  {"sid", RootSid},
                  {"from", RootUid},
                  {"search", "lonely"},
+                 {"order", "desc"},
                  {"count", "1"}],
     ?assertMatch({struct, [{"result", {array,
-                          [{struct, [{"type", "search_event"}
+                          [{struct, [{"type", "search_event_test_from"}
                                      , {"domain", _}
                                      , {"datetime", _}
                                      , {"id", _}

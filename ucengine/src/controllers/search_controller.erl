@@ -75,11 +75,11 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
 
     Start = uce_paginate:index(Count, StartIndex, StartPage),
     {ok, NumTotal, Events} = uce_event:search(Domain,
-                                              {Location, Domain},
+                                              Location,
                                               Keywords,
-                                              {From, Domain},
+                                              From,
                                               string:tokens(Type, ","),
-                                              {Uid, Domain},
+                                              Uid,
                                               list_to_integer(DateStart),
                                               DateEndInt,
                                               Parent,
@@ -90,7 +90,7 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
     {abs_path, Path} = Arg#arg.req#http_request.path,
     Link = lists:concat(["http://", Arg#arg.headers#headers.host, Path]),
 
-    Entries = event_helpers:to_json(Events),
+    Entries = event_helpers:to_json(Domain, Events),
     Feed = {struct, [{'link', Link},
                      {'totalResults', NumTotal},
                      {'startIndex', StartIndex},

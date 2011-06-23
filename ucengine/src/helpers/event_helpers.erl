@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([sort/1, sort/2, to_json/1, from_json/1]).
+-export([sort/1, sort/2, to_json/2]).
 
 sort(Events) ->
     sort(Events, asc).
@@ -36,25 +36,25 @@ sort(Events, desc) ->
                end,
                Events).
 
-to_json(#uce_event{id={Id, Domain},
-                   datetime=Datetime,
-                   location=Location,
-                   from={From, _},
-                   type=Type,
-                   to=To,
-                   parent=Parent,
-                   metadata=Metadata}) ->
+to_json(Domain, #uce_event{id=Id,
+                           datetime=Datetime,
+                           location=Location,
+                           from=From,
+                           type=Type,
+                           to=To,
+                           parent=Parent,
+                           metadata=Metadata}) ->
     JSONTo = case To of
-                 {"", _} ->
+                 "" ->
                      [];
-                 {ToId, _} ->
+                 ToId ->
                      [{to, ToId}]
              end,
 
     JSONLocation = case Location of
-                       {"", _} ->
+                       "" ->
                            [];
-                       {Meeting, Domain} ->
+                       Meeting ->
                            [{location, Meeting}]
                    end,
     JSONParent = case Parent of
@@ -74,21 +74,6 @@ to_json(#uce_event{id={Id, Domain},
          JSONParent ++
          [{metadata, {struct, Metadata}}]};
 
-to_json(Events)
+to_json(Domain, Events)
   when is_list(Events) ->
-    {array, [to_json(Event) || Event <- Events]}.
-
-from_json({struct, Event}) ->
-    case utils:get(Event, ["id", "datetime", "from", "meeting", "type", "parent", "metadata"]) of
-        {error, Reason} ->
-            {error, Reason};
-        [Id, Datetime, From, Meeting, Type, Parent, {struct, Metadata}] ->
-            {_, Domain} = Meeting,
-            #uce_event{id={Id, Domain},
-                       datetime=Datetime,
-                       from=From,
-                       location=Meeting,
-                       type=Type,
-                       parent=Parent,
-                       metadata=Metadata}
-    end.
+    {array, [to_json(Domain, Event) || Event <- Events]}.

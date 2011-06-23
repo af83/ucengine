@@ -80,9 +80,9 @@ add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
                                                  start_date=Start,
                                                  end_date=End,
                                                  metadata=Metadata}),
-    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
-                                               from={Uid, Domain},
-                                               location={"", Domain},
+    {ok, _} = uce_event:add(Domain, #uce_event{id=none,
+                                               from=Uid,
+                                               location="",
                                                type="internal.meeting.add"}),
     json_helpers:created(Domain).
 
@@ -108,9 +108,9 @@ update(Domain, [Name], [Uid, Sid, Start, End, Metadata], _) ->
                                                     end_date=End,
                                                     roster=Meeting#uce_meeting.roster,
                                                     metadata=Metadata}),
-    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
-                                               from={Uid, Domain},
-                                               location={Name, Domain},
+    {ok, _} = uce_event:add(Domain, #uce_event{id=none,
+                                               from=Uid,
+                                               location=Name,
                                                type="internal.meeting.update"}),
     json_helpers:ok(Domain).
 
@@ -118,12 +118,12 @@ join(Domain, [Name], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "add"),
     {ok, updated} = uce_meeting:join(Domain, Name, Uid),
-    uce_presence:join(Domain, Sid, {Name, Domain}),
+    uce_presence:join(Domain, Sid, Name),
     {ok, _} = uce_event:add(Domain,
-                            #uce_event{id={none, Domain},
+                            #uce_event{id=none,
                                        type="internal.roster.add",
-                                       location={Name, Domain},
-                                       from={Uid, Domain}}),
+                                       location=Name,
+                                       from=Uid}),
     json_helpers:ok(Domain).
 
 %% TODO : Incomplete Sid must be ToSid
@@ -131,12 +131,12 @@ leave(Domain, [Name, User], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "delete"),
     {ok, updated} = uce_meeting:leave(Domain, Name, User),
-    uce_presence:leave(Domain, Sid, {Name, Domain}),
+    uce_presence:leave(Domain, Sid, Name),
     {ok, _} = uce_event:add(Domain,
-                            #uce_event{id={none, Domain},
+                            #uce_event{id=none,
                                        type="internal.roster.delete",
-                                       location={Name, Domain},
-                                       from={User, Domain}}),
+                                       location=Name,
+                                       from=User}),
     json_helpers:ok(Domain).
 
 roster(Domain, [Name], [Uid, Sid], _) ->
