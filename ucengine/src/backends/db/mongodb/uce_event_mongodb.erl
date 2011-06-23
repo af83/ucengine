@@ -154,7 +154,7 @@ to_collection(#uce_event{id={Id, Domain},
 
 %%--------------------------------------------------------------------
 %% @spec () -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Indexes::list
-%% @doc Convert #uce_event{} record to valid collection
+%% @doc Return keys of #uce_event{} record to use in index
 %% @end
 %%--------------------------------------------------------------------
 get_indexes() ->
