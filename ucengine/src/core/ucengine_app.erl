@@ -54,6 +54,7 @@ start(_, _) ->
 setup() ->
     save_pid(),
     setup_search(),
+    setup_routes(),
     setup_server(),
     ok.
 
@@ -71,6 +72,9 @@ setup_search() ->
         _ ->
             []
     end.
+
+setup_routes() ->
+    routes:init().
 
 setup_server() ->
     [{DefaultHost, _Config}|Hosts] = config:get(hosts),

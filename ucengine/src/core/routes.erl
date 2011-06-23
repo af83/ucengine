@@ -17,52 +17,19 @@
 %%
 -module(routes).
 
--behaviour(gen_server).
-
--author('victor.goya@af83.com').
-
 -include("uce.hrl").
 
--export([start_link/0,
-         get/2,
-         list/0]).
+-export([init/0,
+         get/2]).
 
--export([init/1,
-         code_change/3,
-         handle_call/3,
-         handle_cast/2,
-         handle_info/2,
-         terminate/2]).
-
-start_link() ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+init() ->
+    Routes = setup_routes(),
+    TableId = ets:new(uce_routes, [bag, public, named_table]),
+    [ets:insert(TableId, Route) || Route <- Routes],
+    ok.
 
 get(Method, Path) ->
-    gen_server:call(?MODULE, {get, Method, Path}).
-
-list() ->
-    gen_server:call(?MODULE, list).
-
-init([]) ->
-    ?DEBUG("routes ~p~n", [setup_routes()]),
-    {ok, setup_routes()}.
-
-handle_call({get, Method, Path}, _From, Routes) ->
-    {reply, route(Method, Path, Routes), Routes};
-handle_call(list, _From, Routes) ->
-    {reply, lists:keysort(1, Routes), Routes}.
-
-handle_cast(_Request, Routes) ->
-    {noreply, Routes}.
-
-code_change(_,State,_) ->
-    {ok, State}.
-
-handle_info(_Info, State) ->
-    {reply, State}.
-
-terminate(_Reason, _State) ->
-    ok.
+    route(Method, Path, ets:tab2list(uce_routes)).
 
 route(_, _, []) ->
     {error, not_found};
