@@ -142,6 +142,9 @@ to_collection(Domain, #uce_user{id=Id,
 %% @end
 %%--------------------------------------------------------------------
 index(Domain) ->
-    Indexes = [{"id", 1}, {"name", 1}, {"domain", 1}],
-    emongo:ensure_index(Domain, "uce_user", Indexes),
+    Indexes = [
+                [{"id", 1}, {"domain", 1}],
+                [{"name", 1}, {"domain", 1}]
+              ],
+    [emongo:ensure_index(Domain, "uce_user", Index) || Index <- Indexes],
     ok.
