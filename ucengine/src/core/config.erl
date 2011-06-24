@@ -61,6 +61,7 @@ get(Key) ->
     get(global, Key).
 
 get(Domain, Key) ->
+    ?COUNTER(lists:flatten(io_lib:format("getKey:~s", [Domain]))),
     gen_server:call(?MODULE, {get, Domain, Key}).
 
 init([UCEConfig]) ->
