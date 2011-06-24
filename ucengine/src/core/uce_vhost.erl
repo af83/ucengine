@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([name/1, start_link/1]).
+-export([start_link/1]).
 
 -export([init/1,
          code_change/3,
@@ -30,11 +30,8 @@
          handle_info/2,
          terminate/2]).
 
-name(Domain) ->
-    list_to_atom(lists:concat([?MODULE, "_", Domain])).
-
 start_link(Domain) ->
-    gen_server:start_link({local, name(Domain)}, ?MODULE, [Domain], []).
+    gen_server:start_link(?MODULE, [Domain], []).
 
 %%
 %% gen_server callbacks
@@ -144,16 +141,3 @@ setup_admin(Domain) ->
                                       auth=Auth,
                                       credential=Credential,
                                       metadata=Metadata}).
-
-%%
-%% Tests
-%%
-
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
-
-name_test() ->
-    ?assertEqual(uce_vhost_localhost, name(localhost)),
-    ?assertEqual('uce_vhost_example.com', name('example.com')).
-
--endif.

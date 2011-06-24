@@ -33,7 +33,7 @@
          terminate/2]).
 
 start_link(Domain) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [Domain], []).
+    gen_server:start_link(?MODULE, [Domain], []).
 
 init([Domain]) ->
     gen_server:cast(?MODULE, run),
