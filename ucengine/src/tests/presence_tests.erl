@@ -133,10 +133,8 @@ test_presence_close_not_foundsid(BaseUrl) ->
     {struct, [{"error", "not_found"}]} =
         tests_utils:delete(BaseUrl, "/presence/unexistentsid", ParamsDelete).
 
-%% XXX: Timeout related tests can fail due to the config file.
-%% Should we have a dedicated config file for the tests?
 test_presence_timeout(BaseUrl) ->
-    DefaultTimeout = 1,
+    DefaultTimeout = config:get(timeout_refresh),
     Params = [{"name", "participant.user@af83.com"},
               {"timeout", integer_to_list(DefaultTimeout)},
               {"credential", "pwd"}],
@@ -147,4 +145,4 @@ test_presence_timeout(BaseUrl) ->
     ParamsDelete = [{"uid", Uid},
                     {"sid", Sid}],
     {struct, [{"error", "not_found"}]} =
-        tests_utils:delete(BaseUrl, "/presence/" ++ Sid, ParamsDelete).
+        tests_utils:get(BaseUrl, "/presence/" ++ Sid, ParamsDelete).
