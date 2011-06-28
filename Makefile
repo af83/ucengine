@@ -49,11 +49,11 @@ dialyze: compile
 ###############################################################################
 
 bench:
-	mkdir -p ebin/
-	erlc -o ebin/ tsung/tsung_utils.erl
-	mkdir -p benchmarks/results
-	./utils/benchmark $(SCENARIO)
-	rm -rf ebin
+	@mkdir -p benchmarks/ebin/
+	@erlc -o benchmarks/ebin/ benchmarks/tsung_utils.erl
+	@mkdir -p benchmarks/results
+	@./utils/benchmark $(SCENARIO)
+	@rm -rf benchmarks/ebin
 
 ###############################################################################
 # Cleanup

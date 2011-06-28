@@ -3,9 +3,23 @@
 TSUNG_PATH=$(which tsung)
 TSUNG_SHARE_PATH=$(dirname $TSUNG_PATH)"/.."
 
-cp "benchmarks/scenarii/$1.xml" benchmarks/results
+if [ -z $1 ];
+then
+    echo "Please provide a scenario name"
+    exit 1
+fi
+
+SCENARII_FILE=benchmarks/results/$1.xml
+
+if [ ! -f $SCENARII_FILE ];
+then
+    echo "Scenario file doesn't exists"
+    exit 1
+fi
+
+cp $SCENARII_FILE benchmarks/results
 sed -i "s=TSUNG_SHARE_PATH=$TSUNG_SHARE_PATH=" "benchmarks/results/$1.xml"
-ERL_LIBS="." tsung -f "benchmarks/results/$1.xml" -l "benchmarks/results/$1.log" start
+ERL_LIBS="benchmarks" tsung -f $SCENARII_FILE -l "benchmarks/results/$1.log" start
 
 LAST_BENCH=$(pwd)/$(find  benchmarks/results -name "20*" -type d | sort -r | head -1)
 
