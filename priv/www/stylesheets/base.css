@@ -1,0 +1,94 @@
+/* Resets */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, sub, sup, tt, var, dl, dt, dd, ol, ul, li, fieldset, form, label, legend, table, caption, tbody, tfoot, thead, tr, th, td {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    font-weight: inherit;
+    font-style: inherit;
+    font-size: 100%;
+    font-family: inherit;
+    text-decoration: none;
+    vertical-align: baseline;
+}
+.page {
+    clear: both;
+    width: 980px;
+    margin: 0 auto;
+    padding: 0;
+}
+
+/* Tell the browser to render HTML 5 elements as block */
+header, footer, aside, nav, article, section, #content {
+    display: block;
+}
+header, footer, section {
+    clear: both;
+}
+
+/* header */
+header .page {
+    position: relative;
+}
+
+header ul li {
+    display: inline-block;
+    height: 100px;
+    width: 200px;
+    border: 1px solid #999;
+    line-height: 100px;
+    text-align: center;
+    background: #FFF;
+}
+
+header {
+    width: 100%;
+    height: 94px;
+    z-index: 10000;
+    background: #666;
+    color: white;
+}
+
+#logoPartner {
+    border: none;
+    position: absolute;
+    left: -26px;
+}
+
+header p {
+    margin: 0;
+    position: absolute;
+    top: 16px;
+    right: 0;
+}
+
+header p a {
+    padding: 0 0 0 5px;
+    font: bold 12px Helvetica;
+    color: white;
+    text-decoration: underline;
+}
+
+header ul {
+    float: right;
+}
+
+header nav {
+    position: absolute;
+    top: 60px;
+    right: 0;
+    margin: 0;
+}
+
+header ul {
+    width: auto;
+    margin: 0;
+    padding: 0;
+}
+
+header ul li {
+    display: inline;
+    margin: 0;
+    padding: 0 0 0 20px;
+    background: none;
+}
