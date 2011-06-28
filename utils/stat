@@ -1,11 +1,11 @@
 #!/bin/sh
 
-core=`cat src/core/*.erl | wc -l`
-controllers=`cat src/controllers/*.erl | wc -l`
-helpers=`cat src/helpers/*.erl | wc -l`
-models=`cat src/models/*.erl | wc -l`
-backends=`cat src/backends/**/**/**.erl | wc -l`
-tests=`cat src/tests/*.erl | wc -l`
+core=`cat ucengine/src/core/*.erl | wc -l`
+controllers=`cat ucengine/src/controllers/*.erl | wc -l`
+helpers=`cat ucengine/src/helpers/*.erl | wc -l`
+models=`cat ucengine/src/models/*.erl | wc -l`
+backends=`cat ucengine/src/backends/**/**/**.erl | wc -l`
+tests=`cat ucengine/src/tests/*.erl | wc -l`
 
 echo -n "Core: "
 echo $core
