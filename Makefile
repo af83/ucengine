@@ -20,9 +20,9 @@ rel: compile
 ###############################################################################
 dev: rel $(DIRS)
 
-demo: $(DIRS)
-	-@rm rel/ucengine/priv/ -fr
-	-@cp -r priv rel/ucengine/.
+wwwroot: $(DIRS)
+	-@rm rel/ucengine/wwwroot/ -fr
+	-@cp -r wwwroot rel/ucengine/.
 
 run: dev
 	rel/ucengine/bin/ucengine console
