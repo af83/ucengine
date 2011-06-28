@@ -78,7 +78,7 @@ setup_routes() ->
 
 setup_server() ->
     [{DefaultHost, _Config}|Hosts] = config:get(hosts),
-    yaws:start_embedded(config:get(DefaultHost, root),
+    yaws:start_embedded(config:get(DefaultHost, wwwroot),
                         [{servername, DefaultHost},
                          {listen, config:get(bind_ip)},
                          {port, config:get(port)},
@@ -92,7 +92,7 @@ setup_server() ->
                          {copy_error_log, false},
                          {max_connections, nolimit}]),
     lists:foreach(fun({Vhost, _}) ->
-                          yaws:add_server(config:get(Vhost, root),
+                          yaws:add_server(config:get(Vhost, wwwroot),
                                           [{servername, Vhost},
                                            {listen, config:get(bind_ip)},
                                            {port, config:get(port)},
