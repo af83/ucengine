@@ -94,7 +94,7 @@ setup_server() ->
     lists:foreach(fun({Vhost, _}) ->
                           yaws:add_server(config:get(Vhost, root),
                                           [{servername, Vhost},
-                                           {listen, {0,0,0,0}},
+                                           {listen, config:get(bind_ip)},
                                            {port, config:get(port)},
                                            {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}])
                   end, Hosts),
