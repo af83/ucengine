@@ -1,8 +1,16 @@
 #!/bin/sh
 
-UCENGINE_ADMIN="ucengine-admin"
+CWD=$(dirname $0)
+
+UCENGINE_ADMIN="$CWD/ucengine-admin"
 
 HOST=$1
+
+if [ -z $HOST ];
+then
+    echo "You must provide a domain. $0 <domain>"
+    exit 1
+fi
 
 $UCENGINE_ADMIN $HOST infos update --description "U.C.Engine is a publish/subscribe server with persistence. It allows you to build real time applications like collaboration based services, live meetings, games or anything that fits well in an event driven philosophy." --htags "ucengine" --logo "ucengine.png"
 
@@ -33,6 +41,7 @@ USERS="participant participant2 participant3 owner"
 
 for user in $USERS
 do
+  echo "Create user $user"
   $UCENGINE_ADMIN $HOST user add $user "password" "pwd"
   $UCENGINE_ADMIN $HOST user role add $user "participant"
 done
