@@ -38,11 +38,22 @@ clean(Domain, #uce_presence{
                     user=User,
                     meetings=Meetings}) ->
     lists:foreach(fun(Meeting) ->
-                          uce_event:add(Domain, #uce_event{id=none,
-                                                           from=User,
-                                                           type="internal.roster.delete",
-                                                           location=Meeting}),
-                          uce_meeting:leave(Domain, Meeting, User)
+                          try uce_event:add(Domain, #uce_event{id=none,
+                                                               from=User,
+                                                               type="internal.roster.delete",
+                                                               location=Meeting}) of
+                              {ok, _Id} ->
+                                  try uce_meeting:leave(Domain, Meeting, User) of
+                                      {ok, deleted} ->
+                                          ok
+                                  catch
+                                      {error, Reason} ->
+                                          ?ERROR_MSG("Error when cleanup meeting presence of ~p : ~p", [User, Reason])
+                                  end
+                          catch
+                              {error, Reason} ->
+                                  ?ERROR_MSG("Error when cleanup roster presence of ~p : ~p", [User, Reason])
+                          end
                   end,
                   Meetings),
     uce_event:add(Domain, #uce_event{id=none,
