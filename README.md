@@ -26,4 +26,4 @@ http://groups.google.com/group/ucengine
 
 Copyright 2011, af83
 
-The default license for all files is AGPLv3 except priv/www under MIT/GPLv2.
+The default license for all files is AGPLv3 except wwwroot/ under MIT/GPLv2.

@@ -83,9 +83,28 @@ tests()
             -eval "tests:start()."
 }
 
+
+fetch_metrics()
+{
+    if [ -z $2 ];
+   then
+       echo "Please provide a destination folder"
+       echo "$0 fetch_metrics /tmp/"
+       exit 1
+   fi
+   NODE_UCENGINE=`echo "${NAME_ARG}" | sed -e 's/-name \(.*\)$/\1/'`
+   EVAL="io:format(\"~p~n\", [rpc:call('$NODE_UCENGINE', metrics_counter, to_file, [\"$2/counter.csv\"])]), \
+         io:format(\"~p~n\", [rpc:call('$NODE_UCENGINE', metrics_gauge, to_file, [\"$2/gauge.csv\"])]), \
+         halt()."
+   $ERTS_PATH/erl -noshell $NAME_PARAM metrics_dump$NAME_HOST $COOKIE_ARG \
+            -dummy \
+            -eval "$EVAL"
+}
+
 # Check the first argument for instructions
 case "$1" in
     --help) internal_cmd $@;;
     tests) tests $@;;
+    fetch_metrics) fetch_metrics $@;;
     *) internal_cmd $@;;
 esac

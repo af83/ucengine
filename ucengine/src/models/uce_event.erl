@@ -27,14 +27,13 @@ add(Domain, #uce_event{id=none}=Event) ->
     add(Domain, Event#uce_event{id=utils:random()});
 add(Domain, #uce_event{datetime=undefined}=Event) ->
     add(Domain, Event#uce_event{datetime=utils:now()});
-add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Event) ->
+add(Domain, #uce_event{location=Location, to=To, parent=Parent} = Event) ->
     LocationExists = uce_meeting:exists(Domain, Location),
-    FromExists = uce_user:exists(Domain, From),
     ToExists = uce_user:exists(Domain, To),
     ParentExists = uce_event:exists(Domain, Parent),
 
-    case {LocationExists, FromExists, ToExists, ParentExists} of
-        {true, true, true, true} ->
+    case {LocationExists, ToExists, ParentExists} of
+        {true, true, true} ->
             {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
             ?PUBSUB_MODULE:publish(Domain, Event),
             ?SEARCH_MODULE:add(Domain, Event),

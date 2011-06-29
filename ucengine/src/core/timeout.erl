@@ -33,10 +33,10 @@
          terminate/2]).
 
 start_link(Domain) ->
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [Domain], []).
+    gen_server:start_link(?MODULE, [Domain], []).
 
 init([Domain]) ->
-    gen_server:cast(?MODULE, run),
+    gen_server:cast(self(), run),
     {ok, Domain}.
 
 handle_call(_ , _, State) ->
@@ -45,7 +45,6 @@ handle_call(_ , _, State) ->
 handle_cast(run, Domain) ->
     timer:sleep(config:get(timeout_refresh) * 1000),
     {ok, Presences} = uce_presence:all(Domain),
-
     % delete expired presences
     Now = utils:now(),
     lists:foreach(

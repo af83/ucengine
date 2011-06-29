@@ -99,7 +99,7 @@ timestamp_to_iso(Militimestamp) when is_integer(Militimestamp) ->
     lists:flatten(Date).
 
 get_user_uid(Domain, Name) ->
-    {ok, #uce_user{id=Uid}} = call(user, get, [Domain, Name]),
+    {ok, #uce_user{id=Uid}} = call(user, get_by_name, [Domain, Name]),
     {ok, Uid}.
 
 success(Result) when is_list(Result) ->

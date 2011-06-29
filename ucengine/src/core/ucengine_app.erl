@@ -54,6 +54,7 @@ start(_, _) ->
 setup() ->
     save_pid(),
     setup_search(),
+    setup_routes(),
     setup_server(),
     ok.
 
@@ -72,9 +73,12 @@ setup_search() ->
             []
     end.
 
+setup_routes() ->
+    routes:init().
+
 setup_server() ->
     [{DefaultHost, _Config}|Hosts] = config:get(hosts),
-    yaws:start_embedded(config:get(DefaultHost, root),
+    yaws:start_embedded(config:get(DefaultHost, wwwroot),
                         [{servername, DefaultHost},
                          {listen, config:get(bind_ip)},
                          {port, config:get(port)},
@@ -88,9 +92,9 @@ setup_server() ->
                          {copy_error_log, false},
                          {max_connections, nolimit}]),
     lists:foreach(fun({Vhost, _}) ->
-                          yaws:add_server(config:get(Vhost, root),
+                          yaws:add_server(config:get(Vhost, wwwroot),
                                           [{servername, Vhost},
-                                           {listen, {0,0,0,0}},
+                                           {listen, config:get(bind_ip)},
                                            {port, config:get(port)},
                                            {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}])
                   end, Hosts),

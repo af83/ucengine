@@ -23,7 +23,7 @@
 
 init() ->
     [#uce_route{method='POST',
-                regexp="/presence",
+                path=["presence"],
                 callback={?MODULE, add,
                           [{"name", required, string},
                            {"credential", "", string},
@@ -31,11 +31,11 @@ init() ->
                            {"metadata", [], dictionary}]}},
 
      #uce_route{method='GET',
-                regexp="/presence/([^/]+)",
+                path=["presence", sid],
                 callback={?MODULE, get, []}},
 
      #uce_route{method='DELETE',
-                regexp="/presence/([^/]+)",
+                path=["presence", sid],
                 callback={?MODULE, delete,
                           [{"uid", required, string},
                            {"sid", required, string}]}}].
@@ -57,11 +57,11 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                        type="internal.presence.add"}),
     json_helpers:json(Domain, 201, {struct, [{uid, Uid}, {sid, Sid}]}).
 
-get(Domain, [Sid], [], _) ->
+get(Domain, [{sid, Sid}], [], _) ->
     {ok, Presence} = uce_presence:get(Domain, Sid),
     json_helpers:json(Domain, presence_helpers:to_json(Domain, Presence)).
 
-delete(Domain, [Id], [Uid, Sid], _) ->
+delete(Domain, [{sid, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, #uce_presence{} = Presence} = uce_presence:get(Domain, Id),
     {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "delete",

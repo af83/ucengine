@@ -47,6 +47,7 @@ init([]) ->
     {ok, {}}.
 
 publish(Domain, #uce_event{location=Location, type=Type, from=From, id=Id}) ->
+    ?COUNTER('pubsub:publish'),
     case Location of
         "" ->
             gen_server:call(?MODULE, {publish, Domain, Location, Type, From, Id}),
@@ -61,6 +62,7 @@ publish(Domain, #uce_event{location=Location, type=Type, from=From, id=Id}) ->
 subscribe(Pid, Domain, Location, Search, From, "", Uid, Start, End, Parent) ->
     subscribe(Pid, Domain, Location, Search, From, [""], Uid, Start, End, Parent);
 subscribe(Pid, Domain, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
+    ?COUNTER('pubsub:suscribe'),
     [gen_server:cast(?MODULE, {subscribe,
                                Domain,
                                Location,
@@ -71,6 +73,7 @@ subscribe(Pid, Domain, Location, Search, From, Types, Uid, _Start, _End, _Parent
                                Pid}) || Type <- Types].
 
 unsubscribe(Pid) ->
+    ?COUNTER('pubsub:unsubscribe'),
     gen_server:cast(?MODULE, {unsubscribe, Pid}).
 
 get_subscribers(Domain, Location, Type, From) ->

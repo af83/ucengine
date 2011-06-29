@@ -20,9 +20,9 @@ rel: compile
 ###############################################################################
 dev: rel $(DIRS)
 
-demo: $(DIRS)
-	-@rm rel/ucengine/priv/ -fr
-	-@cp -r priv rel/ucengine/.
+wwwroot: $(DIRS)
+	-@rm rel/ucengine/wwwroot/ -fr
+	-@cp -r wwwroot rel/ucengine/.
 
 run: dev
 	rel/ucengine/bin/ucengine console
@@ -49,11 +49,11 @@ dialyze: compile
 ###############################################################################
 
 bench:
-	mkdir -p ebin/
-	erlc -o ebin/ tsung/tsung_utils.erl
-	mkdir -p benchmarks/results
-	./utils/benchmark $(SCENARIO)
-	rm -rf ebin
+	@mkdir -p benchmarks/ebin/
+	@erlc -o benchmarks/ebin/ benchmarks/tsung_utils.erl
+	@mkdir -p benchmarks/results
+	@./utils/benchmark $(SCENARIO)
+	@rm -rf benchmarks/ebin
 
 ###############################################################################
 # Cleanup

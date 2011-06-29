@@ -86,7 +86,7 @@
 
 -record(uce_route, {
           method,
-          regexp,
+          path,
           callback}).
 
 -record(file_upload, {

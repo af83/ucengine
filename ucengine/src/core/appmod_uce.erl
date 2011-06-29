@@ -96,6 +96,7 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
 out(#arg{} = Arg) ->
     case get_host(Arg) of
         {ok, Host} ->
+            ?COUNTER('http:request'),
             case uce_http:parse(Host, Arg) of
                 {error, Reason} ->
                     json_helpers:error(Reason);
