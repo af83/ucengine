@@ -9,9 +9,9 @@ $.uce.WhiteBoard.prototype = {
         title               : "Whiteboard",
         disabled            : false,
         colors              : [],
-        width                   : null,
+        width               : null,
         height              : null,
-        ratio                   : 0.8
+        ratio               : 0.8
     },
     // ucengine events
     meetingsEvents : {
