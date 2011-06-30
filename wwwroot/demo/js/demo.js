@@ -25,6 +25,7 @@
         return function() {
             var meeting = client.meeting("demo");
             $("<article>").attr("id", "whiteboard").appendTo($("#content")).whiteboard({ucemeeting: meeting});
+            $("<article>").appendTo($("#content")).sample({ucemeeting: meeting});
             meeting.startLoop();
         };
     }

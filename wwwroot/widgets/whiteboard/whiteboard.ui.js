@@ -1,3 +1,4 @@
+(function($) {
 $.uce.WhiteBoard = function() {}
 $.uce.WhiteBoard.prototype = {
     options: {
@@ -18,13 +19,16 @@ $.uce.WhiteBoard.prototype = {
         "whiteboard.shape.draw"    : 'handleWhiteboardEvent',
         "whiteboard.drawing.clear" : 'handleWhiteboardEvent'
     },
+
+    _widgetClass: 'ui-widget ui-whiteboard',
+
     _create: function() {
         var that = this;
 
         // Default colors
         this.options.colors = [this._randomColor(), this._randomColor(), '#ffffff', '#000000'];
 
-        this.element.addClass('ui-widget ui-whiteboard');
+        this.element.addClass(this._widgetClass);
         this.addHeader();
 
         this._content = $("<div>").addClass("ui-widget-content").appendTo(this.element);
@@ -308,8 +312,9 @@ $.uce.WhiteBoard.prototype = {
 
     destroy: function() {
         this.element.find('*').remove();
-        this.element.removeClass('ui-widget ui-whiteboard');
+        this.element.removeClass(this._widgetClass);
         $.Widget.prototype.destroy.apply(this, arguments); // default destroy
     }
 };
 $.uce.widget("whiteboard", new $.uce.WhiteBoard());
+})(jQuery);
