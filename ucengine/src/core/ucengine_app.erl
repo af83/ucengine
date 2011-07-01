@@ -86,12 +86,13 @@ setup_server() ->
                          {partial_post_size, nolimit},
                          {opaque, DefaultHost},
                          {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}],
-                        [{auth_log, false},
+                        [{flags, [{auth_log, false},
+                                  {copy_errlog, false},
+                                  {pick_first_virthost_on_nomatch, false},
+                                  {debug, false}
+                                 ]},
                          {logdir, config:get(log_dir)},
-                         {copy_errlog, false},
-                         {debug, false},
-                         {copy_error_log, false},
-                         {max_connections, nolimit}]),
+                         {cache_refresh_secs, config:get(cache_refresh)}]),
     lists:foreach(fun({Vhost, _}) ->
                           yaws:add_server(config:get(Vhost, wwwroot),
                                           [{servername, Vhost},
@@ -99,9 +100,7 @@ setup_server() ->
                                            {port, config:get(port)},
                                            {opaque, Vhost},
                                            {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}])
-                  end, Hosts),
-    {ok, GConf, SConfs} = yaws_api:getconf(),
-    yaws_api:setconf(GConf#gconf{cache_refresh_secs=config:get(cache_refresh)}, SConfs).
+                  end, Hosts).
 
 save_pid() ->
     Pid = os:getpid(),
