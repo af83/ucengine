@@ -30,7 +30,8 @@
          created/1,
          created/2,
          json/2,
-         json/3]).
+         json/3,
+         json/4]).
 
 format_response(Status, Content) ->
     format_response(Status, [], Content).
@@ -80,6 +81,9 @@ json(Domain, Content) ->
 
 json(Domain, Status, Content) ->
     format_response(Status, add_cors_headers(Domain), {struct, [{result, Content}]}).
+
+json(_Domain, Status, Content, Headers) ->
+    format_response(Status, Headers, {struct, [{result, Content}]}).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
