@@ -93,75 +93,31 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
             end
     end.
 
+%%
+%% Function called by yaws
+%% For each vhost we support, we store to the opaque field the current domain
+%%
 out(#arg{} = Arg) ->
-    case get_host(Arg) of
-        {ok, Host} ->
-            ?COUNTER('http:request'),
-            case uce_http:parse(Host, Arg) of
-                {error, Reason} ->
-                    json_helpers:error(Reason);
-                {get_more, _, _} = State ->
-                    State;
-                {Method, Path, Query} ->
-                    process(Host, Method, Path, Query, Arg)
-            end;
+    ?COUNTER('http:request'),
+    Host = Arg#arg.opaque,
+    case uce_http:parse(Host, Arg) of
         {error, Reason} ->
-            json_helpers:error(Reason)
+            json_helpers:error(Host, Reason);
+        {get_more, _, _} = State ->
+            State;
+        {Method, Path, Query} ->
+            process(Host, Method, Path, Query, Arg)
     end.
 
-process(_Host, _Method, undefined, _Query, _Arg) ->
-    json_helpers:error(not_found);
+process(Host, _Method, undefined, _Query, _Arg) ->
+    json_helpers:error(Host, not_found);
 process(Host, Method, Path, Query, Arg) ->
     case routes:get(Method, Path) of
         {ok, Match, Handlers} ->
             call_handlers(Host, Handlers, Query, Match, Arg);
         {error, not_found} ->
             ?ERROR_MSG("~p ~p: no route found~n", [Method, Path]),
-            json_helpers:error(not_found);
+            json_helpers:error(Host, not_found);
         {error, Reason} ->
-            json_helpers:error(Reason)
+            json_helpers:error(Host, Reason)
     end.
-
-get_host(#arg{} = Arg) ->
-    case extract_host(Arg) of
-        {ok, Host} ->
-            valid_host(Host, config:get(hosts));
-        {error, Reason} ->
-            {error, Reason}
-    end.
-
-extract_host(#arg{headers = Headers}) ->
-    case catch string:sub_word(Headers#headers.host, 1, $:) of
-        Host when is_list(Host) ->
-            {ok, Host};
-        _ ->
-            {error, not_found}
-    end.
-
-valid_host(Host, Hosts) ->
-    case proplists:lookup(Host, Hosts) of
-        none ->
-            {error, not_found};
-        _ ->
-            {ok, Host}
-    end.
-
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
-
-create_headers() ->
-    #arg{}.
-create_headers(Host) ->
-    #arg{headers = #headers{host=Host}}.
-
-extract_host_test() ->
-    ?assertEqual({ok, "localhost"}, extract_host(create_headers("localhost"))),
-    ?assertEqual({ok, "localhost"}, extract_host(create_headers("localhost:5280"))),
-    ?assertEqual({error, not_found}, extract_host(create_headers())).
-
-host_valid_test() ->
-    ?assertEqual({ok, "localhost"}, valid_host("localhost", [{"localhost", []}, {"demo", []}])),
-    ?assertEqual({ok, "demo"}, valid_host("demo", [{"localhost", []}, {"demo", []}])),
-    ?assertEqual({error, not_found}, valid_host("localhost", [{"demo", []}])).
-
--endif.

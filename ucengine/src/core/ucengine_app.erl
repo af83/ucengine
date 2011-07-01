@@ -84,6 +84,7 @@ setup_server() ->
                          {port, config:get(port)},
                          {access_log, true},
                          {partial_post_size, nolimit},
+                         {opaque, DefaultHost},
                          {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}],
                         [{auth_log, false},
                          {logdir, config:get(log_dir)},
@@ -96,6 +97,7 @@ setup_server() ->
                                           [{servername, Vhost},
                                            {listen, config:get(bind_ip)},
                                            {port, config:get(port)},
+                                           {opaque, Vhost},
                                            {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}])
                   end, Hosts),
     {ok, GConf, SConfs} = yaws_api:getconf(),

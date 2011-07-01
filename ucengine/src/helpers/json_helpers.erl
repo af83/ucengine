@@ -17,12 +17,10 @@
 %%
 -module(json_helpers).
 
--compile({no_auto_import,[error/1]}).
+-compile({no_auto_import,[error/2]}).
 
 -export([format_response/4,
-         unexpected_error/0,
          unexpected_error/1,
-         error/1,
          error/2,
          ok/1,
          true/1,
@@ -31,9 +29,6 @@
          created/2,
          json/2,
          json/3]).
-
-format_response(Status, Content) ->
-    format_response(Status, [], Content).
 
 format_response(Status, Headers, Content) ->
     format_response(Status, "application/json", Headers, Content).
@@ -46,15 +41,8 @@ format_response(Status, ContentType, Headers, Content) ->
 add_cors_headers(Domain) ->
     cors_helpers:format_cors_headers(Domain).
 
-unexpected_error() ->
-    format_response(500, {struct, [{error, unexpected_error}]}).
-
 unexpected_error(Domain) ->
     format_response(500, add_cors_headers(Domain), {struct, [{error, unexpected_error}]}).
-
-error(Reason) ->
-    Code = http_helpers:error_to_code(Reason),
-    format_response(Code, {struct, [{error, Reason}]}).
 
 error(Domain, Reason) ->
     Code = http_helpers:error_to_code(Reason),
@@ -85,14 +73,17 @@ json(Domain, Status, Content) ->
 -include_lib("eunit/include/eunit.hrl").
 
 unexpected_error_test() ->
-    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"unexpected_error\"}"}], unexpected_error()).
+    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"unexpected_error\"}"},
+                 {header,"Access-Control-Allow-Origin: *"}], unexpected_error("")).
 
 error_test() ->
-    ?assertMatch([{status, 400}, {content, "application/json", "{\"error\":\"bad_parameters\"}"}], error(bad_parameters)),
-    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"hello_world\"}"}], error("hello_world")).
+    ?assertMatch([{status, 400}, {content, "application/json", "{\"error\":\"bad_parameters\"}"},
+                  {header,"Access-Control-Allow-Origin: *"}], error("", bad_parameters)),
+    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"hello_world\"}"},
+                  {header,"Access-Control-Allow-Origin: *"}], error("", "hello_world")).
 
 format_response_test() ->
-    ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}], format_response(200, "{}")),
+    ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}], format_response(200, [], "{}")),
     ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}, {header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], format_response(200, [{header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], "{}")).
 
 -endif.
