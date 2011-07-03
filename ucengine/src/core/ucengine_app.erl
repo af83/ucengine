@@ -85,7 +85,7 @@ setup_server() ->
                          {access_log, true},
                          {partial_post_size, nolimit},
                          {opaque, DefaultHost},
-                         {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}],
+                         {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}],
                         [{flags, [{auth_log, false},
                                   {copy_errlog, false},
                                   {pick_first_virthost_on_nomatch, false},
@@ -99,7 +99,7 @@ setup_server() ->
                                            {listen, config:get(bind_ip)},
                                            {port, config:get(port)},
                                            {opaque, Vhost},
-                                           {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}])
+                                           {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}])
                   end, Hosts).
 
 save_pid() ->
