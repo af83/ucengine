@@ -33,9 +33,6 @@
          json/3,
          json/4]).
 
-format_response(Status, Content) ->
-    format_response(Status, [], Content).
-
 format_response(Status, Headers, Content) ->
     format_response(Status, "application/json", Headers, Content).
 
@@ -74,6 +71,10 @@ json(Domain, Content) ->
 
 json(Domain, Status, Content) ->
     format_response(Status, add_cors_headers(Domain), {struct, [{result, to_json(Domain, Content)}]}).
+
+json(_Domain, Status, Content, Headers) ->
+    format_response(Status, Headers, {struct, [{result, Content}]}).
+
 %%
 %% Transform usual records to JSON
 %%
@@ -170,8 +171,6 @@ to_json(Domain, #uce_user{id=Id,
 to_json(_Domain, Json) ->
     Json.
 
-json(_Domain, Status, Content, Headers) ->
-    format_response(Status, Headers, {struct, [{result, Content}]}).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
