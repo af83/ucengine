@@ -110,6 +110,7 @@ setup_users(Domain) ->
                                     name=ParticipantUid,
                                     auth="password",
                                     credential="pwd"}),
+    timer:sleep(10),
     ok = add_role_to_user(Domain, ParticipantUid, {"participant", ""}),
     ok = add_role_to_user(Domain, ParticipantUid, {"testrole_location", "testmeeting"}),
     ok = add_role_to_user(Domain, ParticipantUid, {"testrole_without_location", ""}),
@@ -119,6 +120,7 @@ setup_users(Domain) ->
     ok = add_user(Domain, #uce_user{id=AnonymousUid,
                                     name=AnonymousUid,
                                     auth="none"}),
+    timer:sleep(10),
     ok = add_role_to_user(Domain, AnonymousUid, {"anonymous", ""}),
 
     ok = add_user(Domain, #uce_user{id="token.user@af83.com",
