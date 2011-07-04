@@ -21,22 +21,7 @@
 
 -include("uce.hrl").
 
--export([to_json/2, pretty_print/2]).
-
-to_json(Domain, #uce_meeting{id=Name,
-                             start_date=StartDate,
-                             end_date=EndDate,
-                             metadata=Metadata}) ->
-    {struct, [{name, Name},
-              {domain, Domain},
-              {start_date, StartDate},
-              {end_date, case EndDate of
-                             ?NEVER_ENDING_MEETING ->
-                                 "never";
-                             _ ->
-                                 integer_to_list(EndDate)
-                         end},
-              {metadata, {struct, Metadata}}]}.
+-export([pretty_print/2]).
 
 pretty_print(Meetings, Format)
   when is_list(Meetings) ->

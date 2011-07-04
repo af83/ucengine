@@ -98,13 +98,13 @@ list(Domain, [], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "list"),
     {ok, Users} = uce_user:list(Domain),
-    json_helpers:json(Domain, {array, [user_helpers:to_json(Domain, User) || User <- Users]}).
+    json_helpers:json(Domain, Users).
 
 get(Domain, [{id, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", [{"user", Id}]),
-    {ok, Record} = uce_user:get(Domain, Id),
-    json_helpers:json(Domain, user_helpers:to_json(Domain, Record)).
+    {ok, User} = uce_user:get(Domain, Id),
+    json_helpers:json(Domain, User).
 
 update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),

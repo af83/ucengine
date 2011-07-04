@@ -19,6 +19,8 @@
 
 -compile({no_auto_import,[error/2]}).
 
+-include("uce.hrl").
+
 -export([format_response/4,
          unexpected_error/1,
          error/2,
@@ -28,7 +30,8 @@
          created/1,
          created/2,
          json/2,
-         json/3]).
+         json/3,
+         to_json/2]).
 
 format_response(Status, Headers, Content) ->
     format_response(Status, "application/json", Headers, Content).
@@ -67,7 +70,102 @@ json(Domain, Content) ->
     json(Domain, 200, Content).
 
 json(Domain, Status, Content) ->
-    format_response(Status, add_cors_headers(Domain), {struct, [{result, Content}]}).
+    format_response(Status, add_cors_headers(Domain), {struct, [{result, to_json(Domain, Content)}]}).
+%%
+%% Transform usual records to JSON
+%%
+to_json(Domain, Records) when is_list(Records) ->
+    {array, [to_json(Domain, Record) || Record <- Records]};
+to_json(_Domain, #uce_access{action=Action,
+                             object=Object,
+                             conditions=Conditions}) ->
+    {struct,
+     [{action, Action},
+      {object, Object},
+      {conditions, {struct, Conditions}}]};
+to_json(Domain, #uce_meeting{id=Name,
+                             start_date=StartDate,
+                             end_date=EndDate,
+                             metadata=Metadata}) ->
+    {struct, [{name, Name},
+              {domain, Domain},
+              {start_date, StartDate},
+              {end_date, case EndDate of
+                             ?NEVER_ENDING_MEETING ->
+                                 "never";
+                             _ ->
+                                 integer_to_list(EndDate)
+                         end},
+              {metadata, {struct, Metadata}}]};
+to_json(Domain, #uce_event{id=Id,
+                           datetime=Datetime,
+                           location=Location,
+                           from=From,
+                           type=Type,
+                           to=To,
+                           parent=Parent,
+                           metadata=Metadata}) ->
+    JSONTo = case To of
+                 "" ->
+                     [];
+                 ToId ->
+                     [{to, ToId}]
+             end,
+
+    JSONLocation = case Location of
+                       "" ->
+                           [];
+                       Meeting ->
+                           [{location, Meeting}]
+                   end,
+    JSONParent = case Parent of
+                     "" ->
+                         [];
+                     _ ->
+                         [{parent, Parent}]
+                 end,
+    {struct,
+     [{type, Type},
+      {domain, Domain},
+      {datetime, Datetime},
+      {id, Id}] ++
+         JSONLocation ++
+         JSONTo ++
+         [{from, From}] ++
+         JSONParent ++
+         [{metadata, {struct, Metadata}}]};
+to_json(Domain, #uce_file{id=Id,
+                          name=Name,
+                          location=Location,
+                          uri=Uri,
+                          metadata=Metadata}) ->
+    JSONLocation = [{location, Location}],
+    {struct, [{id, Id},
+              {domain, Domain},
+              {name, Name},
+              {uri, Uri}] ++ JSONLocation ++
+         [{metadata, {struct, Metadata}}]};
+to_json(Domain, #uce_presence{id=Id,
+                              user=User,
+                              auth=Auth,
+                              metadata=Metadata}) ->
+    {struct,
+     [{id, Id},
+      {domain, Domain},
+      {user, User},
+      {auth, Auth},
+      {metadata, {struct, Metadata}}]};
+to_json(Domain, #uce_user{id=Id,
+                          name=Name,
+                          auth=Auth,
+                          metadata=Metadata}) ->
+    {struct, [{uid, Id},
+              {name, Name},
+              {domain, Domain},
+              {auth, Auth},
+              {metadata, {struct, Metadata}}]};
+to_json(_Domain, Json) ->
+    Json.
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

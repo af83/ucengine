@@ -82,9 +82,9 @@ get(Domain, [_, {id, Id}], [Uid, Sid], _) ->
     {ok, #uce_event{to=To} = Event} = uce_event:get(Domain, Id),
     case To of
         "" ->
-            json_helpers:json(Domain, event_helpers:to_json(Domain, Event));
+            json_helpers:json(Domain, Event);
         Uid ->
-            json_helpers:json(Domain, event_helpers:to_json(Domain, Event));
+            json_helpers:json(Domain, Event);
         _ ->
             throw({error, unauthorized})
     end.
@@ -116,7 +116,7 @@ list(Domain, [Meeting],
         {ok, []} ->
             case Async of
                 "no" ->
-                    json_helpers:json(Domain, event_helpers:to_json(Domain, []));
+                    json_helpers:json(Domain, []);
                 "lp" ->
                     uce_async_lp:wait(Domain,
                                       Meeting,
@@ -130,5 +130,5 @@ list(Domain, [Meeting],
                 _ ->
                     {error, bad_parameters}
             end;
-        {ok, Events} -> json_helpers:json(Domain, event_helpers:to_json(Domain, Events))
+        {ok, Events} -> json_helpers:json(Domain, Events)
     end.

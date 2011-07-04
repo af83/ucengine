@@ -21,17 +21,7 @@
 
 -include("uce.hrl").
 
--export([to_json/2, pretty_print/2]).
-
-to_json(Domain, #uce_user{id=Id,
-                          name=Name,
-                          auth=Auth,
-                          metadata=Metadata}) ->
-    {struct, [{uid, Id},
-              {name, Name},
-              {domain, Domain},
-              {auth, Auth},
-              {metadata, {struct, Metadata}}]}.
+-export([pretty_print/2]).
 
 pretty_print(Users, Format)
   when is_list(Users) ->

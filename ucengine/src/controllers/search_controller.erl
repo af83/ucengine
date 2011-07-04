@@ -90,7 +90,7 @@ search(Domain, [], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count, Order],
     {abs_path, Path} = Arg#arg.req#http_request.path,
     Link = lists:concat(["http://", Arg#arg.headers#headers.host, Path]),
 
-    Entries = event_helpers:to_json(Domain, Events),
+    Entries = json_helpers:to_json(Domain, Events),
     Feed = {struct, [{'link', Link},
                      {'totalResults', NumTotal},
                      {'startIndex', StartIndex},
