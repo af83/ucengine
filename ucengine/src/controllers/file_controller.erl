@@ -90,7 +90,7 @@ list(Domain, [{meeting, Meeting}], [Uid, Sid, Order], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "list"),
     {ok, Files} = uce_file:list(Domain, Meeting, Order),
-    json_helpers:json(Domain, {array, [file_helpers:to_json(Domain, File) || File <- Files]}).
+    json_helpers:json(Domain, Files).
 
 %%
 %% @doc Get real path from encoded uri of record uce_file
@@ -109,7 +109,7 @@ get(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
         {error, Reason} ->
             throw({error, Reason});
         {ok, Content} ->
-            file_helpers:download(Domain, File#uce_file.id, Content)
+            http_helpers:download(File#uce_file.name, Content)
     end.
 
 delete(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->

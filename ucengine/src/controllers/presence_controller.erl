@@ -59,7 +59,7 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
 
 get(Domain, [{sid, Sid}], [], _) ->
     {ok, Presence} = uce_presence:get(Domain, Sid),
-    json_helpers:json(Domain, presence_helpers:to_json(Domain, Presence)).
+    json_helpers:json(Domain, Presence).
 
 delete(Domain, [{sid, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),

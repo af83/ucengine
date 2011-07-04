@@ -17,7 +17,7 @@
 %%
 -module(http_helpers).
 
--export([error_to_code/1]).
+-export([error_to_code/1, download/2]).
 
 error_to_code(Error) ->
     case Error of
@@ -41,3 +41,11 @@ error_to_code(Error) ->
         % Default error
         _ -> 500
     end.
+
+%%
+%% Download file
+%%
+download(Filename, Content) ->
+    [{status, 200},
+     {header, {"Content-Disposition", "filename=" ++ yaws_api:url_encode(Filename)}},
+     {content, "application/octet-stream", Content}].

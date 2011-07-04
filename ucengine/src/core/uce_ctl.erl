@@ -199,7 +199,7 @@ call(Object, Action, Args) ->
 %%
 infos(Domain, "get", _) ->
     {ok, Infos} = call(infos, get, [Domain]),
-    {ok, infos_helpers:pretty_print(Infos, flat)};
+    {ok, pretty_print:print(Infos, flat)};
 
 %%
 %% Infos update
@@ -252,14 +252,14 @@ meeting(Domain, "delete", Name, []) ->
 %%
 meeting(Domain, "get", Name, []) ->
     {ok, Record} = call(meeting, get, [Domain, Name]),
-    {ok, meeting_helpers:pretty_print(Record, flat)};
+    {ok, pretty_print:print(Record, flat)};
 
 %%
 %% Meeting list
 %%
 meeting(Domain, "list", Status, []) ->
     {ok, Records} = call(meeting, list, [Domain, Status]),
-    {ok, meeting_helpers:pretty_print(Records, flat)}.
+    {ok, pretty_print:print(Records, flat)}.
 
 %%
 %% Users
@@ -332,14 +332,14 @@ user(Domain, "delete", Name, []) ->
 %%
 user(Domain, "get", Name, []) ->
     {ok, Record} = call(user, get, [Domain, Name]),
-    {ok, user_helpers:pretty_print(Record, flat)}.
+    {ok, pretty_print:print(Record, flat)}.
 
 %%
 %% User list
 %%
 user(Domain, "list", []) ->
     {ok, Records} = call(user, list, [Domain]),
-    {ok, user_helpers:pretty_print(Records, flat)}.
+    {ok, pretty_print:print(Records, flat)}.
 
 %%
 %% Role add
