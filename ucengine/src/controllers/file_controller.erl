@@ -109,7 +109,7 @@ get(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
         {error, Reason} ->
             throw({error, Reason});
         {ok, Content} ->
-            http_helpers:download(File#uce_file.id, Content)
+            http_helpers:download(File#uce_file.name, Content)
     end.
 
 delete(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
