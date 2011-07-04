@@ -15,22 +15,49 @@
 %%  You should have received a copy of the GNU Affero General Public License
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
--module(user_helpers).
-
--author('victor.goya@af83.com').
+-module(pretty_print).
 
 -include("uce.hrl").
 
--export([pretty_print/2]).
+-export([print/2]).
 
-pretty_print(Users, Format)
-  when is_list(Users) ->
-    lists:flatten([pretty_print(User, Format) ++ "--~n" || User <- Users]);
-pretty_print(#uce_user{id=Uid,
-                       name=Name,
-                       auth=Auth,
-                       metadata=Metadata,
-                       roles=Roles}, flat) ->
+%%
+%% Print uce records
+%%
+print(Records, flat) when is_list(Records) ->
+    lists:flatten([print(Record, flat) ++ "--~n" || Record <- Records]);
+print(#uce_meeting{id=Id,
+                   start_date=Start,
+                   end_date=End,
+                   metadata=Metadata}, flat) ->
+    Out = [io_lib:format("Id: ~s~n", [Id]),
+           io_lib:format("Start: ~p~n", [Start]),
+           io_lib:format("End: ~p~n", [End])],
+    StrMetadata =
+        if
+            Metadata == [] ->
+                ["Metadata: none~n"];
+            true ->
+                [io_lib:format("Metadata:~n", [])] ++
+                    [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
+        end,
+    lists:flatten(Out ++ StrMetadata);
+print(#uce_infos{domain=Domain,
+                 metadata=Metadata}, flat) ->
+    Out = [io_lib:format("Domain: ~s~n", [Domain])],
+    StrMetadata = case Metadata of
+                      [] ->
+                          ["Metadata: none~n"];
+                      Metadata ->
+                          [io_lib:format("Metadata:~n", [])] ++
+                              [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
+                  end,
+    lists:flatten(Out ++ StrMetadata);
+print(#uce_user{id=Uid,
+                name=Name,
+                auth=Auth,
+                metadata=Metadata,
+                roles=Roles}, flat) ->
     Out = [io_lib:format("Id: ~s~n", [Uid]),
            io_lib:format("Name: ~s~n", [Name]),
            io_lib:format("Authentification method: ~s~n", [Auth])],
