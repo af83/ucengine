@@ -92,3 +92,23 @@ header ul li {
     padding: 0 0 0 20px;
     background: none;
 }
+
+/**
+ * Content
+ */
+.ui-widget {
+    margin: 0 0 1em;
+}
+.ui-widget .ui-widget-header {
+    background: none repeat scroll 0 0 #D6D6D6;
+    border: 0 none;
+    height: 32px;
+    padding: 5px 10px;
+    position: relative;
+}
+.ui-widget .ui-widget-header-title {
+    color: black;
+}
+.ui-widget .ui-corner-all {
+    border-radius: 0;
+}
