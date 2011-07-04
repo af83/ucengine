@@ -42,53 +42,38 @@ presence_test_() ->
       end
     }.
 
+create_presence(BaseUrl, Name) ->
+    Params = [{"name", Name}],
+    tests_utils:post(BaseUrl, "/presence/", Params).
+create_presence(BaseUrl, Name, Credential) ->
+    create_presence(BaseUrl, Name, Credential, []).
+create_presence(BaseUrl, Name, Credential, Metadata) ->
+    Params = [{"name", Name},
+              {"credential", Credential}] ++ Metadata,
+    tests_utils:post(BaseUrl, "/presence/", Params).
+
 test_presence_create_password(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"name", "participant.user@af83.com"},
-              {"credential", "pwd"}],
-    {struct,[{"result", _}]} =
-        tests_utils:post(BaseUrl, "/presence/", Params).
+    {struct,[{"result", _}]} = create_presence(BaseUrl, "participant.user@af83.com", "pwd").
 
 test_presence_create_with_no_password(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"name", "anonymous.user@af83.com"}],
-    {struct,[{"result", _}]} =
-        tests_utils:post(BaseUrl, "/presence/", Params).
+    {struct,[{"result", _}]} = create_presence(BaseUrl, "anonymous.user@af83.com").
 
 test_presence_create_missing_credential(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"name", "participant.user@af83.com"}],
-    {struct,[{"error", "bad_credentials"}]} =
-        tests_utils:post(BaseUrl, "/presence/", Params).
+    {struct,[{"error", "bad_credentials"}]} = create_presence(BaseUrl, "participant.user@af83.com").
 
 test_presence_create_bad_password(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"name", "participant.user@af83.com"},
-              {"credential", "badpwd"}],
-    {struct,[{"error", "bad_credentials"}]} =
-        tests_utils:post(BaseUrl, "/presence/", Params).
+    {struct,[{"error", "bad_credentials"}]} = create_presence(BaseUrl, "participant.user@af83.com", "badpwd").
 
 test_presence_create_not_found_user(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"name", "unexistent.user@af83.com"},
-              {"credential", "pwd"}],
-    {struct,[{"error", "not_found"}]} =
-        tests_utils:post(BaseUrl, "/presence/", Params).
+    {struct,[{"error", "not_found"}]} = create_presence(BaseUrl, "unexistent.user@af83.com", "pwd").
 
 test_presence_create_unauthorized(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"name", "ugly.user@af83.com"},
-              {"credential", "pwd"}],
-    {struct,[{"error", "unauthorized"}]} =
-        tests_utils:post(BaseUrl, "/presence/", Params).
+    {struct,[{"error", "unauthorized"}]} = create_presence(BaseUrl, "ugly.user@af83.com", "pwd").
 
 test_presence_get(BaseUrl) ->
     Uid = "participant.user@af83.com",
-    Params = [{"metadata[nickname]", "PasswordParticipantGet"},
-              {"name", Uid},
-              {"credential", "pwd"}],
-    {struct,[{"result", {struct, [{"uid", _},
-                                  {"sid",Sid}]}}]} = tests_utils:post(BaseUrl, "/presence/", Params),
+    {struct,[{"result", {struct, [{"uid", _}, {"sid", Sid}]}}]} =
+        create_presence(BaseUrl, Uid, "pwd", [{"metadata[nickname]", "PasswordParticipantGet"}]),
 
     {struct,[{"result",
               {struct,[{"id",Sid},
@@ -96,19 +81,15 @@ test_presence_get(BaseUrl) ->
                        {"user",_}, %%"participant.user@af83.com"},
                        {"auth","password"},
                        {"metadata", {struct, [{"nickname", "PasswordParticipantGet"}]}}]}}]} =
-        tests_utils:get(BaseUrl, "/presence/" ++ Sid, []).
+        tests_utils:get(BaseUrl, "/presence/" ++ Sid).
 
 test_presence_get_not_found(BaseUrl) ->
     {struct,[{"error", "not_found"}]} =
-        tests_utils:get(BaseUrl, "/presence/unexistent_sid", []).
+        tests_utils:get(BaseUrl, "/presence/unexistent_sid").
 
 test_presence_close(BaseUrl) ->
     Uid = "participant.user@af83.com",
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"name", Uid},
-              {"credential", "pwd"}],
-    {struct,[{"result", {struct, [{"uid", Id},
-                                  {"sid",Sid}]}}]} = tests_utils:post(BaseUrl, "/presence/", Params),
+    {struct,[{"result", {struct, [{"uid", Id}, {"sid", Sid}]}}]} = create_presence(BaseUrl, Uid, "pwd"),
 
     ParamsDelete = [{"uid", Id},
                     {"sid", Sid}],
@@ -122,11 +103,8 @@ test_presence_close_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
         tests_utils:delete(BaseUrl, "/presence/" ++ UglySid, ParamsDelete).
 
 test_presence_close_not_foundsid(BaseUrl) ->
-    Params = [{"metadata[nickname]", "PasswordParticipant"},
-              {"name", "participant.user@af83.com"},
-              {"credential", "pwd"}],
     {struct,[{"result", {struct, [{"uid", Id},
-                                  {"sid",Sid}]}}]} = tests_utils:post(BaseUrl, "/presence/", Params),
+                                  {"sid", Sid}]}}]} = create_presence(BaseUrl, "participant.user@af83.com", "pwd"),
 
     ParamsDelete = [{"uid", Id},
                     {"sid", Sid}],
@@ -135,12 +113,8 @@ test_presence_close_not_foundsid(BaseUrl) ->
 
 test_presence_timeout(BaseUrl) ->
     DefaultTimeout = config:get(timeout_refresh),
-    Params = [{"name", "participant.user@af83.com"},
-              {"timeout", integer_to_list(DefaultTimeout)},
-              {"credential", "pwd"}],
-    {struct,[{"result", {struct, [{"uid", Uid},
-                                  {"sid",Sid}]}}]} =
-        tests_utils:post(BaseUrl, "/presence/", Params),
+    {struct,[{"result", {struct, [{"uid", Uid}, {"sid", Sid}]}}]} =
+        create_presence(BaseUrl, "participant.user@af83.com", "pwd", [{"timeout", integer_to_list(DefaultTimeout)}]),
     timer:sleep(DefaultTimeout * 2000),
     ParamsDelete = [{"uid", Uid},
                     {"sid", Sid}],
