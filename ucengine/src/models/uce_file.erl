@@ -24,7 +24,7 @@
 -include("uce.hrl").
 
 add(Domain, #uce_file{location=Location, name=Name} = File) ->
-    case location_helpers:exists(Domain, Location) of
+    case uce_meeting:exists(Domain, Location) of
         false ->
             throw({error, not_found});
         true ->
@@ -44,7 +44,7 @@ add(Domain, #uce_file{location=Location, name=Name} = File) ->
     end.
 
 list(Domain, Id, Order) ->
-    case location_helpers:exists(Domain, Id) of
+    case uce_meeting:exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
