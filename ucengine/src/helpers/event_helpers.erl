@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([sort/1, sort/2, to_json/2]).
+-export([sort/1, sort/2]).
 
 sort(Events) ->
     sort(Events, asc).
@@ -35,45 +35,3 @@ sort(Events, desc) ->
                        Event1#uce_event.datetime > Event2#uce_event.datetime
                end,
                Events).
-
-to_json(Domain, #uce_event{id=Id,
-                           datetime=Datetime,
-                           location=Location,
-                           from=From,
-                           type=Type,
-                           to=To,
-                           parent=Parent,
-                           metadata=Metadata}) ->
-    JSONTo = case To of
-                 "" ->
-                     [];
-                 ToId ->
-                     [{to, ToId}]
-             end,
-
-    JSONLocation = case Location of
-                       "" ->
-                           [];
-                       Meeting ->
-                           [{location, Meeting}]
-                   end,
-    JSONParent = case Parent of
-                     "" ->
-                         [];
-                     _ ->
-                         [{parent, Parent}]
-                 end,
-    {struct,
-     [{type, Type},
-      {domain, Domain},
-      {datetime, Datetime},
-      {id, Id}] ++
-         JSONLocation ++
-         JSONTo ++
-         [{from, From}] ++
-         JSONParent ++
-         [{metadata, {struct, Metadata}}]};
-
-to_json(Domain, Events)
-  when is_list(Events) ->
-    {array, [to_json(Domain, Event) || Event <- Events]}.

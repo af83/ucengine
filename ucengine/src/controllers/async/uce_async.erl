@@ -44,7 +44,7 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
                                                 asc),
                   JSONEvents = mochijson:encode({struct,
                                                  [{result,
-                                                   event_helpers:to_json(Domain, Events)}]}),
+                                                   json_helpers:to_json(Domain, Events)}]}),
                   {ok, JSONEvents};
               Other ->
                   ?WARNING_MSG("unattended message ~p", [Other]),

@@ -5,7 +5,6 @@
     function createAccount(client, uid) {
         return function(next) {
             client.user.register(uid, "none", "", {}, function(err, result) {
-                console.log(result);
                 next();
             });
         };
@@ -14,7 +13,6 @@
     function authUser(client, uid) {
         return function(next) {
             client.auth(uid, "", function(err, result) {
-                console.log(result);
                 client.attachPresence(result);
                 next();
             });

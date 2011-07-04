@@ -90,13 +90,13 @@ list(Domain, [{status, Status}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "meeting", "list"),
     {ok, Meetings} = uce_meeting:list(Domain, Status),
-    json_helpers:json(Domain, {array, [meeting_helpers:to_json(Domain, Meeting) || Meeting <- Meetings]}).
+    json_helpers:json(Domain, Meetings).
 
 get(Domain, [{meeting, Name}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "meeting", "get"),
     {ok, Meeting} = uce_meeting:get(Domain, Name),
-    json_helpers:json(Domain, meeting_helpers:to_json(Domain, Meeting)).
+    json_helpers:json(Domain, Meeting).
 
 update(Domain, [{meeting, Name}], [Uid, Sid, Start, End, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
@@ -143,9 +143,8 @@ roster(Domain, [{meeting, Name}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "list"),
     {ok, Roster} = uce_meeting:roster(Domain, Name),
-    json_helpers:json(Domain,
-                      {array, lists:map(fun(Member) ->
+    json_helpers:json(Domain, lists:map(fun(Member) ->
                                                 {ok, User} = uce_user:get(Domain, Member),
-                                                user_helpers:to_json(Domain, User)
+                                                User
                                         end,
-                                        Roster)}).
+                                        Roster)).
