@@ -31,7 +31,8 @@
          created/2,
          json/2,
          json/3,
-         to_json/2]).
+         to_json/2,
+         json/4]).
 
 format_response(Status, Headers, Content) ->
     format_response(Status, "application/json", Headers, Content).
@@ -71,6 +72,9 @@ json(Domain, Content) ->
 
 json(Domain, Status, Content) ->
     format_response(Status, add_cors_headers(Domain), {struct, [{result, to_json(Domain, Content)}]}).
+
+json(Domain, Status, Content, Headers) ->
+    format_response(Status, Headers, {struct, [{result, to_json(Domain, Content)}]}).
 %%
 %% Transform usual records to JSON
 %%
