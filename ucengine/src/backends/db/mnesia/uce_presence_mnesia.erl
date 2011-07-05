@@ -55,6 +55,7 @@ all(Domain) ->
                                                   timeout='_',
                                                   last_activity='_',
                                                   resource='_',
+                                                  meetings='_',
                                                   metadata='_'}) of
         Records when is_list(Records) ->
             {ok, remove_domain_from_id(Records)};
@@ -83,9 +84,9 @@ delete(Domain, Id) ->
             throw({error, bad_parameters})
     end.
 
-update(_Domain, #uce_presence{}=Presence) ->
+update(Domain, #uce_presence{id=Id} = Presence) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:write(Presence)
+                                    mnesia:write(Presence#uce_presence{id={Id, Domain}})
                             end) of
         {atomic, _} ->
             {ok, updated};

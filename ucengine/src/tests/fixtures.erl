@@ -93,6 +93,7 @@ setup_users(Domain) ->
                                          #uce_access{action="list", object="event"},
                                          #uce_access{action="get", object="infos"},
                                          #uce_access{action="add", object="roster"},
+                                         #uce_access{action="list", object="roster"},
                                          #uce_access{action="get", object="meeting"},
                                          #uce_access{action="list", object="meeting"}]}),
     ok = add_role(Domain, #uce_role{id="testrole_location",

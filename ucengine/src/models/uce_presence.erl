@@ -92,13 +92,13 @@ check(Domain, Uid, Sid) ->
     end.
 
 join(Domain, Sid, Meeting) ->
-    {ok, Record} = (db:get(?MODULE, Domain)):get(Domain, Sid),
-    case lists:member(Meeting, Record#uce_presence.meetings) of
+    {ok, Presence} = (db:get(?MODULE, Domain)):get(Domain, Sid),
+    case lists:member(Meeting, Presence#uce_presence.meetings) of
         true ->
             {ok, updated};
         false ->
-            Meetings = Record#uce_presence.meetings ++ [Meeting],
-            (db:get(?MODULE, Domain)):update(Domain, Record#uce_presence{meetings=Meetings})
+            Meetings = [Meeting|Presence#uce_presence.meetings],
+            (db:get(?MODULE, Domain)):update(Domain, Presence#uce_presence{meetings=Meetings})
     end.
 
 leave(Domain, Sid, Meeting) ->
