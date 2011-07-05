@@ -109,15 +109,19 @@ out(#arg{} = Arg) ->
             process(Host, Method, Path, Query, Arg)
     end.
 
-process(Host, _Method, undefined, _Query, _Arg) ->
-    json_helpers:error(Host, not_found);
+process(Host, 'OPTIONS', Path, _Query, _Arg) ->
+    case routes:get(Path) of
+        {ok, _Match, _Handlers} ->
+            json_helpers:ok(Host);
+        {error, not_found} ->
+            ?ERROR_MSG("options ~p: no route found", [Path]),
+            json_helpers:error(Host, not_found)
+    end;
 process(Host, Method, Path, Query, Arg) ->
     case routes:get(Method, Path) of
         {ok, Match, Handlers} ->
             call_handlers(Host, Handlers, Query, Match, Arg);
         {error, not_found} ->
-            ?ERROR_MSG("~p ~p: no route found~n", [Method, Path]),
-            json_helpers:error(Host, not_found);
-        {error, Reason} ->
-            json_helpers:error(Host, Reason)
+            ?ERROR_MSG("~p ~p: no route found", [Method, Path]),
+            json_helpers:error(Host, not_found)
     end.

@@ -19,16 +19,24 @@
 
 -include("uce.hrl").
 
--export([setup/0, teardown/1]).
+-export([setup/0, teardown/1, get_default_domain/0, get_base_url/0]).
 
-setup() ->
+get_default_domain() ->
     Hosts = config:get(hosts),
     {Domain, _Config} = hd(Hosts),
+    Domain.
+
+get_base_url() ->
+    Domain = get_default_domain(),
     Port = config:get(port),
+    "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/".
+
+setup() ->
+    Domain = get_default_domain(),
     (list_to_atom(lists:concat([config:get(Domain, db), "_db"]))):drop(),
     setup_meetings(Domain),
     UsersUid = setup_users(Domain),
-    [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/", setup_testers(Domain, UsersUid)].
+    [Domain, get_base_url(), setup_testers(Domain, UsersUid)].
 
 teardown([Domain, _, _Testers]) ->
     teardown_solr(Domain),

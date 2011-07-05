@@ -25,12 +25,14 @@
         , get_raw/3
         , get/2
         , get/3
+        , options_raw/2
         , put/3
         , delete/3
         ]).
 -export([url_encode/1]).
 
--define(HTTP_TIMEOUT, 30000).
+options_raw(BaseUrl, Path) ->
+    request(BaseUrl, Path, options, [], "", "").
 
 get_raw(BaseUrl, Path, Params) ->
     request(BaseUrl, Path, get, Params, "", "").

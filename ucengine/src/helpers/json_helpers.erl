@@ -172,13 +172,19 @@ to_json(_Domain, Json) ->
 
 unexpected_error_test() ->
     ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"unexpected_error\"}"},
-                 {header,"Access-Control-Allow-Origin: *"}], unexpected_error("")).
+                 {header, "Access-Control-Allow-Origin: *"},
+                 {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
+                 {header, "Access-Control-Allow-Headers: X-Requested-With"}], unexpected_error("")).
 
 error_test() ->
     ?assertMatch([{status, 400}, {content, "application/json", "{\"error\":\"bad_parameters\"}"},
-                  {header,"Access-Control-Allow-Origin: *"}], error("", bad_parameters)),
+                  {header, "Access-Control-Allow-Origin: *"},
+                  {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
+                  {header, "Access-Control-Allow-Headers: X-Requested-With"}], error("", bad_parameters)),
     ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"hello_world\"}"},
-                  {header,"Access-Control-Allow-Origin: *"}], error("", "hello_world")).
+                  {header, "Access-Control-Allow-Origin: *"},
+                  {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
+                  {header, "Access-Control-Allow-Headers: X-Requested-With"}], error("", "hello_world")).
 
 format_response_test() ->
     ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}], format_response(200, [], "{}")),
