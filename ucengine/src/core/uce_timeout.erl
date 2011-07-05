@@ -23,7 +23,7 @@
 
 -include("uce.hrl").
 
--export([start_link/1]).
+-export([start_link/1, clean_meetings/3]).
 
 -export([init/1,
          code_change/3,

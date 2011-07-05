@@ -61,13 +61,13 @@ get(Domain, [{sid, Sid}], [], _) ->
     {ok, Presence} = uce_presence:get(Domain, Sid),
     json_helpers:json(Domain, Presence).
 
-delete(Domain, [{sid, Id}], [Uid, Sid], _) ->
+delete(Domain, [{sid, Sid2}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, #uce_presence{} = Presence} = uce_presence:get(Domain, Id),
+    {ok, #uce_presence{id=Id, user=User, meetings=Meetings}} = uce_presence:get(Domain, Sid2),
     {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "delete",
-                                   [{"id", Presence#uce_presence.id}]),
+                                   [{"id", Id}]),
 
-    ok = presence_helpers:clean(Domain, Presence),
-    {ok, deleted} = uce_presence:delete(Domain, Id),
+    ok = uce_timeout:clean_meetings(Domain, User, Meetings),
+    {ok, deleted} = uce_presence:delete(Domain, Sid2),
 
     json_helpers:ok(Domain).
