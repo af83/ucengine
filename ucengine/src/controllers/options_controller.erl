@@ -23,7 +23,7 @@
 
 init() ->
     [#uce_route{method='OPTIONS',
-                path=['_'],
+                path=['...'],
                 callback={?MODULE, options, []}}].
 
 options(Domain, _, [], _) ->
