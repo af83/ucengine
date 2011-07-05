@@ -99,7 +99,8 @@ setup_routes() ->
                   file_controller,
                   time_controller,
                   infos_controller,
-                  search_controller]).
+                  search_controller,
+                  options_controller]).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
