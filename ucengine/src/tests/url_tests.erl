@@ -23,6 +23,7 @@ url_test_() ->
     {inparallel,
      [?_test(test_bad_url()),
       ?_test(test_options()),
+      ?_test(test_head()),
       ?_test(test_get_time())]}.
 
 test_bad_url() ->
@@ -33,6 +34,11 @@ test_options() ->
     BaseUrl = fixtures:get_base_url(),
     ?assertMatch({ok, "200", _, _}, tests_utils:options_raw(BaseUrl, "/time")),
     ?assertMatch({ok, "404", _, _}, tests_utils:options_raw(BaseUrl, "/")).
+
+test_head() ->
+    BaseUrl = fixtures:get_base_url(),
+    ?assertMatch({ok, "200", _, ""}, tests_utils:head_raw(BaseUrl, "/time")),
+    ?assertMatch({ok, "404", _, ""}, tests_utils:head_raw(BaseUrl, "/")).
 
 test_get_time() ->
     BaseUrl = fixtures:get_base_url(),

@@ -109,6 +109,7 @@ out(#arg{} = Arg) ->
             process(Host, Method, Path, Query, Arg)
     end.
 
+% Handle options method. If one route match, return ok
 process(Host, 'OPTIONS', Path, _Query, _Arg) ->
     case routes:get(Path) of
         {ok, _Match, _Handlers} ->
@@ -117,6 +118,10 @@ process(Host, 'OPTIONS', Path, _Query, _Arg) ->
             ?ERROR_MSG("options ~p: no route found", [Path]),
             json_helpers:error(Host, not_found)
     end;
+% Handle head method. If a 'GET' route match, normal process
+% Yaws will strip the content
+process(Host, 'HEAD', Path, Query, Arg) ->
+    process(Host, 'GET', Path, Query, Arg);
 process(Host, Method, Path, Query, Arg) ->
     case routes:get(Method, Path) of
         {ok, Match, Handlers} ->

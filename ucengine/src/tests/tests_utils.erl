@@ -26,6 +26,7 @@
         , get/2
         , get/3
         , options_raw/2
+        , head_raw/2
         , put/3
         , delete/3
         ]).
@@ -33,6 +34,9 @@
 
 options_raw(BaseUrl, Path) ->
     request(BaseUrl, Path, options, [], "", "").
+
+head_raw(BaseUrl, Path) ->
+    request(BaseUrl, Path, head, [], "", "").
 
 get_raw(BaseUrl, Path, Params) ->
     request(BaseUrl, Path, get, Params, "", "").
