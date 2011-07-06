@@ -25,61 +25,62 @@
 
 -export([add/2,
          get/2,
-         list/6]).
+         list/8]).
 
 -include("uce.hrl").
 
 init() ->
-    mnesia:create_table(uce_event,
-                        [{disc_copies, [node()]},
-                         {type, set},
-                         {attributes, record_info(fields, uce_event)}]).
+    case mnesia:create_table(uce_event,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_event)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_event}} -> ok
+    end.
 
-add(_Domain, #uce_event{} = Event) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Event)
-                            end) of
-        {atomic, _} ->
-            {ok, Event#uce_event.id};
+add(Domain, #uce_event{id=Id} = Event) ->
+    case mnesia:dirty_write(Event#uce_event{id={Id, Domain}}) of
+        ok ->
+            {ok, Id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_event, Id)
-                            end) of
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_event, {Id, Domain}) of
         {aborted, _} ->
             throw({error, bad_parameters});
-        {atomic, []} ->
+        [] ->
             throw({error, not_found});
-        {atomic, [Event]} ->
-            {ok, Event}
+        [Event] ->
+            {ok, remove_domain_from_id(Event)}
     end.
 
-list(Location, From, [], Start, End, Parent) ->
-    ?MODULE:list(Location, From, [""], Start, End, Parent);
-list(Location, From, Types, Start, End, Parent) ->
+list(Domain, Location, From, [], Start, End, Parent, Order) ->
+    list(Domain, Location, From, [""], Start, End, Parent, Order);
+list(Domain, Location, From, Types, Start, End, Parent, Order) ->
+    {SelectId, ResultId} = {{'$1', Domain}, {{'$1', Domain}}},
     {SelectLocation, ResultLocation} =
         case Location of
-            {"", _} ->
+            "" ->
                 {'$3', '$3'};
             _ ->
-                {Location, {Location}}
+                {Location, Location}
         end,
     {SelectFrom, ResultFrom} =
         case From of
-            {"", _} ->
+            "" ->
                 {'$4', '$4'};
             _ ->
-                {From, {From}}
+                {From, From}
         end,
-    SelectParent = if
-                       Parent == "" ->
-                           '$7';
-                       true ->
-                           Parent
-                   end,
+    SelectParent =
+        case Parent of
+            "" ->
+                '$7';
+            _ ->
+                Parent
+        end,
     Guard = if
                 Start /= 0, End /= infinity ->
                     [{'>=', '$2', Start}, {'=<', '$2', End}];
@@ -103,7 +104,7 @@ list(Location, From, Types, Start, End, Parent) ->
                                                Type
                                        end,
 
-                          Match = #uce_event{id='$1',
+                          Match = #uce_event{id=SelectId,
                                              datetime='$2',
                                              location=SelectLocation,
                                              from=SelectFrom,
@@ -111,12 +112,17 @@ list(Location, From, Types, Start, End, Parent) ->
                                              type=SelectType,
                                              parent=SelectParent,
                                              metadata='$8'},
-                          Result = {{'uce_event', '$1', '$2', ResultLocation,
+                          Result = {{'uce_event', ResultId, '$2', ResultLocation,
                                      ResultFrom, '$5', SelectType, SelectParent, '$8'}},
                           mnesia:dirty_select(uce_event, [{Match, Guard, [Result]}])
                   end,
                   Types),
-    {ok, lists:flatten(Events)}.
+    %% XXX: mnesia should be able to sort events
+    OrderedEvents = event_helpers:sort(lists:flatten(Events), Order),
+    {ok, remove_domain_from_id(OrderedEvents)}.
 
 drop() ->
     mnesia:clear_table(uce_event).
+
+remove_domain_from_id(Events) ->
+    ?REMOVE_ID_FROM_RECORD(Events, uce_event).

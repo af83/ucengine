@@ -38,9 +38,9 @@
 start_link(Path) ->
     case file:consult(Path) of
         {ok, Configs} ->
-            gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []);
+            {ok, _Pid} = gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []);
         {error, Reason} ->
-            ?ERROR_MSG("gen_server failed to start: ~p~n", [Reason]),
+            ?ERROR_MSG("config file error: ~p~n", [Reason]),
             {error, Reason}
     end.
 
@@ -58,7 +58,7 @@ merge_keys(Config, [{Key, Value}|R]) ->
     end.
 
 get(Key) ->
-    ?MODULE:get(global, Key).
+    get(global, Key).
 
 get(Domain, Key) ->
     gen_server:call(?MODULE, {get, Domain, Key}).
@@ -116,12 +116,12 @@ merge_complex_test() ->
 
 config_test() ->
     Configs = [{bricks, [{"erlyvideo", "2"}]},
-               {root, "/var/www"},
+               {wwwroot, "/var/www"},
                {hosts, [{"localhost", [{bricks, [{"translation", "1"}]}]},
                         {"example.com", [{data, "/var/spool"}]}]}],
     gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []),
     ?assertEqual([{"translation", "1"}], config:get("localhost", bricks)),
     ?assertEqual([{"erlyvideo", "2"}], config:get("example.com", bricks)),
-    ?assertEqual("/var/www", config:get(root)).
+    ?assertEqual("/var/www", config:get(wwwroot)).
 
 -endif.

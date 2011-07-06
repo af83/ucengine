@@ -19,7 +19,7 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/1, commit/0, list/11, delete/2]).
+-export([add/2, commit/0, list/11, delete/2]).
 
 -include("uce.hrl").
 
@@ -29,9 +29,9 @@
 
 -define(META_PREFIX, "metadata_").
 
-add(Event) ->
+add(Domain, Event) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
-    ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, to_solrxml(Event)),
+    ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, to_solrxml(Domain, Event)),
     {ok, created}.
 
 commit() ->
@@ -41,13 +41,13 @@ commit() ->
     {ok, commited}.
 
 %% Encode event in solrxml format which be used to add solr index
-to_solrxml(#uce_event{id={Id, Domain},
-                      datetime=Datetime,
-                      location={Location, _},
-                      from={From, _},
-                      to={To, _},
-                      type=Type,
-                      metadata=Metadata}) ->
+to_solrxml(Domain, #uce_event{id=Id,
+                              datetime=Datetime,
+                              location=Location,
+                              from=From,
+                              to=To,
+                              type=Type,
+                              metadata=Metadata}) ->
 
     LocationElement = [{field, [{name,"location"}], [Location]}],
 
@@ -74,17 +74,12 @@ to_solrxml(#uce_event{id={Id, Domain},
     lists:flatten(xmerl:export_simple_element(Add, xmerl_xml)).
 
 params_to_query([{Key, Value}|Tail]) ->
-    case Key of
-        [] ->
-            [];
-        _ ->
-            Key ++ ":"
-    end ++ Value ++ case Tail of
-                        [] ->
-                            [];
-                        _ ->
-                            " AND " ++ params_to_query(Tail)
-                    end;
+    Key ++ ":" ++ Value ++ case Tail of
+                               [] ->
+                                   [];
+                               _ ->
+                                   " AND " ++ params_to_query(Tail)
+                           end;
 params_to_query([Value|Tail])
   when is_list(Value) ->
     Value ++ case Tail of
@@ -94,7 +89,7 @@ params_to_query([Value|Tail])
                      " AND " ++ params_to_query(Tail)
              end.
 
-list(Domain, {Location, Domain}, Search, {From, _}, Types, DateStart, DateEnd, Parent, Start, Rows, Order) ->
+list(Domain, Location, Search, From, Types, DateStart, DateEnd, Parent, Start, Rows, Order) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
 
     DomainSelector = [{"domain", Domain}],
@@ -218,7 +213,7 @@ make_list_json_events([{struct, Elems}|Tail]) ->
             {error, bad_record};
 
         [{array, [Id]},
-         {array, [Domain]},
+         {array, [_Domain]},
          Datetime,
          {array, [Location]},
          {array, [From]},
@@ -246,14 +241,14 @@ make_list_json_events([{struct, Elems}|Tail]) ->
                                           Value}
                                  end,
                                  FlatMetadata),
-            [#uce_event{id={Id, Domain},
+            [#uce_event{id=Id,
                         datetime=case is_list(Datetime) of
                                     true -> list_to_integer(Datetime);
                                     _ -> Datetime
                                  end,
-                        location={Location, Domain},
-                        from={From, Domain},
-                        to={To, Domain},
+                        location=Location,
+                        from=From,
+                        to=To,
                         type=Type,
                         parent=Parent,
                         metadata=Metadata}] ++ make_list_json_events(Tail)

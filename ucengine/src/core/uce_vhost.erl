@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([name/1, start_link/1]).
+-export([start_link/1]).
 
 -export([init/1,
          code_change/3,
@@ -30,17 +30,8 @@
          handle_info/2,
          terminate/2]).
 
-name(Domain) ->
-    list_to_atom(lists:concat([?MODULE, "_", Domain])).
-
 start_link(Domain) ->
-    case gen_server:start_link({local, name(Domain)}, ?MODULE, [Domain], []) of
-        {ok, Pid} ->
-            {ok, Pid};
-        {error, Reason} ->
-            ?ERROR_MSG("gen_server failed to start: ~p~n", [Reason]),
-            {error, Reason}
-    end.
+    gen_server:start_link(?MODULE, [Domain], []).
 
 %%
 %% gen_server callbacks
@@ -80,7 +71,7 @@ setup_db(Domain) ->
     DBBackendModule:init(Domain, DBConfig).
 
 setup_roles(Domain) ->
-    case catch uce_role:add(Domain, #uce_role{id={"default", Domain}, acl=[]}) of
+    case catch uce_role:add(Domain, #uce_role{id="default", acl=[]}) of
         {ok, created} ->
             ok;
         {error, conflict} ->
@@ -92,38 +83,39 @@ setup_roles(Domain) ->
 
 setup_role(_, undefined) ->
     ok;
-setup_role(Domain, [{Name, ConfigACL}]) ->
+setup_role(_, []) ->
+    ok;
+setup_role(Domain, [{Name, ConfigACL}|Tail]) ->
     ACL = lists:map(fun({Action, Object, Conditions}) ->
                             #uce_access{action=Action,
                                         object=Object,
                                         conditions=Conditions}
                     end,
                     ConfigACL),
-    case catch uce_role:add(Domain, #uce_role{id={Name, Domain}, acl=ACL}) of
+    case catch uce_role:add(Domain, #uce_role{id=Name, acl=ACL}) of
         {ok, created} ->
-            ok;
+            setup_role(Domain, Tail);
         {error, conflict} ->
-            uce_role:update(Domain, #uce_role{id={Name, Domain}, acl=ACL}),
-            ok;
+            uce_role:update(Domain, #uce_role{id=Name, acl=ACL}),
+            setup_role(Domain, Tail);
         {error, Reason} ->
             throw({error, Reason})
     end.
 
 setup_root_role(Domain) ->
-    case catch uce_role:add(Domain, #uce_role{id={"root", Domain},
+    case catch uce_role:add(Domain, #uce_role{id="root",
                                               acl=[#uce_access{action="all", object="all"}]}) of
         {ok, created} ->
             ok;
         {error, conflict} ->
             ok;
-        {error, Reason} ->
-            throw({error, Reason})
+        {error, _} = Error ->throw(Error)
     end.
 
 setup_root_user(Domain, #uce_user{} = User) ->
     case catch uce_user:add(Domain, User) of
         {ok, UId} ->
-            uce_user:add_role(Domain, {UId, Domain}, {"root", []});
+            uce_user:add_role(Domain, UId, {"root", []});
         {error, conflict} ->
             ok;
         {error, _} = Error -> throw(Error)
@@ -141,24 +133,11 @@ setup_bricks(Domain) ->
 
 setup_admin(Domain) ->
     Admin = config:get(Domain, admin),
-    Uid = proplists:get_value(uid, Admin),
+    Name = proplists:get_value(uid, Admin),
     Auth = proplists:get_value(auth, Admin),
     Credential = proplists:get_value(credential, Admin),
     Metadata = proplists:get_value(metadata, Admin, []),
-    setup_root_user(Domain, #uce_user{name=Uid,
+    setup_root_user(Domain, #uce_user{name=Name,
                                       auth=Auth,
                                       credential=Credential,
                                       metadata=Metadata}).
-
-%%
-%% Tests
-%%
-
--ifdef(TEST).
--include_lib("eunit/include/eunit.hrl").
-
-name_test() ->
-    ?assertEqual(uce_vhost_localhost, name(localhost)),
-    ?assertEqual('uce_vhost_example.com', name('example.com')).
-
--endif.

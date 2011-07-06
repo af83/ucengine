@@ -1,14 +1,14 @@
 -record(uce_event, {
-          %% {eventid, Domain}
-          id = {none, none},
+          %% eventid
+          id = none,
           %% date (ms from epoch)
           datetime = undefined,
           %% location = [Meeting]
-          location = {"", ""},
+          location = "",
           %% From: uid|brick
           from,
           %% To : string
-          to = {"", ""},
+          to = "",
           %% Type event : string
           type,
           %% parent id
@@ -17,8 +17,8 @@
           metadata = []}).
 
 -record(uce_presence, {
-          %% {presenceid, domain}
-          id = {none, none},
+          %% presenceid
+          id = none,
           %% user id
           user,
           %% authification method
@@ -36,7 +36,7 @@
 
 -record(uce_meeting, {
           %% uce meeting id
-          id = {"", ""},
+          id = none,
           %% start_date and end_date format : ms since epoch
           start_date = none,
           end_date = none,
@@ -45,14 +45,16 @@
           metadata = []}).
 
 -record(uce_file, {
-          % {fileid, domain}
-          id = {none, none},
+          % fileid
+          id = none,
           % name
           name,
-          % {Meeting, Domain}
-          location = {"", ""},
+          % Meeting
+          location = "",
           % path
           uri = [],
+          %% date (ms from epoch)
+          datetime = undefined,
           % mime type
           mime = "text/plain",
           % name as send by the browser
@@ -60,8 +62,8 @@
          }).
 
 -record(uce_user, {
-          %% User (uid, domain)
-          id = {none, none},
+          %% User uid
+          id = none,
           %% name
           name,
           auth,
@@ -70,7 +72,7 @@
           roles=[]}).
 
 -record(uce_role, {
-          id = {"", ""},
+          id = "",
           acl=[]}).
 
 -record(uce_access, {
@@ -84,8 +86,13 @@
 
 -record(uce_route, {
           method,
-          regexp,
+          path,
           callback}).
+
+-record(file_upload, {
+          fd,
+          filename,
+          uri}).
 
 -define(TIMEOUT, 5000).
 
@@ -117,6 +124,35 @@
 
 -define(PRESENCE_EXPIRED_EVENT, "internal.presence.expired").
 
+-define(COUNTER(Name), (
+    fun() ->
+        case config:get(metrics) of
+            ok ->
+                metrics_counter:incr(Name);
+            _ -> ok
+        end
+    end())).
+
+-define(TIMER_APPEND(Name, Timer), (
+    fun() ->
+        case config:get(metrics) of
+            ok ->
+                metrics_gauge:append_timer(Name, Timer);
+            _ -> ok
+        end
+    end())).
+
+-define(GAUGE_APPEND(Gauge, Value), (
+    fun() ->
+        case config:get(metrics) of
+            ok ->
+                metrics_gauge:append(Gauge, Value);
+            _ -> ok
+        end
+    end()
+)).
+
+
 % Backends
 
 -define(PUBSUB_MODULE, mnesia_pubsub).
@@ -134,3 +170,14 @@
                  list_to_atom(atom_to_list(?MODULE) ++ "_"
                               ++ atom_to_list(config:get(search)) ++ "_search")
          end())).
+
+-define(REMOVE_ID_FROM_RECORD(Params, Record),
+        case Params of
+            Params when is_list(Params) ->
+                lists:map(fun(#Record{id={Id, _Domain}} = Param) ->
+                                  Param#Record{id=Id}
+                          end, Params);
+            Params when is_record(Params, Record) ->
+                {Id, _Domain} = Params#Record.id,
+                Params#Record{id=Id}
+        end).

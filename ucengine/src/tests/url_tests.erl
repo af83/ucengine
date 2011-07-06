@@ -20,12 +20,33 @@
 -include_lib("eunit/include/eunit.hrl").
 
 url_test_() ->
-    { setup,
-      fun fixtures:setup/0,
-      fun fixtures:teardown/1,
-      fun([_, BaseUrl, [Root|_]]) ->
-              [?_test(test_bad_url(BaseUrl, Root))]
-      end}.
+    {inparallel,
+     [?_test(test_bad_url()),
+      ?_test(test_options()),
+      ?_test(test_head()),
+      ?_test(test_get_time())]}.
 
-test_bad_url(BaseUrl, {_RootUid, _RootSid}) ->
-    {struct, [{"error", "not_found"}]} = tests_utils:get(BaseUrl, "", []).
+test_bad_url() ->
+    BaseUrl = fixtures:get_base_url(),
+    ?assertMatch({struct, [{"error", "not_found"}]}, tests_utils:get(BaseUrl, "", [])).
+
+test_options() ->
+    BaseUrl = fixtures:get_base_url(),
+    ?assertMatch({ok, "200", _, _}, tests_utils:options_raw(BaseUrl, "/time")),
+    ?assertMatch({ok, "404", _, _}, tests_utils:options_raw(BaseUrl, "/")).
+
+test_head() ->
+    BaseUrl = fixtures:get_base_url(),
+    ?assertMatch({ok, "200", _, ""}, tests_utils:head_raw(BaseUrl, "/time")),
+    ?assertMatch({ok, "404", _, ""}, tests_utils:head_raw(BaseUrl, "/")).
+
+test_get_time() ->
+    BaseUrl = fixtures:get_base_url(),
+    {struct, [{"result", Time}]} = tests_utils:get(BaseUrl, "/time", []),
+    Diff = Time - utils:now(),
+    if
+        Diff > 1000 ->
+            throw({error, too_much_delay, Diff});
+        true ->
+            nothing
+    end.

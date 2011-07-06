@@ -23,32 +23,25 @@
 -include_lib("yaws/include/yaws_api.hrl").
 
 -export([now/0,
-         token/0,
-         uid/0,
 
          random/0,
          random/1,
          get_values/2,
          get/2,
-         get/3]).
+         get/3,
+         proplist_merge/2]).
 
 %% Get current timestamp
 now() ->
     {Mega,Sec,Micro} = erlang:now(),
     erlang:round(((Mega*1000000+Sec)*1000000+Micro)/1000).
 
-token() ->
-    ?MODULE:random().
-
-uid() ->
-    "uid_" ++ ?MODULE:random().
-
 random() ->
-    ?MODULE:random(32).
+    random(32).
 random(0) ->
     [];
 random(Length) ->
-    [crypto:rand_uniform(48,58)] ++ ?MODULE:random(Length - 1).
+    [crypto:rand_uniform(48,58)] ++ random(Length - 1).
 
 get(Params, Key) when is_atom(Key) ->
     [Result] = get(Params, [Key]),
@@ -70,7 +63,7 @@ get(Params, [Key|Keys], [Default|Defaults]) ->
                     false ->
                         [Default]
                 end,
-    ValueList ++ ?MODULE:get(Params, Keys, Defaults).
+    ValueList ++ get(Params, Keys, Defaults).
 
 get_values(Proplist, Keys) ->
     lists:map(fun({Name, Default}) ->
@@ -78,11 +71,39 @@ get_values(Proplist, Keys) ->
               end, Keys).
 
 
+%% Merge two proplist
+proplist_merge(ProplistOne, ProplistTwo) ->
+    lists:foldl(fun(Elem, Acc) ->
+        case Elem of
+            {Key, Value} ->
+                case proplists:is_defined(Key, ProplistOne) of
+                    true ->
+                        Acc;
+                    false -> Acc ++ [{Key, Value}]
+                end;
+            Key ->
+                case proplists:is_defined(Key, ProplistOne) of
+                    true ->
+                        Acc;
+                    false -> Acc ++ [Key]
+                end
+        end
+    end,
+        ProplistOne, ProplistTwo).
+
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
 get_values_test() ->
     ?assertEqual(["chuck", "norris", rocks], get_values([{firstname, "chuck"}, {lastname, "norris"}], [{firstname, ""}, {lastname, ""}, {def, rocks}])).
 
+merge_test() ->
+    A = [{firstname, "Chuck"}, {lastname, "Norris"}, alive],
+    B = [{firstname, "Robert"}, {shoes, "santiags"}, {lastname, "Norris2"}],
+    C = proplist_merge(A, B),
+    ?assertEqual("Chuck", proplists:get_value(firstname, C)),
+    ?assertEqual("Chuck", proplists:get_value(firstname, C)),
+    ?assertEqual("Norris", proplists:get_value(lastname, C)),
+    ?assertEqual(true, proplists:get_value(alive, C)).
 -endif.
 

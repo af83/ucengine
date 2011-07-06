@@ -22,7 +22,7 @@
 -behaviour(gen_uce_file).
 
 -export([add/2,
-         list/2,
+         list/3,
          all/1,
          get/2,
          delete/2]).
@@ -31,33 +31,24 @@
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (#uce_file{}) -> {ok, created} | {error, bad_parameters}
+%% @spec (#uce_file{}) -> {ok, Id}
 %% @doc Insert given record #uce_file{} in uce_file mongodb table
 %% @end
 %%--------------------------------------------------------------------
 add(Domain, #uce_file{} = File) ->
-    case catch emongo:insert_sync(Domain, "uce_file", to_collection(File)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, File#uce_file.id}
-    end.
+    emongo:insert_sync(Domain, "uce_file", to_collection(Domain, File)),
+    {ok, File#uce_file.id}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain, {Location::list, _Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
+%% @spec (Domain, Location::list) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
 %% @doc List all record #uce_file for the given pair location(meeting) and domain
 %% @end
 %%--------------------------------------------------------------------
-list(Domain, {Location, _}) ->
-    case catch emongo:find_all(Domain, "uce_file", [{"location", Location},
-                                                    {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Files ->
-            {ok, [from_collection(File) || File <- Files]}
-    end.
+list(Domain, Location, Order) ->
+    Files = emongo:find_all(Domain, "uce_file", [{"location", Location},
+                                                 {"domain", Domain}],
+                            [{orderby, [{"datetime", Order}]}]),
+    {ok, [from_collection(File) || File <- Files]}.
 
 %%--------------------------------------------------------------------
 %% @spec ({Location::list, Domain::list}) -> {ok, [#uce_file{}, #uce_file{}, ..] = Files::list} | {error, bad_parameters}
@@ -65,43 +56,30 @@ list(Domain, {Location, _}) ->
 %% @end
 %%--------------------------------------------------------------------
 all(Domain) ->
-    case catch emongo:find_all(Domain, "uce_file", [{"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Files ->
-            {ok, [from_collection(File) || File <- Files]}
-    end.
+    Files = emongo:find_all(Domain, "uce_file", [{"domain", Domain}]),
+    {ok, [from_collection(File) || File <- Files]}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, #uce_file{}} | {error, bad_parameters} | {error, not_found}
+%% @spec (Domain::list, FileId::list) -> {ok, #uce_file{}} | {error, bad_parameters} | {error, not_found}
 %% @doc Get #uce_file record for the given id
 %% @end
 %%--------------------------------------------------------------------
-get(Domain, {FileId, _FileDomain}) ->
-    case catch emongo:find_one(Domain, "uce_file", [{"id", FileId}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+get(Domain, FileId) ->
+    case emongo:find_one(Domain, "uce_file", [{"id", FileId}]) of
         [File] ->
             {ok, from_collection(File)};
-        _ ->
+        [] ->
             throw({error, not_found})
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {FileId::list, FileDomain::list}) -> {ok, deleted} | {error, not_found}
+%% @spec (Domain::list, FileId::list) -> {ok, deleted}
 %% @doc Delete #uce_file record for the given id
 %% @end
 %%--------------------------------------------------------------------
-delete(Domain, {FileId, _FileDomain}) ->
-    case catch emongo:delete_sync(Domain, "uce_file", [{"id", FileId}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, deleted}
-    end.
+delete(Domain, FileId) ->
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_file", [{"id", FileId}])),
+    {ok, deleted}.
 
 %%--------------------------------------------------------------------
 %% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_file{} | {error, bad_parameters}
@@ -110,12 +88,14 @@ delete(Domain, {FileId, _FileDomain}) ->
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		   ["id", "domain", "location", "name", "uri", "metadata"]) of
-        [Id, Domain, Location, Name, Uri, Metadata] ->
-            #uce_file{id={Id, Domain},
+                   ["id", "domain", "location", "name", "datetime", "mime", "uri", "metadata"]) of
+        [Id, _Domain, Location, Name, Datetime, Mime, Uri, Metadata] ->
+            #uce_file{id=Id,
                       name=Name,
-                      location={Location, Domain},
+                      location=Location,
                       uri=Uri,
+                      datetime=Datetime,
+                      mime=Mime,
                       metadata=Metadata};
         _ ->
             throw({error, bad_parameters})
@@ -126,14 +106,18 @@ from_collection(Collection) ->
 %% @doc Convert #uce_file{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
-to_collection(#uce_file{id={Id, Domain},
-                        name=Name,
-                        location={Location, _},
-                        uri=Uri,
-                        metadata=Metadata}) ->
+to_collection(Domain, #uce_file{id=Id,
+                                name=Name,
+                                location=Location,
+                                uri=Uri,
+                                datetime=Datetime,
+                                mime=Mime,
+                                metadata=Metadata}) ->
     [{"id", Id},
      {"domain", Domain},
      {"location", Location},
      {"name", Name},
+     {"datetime", Datetime},
+     {"mime", Mime},
      {"uri", Uri},
      {"metadata", Metadata}].

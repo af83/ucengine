@@ -19,41 +19,45 @@
 
 -author('victor.goya@af83.com').
 
--export([add/2, list/2, get/2, delete/2]).
+-export([add/2, list/3, get/2, delete/2]).
 
 -include("uce.hrl").
 
 add(Domain, #uce_file{location=Location, name=Name} = File) ->
-    case location_helpers:exists(Domain, Location) of
+    case uce_meeting:exists(Domain, Location) of
         false ->
             throw({error, not_found});
         true ->
+            Extension = filename:extension(Name),
+            Base64Name = binary_to_list(base64:encode(unicode:characters_to_binary(Name))),
+            Rnd = utils:random(),
             {Id, Mime} =
-                case re:run(Name, "([^/]+)\\.([^/]+)$ ?", [{capture, all, list}]) of
-                    {match, [_, BareName, Extension]} ->
-                        {BareName ++ "_" ++ utils:random() ++ "." ++ Extension,
-                         yaws_api:mime_type(Name)};
+                case Extension of
+                    "" ->
+                        {Base64Name ++ "_" ++ Rnd,
+                         "text/plain"};
                     _ ->
-                        {Name ++ "_" ++ utils:random(), "text/plain"}
+                        {Base64Name ++ "_" ++ Rnd ++ Extension,
+                         yaws_api:mime_type(Name)}
                 end,
-            apply(db:get(?MODULE, Domain), add, [Domain, File#uce_file{id={Id, Domain}, mime=Mime}])
+            (db:get(?MODULE, Domain)):add(Domain, File#uce_file{id=Id, mime=Mime})
     end.
 
-list(Domain, {_, _}=Location) ->
-    case location_helpers:exists(Domain, Location) of
+list(Domain, Id, Order) ->
+    case uce_meeting:exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            apply(db:get(?MODULE, Domain), list, [Domain, Location])
+            (db:get(?MODULE, Domain)):list(Domain, Id, Order)
     end.
 
-get(Domain, {_, _}=Id) ->
-    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
+get(Domain, Id) ->
+    (db:get(?MODULE, Domain)):get(Domain, Id).
 
-delete(Domain, {_, _}=Id) ->
-    case ?MODULE:get(Domain, Id) of
+delete(Domain, Id) ->
+    case get(Domain, Id) of
         {error, Reason} ->
             {error, Reason};
         {ok, _} ->
-            apply(db:get(?MODULE, Domain), delete, [Domain, Id])
+            (db:get(?MODULE, Domain)):delete(Domain, Id)
     end.

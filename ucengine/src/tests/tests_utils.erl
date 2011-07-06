@@ -21,34 +21,39 @@
 
 -export([ post/3
         , post/5
+        , post_raw/5
         , get_raw/3
         , get/2
         , get/3
+        , options_raw/2
+        , head_raw/2
         , put/3
         , delete/3
         ]).
 -export([url_encode/1]).
 
--define(HTTP_TIMEOUT, 30000).
+options_raw(BaseUrl, Path) ->
+    request(BaseUrl, Path, options, [], "", "").
+
+head_raw(BaseUrl, Path) ->
+    request(BaseUrl, Path, head, [], "", "").
 
 get_raw(BaseUrl, Path, Params) ->
-    ibrowse:send_req(BaseUrl ++ Path ++ "?" ++ url_encode(Params), [], get).
+    request(BaseUrl, Path, get, Params, "", "").
 
 get(BaseUrl, Path) ->
-    {ok, _, _, JSON} = ibrowse:send_req(BaseUrl ++ Path, [], get),
-    mochijson:decode(JSON).
+    get(BaseUrl, Path, []).
 get(BaseUrl, Path, Params) ->
-    {ok, _, _, JSON} =
-        ibrowse:send_req(BaseUrl ++ Path ++ "?" ++ url_encode(Params), [], get),
+    {ok, _, _, JSON} = get_raw(BaseUrl, Path, Params),
     mochijson:decode(JSON).
+
+post_raw(BaseUrl, Path, Params, ContentType, Body) ->
+    request(BaseUrl, Path, post, Params, ContentType, Body).
 
 post(BaseUrl, Path, Params) ->
-    {ok, _, _, JSON} =
-        request(BaseUrl, Path, post, [], "application/x-www-form-urlencoded", url_encode(Params)),
-    mochijson:decode(JSON).
-
+    post(BaseUrl, Path, [], "application/x-www-form-urlencoded", url_encode(Params)).
 post(BaseUrl, Path, Params, ContentType, Body) ->
-    {ok, _, _, JSON} = request(BaseUrl, Path, post, Params, ContentType, Body),
+    {ok, _, _, JSON} = post_raw(BaseUrl, Path, Params, ContentType, Body),
     mochijson:decode(JSON).
 
 put(BaseUrl, Path, Params) ->

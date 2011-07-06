@@ -28,6 +28,8 @@ if [ -z "$NAME_ARG" ]; then
     exit 1
 fi
 
+NODE_ARG=`echo "${NAME_ARG}" | sed -e 's/-name \(.*\)$/--node \1/'`
+
 # Learn how to specify node name for connection from remote nodes
 echo "$NAME_ARG" | grep '^-sname' > /dev/null 2>&1
 if [ "X$?" = "X0" ]; then
@@ -68,10 +70,9 @@ internal_cmd()
 {
     $ERTS_PATH/erl -noshell $NAME_PARAM uce_ctl$NAME_HOST $COOKIE_ARG \
                    -s uce_ctl       \
-                   -object "$1"     \
-                   -action "$2"     \
                    -dummy           \
-                   "$@"
+                   "$@"             \
+                   $NODE_ARG
 }
 
 tests()
@@ -82,18 +83,28 @@ tests()
             -eval "tests:start()."
 }
 
+
+fetch_metrics()
+{
+    if [ -z $2 ];
+   then
+       echo "Please provide a destination folder"
+       echo "$0 fetch_metrics /tmp/"
+       exit 1
+   fi
+   NODE_UCENGINE=`echo "${NAME_ARG}" | sed -e 's/-name \(.*\)$/\1/'`
+   EVAL="io:format(\"~p~n\", [rpc:call('$NODE_UCENGINE', metrics_counter, to_file, [\"$2/counter.csv\"])]), \
+         io:format(\"~p~n\", [rpc:call('$NODE_UCENGINE', metrics_gauge, to_file, [\"$2/gauge.csv\"])]), \
+         halt()."
+   $ERTS_PATH/erl -noshell $NAME_PARAM metrics_dump$NAME_HOST $COOKIE_ARG \
+            -dummy \
+            -eval "$EVAL"
+}
+
 # Check the first argument for instructions
 case "$1" in
     --help) internal_cmd $@;;
-    infos) internal_cmd $@;;
-    meeting) internal_cmd $@;;
-    demo) internal_cmd $@;;
-    time) internal_cmd $@;;
-    user) internal_cmd $@;;
-    role) internal_cmd $@;;
     tests) tests $@;;
-    *)
-        echo "Usage: $SCRIPT {infos|meeting|user|role|time|demo|tests}"
-        exit 1
-        ;;
+    fetch_metrics) fetch_metrics $@;;
+    *) internal_cmd $@;;
 esac

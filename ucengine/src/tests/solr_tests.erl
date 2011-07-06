@@ -34,18 +34,14 @@ solr_test_() ->
     }.
 
 test_add(Domain) ->
-    {ok, created} = uce_event_solr_search:add(#uce_event{id={utils:random(), Domain},
-                                                         datetime=utils:now(),
-                                                         location={"testmeeting", Domain},
-                                                         from={"chuck_norris", Domain},
-                                                         type="test_solr_event",
-                                                         metadata=[{"text","This is a test event."}]}).
+    {ok, created} = uce_event_solr_search:add(Domain, #uce_event{id=utils:random(),
+                                                                 datetime=utils:now(),
+                                                                 location="testmeeting",
+                                                                 from="chuck_norris",
+                                                                 type="test_solr_event",
+                                                                 metadata=[{"text","This is a test event."}]}).
 
 test_search(Domain) ->
     timer:sleep(2000),
-    ok = case uce_event_solr_search:list(Domain, {"", Domain}, ["This"], {"", Domain}, [], 0, infinity, "", 0, 1, asc) of
-             {error, Reason} ->
-                 {error, Reason};
-             {ok, _NumTotal, [_]} ->
-                 ok
-         end.
+    ?assertMatch({ok, _NumTotal, [_]},
+                 uce_event_solr_search:list(Domain, "", ["This"], "", [], 0, infinity, "", 0, 1, asc)).

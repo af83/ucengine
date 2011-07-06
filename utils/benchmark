@@ -1,13 +1,37 @@
 #!/bin/bash
 
-export ERL_LIBS="$ERL_LIB:$UCENGINE_PATH:."
+TSUNG_PATH=$(which tsung)
 
-BENCH=$1
-: ${BENCH:="quiet"}
+if [ -z $TSUNG_PATH ];
+then
+    echo "You must install tsung or put it in you PATH."
+    exit 1
+fi
 
-echo "Scenario chosen: benchmarks/scenarii/$BENCH.xml"
+TSUNG_SHARE_PATH=$(dirname $TSUNG_PATH)"/.."
 
-ulimit -n 300000
-mkdir -p benchmarks/results
-mkdir -p "benchmarks/results/$BENCH"
-tsung -f "benchmarks/scenarii/$BENCH.xml" -l "benchmarks/results/$BENCH/" start
+if [ -z $1 ];
+then
+    echo "Please provide a scenario name"
+    exit 1
+fi
+
+SCENARII_FILE=benchmarks/scenarii/$1.xml
+
+if [ ! -f $SCENARII_FILE ];
+then
+    echo "Scenario file doesn't exists"
+    exit 1
+fi
+
+cp $SCENARII_FILE benchmarks/results
+# Update the path to tsung dtd
+SCENARII_FILE_MODIFIED=benchmarks/results/$1.xml
+sed -i "s=TSUNG_SHARE_PATH=$TSUNG_SHARE_PATH=" $SCENARII_FILE_MODIFIED
+ERL_LIBS="benchmarks" tsung -f $SCENARII_FILE_MODIFIED -l "benchmarks/results/$1.log" start
+
+LAST_BENCH=$(pwd)/$(find  benchmarks/results -name "20*" -type d | sort -r | head -1)
+
+cp ./rel/ucengine/log/* $LAST_BENCH
+./rel/ucengine/bin/ucengine-admin fetch_metrics $LAST_BENCH
+cd $LAST_BENCH && tsung_stats.pl --stats $1.log

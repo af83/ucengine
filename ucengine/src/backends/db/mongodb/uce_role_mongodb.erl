@@ -24,68 +24,61 @@
 -export([add/2,
          delete/2,
          update/2,
-         get/2]).
+         get/2,
+         index/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 add(Domain, #uce_role{} = Role) ->
-    case catch emongo:insert_sync(Domain, "uce_role", to_collection(Role)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, created}
-    end.
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_role", to_collection(Domain, Role))),
+    {ok, created}.
 
-update(Domain, #uce_role{id={Name, _}} = Role) ->
-    case catch emongo:update_sync(Domain, "uce_role", [{"name", Name},
-                                                       {"domain", Domain}],
-                                  to_collection(Role), false) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, updated}
-    end.
+update(Domain, #uce_role{id=Name} = Role) ->
+    mongodb_helpers:updated(emongo:update_sync(Domain, "uce_role", [{"name", Name},
+                                                                    {"domain", Domain}],
+                                               to_collection(Domain, Role), false)),
+    {ok, updated}.
 
-delete(Domain, {Name, Domain}) ->
-    case catch emongo:delete_sync(Domain, "uce_role", [{"name", Name},
-                                                       {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, deleted}
-    end.
+delete(Domain, Name) ->
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_role", [{"name", Name},
+                                                               {"domain", Domain}])),
+    {ok, deleted}.
 
-get(Domain, {Name, Domain}) ->
-    case catch emongo:find_one(Domain, "uce_role", [{"name", Name},
-                                                    {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+get(Domain, Name) ->
+    case emongo:find_one(Domain, "uce_role", [{"name", Name},
+                                              {"domain", Domain}]) of
         [Record] ->
             {ok, from_collection(Record)};
-        _ ->
+        [] ->
             throw({error, not_found})
     end.
 
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["name", "domain", "acl"]) of
-        [Name, Domain, ACL] ->
-            #uce_role{id={Name, Domain},
+        [Name, _Domain, ACL] ->
+            #uce_role{id=Name,
                       acl=[#uce_access{object=Object, action=Action, conditions=Conditions} ||
                               [Object, Action, Conditions] <- ACL]};
         _ ->
             throw({error, bad_parameters})
     end.
 
-to_collection(#uce_role{id={Name, Domain},
-                        acl=ACL}) ->
+to_collection(Domain, #uce_role{id=Name,
+                                acl=ACL}) ->
     [{"name", Name},
      {"domain", Domain},
      {"acl", [[Object, Action, Conditions] || #uce_access{object=Object,
                                                           action=Action,
                                                           conditions=Conditions} <- ACL]}].
+
+%%--------------------------------------------------------------------
+%% @spec (Domain::list) -> ok::atom
+%% @doc Create index for uce_role collection in database 
+%% @end
+%%--------------------------------------------------------------------
+index(Domain) ->
+    Indexes = [{"name", 1}, {"domain", 1}],
+    emongo:ensure_index(Domain, "uce_role", Indexes),
+    ok.

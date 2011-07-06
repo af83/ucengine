@@ -23,33 +23,34 @@
 
 -export([init/0, drop/0]).
 
--export([add/1,
-         delete/1,
-         get/1,
-         update/1,
+-export([add/2,
+         delete/2,
+         get/2,
+         update/2,
          list/1]).
 
 -include("uce.hrl").
 
 init() ->
-    mnesia:create_table(uce_meeting,
-                        [{disc_copies, [node()]},
-                         {type, set},
-                         {attributes, record_info(fields, uce_meeting)}]).
+    case mnesia:create_table(uce_meeting,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_meeting)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_meeting}} -> ok
+    end.
 
-add(#uce_meeting{} = Meeting) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Meeting)
-                            end) of
+add(Domain, #uce_meeting{id=Id} = Meeting) ->
+    case mnesia:dirty_write(Meeting#uce_meeting{id={Id, Domain}}) of
         {aborted, _} ->
             throw({error, bad_parameters});
-        {atomic, _} ->
+        ok ->
             {ok, created}
     end.
 
-delete(Id) ->
+delete(Domain, Id) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:delete({uce_meeting, Id})
+                                    mnesia:delete({uce_meeting, {Id, Domain}})
                             end) of
         {aborted, _} ->
             throw({error, bad_parameters});
@@ -57,21 +58,19 @@ delete(Id) ->
             {ok, deleted}
     end.
 
-get(Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_meeting, Id)
-                            end) of
-        {atomic, [Record]} ->
-            {ok, Record};
-        {atomic, _} ->
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_meeting, {Id, Domain}) of
+        [Meeting] ->
+            {ok, remove_domain_from_id(Meeting)};
+        [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-update(#uce_meeting{} = Meeting) ->
+update(Domain, #uce_meeting{id=Id} = Meeting) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:write(Meeting)
+                                    mnesia:write(Meeting#uce_meeting{id={Id, Domain}})
                             end) of
         {aborted, _} ->
             throw({error, bad_parameters});
@@ -80,18 +79,19 @@ update(#uce_meeting{} = Meeting) ->
     end.
 
 list(Domain) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_meeting{id={'_', Domain},
-                                                                     start_date='_',
-                                                                     end_date='_',
-                                                                     roster='_',
-                                                                     metadata='_'})
-                            end) of
+    case mnesia:dirty_match_object(#uce_meeting{id={'_', Domain},
+                                                start_date='_',
+                                                end_date='_',
+                                                roster='_',
+                                                metadata='_'}) of
         {aborted, _} ->
             throw({error, bad_parameters});
-        {atomic, Meetings} ->
-            {ok, Meetings}
+        Meetings ->
+            {ok, remove_domain_from_id(Meetings)}
     end.
 
 drop() ->
     mnesia:clear_table(uce_meeting).
+
+remove_domain_from_id(Meetings) ->
+    ?REMOVE_ID_FROM_RECORD(Meetings, uce_meeting).

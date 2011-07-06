@@ -15,7 +15,11 @@
 %%  You should have received a copy of the GNU Affero General Public License
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
+
 -module(uce_file_mnesia).
+
+-include_lib("stdlib/include/qlc.hrl").
+-include("uce.hrl").
 
 -author('victor.goya@af83.com').
 
@@ -23,71 +27,75 @@
 
 -export([init/0, drop/0]).
 
--export([add/2, list/2, get/2, all/1, delete/2]).
-
--include("uce.hrl").
+-export([add/2, list/3, get/2, all/1, delete/2]).
 
 init() ->
-    mnesia:create_table(uce_file,
-                        [{disc_copies, [node()]},
-                         {type, set},
-                         {attributes, record_info(fields, uce_file)}]).
+    case mnesia:create_table(uce_file,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_file)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_file}} -> ok
+    end.
 
-add(_Domain, #uce_file{} = File) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(File)
-                            end) of
-        {atomic, _} ->
-            {ok, File#uce_file.id};
+add(Domain, #uce_file{id=Id} = File) ->
+    case mnesia:dirty_write(File#uce_file{id={Id, Domain}}) of
+        ok ->
+            {ok, Id};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-list(_Domain, {_, _}=Location) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_file{id='_',
-                                                                  name='_',
-                                                                  location=Location,
-                                                                  uri='_',
-                                                                  mime='_',
-                                                                  metadata='_'})
-                            end) of
+list(Domain, Meeting, Order) ->
+    FunOrder = case Order of
+                   asc ->
+                       fun(A, B) ->
+                               B#uce_file.datetime > A#uce_file.datetime
+                       end;
+                   desc ->
+                       fun(A, B) ->
+                               B#uce_file.datetime < A#uce_file.datetime
+                       end
+               end,
+    Transaction = fun() ->
+                          Query = qlc:q([File || File <- mnesia:table(uce_file), File#uce_file.location == Meeting, element(2, File#uce_file.id) == Domain]),
+                          qlc:eval(qlc:sort(Query, [{order, FunOrder}]))
+          end,
+    case mnesia:transaction(Transaction) of
         {atomic, Files} ->
-            {ok, Files};
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            {ok, remove_domain_from_id(Files)};
+        {aborded, Error} ->
+                ?ERROR_MSG("ERROR ~p~n", [Error]),
+                throw({error, Error})
     end.
 
 all(Domain) ->
-        case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_file{id={'_', Domain},
-                                                                  name='_',
-                                                                  location='_',
-                                                                  uri='_',
-                                                                  mime='_',
-                                                                  metadata='_'})
-                                end) of
-            {atomic, Files} ->
-                {ok, Files};
+        case mnesia:dirty_match_object(#uce_file{id={'_', Domain},
+                                                 name='_',
+                                                 location='_',
+                                                 uri='_',
+                                                 datetime='_',
+                                                 mime='_',
+                                                 metadata='_'}) of
+            Files when is_list(Files) ->
+                {ok, remove_domain_from_id(Files)};
             {aborted, _} ->
                 throw({error, bad_parameters})
     end.
 
-get(_Domain, {_, _}=Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_file, Id)
-                            end) of
-        {atomic, [File]} ->
-            {ok, File};
-        {atomic, []} ->
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_file, {Id, Domain}) of
+        [File] ->
+            {ok, remove_domain_from_id(File)};
+        [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})
     end.
 
-delete(_Domain, {_, _}=Id) ->
+delete(Domain, Id) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:delete({uce_file, Id})
+                                    mnesia:delete({uce_file, {Id, Domain}})
                             end) of
         {atomic, ok} ->
             {ok, deleted};
@@ -97,3 +105,6 @@ delete(_Domain, {_, _}=Id) ->
 
 drop() ->
     mnesia:clear_table(uce_file).
+
+remove_domain_from_id(Files) ->
+    ?REMOVE_ID_FROM_RECORD(Files, uce_file).

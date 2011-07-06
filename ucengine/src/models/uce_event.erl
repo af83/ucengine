@@ -23,53 +23,49 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_event{id={none, Domain}}=Event) ->
-    ?MODULE:add(Domain, Event#uce_event{id={utils:random(), Domain}});
+add(Domain, #uce_event{id=none}=Event) ->
+    add(Domain, Event#uce_event{id=utils:random()});
 add(Domain, #uce_event{datetime=undefined}=Event) ->
-    ?MODULE:add(Domain, Event#uce_event{datetime=utils:now()});
-add(Domain, #uce_event{location=Location, from=From, to=To, parent=Parent} = Event) ->
+    add(Domain, Event#uce_event{datetime=utils:now()});
+add(Domain, #uce_event{location=Location, to=To, parent=Parent} = Event) ->
     LocationExists = uce_meeting:exists(Domain, Location),
-    FromExists = uce_user:exists(Domain, From),
     ToExists = uce_user:exists(Domain, To),
-    ParentExists = uce_event:exists(Domain, {Parent, Domain}),
+    ParentExists = uce_event:exists(Domain, Parent),
 
-    case {LocationExists, FromExists, ToExists, ParentExists} of
-        {true, true, true, true} ->
-            {ok, Id} = apply(db:get(?MODULE, Domain), add, [Domain, Event]),
-            ?PUBSUB_MODULE:publish(Event),
-            ?SEARCH_MODULE:add(Event),
+    case {LocationExists, ToExists, ParentExists} of
+        {true, true, true} ->
+            {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
+            ?PUBSUB_MODULE:publish(Domain, Event),
+            ?SEARCH_MODULE:add(Domain, Event),
+            ?COUNTER("event_add:" ++ Event#uce_event.type),
             {ok, Id};
-        {_Bool1, _Bool2, _Bool3, _Bool4} ->
+        _ ->% [TODO] throw the missing exist
             throw({error, not_found})
     end.
 
 get(Domain, Id) ->
-    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
+    (db:get(?MODULE, Domain)):get(Domain, Id).
 
+exists(_Domain, "") ->
+    true;
 exists(Domain, Id) ->
-    case Id of
-        {"", _Domain} -> true;
+    case catch get(Domain, Id) of
+        {error, not_found} ->
+            false;
+        {error, Reason} ->
+            throw({error, Reason});
         _ ->
-            case catch ?MODULE:get(Domain, Id) of
-                {error, not_found} ->
-                   false;
-                {error, Reason} ->
-                    throw({error, Reason});
-                _ ->
-                    true
-            end
+            true
     end.
 
-filter_private(Events, {Name, Domain}) ->
+filter_private(Events, Name) ->
     lists:filter(fun(#uce_event{to=To, from=From}) ->
                          if
-                             To == {"", ""} ->     % all
+                             To == "" ->     % all
                                  true;
-                             To == {"", Domain} -> % all
+                             To == Name ->
                                  true;
-                             To == {Name, Domain} ->
-                                 true;
-                             From == {Name, Domain} ->
+                             From == Name ->
                                  true;
                              true ->
                                  false
@@ -89,9 +85,11 @@ search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, S
                                                  Start,
                                                  Max,
                                                  Order),
+    ?COUNTER(event_search),
     {ok, NumTotal, filter_private(Events, Uid)}.
 
 list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
+    N = now(),
     {ok, _Num, Events} = uce_event_erlang_search:list(Domain,
                                                       Location,
                                                       Search,
@@ -103,4 +101,6 @@ list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Sta
                                                       Start,
                                                       Max,
                                                       Order),
+    ?TIMER_APPEND(event_list, N),
+    ?COUNTER(event_list),
     {ok, filter_private(Events, Uid)}.

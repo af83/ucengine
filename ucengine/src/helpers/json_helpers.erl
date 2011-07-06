@@ -17,39 +17,35 @@
 %%
 -module(json_helpers).
 
--compile({no_auto_import,[error/1]}).
+-compile({no_auto_import,[error/2]}).
 
--export([unexpected_error/0,
+-include("uce.hrl").
+
+-export([format_response/4,
          unexpected_error/1,
-         error/1,
          error/2,
          ok/1,
          true/1,
          false/1,
          created/1,
          created/2,
-         json/2]).
-
-format_response(Status, Content) ->
-    format_response(Status, [], Content).
+         json/2,
+         json/3,
+         to_json/2]).
 
 format_response(Status, Headers, Content) ->
+    format_response(Status, "application/json", Headers, Content).
+
+format_response(Status, ContentType, Headers, Content) ->
     Body = mochijson:encode(Content),
     [{status, Status},
-     {content, "application/json", lists:flatten(Body)}] ++ Headers.
+     {content, ContentType, lists:flatten(Body)}] ++ Headers.
 
 add_cors_headers(Domain) ->
     cors_helpers:format_cors_headers(Domain).
 
-unexpected_error() ->
-    format_response(500, {struct, [{error, unexpected_error}]}).
-
 unexpected_error(Domain) ->
     format_response(500, add_cors_headers(Domain), {struct, [{error, unexpected_error}]}).
-
-error(Reason) ->
-    Code = http_helpers:error_to_code(Reason),
-    format_response(Code, {struct, [{error, Reason}]}).
 
 error(Domain, Reason) ->
     Code = http_helpers:error_to_code(Reason),
@@ -67,31 +63,131 @@ false(Domain) ->
 created(Domain) ->
     format_response(201, add_cors_headers(Domain), {struct, [{result, created}]}).
 
-created(Domain, {Elmt1, Elmt2}) ->
-    if
-        Domain == Elmt2 ->
-            format_response(201, add_cors_headers(Domain), {struct, [{result, Elmt1}]});
-        true ->
-            format_response(201, add_cors_headers(Domain), {struct, [{result, {struct, [{uid, Elmt1}, {sid, Elmt2}]}}]})
-    end;
 created(Domain, Id) ->
     format_response(201, add_cors_headers(Domain), {struct, [{result, Id}]}).
 
 json(Domain, Content) ->
-    format_response(200, add_cors_headers(Domain), {struct, [{result, Content}]}).
+    json(Domain, 200, Content).
+
+json(Domain, Status, Content) ->
+    format_response(Status, add_cors_headers(Domain), {struct, [{result, to_json(Domain, Content)}]}).
+%%
+%% Transform usual records to JSON
+%%
+to_json(Domain, Records) when is_list(Records) ->
+    {array, [to_json(Domain, Record) || Record <- Records]};
+to_json(_Domain, #uce_access{action=Action,
+                             object=Object,
+                             conditions=Conditions}) ->
+    {struct,
+     [{action, Action},
+      {object, Object},
+      {conditions, {struct, Conditions}}]};
+to_json(Domain, #uce_meeting{id=Name,
+                             start_date=StartDate,
+                             end_date=EndDate,
+                             metadata=Metadata}) ->
+    {struct, [{name, Name},
+              {domain, Domain},
+              {start_date, StartDate},
+              {end_date, case EndDate of
+                             ?NEVER_ENDING_MEETING ->
+                                 "never";
+                             _ ->
+                                 integer_to_list(EndDate)
+                         end},
+              {metadata, {struct, Metadata}}]};
+to_json(Domain, #uce_event{id=Id,
+                           datetime=Datetime,
+                           location=Location,
+                           from=From,
+                           type=Type,
+                           to=To,
+                           parent=Parent,
+                           metadata=Metadata}) ->
+    JSONTo = case To of
+                 "" ->
+                     [];
+                 ToId ->
+                     [{to, ToId}]
+             end,
+
+    JSONLocation = case Location of
+                       "" ->
+                           [];
+                       Meeting ->
+                           [{location, Meeting}]
+                   end,
+    JSONParent = case Parent of
+                     "" ->
+                         [];
+                     _ ->
+                         [{parent, Parent}]
+                 end,
+    {struct,
+     [{type, Type},
+      {domain, Domain},
+      {datetime, Datetime},
+      {id, Id}] ++
+         JSONLocation ++
+         JSONTo ++
+         [{from, From}] ++
+         JSONParent ++
+         [{metadata, {struct, Metadata}}]};
+to_json(Domain, #uce_file{id=Id,
+                          name=Name,
+                          location=Location,
+                          uri=Uri,
+                          metadata=Metadata}) ->
+    JSONLocation = [{location, Location}],
+    {struct, [{id, Id},
+              {domain, Domain},
+              {name, Name},
+              {uri, Uri}] ++ JSONLocation ++
+         [{metadata, {struct, Metadata}}]};
+to_json(Domain, #uce_presence{id=Id,
+                              user=User,
+                              auth=Auth,
+                              metadata=Metadata}) ->
+    {struct,
+     [{id, Id},
+      {domain, Domain},
+      {user, User},
+      {auth, Auth},
+      {metadata, {struct, Metadata}}]};
+to_json(Domain, #uce_user{id=Id,
+                          name=Name,
+                          auth=Auth,
+                          metadata=Metadata}) ->
+    {struct, [{uid, Id},
+              {name, Name},
+              {domain, Domain},
+              {auth, Auth},
+              {metadata, {struct, Metadata}}]};
+to_json(_Domain, Json) ->
+    Json.
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
 
 unexpected_error_test() ->
-    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"unexpected_error\"}"}], unexpected_error()).
+    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"unexpected_error\"}"},
+                 {header, "Access-Control-Allow-Origin: *"},
+                 {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
+                 {header, "Access-Control-Allow-Headers: X-Requested-With"}], unexpected_error("")).
 
 error_test() ->
-    ?assertMatch([{status, 400}, {content, "application/json", "{\"error\":\"bad_parameters\"}"}], error(bad_parameters)),
-    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"hello_world\"}"}], error("hello_world")).
+    ?assertMatch([{status, 400}, {content, "application/json", "{\"error\":\"bad_parameters\"}"},
+                  {header, "Access-Control-Allow-Origin: *"},
+                  {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
+                  {header, "Access-Control-Allow-Headers: X-Requested-With"}], error("", bad_parameters)),
+    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"hello_world\"}"},
+                  {header, "Access-Control-Allow-Origin: *"},
+                  {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
+                  {header, "Access-Control-Allow-Headers: X-Requested-With"}], error("", "hello_world")).
 
 format_response_test() ->
-    ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}], format_response(200, "{}")),
+    ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}], format_response(200, [], "{}")),
     ?assertMatch([{status, 200}, {content, "application/json", "\"{}\""}, {header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], format_response(200, [{header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], "{}")).
 
 -endif.

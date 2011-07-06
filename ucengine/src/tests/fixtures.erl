@@ -19,196 +19,138 @@
 
 -include("uce.hrl").
 
--export([setup/0, teardown/1]).
+-export([setup/0, teardown/1, get_default_domain/0, get_base_url/0]).
 
-setup() ->
+get_default_domain() ->
     Hosts = config:get(hosts),
     {Domain, _Config} = hd(Hosts),
+    Domain.
+
+get_base_url() ->
+    Domain = get_default_domain(),
     Port = config:get(port),
+    "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/".
+
+setup() ->
+    Domain = get_default_domain(),
+    (list_to_atom(lists:concat([config:get(Domain, db), "_db"]))):drop(),
     setup_meetings(Domain),
     UsersUid = setup_users(Domain),
-    [Domain, "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/", setup_testers(Domain, UsersUid)].
+    [Domain, get_base_url(), setup_testers(Domain, UsersUid)].
 
 teardown([Domain, _, _Testers]) ->
-    apply(list_to_atom(lists:concat([config:get(Domain, db), "_db"])), drop, []),
     teardown_solr(Domain),
     ok.
 
+add_meeting(Domain, Meeting) ->
+    case catch uce_meeting:add(Domain, Meeting) of
+        {ok, _} -> ok;
+        {error, conflict} -> ok;
+        {error, Reason} -> throw({error, Reason})
+    end.
+
 setup_meetings(Domain) ->
     Now = utils:now(),
-    case catch uce_meeting:add(Domain,
-                              #uce_meeting{id={"testmeeting", Domain},
-                                           metadata=[{"description", "Meeting"}],
-                                           start_date=Now,
-                                           end_date=?NEVER_ENDING_MEETING}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason1} -> throw({error, Reason1})
-    end,
-    case catch uce_meeting:add(Domain,
-                              #uce_meeting{id={"closedmeeting", Domain},
-                                           metadata=[{"description", "Meeting"}],
-                                           start_date=Now,
-                                           end_date=Now}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason2} -> throw({error, Reason2})
-    end,
-    case catch uce_meeting:add(Domain,
-                          #uce_meeting{id={"upcomingmeeting", Domain},
-                                       metadata=[{"description", "Meeting"}],
-                                       start_date=2569256203952,
-                                       end_date=?NEVER_ENDING_MEETING}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason3} -> throw({error, Reason3})
-    end,
+    ok = add_meeting(Domain, #uce_meeting{id="testmeeting",
+                                          metadata=[{"description", "Meeting"}],
+                                          start_date=Now,
+                                          end_date=?NEVER_ENDING_MEETING}),
+    ok = add_meeting(Domain, #uce_meeting{id="closedmeeting",
+                                          metadata=[{"description", "Meeting"}],
+                                          start_date=Now,
+                                          end_date=Now}),
+    ok = add_meeting(Domain, #uce_meeting{id="upcomingmeeting",
+                                          metadata=[{"description", "Meeting"}],
+                                          start_date=2569256203952,
+                                          end_date=?NEVER_ENDING_MEETING}),
     ok.
 
+
+add_role(Domain, Role) ->
+    case catch uce_role:add(Domain, Role) of
+        {ok, _} -> ok;
+        {error, conflict} -> ok;
+        {error, Reason} -> throw({error, Reason})
+    end.
+
+add_user(Domain, User) ->
+    case catch uce_user:add(Domain, User) of
+        {ok, _} -> ok;
+        {error, conflict} -> ok;
+        {error, Reason} -> throw({error, Reason})
+    end.
+
+add_role_to_user(Domain, Uid, Params) ->
+    case catch uce_user:add_role(Domain, Uid, Params) of
+        {ok, _} -> ok;
+        {error, conflict} -> ok;
+        {error, Reason} -> throw({error, Reason})
+    end.
+
 setup_users(Domain) ->
-    case catch uce_role:add(Domain, #uce_role{id={"default", Domain},
-                                              acl=[#uce_access{action="add", object="presence"},
-                                              #uce_access{action="delete", object="presence"}]}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason4} -> throw({error, Reason4})
-    end,
+    ok = add_role(Domain, #uce_role{id="default",
+                                    acl=[#uce_access{action="add", object="presence"},
+                                         #uce_access{action="delete", object="presence"}]}),
+    ok = add_role(Domain, #uce_role{id="root",
+                                    acl=[#uce_access{action="all", object="all"}]}),
 
-    case catch uce_role:add(Domain, #uce_role{id={"root", Domain},
-                                   acl=[#uce_access{action="all", object="all"}]}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason5} -> throw({error, Reason5})
-    end,
+    ok = add_role(Domain, #uce_role{id="participant",
+                                    acl=[#uce_access{action="add", object="presence"},
+                                         #uce_access{action="delete", object="presence"},
+                                         #uce_access{action="add", object="event"},
+                                         #uce_access{action="list", object="event"},
+                                         #uce_access{action="get", object="infos"},
+                                         #uce_access{action="add", object="roster"},
+                                         #uce_access{action="list", object="roster"},
+                                         #uce_access{action="get", object="meeting"},
+                                         #uce_access{action="list", object="meeting"}]}),
+    ok = add_role(Domain, #uce_role{id="testrole_location",
+                                    acl=[#uce_access{action="testaction", object="testobject", conditions=[{"a", "b"}]}]}),
 
-    case catch uce_role:add(Domain, #uce_role{id={"participant", Domain},
-                                   acl=[#uce_access{action="add", object="presence"},
-                                        #uce_access{action="delete", object="presence"},
-                                        #uce_access{action="add", object="event"},
-                                        #uce_access{action="list", object="event"},
-                                        #uce_access{action="get", object="infos"},
-                                        #uce_access{action="add", object="roster"},
-                                        #uce_access{action="get", object="meeting"},
-                                        #uce_access{action="list", object="meeting"}]}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason6} -> throw({error, Reason6})
-    end,
+    ok = add_role(Domain, #uce_role{id="testrole_without_location",
+                                    acl=[#uce_access{action="testaction_global", object="testobject_global", conditions=[{"c", "d"}]}]}),
 
-    case catch uce_role:add(Domain, #uce_role{id={"testrole_location", Domain},
-                                   acl=[#uce_access{action="testaction", object="testobject", conditions=[{"a", "b"}]}]}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason7} -> throw({error, Reason7})
-    end,
-
-    case catch uce_role:add(Domain, #uce_role{id={"testrole_without_location", Domain},
-                                   acl=[#uce_access{action="testaction_global", object="testobject_global", conditions=[{"c", "d"}]}]}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason8} -> throw({error, Reason8})
-    end,
-
-    case catch uce_role:add(Domain, #uce_role{id={"anonymous", Domain},
-                                   acl=[#uce_access{action="add", object="presence"},
-                                   #uce_access{action="delete", object="presence"}]}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason9} -> throw({error, Reason9})
-    end,
+    ok = add_role(Domain, #uce_role{id="anonymous",
+                                    acl=[#uce_access{action="add", object="presence"},
+                                         #uce_access{action="delete", object="presence"}]}),
 
     ParticipantUid = "participant.user@af83.com",
-    ParticipantId = {ParticipantUid, Domain},
-
-    case catch uce_user:add(Domain, #uce_user{id=ParticipantId,
-                                   name=ParticipantUid,
-                                   auth="password",
-                                   credential="pwd"}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason10} -> throw({error, Reason10})
-    end,
-
-    case catch uce_user:add_role(Domain, ParticipantId, {"participant", ""}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason11} -> throw({error, Reason11})
-    end,
-
-    case catch uce_user:add_role(Domain, ParticipantId, {"testrole_location", "testmeeting"}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason12} -> throw({error, Reason12})
-    end,
-
-    case catch uce_user:add_role(Domain, ParticipantId, {"testrole_without_location", ""}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason13} -> throw({error, Reason13})
-    end,
-
-    case catch uce_user:add_role(Domain, ParticipantId, {"participant", ""}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason14} -> throw({error, Reason14})
-    end,
-
+    ok = add_user(Domain, #uce_user{id=ParticipantUid,
+                                    name=ParticipantUid,
+                                    auth="password",
+                                    credential="pwd"}),
+    timer:sleep(10),
+    ok = add_role_to_user(Domain, ParticipantUid, {"participant", ""}),
+    ok = add_role_to_user(Domain, ParticipantUid, {"testrole_location", "testmeeting"}),
+    ok = add_role_to_user(Domain, ParticipantUid, {"testrole_without_location", ""}),
+    ok = add_role_to_user(Domain, ParticipantUid, {"participant", ""}),
 
     AnonymousUid = "anonymous.user@af83.com",
-    AnonymousId = {AnonymousUid, Domain},
+    ok = add_user(Domain, #uce_user{id=AnonymousUid,
+                                    name=AnonymousUid,
+                                    auth="none"}),
+    timer:sleep(10),
+    ok = add_role_to_user(Domain, AnonymousUid, {"anonymous", ""}),
 
-    case catch uce_user:add(Domain, #uce_user{id=AnonymousId,
-                                   name=AnonymousUid,
-                                   auth="none",
-                                   roles=[]}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason15} -> throw({error, Reason15})
-    end,
-
-    case catch uce_user:add_role(Domain, AnonymousId, {"anonymous", ""}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason16} -> throw({error, Reason16})
-    end,
-
-    case catch uce_user:add(Domain,
-                 #uce_user{id={"token.user@af83.com", Domain},
-                           name="token.user@af83.com",
-                           auth="token",
-                           credential="4444"}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason17} -> throw({error, Reason17})
-    end,
-
-    case catch uce_user:add(Domain,
-                 #uce_user{id={"user_2", Domain},
-                           name="user_2",
-                           auth="password",
-                           credential="pwd"}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason18} -> throw({error, Reason18})
-    end,
-
-    case catch uce_user:add(Domain,
-                 #uce_user{id={"user_3", Domain},
-                           name="user_3",
-                           auth="password",
-                           credential="pwd"}) of
-        {ok, _} -> ok;
-        {error, conflict} -> ok;
-        {error, Reason19} -> throw({error, Reason19})
-    end,
-
+    ok = add_user(Domain, #uce_user{id="token.user@af83.com",
+                                    name="token.user@af83.com",
+                                    auth="token",
+                                    credential="4444"}),
+    ok = add_user(Domain, #uce_user{id="user_2",
+                                    name="user_2",
+                                    auth="password",
+                                    credential="pwd"}),
+    ok = add_user(Domain, #uce_user{id="user_3",
+                                    name="user_3",
+                                    auth="password",
+                                    credential="pwd"}),
 
     {ok, RootUid} = uce_user:add(Domain,
                                  #uce_user{name="root.user@af83.com",
                                            auth="password",
                                            credential="pwd"}),
 
-    uce_role:add_access(Domain, {RootUid, Domain}, #uce_access{action="all", object="all"}),
+    uce_role:add_access(Domain, RootUid, #uce_access{action="all", object="all"}),
 
     {ok, UglyUid} = uce_user:add(Domain,
                                  #uce_user{name="ugly.user@af83.com",
@@ -216,28 +158,28 @@ setup_users(Domain) ->
                                            credential="pwd",
                                            roles=[]}),
 
-    uce_user:delete_role(Domain, {UglyUid, Domain}, {"default", ""}),
+    uce_user:delete_role(Domain, UglyUid, {"default", ""}),
 
     {RootUid, ParticipantUid, UglyUid, AnonymousUid}.
 
 setup_testers(Domain, {RootUid, ParticipantUid, UglyUid, AnonymousUid}) ->
-    {ok, {RootSid, _Domain}} = uce_presence:add(Domain,
-                                                 #uce_presence{id={none, Domain},
-                                                               user={RootUid, Domain},
-                                                               auth="password",
-                                                               metadata=[]}),
+    {ok, RootSid} = uce_presence:add(Domain,
+                                     #uce_presence{id=none,
+                                                   user=RootUid,
+                                                   auth="password",
+                                                   metadata=[]}),
 
-    {ok, {ParticipantSid, _Domain}} = uce_presence:add(Domain,
-                                                       #uce_presence{id={none, Domain},
-                                                                     user={ParticipantUid, Domain},
-                                                                     auth="password",
-                                                                     metadata=[]}),
+    {ok, ParticipantSid} = uce_presence:add(Domain,
+                                            #uce_presence{id=none,
+                                                          user=ParticipantUid,
+                                                          auth="password",
+                                                          metadata=[]}),
 
-    {ok, {UglySid, _Domain}} = uce_presence:add(Domain,
-                                                 #uce_presence{id={none, Domain},
-                                                               user={UglyUid, Domain},
-                                                               auth="password",
-                                                               metadata=[]}),
+    {ok, UglySid} = uce_presence:add(Domain,
+                                     #uce_presence{id=none,
+                                                   user=UglyUid,
+                                                   auth="password",
+                                                   metadata=[]}),
 
     [{RootUid, RootSid}, {ParticipantUid, ParticipantSid}, {UglyUid, UglySid}, {AnonymousUid, ""}].
 

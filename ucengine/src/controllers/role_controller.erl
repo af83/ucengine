@@ -23,20 +23,20 @@
 
 init() ->
     [#uce_route{method='POST',
-                regexp="/role",
+                path=["role"],
                 callback={?MODULE, add,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"name", required, string}]}},
 
      #uce_route{method='DELETE',
-                regexp="/role/([^/]+)",
+                path=["role", name],
                 callback={?MODULE, delete,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='POST',
-                regexp="/role/([^/]+)/acl",
+                path=["role", name, "acl"],
                 callback={?MODULE, add_access,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -45,50 +45,50 @@ init() ->
                            {"conditions", [], dictionary}]}},
 
      #uce_route{method='DELETE',
-                regexp="/role/([^/]+)/acl/([^/]+)/([^/]+)",
+                path=["role", name, "acl", object, action],
                 callback={?MODULE, delete_access,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"conditions", [], dictionary}]}}].
 
 add(Domain, [], [Uid, Sid, Name], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "role", "add", [{"name", Name}]),
-    {ok, created} = uce_role:add(Domain, #uce_role{id={Name, Domain}}),
-    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
-                                               from={Uid, Domain},
-                                               location={"", Domain},
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "role", "add", [{"name", Name}]),
+    {ok, created} = uce_role:add(Domain, #uce_role{id=Name}),
+    {ok, _} = uce_event:add(Domain, #uce_event{id=none,
+                                               from=Uid,
+                                               location="",
                                                type="internal.role.add",
                                                metadata=[{"name", Name}]}),
 
     json_helpers:created(Domain).
 
-delete(Domain, [Name], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "role", "delete", [{"name", Name}]),
-    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
-                                               from={Uid, Domain},
-                                               location={"", Domain},
+delete(Domain, [{name, Name}], [Uid, Sid], _) ->
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "role", "delete", [{"name", Name}]),
+    {ok, _} = uce_event:add(Domain, #uce_event{id=none,
+                                               from=Uid,
+                                               location="",
                                                type="internal.role.delete",
                                                metadata=[{"name", Name}]}),
-    {ok, deleted} = uce_role:delete(Domain, {Name, Domain}),
+    {ok, deleted} = uce_role:delete(Domain, Name),
     json_helpers:ok(Domain).
 
-add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
+add_access(Domain, [{name, Role}], [Uid, Sid, Object, Action, Conditions], _) ->
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "",
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
                                                      {"action", Action}]),
 
-    {ok, updated} = uce_role:add_access(Domain, {Role, Domain},
+    {ok, updated} = uce_role:add_access(Domain, Role,
                                        #uce_access{object=Object,
                                                    action=Action,
                                                    conditions=Conditions}),
 
-    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
-                                               from={Uid, Domain},
-                                               location={"", Domain},
+    {ok, _} = uce_event:add(Domain, #uce_event{id=none,
+                                               from=Uid,
+                                               location="",
                                                type="internal.access.add",
                                                metadata=[{"role", Role},
                                                          {"action", Action},
@@ -97,21 +97,21 @@ add_access(Domain, [Role], [Uid, Sid, Object, Action, Conditions], _) ->
 
     json_helpers:ok(Domain).
 
-delete_access(Domain, [Role, Object, Action], [Uid, Sid, Conditions], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""},
+delete_access(Domain, [{name, Role}, {object, Object}, {action, Action}], [Uid, Sid, Conditions], _) ->
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "",
                                    "access", "add", [{"role", Role},
                                                      {"object", Object},
                                                      {"action", Action}]),
 
-    {ok, updated} = uce_role:delete_access(Domain, {Role, Domain},
+    {ok, updated} = uce_role:delete_access(Domain, Role,
                                           #uce_access{object=Object,
                                                       action=Action,
                                                       conditions=Conditions}),
 
-    {ok, _} = uce_event:add(Domain, #uce_event{id={none, Domain},
-                                               from={Uid, Domain},
-                                               location={"", Domain},
+    {ok, _} = uce_event:add(Domain, #uce_event{id=none,
+                                               from=Uid,
+                                               location="",
                                                type="internal.access.delete",
                                                metadata=[{"role", Role},
                                                          {"action", Action},

@@ -31,24 +31,25 @@
 -include("uce.hrl").
 
 init() ->
-    catch mnesia:create_table(uce_role,
-                              [{disc_copies, [node()]},
-                               {type, set},
-                               {attributes, record_info(fields, uce_role)}]).
+    case mnesia:create_table(uce_role,
+                             [{disc_copies, [node()]},
+                              {type, set},
+                              {attributes, record_info(fields, uce_role)}]) of
+        {atomic, ok} -> ok;
+        {aborted, {already_exists, uce_role}} -> ok
+    end.
 
-add(_Domain, #uce_role{}=Role) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:write(Role)
-                            end) of
-        {atomic, _} ->
+add(Domain, #uce_role{id=Id}=Role) ->
+    case mnesia:dirty_write(Role#uce_role{id={Id, Domain}}) of
+        ok ->
             {ok, created};
         {aborted, Reason} ->
             {error, Reason}
     end.
 
-update(_Domain, #uce_role{}=Role) ->
+update(Domain, #uce_role{id=Id}=Role) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:write(Role)
+                                    mnesia:write(Role#uce_role{id={Id, Domain}})
                             end) of
         {atomic, _} ->
             {ok, updated};
@@ -56,9 +57,9 @@ update(_Domain, #uce_role{}=Role) ->
             {error, Reason}
     end.
 
-delete(_Domain, Id) ->
+delete(Domain, Id) ->
     case mnesia:transaction(fun() ->
-                                    mnesia:delete({uce_role, Id})
+                                    mnesia:delete({uce_role, {Id, Domain}})
                             end) of
         {atomic, _} ->
             {ok, deleted};
@@ -66,13 +67,11 @@ delete(_Domain, Id) ->
             throw({error, bad_parameters})
     end.
 
-get(_Domain, Id) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:read(uce_role, Id)
-                            end) of
-        {atomic, [Record]} ->
-            {ok, Record};
-        {atomic, _} ->
+get(Domain, Id) ->
+    case mnesia:dirty_read(uce_role, {Id, Domain}) of
+        [#uce_role{id={Id, Domain}} = Record] ->
+            {ok, Record#uce_role{id=Id}};
+        [] ->
             throw({error, not_found});
         {aborted, _} ->
             throw({error, bad_parameters})

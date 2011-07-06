@@ -26,19 +26,14 @@ ctl_meeting_test_() ->
       , fun fixtures:teardown/1
       , fun([Domain, _BaseUrl, _Testers]) ->
         [ ?_test(test_meeting_add(Domain))
-        , ?_test(test_meeting_add_missing_parameter())
         % TODO: Test the conflict case
         , ?_test(test_meeting_get(Domain))
-        , ?_test(test_meeting_get_missing_parameter())
         , ?_test(test_meeting_get_not_found(Domain))
         , ?_test(test_meeting_update(Domain))
-        , ?_test(test_meeting_update_missing_parameter())
         , ?_test(test_meeting_update_not_found(Domain))
         , ?_test(test_meeting_delete(Domain))
-        , ?_test(test_meeting_delete_missing_parameter())
         , ?_test(test_meeting_delete_not_found(Domain))
         , ?_test(test_meeting_list(Domain))
-        , ?_test(test_meeting_list_missing_parameter())
         ]
       end
     }.
@@ -49,18 +44,14 @@ ctl_user_test_() ->
       , fun fixtures:teardown/1
       , fun([Domain, _BaseUrl, _Testers]) ->
         [ ?_test(test_user_add(Domain))
-        , ?_test(test_user_add_missing_parameter())
         % TODO: Test the conflict case
         , ?_test(test_user_get(Domain))
-        , ?_test(test_user_get_missing_parameter())
         , ?_test(test_user_get_not_found(Domain))
         , ?_test(test_user_update(Domain))
-        , ?_test(test_user_update_missing_parameter())
         , ?_test(test_user_update_not_found(Domain))
         , ?_test(test_user_add_role(Domain))
         , ?_test(test_user_delete_role(Domain))
         , ?_test(test_user_delete(Domain))
-        , ?_test(test_user_delete_missing_parameter())
         , ?_test(test_user_delete_not_found(Domain))
         , ?_test(test_user_list(Domain))
         ]
@@ -99,299 +90,190 @@ ctl_infos_test_() ->
 %%
 
 test_meeting_add(Domain) ->
-    false = uce_meeting:exists(Domain, {"newmeeting", Domain}),
-    Params = [{"domain", [Domain]}, {"name", ["newmeeting"]}, {"description", [""]}],
-    ok = uce_ctl:action(["meeting", "add"], Params),
-    Expected = {ok, #uce_meeting{id={"newmeeting", Domain},
+    false = uce_meeting:exists(Domain, "newmeeting"),
+    Params = [{"description", ""}],
+    ok = uce_ctl:cmd({dummy, [Domain, "meeting", "add", "newmeeting"]}, Params),
+    Expected = {ok, #uce_meeting{id="newmeeting",
                                  start_date=0, end_date=0,
                                  metadata=[{"description", ""}]}},
-    Expected = uce_meeting:get(Domain, {"newmeeting", Domain}).
-test_meeting_add_missing_parameter() ->
-    error = uce_ctl:action(["meeting", "add"], []).
+    ?assertEqual(Expected, uce_meeting:get(Domain, "newmeeting")).
 
 test_meeting_get(Domain) ->
-    Params = [{"domain", [Domain]}, {"name", ["testmeeting"]}],
-    {ok, _} = uce_ctl:action(["meeting", "get"], Params).
-test_meeting_get_missing_parameter() ->
-    error = uce_ctl:action(["meeting", "get"], []).
+    ?assertMatch({ok, _}, uce_ctl:cmd({dummy, [Domain, "meeting", "get", "testmeeting"]}, [])).
+
 test_meeting_get_not_found(Domain) ->
-    Params = [{"domain", [Domain]}, {"name", ["meeting that doesn't exists"]}],
-    {error, not_found} = (catch uce_ctl:action(["meeting", "get"], Params)).
+    {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "meeting", "get", "meeting that doesn't exists"]}, [])).
 
 test_meeting_update(Domain) ->
-    {ok, #uce_meeting{ id={"testmeeting", Domain}
+    {ok, #uce_meeting{ id="testmeeting"
                      , start_date=Start
                      , end_date=End
                      , metadata=[{"description", _Description}]
-                     }} = uce_meeting:get(Domain, {"testmeeting", Domain}),
+                     }} = uce_meeting:get(Domain, "testmeeting"),
     StartDate = uce_ctl:timestamp_to_iso(Start),
     EndDate = uce_ctl:timestamp_to_iso(End),
-    Params = [{"domain", [Domain]}
-             , {"name", ["testmeeting"]}
-             , {"start", [StartDate]}
-             , {"end", [EndDate]}
-             , {"description", ["A new description"]}
-             ],
-    ok = uce_ctl:action(["meeting", "update"], Params),
-    Expected = {ok, #uce_meeting{ id={"testmeeting", Domain}
+    Params = [{"description", "A new description"}, {"start", StartDate}, {"end", EndDate}],
+    ok = uce_ctl:cmd({dummy, [Domain, "meeting", "update", "testmeeting"]}, Params),
+    Expected = {ok, #uce_meeting{ id="testmeeting"
                                 , start_date=uce_ctl:parse_date(StartDate)
                                 , end_date=uce_ctl:parse_date(EndDate)
                                 , metadata=[{"description", "A new description"}]
                                 }},
-    Expected = uce_meeting:get(Domain, {"testmeeting", Domain}).
-test_meeting_update_missing_parameter() ->
-    error = uce_ctl:action(["meeting", "update"], []).
+    ?assertMatch(Expected, uce_meeting:get(Domain, "testmeeting")).
+
 test_meeting_update_not_found(Domain) ->
-    Params = [{"domain", [Domain]}, {"name", ["meeting that doesnt exists"]}],
-    {error, not_found} = (catch uce_ctl:action(["meeting", "update"], Params)).
+    {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "meeting", "update",
+                                                     "meeting that doesnt exists"]}, [])).
 
 test_meeting_delete(Domain) ->
-    {ok, #uce_meeting{ id={"testmeeting", Domain}
+    {ok, #uce_meeting{ id="testmeeting"
                      , start_date=_Start
                      , end_date=_End
                      , metadata=[{"description", _Description}]
-                     }} = uce_meeting:get(Domain, {"testmeeting", Domain}),
-    Params = [{"domain", [Domain]}, {"name", ["testmeeting"]}],
-    ok = uce_ctl:action(["meeting", "delete"], Params),
-    false = uce_meeting:exists(Domain, {"testmeeting", Domain}).
-test_meeting_delete_missing_parameter() ->
-    error = uce_ctl:action(["meeting", "delete"], []).
+                     }} = uce_meeting:get(Domain, "testmeeting"),
+    ok = uce_ctl:cmd({dummy, [Domain, "meeting", "delete", "testmeeting"]}, []),
+    false = uce_meeting:exists(Domain, "testmeeting").
+
 test_meeting_delete_not_found(Domain) ->
-    Params = [{"domain", [Domain]}, {"name", ["meeting that doesn't exists"]}],
-    {error, not_found} = (catch uce_ctl:action(["meeting", "delete"], Params)).
+    {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "meeting", "delete", "meeting that doesn't exists"]}, [])).
 
 test_meeting_list(Domain) ->
-    Params = [{"domain", [Domain]}, {"status", ["all"]}],
-    {ok, _} = uce_ctl:action(["meeting", "list"], Params).
-test_meeting_list_missing_parameter() ->
-    error = uce_ctl:action(["meeting", "list"], []).
+    {ok, _} = uce_ctl:cmd({dummy, [Domain, "meeting", "list", "all"]}, []).
 
 %%
 %% User
 %%
 
 test_user_add(Domain) ->
-    false = uce_user:exists(Domain, {"test.user@af83.com", Domain}),
-    Params = [ {"domain", [Domain]}
-             , {"name", ["test.user@af83.com"]}
-             , {"auth", ["password"]}
-             , {"credential", ["pwd"]}
-             ],
-    ok = uce_ctl:action(["user", "add"], Params),
-    {ok, #uce_user{id={_, Domain},
+    false = uce_user:exists(Domain, "test.user@af83.com"),
+    ok = uce_ctl:cmd({dummy, [Domain, "user", "add", "test.user@af83.com", "password", "pwd"]}, []),
+    {ok, #uce_user{id=_,
                    name="test.user@af83.com",
                    auth="password",
                    credential="pwd",
-                   metadata=[]}} = uce_user:get(Domain, "test.user@af83.com").
-
-test_user_add_missing_parameter() ->
-    Params = [ {"auth", ["password"]}
-             , {"credential", ["pwd"]}
-             ],
-    error = uce_ctl:action(["user", "add"], Params).
+                   metadata=[]}} = uce_user:get_by_name(Domain, "test.user@af83.com").
 
 test_user_get(Domain) ->
-    Params = [ {"domain", [Domain]}
-             , {"name", ["participant.user@af83.com"]}
-             , {"auth", ["password"]}
-             , {"credential", ["pwd"]}
-             ],
-    {ok, _} = uce_ctl:action(["user", "get"], Params).
+    {ok, _} = uce_ctl:cmd({dummy, [Domain, "user", "get", "participant.user@af83.com"]}, []).
 
-test_user_get_missing_parameter() ->
-    Params = [{"auth", ["password"]}, {"credential", ["pwd"]}],
-    error = uce_ctl:action(["user", "get"], Params).
 test_user_get_not_found(Domain) ->
-    Params = [ {"domain", [Domain]}
-             , {"name", ["nobody@af83.com"]}
-             , {"auth", ["password"]}
-             , {"credential", ["pwd"]}
-             ],
-    {error, not_found} = (catch uce_ctl:action(["user", "get"], Params)).
+    {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "user", "get", "nobody@af83.com"]}, [])).
 
 test_user_update(Domain) ->
-    {ok, #uce_user{id={Uid, Domain},
+    {ok, #uce_user{id=Uid,
                    name="anonymous.user@af83.com",
                    auth="none"}} =
-        uce_user:get(Domain, "anonymous.user@af83.com"),
-    Params = [ {"uid", [Uid]}
-             , {"domain", [Domain]}
-             , {"name", ["anonymous.user@af83.com"]}
-             , {"auth", ["password"]}
-             , {"credential", ["pwd"]}
-             ],
-    ok = uce_ctl:action(["user", "update"], Params),
-    {ok, #uce_user{id={Uid, Domain},
+        uce_user:get_by_name(Domain, "anonymous.user@af83.com"),
+    ok = uce_ctl:cmd({dummy, [Domain, "user", "update", "anonymous.user@af83.com", "password", "pwd"]}, []),
+    {ok, #uce_user{id=Uid,
                    name="anonymous.user@af83.com",
                    auth="password",
                    credential="pwd"}} =
-        uce_user:get(Domain, "anonymous.user@af83.com").
-
-test_user_update_missing_parameter() ->
-    error = uce_ctl:action(["user", "update"], []).
+        uce_user:get_by_name(Domain, "anonymous.user@af83.com").
 
 test_user_update_not_found(Domain) ->
-    Params = [ {"domain", [Domain]}
-             , {"uid", ["none"]}
-             , {"name", ["nobody@af83.com"]}
-             , {"auth", ["password"]}
-             , {"credential", ["passwd"]}
-             ],
-    {error, not_found} = (catch uce_ctl:action(["user", "update"], Params)).
+    {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "user", "update", "nobody@af83.com", "password", "passwd"]}, [])).
 
 test_user_add_role(Domain) ->
-    {ok, #uce_user{id={Uid, Domain},
-                   name="anonymous.user@af83.com",
-                   auth="password",
-                   credential="pwd",
-                   roles=[]}} =
-        uce_user:get(Domain, "anonymous.user@af83.com"),
-    Params = [ {"domain", [Domain]}
-             , {"uid", [Uid]}
-             , {"role", ["root"]}
-             , {"location", ["testmeeting"]}
-             ],
-    ok = uce_ctl:action(["user", "role", "add"], Params),
-    {ok, #uce_user{id={Uid, Domain},
+    Params = [{"location", "testmeeting"}],
+    ok = uce_ctl:cmd({dummy, [Domain, "user", "role", "add", "anonymous.user@af83.com", "root"]}, Params),
+    {ok, #uce_user{id=_Uid,
                    auth="password",
                    credential="pwd",
                    roles=[{"root","testmeeting"}]}} =
-        uce_user:get(Domain, "anonymous.user@af83.com").
+        uce_user:get_by_name(Domain, "anonymous.user@af83.com").
 
 test_user_delete_role(Domain) ->
-    {ok, #uce_user{id={Uid, Domain},
+    {ok, #uce_user{id=_Uid,
                    name="anonymous.user@af83.com",
                    auth="password",
                    credential="pwd",
                    roles=[{"root","testmeeting"}]}} =
-        uce_user:get(Domain, "anonymous.user@af83.com"),
-    Params = [ {"domain", [Domain]}
-             , {"uid", [Uid]}
-             , {"role", ["root"]}
-             , {"location", ["testmeeting"]}
-             ],
-    ok = uce_ctl:action(["user", "role", "delete"], Params),
-    {ok, #uce_user{id={Uid, Domain},
+        uce_user:get_by_name(Domain, "anonymous.user@af83.com"),
+    Params = [{"location", "testmeeting"}],
+    ok = uce_ctl:cmd({dummy, [Domain, "user", "role", "delete", "anonymous.user@af83.com", "root"]}, Params),
+    {ok, #uce_user{id=_Uid,
                    auth="password",
                    credential="pwd",
                    roles=[]}} =
-        uce_user:get(Domain, "anonymous.user@af83.com").
+        uce_user:get_by_name(Domain, "anonymous.user@af83.com").
 
 test_user_delete(Domain) ->
-    {ok, #uce_user{id={Uid, Domain},
-                   name="participant.user@af83.com",
-                   auth="password",
-                   credential="pwd"}} = uce_user:get(Domain, "participant.user@af83.com"),
-    Params = [{"domain", [Domain]}, {"uid", [Uid]}],
-    ok = uce_ctl:action(["user", "delete"], Params),
+    true = uce_user:exists(Domain, "participant.user@af83.com"),
+    ok = uce_ctl:cmd({dummy, [Domain, "user", "delete", "participant.user@af83.com"]}, []),
     false = uce_user:exists(Domain, "participant.user@af83.com").
 
-test_user_delete_missing_parameter() ->
-    error = uce_ctl:action(["user", "delete"], []).
-
 test_user_delete_not_found(Domain) ->
-    Params = [ {"domain", [Domain]}
-             , {"uid", ["nobody@af83.com"]}
-             , {"auth", ["password"]}
-             , {"credential", ["passwd"]}
-             ],
-    {error, not_found} = (catch uce_ctl:action(["user", "delete"], Params)).
+    {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "user", "delete", "nobody@af83.com"]}, [])).
 
 test_user_list(Domain) ->
-    {ok, _} = uce_ctl:action(["user", "list"], [{"domain", [Domain]}]).
+    {ok, _} = uce_ctl:cmd({dummy, [Domain, "user", "list"]}, []).
 
 %%
 %% Roles
 %%
 test_role_add(Domain) ->
-    {error, not_found} = (catch uce_role:get(Domain, {"test_role", Domain})),
-    Params = [ {"domain", [Domain]}
-               , {"name", ["test_role"]}],
-
-    ok = uce_ctl:action(["role", "add"], Params),
-
-    {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}).
+    {error, not_found} = (catch uce_role:get(Domain, "test_role")),
+    ok = uce_ctl:cmd({dummy, [Domain, "role", "add", "test_role"]}, []),
+    {ok, #uce_role{id="test_role", acl=[]}} = uce_role:get(Domain, "test_role").
 
 test_role_add_conflict(Domain) ->
-    Params = [ {"domain", [Domain]}
-               , {"name", ["test_role"]}],
-
-    {error, conflict} = (catch uce_ctl:action(["role", "add"], Params)),
-
-    {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}).
+    {error, conflict} = (catch uce_ctl:cmd({dummy, [Domain, "role", "add", "test_role"]}, [])),
+    {ok, #uce_role{id="test_role", acl=[]}} = uce_role:get(Domain, "test_role").
 
 test_role_delete(Domain) ->
-    {ok, #uce_role{id={"test_role", Domain}, acl=[]}} = uce_role:get(Domain, {"test_role", Domain}),
-    Params = [ {"domain", [Domain]}
-               , {"name", ["test_role"]}],
-
-    ok = uce_ctl:action(["role", "delete"], Params),
-    {error, not_found} = (catch uce_role:get(Domain, {"test_role", Domain})).
+    {ok, #uce_role{id="test_role", acl=[]}} = uce_role:get(Domain, "test_role"),
+    ok = uce_ctl:cmd({dummy, [Domain, "role", "delete", "test_role"]}, []),
+    {error, not_found} = (catch uce_role:get(Domain, "test_role")).
 
 test_role_delete_not_found(Domain) ->
-    Params = [ {"domain", [Domain]}
-               , {"name", ["test_role"]}],
-
-    {error, not_found} = (catch uce_ctl:action(["role", "delete"], Params)).
+    {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "role", "delete", "test_role"]}, [])).
 
 test_role_add_access(Domain) ->
-    uce_role:add(Domain, #uce_role{id={"test_role_2", Domain}}),
-    Params = [ {"domain", [Domain]}
-               , {"name", ["test_role_2"]}
-               , {"object", ["testobject"]}
-               , {"action", ["testaction"]}
-               , {"a", ["b"]}
-               , {"c", ["d"]}],
+    uce_role:add(Domain, #uce_role{id="test_role_2"}),
+    Params = [ {"a", "b"}
+             , {"c", "d"}],
 
-    ok = uce_ctl:action(["role", "access", "add"], Params),
-    ok = uce_ctl:action(["role", "access", "add"], Params),
+    ok = uce_ctl:cmd({dummy, [Domain, "role", "access", "add", "test_role_2", "testaction", "testobject"]}, Params),
 
-    {ok, #uce_role{id={"test_role_2", Domain},
+    {ok, #uce_role{id="test_role_2",
                    acl=[#uce_access{object="testobject",
                                     action="testaction",
                                     conditions=[{"a", "b"}, {"c", "d"}]}]}} =
-        uce_role:get(Domain, {"test_role_2", Domain}).
+                 uce_role:get(Domain, "test_role_2").
 
 test_role_check_access(Domain) ->
-    {ok, Anonymous} = uce_user:get(Domain, "anonymous.user@af83.com"),
-    {AnonymousUid, _} = Anonymous#uce_user.id,
-    uce_user:add_role(Domain, {AnonymousUid, Domain}, {"test_role_2", ""}),
-    Params = [ {"domain", [Domain]}
-               , {"uid", [AnonymousUid]}
-               , {"object", ["testobject"]}
-               , {"action", ["testaction"]}
-               , {"a", ["b"]}
-               , {"c", ["d"]}],
+    {ok, Anonymous} = uce_user:get_by_name(Domain, "anonymous.user@af83.com"),
+    AnonymousUid = Anonymous#uce_user.id,
 
-    ok = uce_ctl:action(["role", "access", "check"], Params).
+    uce_user:add_role(Domain, AnonymousUid, {"test_role_2", ""}),
+    Params = [ {"a", "b"}
+             , {"c", "d"}],
+
+    ok = uce_ctl:cmd({dummy, [Domain, "role", "access", "check", "anonymous.user@af83.com", "testobject", "testaction"]}, Params).
 
 test_role_delete_access(Domain) ->
-    {ok, #uce_role{id={"test_role_2", Domain},
+    {ok, #uce_role{id="test_role_2",
                    acl=[#uce_access{object="testobject",
                                     action="testaction",
                                     conditions=[{"a", "b"}, {"c", "d"}]}]}} =
-        uce_role:get(Domain, {"test_role_2", Domain}),
-    Params = [ {"domain", [Domain]}
-               , {"name", ["test_role_2"]}
-               , {"object", ["testobject"]}
-               , {"action", ["testaction"]}
-               , {"c", ["d"]}
-               , {"a", ["b"]}],
+        uce_role:get(Domain, "test_role_2"),
+    Params = [ {"c", "d"}
+             , {"a", "b"}],
 
-    ok = uce_ctl:action(["role", "access", "delete"], Params),
-    {ok, #uce_role{id={"test_role_2", Domain},
-                   acl=[]}} =
-        uce_role:get(Domain, {"test_role_2", Domain}).
+    ok = uce_ctl:cmd({dummy, [Domain, "role", "access", "delete", "test_role_2", "testaction", "testobject"]}, Params),
+    ?assertMatch({ok, #uce_role{id="test_role_2",
+                   acl=[]}}, uce_role:get(Domain, "test_role_2")).
 
 %%
 %% Infos
 %%
 
 test_infos_get(Domain) ->
-    {ok, _} = uce_ctl:action(["infos", "get"], [{"domain", [Domain]}]).
+    {ok, _} = uce_ctl:cmd({dummy, [Domain, "infos", "get"]}, []).
 
 test_infos_update(Domain) ->
     {ok, {uce_infos, Domain, []}} = uce_infos:get(Domain),
-    Params = [{"domain", [Domain]}, {"description", ["Informations"]}],
-    ok = uce_ctl:action(["infos", "update"], Params),
+    Params = [{"description", "Informations"}],
+    ok = uce_ctl:cmd({dummy, [Domain, "infos", "update"]}, Params),
     {ok, {uce_infos, Domain, [{"description", "Informations"}]}} = uce_infos:get(Domain).

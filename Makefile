@@ -13,12 +13,16 @@ compile:
 	./rebar compile
 
 rel: compile
-	./rebar generate
+	./rebar generate force=1
 
 ###############################################################################
 # Usual targets
 ###############################################################################
-dev: cleanrel rel $(DIRS)
+dev: rel $(DIRS)
+
+wwwroot: $(DIRS)
+	-@rm rel/ucengine/wwwroot/ -fr
+	-@cp -r wwwroot rel/ucengine/.
 
 run: dev
 	rel/ucengine/bin/ucengine console
@@ -34,21 +38,28 @@ restart: dev
 
 tests: dev
 	rel/ucengine/bin/ucengine-admin tests
-	./rebar eunit
+	./rebar skip_deps=true eunit
+
+dialyze: compile
+	./rebar skip_deps=true check-plt
+	./rebar skip_deps=true dialyze
+
+###############################################################################
+# Benchmark
+###############################################################################
+
+bench:
+	@mkdir -p benchmarks/ebin/
+	@erlc -o benchmarks/ebin/ benchmarks/tsung_utils.erl
+	@mkdir -p benchmarks/results
+	@./utils/benchmark $(SCENARIO)
+	@rm -rf benchmarks/ebin
 
 ###############################################################################
 # Cleanup
 ###############################################################################
-.PHONY: clean
-.PHONY: deepclean
-.PHONY: cleanrel
 clean:
-	-@rm -v tmp/* -fr
-	-@rm -v data/* -fr
 	-@rm -v erl_crash.dump -f
-
-cleanrel:
-	rm -rf rel/ucengine
-
-deepclean: clean cleanrel
 	./rebar clean
+
+.PHONY: clean bench

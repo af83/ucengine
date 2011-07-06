@@ -22,49 +22,24 @@
 -behaviour(gen_uce_presence).
 
 -export([add/2,
-         list/1,
          get/2,
          delete/2,
          update/2,
-         all/1]).
+         all/1,
+         index/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 
 %%--------------------------------------------------------------------
-%% @spec (Domain, #uce_presence{}) -> {ok, created} | {error, bad_parameters}
+%% @spec (Domain, #uce_presence{}) -> {ok, Id}
 %% @doc Insert given record #uce_presence{} in uce_presence mongodb table
 %% @end
 %%--------------------------------------------------------------------
-add(Domain, #uce_presence{}=Presence) ->
-    case catch emongo:insert_sync(Domain, "uce_presence", to_collection(Presence)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            %%{Id, Domain} = Presence#uce_presence.id,
-            {ok, Presence#uce_presence.id}
-    end.
-
-%%--------------------------------------------------------------------
-%% @spec ({User::list, Domain::list}) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters}
-%% @doc List all record #uce_presence for the given user and domain
-%% @end
-%%--------------------------------------------------------------------
-list({User, Domain}) ->
-    case catch emongo:find_all(Domain, "uce_presence", [{"user", User},
-                                                        {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Collections ->
-            Records = lists:map(fun(Collection) ->
-                                        from_collection(Collection)
-                                end,
-                                Collections),
-            {ok, Records}
-    end.
+add(Domain, #uce_presence{id=Id} = Presence) ->
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_presence", to_collection(Domain, Presence))),
+    {ok, Id}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list) -> {ok, [#uce_presence{}, #uce_presence{}, ..] = Presences::list} | {error, bad_parameters}
@@ -72,64 +47,45 @@ list({User, Domain}) ->
 %% @end
 %%--------------------------------------------------------------------
 all(Domain) ->
-    case catch emongo:find_all(Domain, "uce_presence", [{"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Collections ->
-            Records = lists:map(fun(Collection) ->
-                                        from_collection(Collection)
-                                end,
-                                Collections),
-            {ok, Records}
-    end.
+    Collections = emongo:find_all(Domain, "uce_presence", [{"domain", Domain}]),
+    Presences = lists:map(fun(Collection) ->
+                                  from_collection(Collection)
+                          end,
+                          Collections),
+    {ok, Presences}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, #uce_presence{}} | {error, bad_parameters} | {error, not_found}
+%% @spec (Domain::list, Sid::list) -> {ok, #uce_presence{}} | {error, bad_parameters} | {error, not_found}
 %% @doc Get record uce_presence which correspond to the given id and domain
 %% @end
 %%--------------------------------------------------------------------
-get(Domain, {SId, SDomain}) ->
-    case catch emongo:find_one(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+get(Domain, SId) ->
+    case emongo:find_one(Domain, "uce_presence", [{"id", SId}, {"domain", Domain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
-        _ ->
+        [] ->
             throw({error, not_found})
     end.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Sid::list, SDomain::list}) -> {ok, deleted} | {error, bad_parameters}
+%% @spec (Domain::list, Sid::list) -> {ok, deleted}
 %% @doc Delete record
 %% @end
 %%--------------------------------------------------------------------
-delete(Domain, {SId, SDomain}) ->
-    case catch emongo:delete_sync(Domain, "uce_presence", [{"id", SId}, {"domain", SDomain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, deleted}
-    end.
+delete(Domain, Sid) ->
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_presence", [{"id", Sid}, {"domain", Domain}])),
+    {ok, deleted}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_presence{}) -> {ok, updated} | {error, bad_parameters}
+%% @spec (Domain::list, #uce_presence{}) -> {ok, updated}
 %% @doc Update record
 %% @end
 %%--------------------------------------------------------------------
-update(Domain, #uce_presence{}=Presence) ->
-    {Id, Domain} = Presence#uce_presence.id,
-    case catch emongo:update_sync(Domain, "uce_presence",
-                                  [{"id", Id}, {"domain", Domain}],
-                                  to_collection(Presence), false) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, udpated}
-    end.
+update(Domain, #uce_presence{id=Id}=Presence) ->
+    mongodb_helpers:updated(emongo:update_sync(Domain, "uce_presence",
+                                               [{"id", Id}, {"domain", Domain}],
+                                               to_collection(Domain, Presence), false)),
+    {ok, udpated}.
 
 
 %%--------------------------------------------------------------------
@@ -139,13 +95,14 @@ update(Domain, #uce_presence{}=Presence) ->
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-                   ["id", "domain", "user", "auth", "last_activity", "timeout", "metadata"]) of
-        [Id, Domain, User, Auth, LastActivity, Timeout, Metadata] ->
-            #uce_presence{id={Id, Domain},
-                          user={User, Domain},
+                   ["id", "domain", "user", "auth", "last_activity", "timeout", "meetings", "metadata"]) of
+        [Id, _Domain, User, Auth, LastActivity, Timeout, Meetings, Metadata] ->
+            #uce_presence{id=Id,
+                          user=User,
                           auth=Auth,
                           last_activity=list_to_integer(LastActivity),
                           timeout=list_to_integer(Timeout),
+                          meetings=Meetings,
                           metadata=Metadata};
         _ ->
             throw({error, bad_parameters})
@@ -156,16 +113,28 @@ from_collection(Collection) ->
 %% @doc Convert #uce_presence{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
-to_collection(#uce_presence{id={Id, Domain},
-                            user={User, _},
-                            auth=Auth,
-                            last_activity=LastActivity,
-                            timeout=Timeout,
-                            metadata=Metadata}) ->
+to_collection(Domain, #uce_presence{id=Id,
+                                    user=User,
+                                    auth=Auth,
+                                    last_activity=LastActivity,
+                                    timeout=Timeout,
+                                    meetings=Meetings,
+                                    metadata=Metadata}) ->
     [{"id", Id},
      {"domain", Domain},
      {"user", User},
      {"auth", Auth},
      {"last_activity", integer_to_list(LastActivity)},
      {"timeout", integer_to_list(Timeout)},
+     {"meetings", Meetings},
      {"metadata", Metadata}].
+
+%%--------------------------------------------------------------------
+%% @spec (Domain::list) -> ok::atom
+%% @doc Create index for uce_presence collection in database 
+%% @end
+%%--------------------------------------------------------------------
+index(Domain) ->
+    Indexes = [{"id", 1}, {"domain", 1}],
+    emongo:ensure_index(Domain, "uce_presence", Indexes),
+    ok.

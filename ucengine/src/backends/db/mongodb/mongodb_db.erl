@@ -26,6 +26,10 @@
 -include("uce.hrl").
 -include("mongodb.hrl").
 
+create_indexes(Domain) ->
+    Modules = [uce_event_mongodb, uce_presence_mongodb, uce_user_mongodb, uce_role_mongodb],
+    [ Module:index(Domain) || Module <- Modules].
+
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, MongoPoolInfos::list) -> any()
 %% @doc Initialize mongodb dedicated connections pool for the given domain (vhost).
@@ -38,7 +42,8 @@ init(Domain, MongoPoolInfos) ->
                                                  {host, "localhost"},
                                                  {port, ?DEFAULT_MONGODB_PORT},
                                                  {database, ?DEFAULT_MONGODB_NAME}]),
-    emongo:add_pool(Domain, Host, Port, Name, Size).
+    emongo:add_pool(Domain, Host, Port, Name, Size),
+    create_indexes(Domain).
 
 %%--------------------------------------------------------------------
 %% @spec () -> any()

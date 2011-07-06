@@ -25,37 +25,37 @@ meeting_test_() ->
       , fun fixtures:setup/0
       , fun fixtures:teardown/1
       , fun([_, BaseUrl, [Root, _Participant, Ugly|_]]) ->
-		[ ?_test(test_create(BaseUrl, Root)),
-		  ?_test(test_create_conflict(BaseUrl, Root)),
-		  ?_test(test_create_bad_start(BaseUrl, Root)),
-		  ?_test(test_create_bad_end(BaseUrl, Root)),
-		  ?_test(test_create_unauthorized(BaseUrl, Ugly)),
+                [ ?_test(test_create(BaseUrl, Root)),
+                  ?_test(test_create_conflict(BaseUrl, Root)),
+                  ?_test(test_create_bad_start(BaseUrl, Root)),
+                  ?_test(test_create_bad_end(BaseUrl, Root)),
+                  ?_test(test_create_unauthorized(BaseUrl, Ugly)),
 
-		  ?_test(test_get(BaseUrl, Root)),
-		  ?_test(test_get_not_found_meeting(BaseUrl, Root)),
+                  ?_test(test_get(BaseUrl, Root)),
+                  ?_test(test_get_not_found_meeting(BaseUrl, Root)),
 
-		  ?_test(test_list_all(BaseUrl, Root)),
-		  ?_test(test_list_upcoming(BaseUrl, Root)),
-		  ?_test(test_list_closed(BaseUrl, Root)),
-		  ?_test(test_list_open(BaseUrl, Root)),
-		  ?_test(test_list_bad_parameters(BaseUrl, Root)),
+                  ?_test(test_list_all(BaseUrl, Root)),
+                  ?_test(test_list_upcoming(BaseUrl, Root)),
+                  ?_test(test_list_closed(BaseUrl, Root)),
+                  ?_test(test_list_open(BaseUrl, Root)),
+                  ?_test(test_list_bad_parameters(BaseUrl, Root)),
 
-		  ?_test(test_update(BaseUrl, Root)),
-		  ?_test(test_update_not_found_meeting(BaseUrl, Root)),
-		  ?_test(test_update_bad_start(BaseUrl, Root)),
-		  ?_test(test_update_bad_end(BaseUrl, Root)),
-		  ?_test(test_update_unauthorized(BaseUrl, Ugly)),
+                  ?_test(test_update(BaseUrl, Root)),
+                  ?_test(test_update_not_found_meeting(BaseUrl, Root)),
+                  ?_test(test_update_bad_start(BaseUrl, Root)),
+                  ?_test(test_update_bad_end(BaseUrl, Root)),
+                  ?_test(test_update_unauthorized(BaseUrl, Ugly)),
 
-		  ?_test(test_join(BaseUrl, Root)),
-		  ?_test(test_join_not_found_meeting(BaseUrl, Root)),
-		  ?_test(test_join_not_found_uid(BaseUrl)),
-		  ?_test(test_join_unauthorized(BaseUrl, Ugly)),
+                  ?_test(test_join(BaseUrl, Root)),
+                  ?_test(test_join_not_found_meeting(BaseUrl, Root)),
+                  ?_test(test_join_not_found_uid(BaseUrl)),
+                  ?_test(test_join_unauthorized(BaseUrl, Ugly)),
 
-		  ?_test(test_leave(BaseUrl, Root)),
-		  ?_test(test_leave_not_found_meeting(BaseUrl, Root)),
-		  ?_test(test_leave_not_found_uid(BaseUrl, Root)),
-		  ?_test(test_leave_unauthorized(BaseUrl, Ugly))]
-	end
+                  ?_test(test_leave(BaseUrl, Root)),
+                  ?_test(test_leave_not_found_meeting(BaseUrl, Root)),
+                  ?_test(test_leave_not_found_uid(BaseUrl, Root)),
+                  ?_test(test_leave_unauthorized(BaseUrl, Ugly))]
+        end
     }.
 
 test_create(BaseUrl, {RootUid, RootSid}) ->
@@ -253,13 +253,13 @@ test_leave(BaseUrl, {RootUid, RootSid}) ->
 
 test_leave_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [ {"uid", RootUid}
-	       , {"sid", RootSid}],
+               , {"sid", RootSid}],
     {struct, [{"error", "not_found"}]} =
         tests_utils:delete(BaseUrl, "/meeting/all/unexistentmeeting/roster/" ++ RootUid, Params).
 
 test_leave_not_found_uid(BaseUrl, {RootUid, RootSid}) ->
     Params = [ {"uid", RootUid}
-	       , {"sid", RootSid}],
+               , {"sid", RootSid}],
     {struct, [{"error", "not_found"}]} =
         tests_utils:delete(BaseUrl, "/meeting/all/testmeeting/roster/unexistentuid", Params).
 

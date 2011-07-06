@@ -24,26 +24,37 @@
 
 -export([parse/2]).
 
--record(upload, {fd, filename, uri, last}).
+write_file(Data, File) ->
+    case file:write(File#file_upload.fd, Data) of
+        ok ->
+            ok;
+        Err ->
+            ?ERROR_MSG("Upload error: ~p.~n", [Err]),
+            error
+    end.
 
-add_file_chunk(Host, Arg, [{part_body, Data}|Res], State) ->
-    add_file_chunk(Host, Arg, [{body, Data}|Res], State);
-add_file_chunk(_Host, Arg, [], State) when State#upload.last==true,
-                                          State#upload.filename /= undefined,
-                                          State#upload.fd /= undefined ->
-
-    file:close(State#upload.fd),
-    Query = yaws_api:parse_query(Arg) ++ [{"_uri", State#upload.uri},
-                                          {"_filename", State#upload.filename}],
-    {done, {'POST', Arg#arg.pathinfo, parse_query(Query)}};
-
-add_file_chunk(_Host, _Arg, [], State) when State#upload.last==true ->
-    {done, {error, unexpected_error}};
-
-add_file_chunk(_Host, _Arg, [], State) ->
-    {cont, State};
-
-add_file_chunk(Host, Arg, [{head, {_Name, Opts}}|Res], State) ->
+process_part(_Host, _Arg, [], Params) ->
+    Params;
+process_part(_Host, _Arg, [{part_body, Data}|_Res], [{_Name, File}|_] = Params) when is_record(File, file_upload) ->
+    case write_file(Data, File) of
+        ok ->
+            Params;
+        error ->
+            {error, unexpected_error}
+    end;
+process_part(_Host, _Arg, [{part_body, Data}|_Res], [{Name, Value}|OtherParams]) ->
+    [{Name, Value ++ Data}] ++ OtherParams;
+process_part(Host, Arg, [{body, Data}|Res], [{_Name, File}|_] = Params) when is_record(File, file_upload) ->
+    case write_file(Data, File) of
+        ok ->
+            ok = file:close(File#file_upload.fd),
+            process_part(Host, Arg, Res, Params);
+        error ->
+            {error, unexpected_error}
+    end;
+process_part(Host, Arg, [{body, Data}|Rest], [{Name, Value}|OtherParams]) ->
+    process_part(Host, Arg, Rest, [{Name, Value ++ Data}] ++ OtherParams);
+process_part(Host, Arg, [{head, {Name, Opts}}|Res], Params) ->
     case lists:keyfind(filename, 1, Opts) of
         {_, Fname} ->
             Dir = lists:concat([config:get(Host, data), "/", utils:random(3)]),
@@ -51,27 +62,37 @@ add_file_chunk(Host, Arg, [{head, {_Name, Opts}}|Res], State) ->
             file:make_dir(Dir),
             case file:open(FilePath,[write]) of
                 {ok, Fd} ->
-                    S2 = State#upload{filename = Fname,
-                                      uri = "file://"++ FilePath,
-                                      fd = Fd},
-                    add_file_chunk(Host, Arg, Res, S2);
+                    File = #file_upload{filename = Fname,
+                                        uri = "file://"++ FilePath,
+                                        fd = Fd},
+                    process_part(Host, Arg, Res, [{Name, File}] ++ Params);
                 Err ->
-                    ?ERROR_MSG("Upload error: ~p.~n", [Err]),
-                    {done, {error, unexpected_error}}
+                    ?ERROR_MSG("Upload error: ~p.", [Err]),
+                    {error, unexpected_error}
             end;
         false ->
-            ?ERROR_MSG("Upload error: no filename.~n", []),
-            {done, {error, unexpected_error}}
-    end;
+            process_part(Host, Arg, Res, [{Name, ""}] ++ Params)
+    end.
 
-add_file_chunk(Host, Arg, [{body, Data}|Res], State)
-  when State#upload.filename /= undefined ->
-    case file:write(State#upload.fd, Data) of
-        ok ->
-            add_file_chunk(Host, Arg, Res, State);
-        Err ->
-            ?ERROR_MSG("Upload error: ~p.~n", [Err]),
-            {done, {error, unexpected_error}}
+parse_multipart(Host, Arg, State) ->
+    case yaws_api:parse_multipart_post(Arg) of
+        {cont, Cont, Res} ->
+            NewState = process_part(Host, Arg, Res, State),
+            case NewState of
+                {error, _Error} ->
+                    NewState;
+                NewState ->
+                    {get_more, Cont, NewState}
+            end;
+        {result, Res} ->
+            FormDataParams = process_part(Host, Arg, Res, State),
+            case FormDataParams of
+                {error, _Error} ->
+                    FormDataParams;
+                FormDataParams ->
+                    Params = yaws_api:parse_query(Arg) ++ FormDataParams,
+                    {'POST', Arg#arg.pathinfo, parse_query(Params)}
+            end
     end.
 
 extract(Host, Arg, State) ->
@@ -82,22 +103,7 @@ extract(Host, Arg, State) ->
         _ ->
             case Arg#arg.headers#headers.content_type of
                 "multipart/form-data;"++ _Boundary ->
-                    case yaws_api:parse_multipart_post(Arg) of
-                        {cont, Cont, Res} ->
-                            case add_file_chunk(Host, Arg, Res, State) of
-                                {done, Result} ->
-                                    Result;
-                                {cont, NewState} ->
-                                    {get_more, Cont, NewState}
-                            end;
-                        {result, Res} ->
-                            case add_file_chunk(Host, Arg, Res, State#upload{last=true}) of
-                                {done, Result} ->
-                                    Result;
-                                {cont, _} ->
-                                    {error, unexpected_error}
-                            end
-                    end;
+                    parse_multipart(Host, Arg, State);
                 _ContentType ->
                     OriginalMethod = Request#http_request.method,
                     NewArg = Arg#arg{req = Arg#arg.req#http_request{method = 'POST'}},
@@ -114,7 +120,7 @@ extract(Host, Arg, State) ->
 
 parse(Host, #arg{} = Arg)
   when Arg#arg.state == undefined ->
-    extract(Host, Arg, #upload{});
+    extract(Host, Arg, []);
 
 parse(Host, #arg{} = Arg) ->
     extract(Host, Arg, Arg#arg.state).
@@ -172,15 +178,19 @@ parse_query(AsciiDirtyQuery) ->
     Query = lists:map(fun({Key, Value}) ->
                               case Value of
                                   undefined ->
-                                      {unicode:characters_to_list(list_to_binary(Key), unicode), ""};
+                                      {unicode_helpers:normalize_unicode(Key), ""};
+                                  Value when is_record(Value, file_upload) ->
+                                      FileName = Value#file_upload.filename,
+                                      {unicode_helpers:normalize_unicode(Key), Value#file_upload{
+                                        filename=unicode_helpers:normalize_unicode(FileName)
+                                     }};
                                   _ ->
-                                      {unicode:characters_to_list(list_to_binary(Key), unicode),
-                                       unicode:characters_to_list(list_to_binary(Value), unicode)}
+                                      {unicode_helpers:normalize_unicode(Key),
+                                       unicode_helpers:normalize_unicode(Value)}
                               end
                       end,
                       AsciiQuery),
     parse_query_elems(Query).
-
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

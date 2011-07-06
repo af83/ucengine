@@ -24,7 +24,7 @@
 
 init() ->
     [#uce_route{method='GET',
-                regexp="/search/([^/]+)",
+                path=["search", '_'],
                 callback={?MODULE, search,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -48,8 +48,8 @@ extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
 extract_terms(SearchTerms, [], []) ->
     [{"keywords", string:tokens(SearchTerms, " ")}].
 
-search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count, Order], Arg) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
+search(Domain, [], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count, Order], Arg) ->
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
 
     [{"type", Type},
      {"start", DateStart},
@@ -63,7 +63,7 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
                       ["type", "start", "end", "location", "from", "to", "parent"],
                       ["", "0", infinity, "", "", "", ""]),
 
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {Location, Domain}, "event", "list",
+    {ok, true} = uce_access:assert(Domain, Uid, Location, "event", "list",
                                    [{"from", From}]),
 
     DateEndInt = case DateEnd of
@@ -73,13 +73,13 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
                          list_to_integer(A)
                  end,
 
-    Start = paginate:index(Count, StartIndex, StartPage),
+    Start = uce_paginate:index(Count, StartIndex, StartPage),
     {ok, NumTotal, Events} = uce_event:search(Domain,
-                                              {Location, Domain},
+                                              Location,
                                               Keywords,
-                                              {From, Domain},
+                                              From,
                                               string:tokens(Type, ","),
-                                              {Uid, Domain},
+                                              Uid,
                                               list_to_integer(DateStart),
                                               DateEndInt,
                                               Parent,
@@ -90,7 +90,7 @@ search(Domain, [_RecordName], [Uid, Sid, SearchTerms, StartIndex, StartPage, Cou
     {abs_path, Path} = Arg#arg.req#http_request.path,
     Link = lists:concat(["http://", Arg#arg.headers#headers.host, Path]),
 
-    Entries = event_helpers:to_json(Events),
+    Entries = json_helpers:to_json(Domain, Events),
     Feed = {struct, [{'link', Link},
                      {'totalResults', NumTotal},
                      {'startIndex', StartIndex},

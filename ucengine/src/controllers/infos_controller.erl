@@ -23,13 +23,13 @@
 
 init() ->
     [#uce_route{method='GET',
-                regexp="/infos",
+                path=["infos"],
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='PUT',
-                regexp="/infos",
+                path=["infos"],
                 callback={?MODULE, update,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -40,8 +40,8 @@ init() ->
 %% Return a json object containing the domain's metadata. Can be empty.
 %%
 get(Domain, _UrlParams, [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "infos", "get"),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "infos", "get"),
     {ok, #uce_infos{domain=Domain, metadata=Metadata}} = uce_infos:get(Domain),
     json_helpers:json(Domain, {struct, [{domain, Domain},
                                         {metadata, {struct, Metadata}}]}).
@@ -51,7 +51,7 @@ get(Domain, _UrlParams, [Uid, Sid], _) ->
 %% Return ok in case of success.
 %%
 update(Domain, _UrlParams, [Uid, Sid, Metadata], _) ->
-    {ok, true} = uce_presence:assert(Domain, {Uid, Domain}, {Sid, Domain}),
-    {ok, true} = uce_access:assert(Domain, {Uid, Domain}, {"", ""}, "infos", "update"),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "infos", "update"),
     {ok, updated} = uce_infos:update(Domain, #uce_infos{domain=Domain, metadata=Metadata}),
     json_helpers:ok(Domain).

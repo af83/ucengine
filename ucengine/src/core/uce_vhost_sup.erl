@@ -21,16 +21,16 @@
 
 -include("uce.hrl").
 
--export([start_link/0, init/1]).
+% External API
+-export([start_link/0]).
+% Supervisor API
+-export([init/1]).
+
+name(Domain, Server) ->
+    list_to_atom(lists:concat([Server, "_", Domain])).
 
 start_link() ->
-    case supervisor:start_link({local, ?MODULE}, ?MODULE, []) of
-        {ok, Pid} ->
-            {ok, Pid};
-        {error, Reason} ->
-            ?ERROR_MSG("supervisor failed to start: ~p~n", [Reason]),
-            {error, Reason}
-    end.
+    supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
     Hosts = config:get(hosts),
@@ -40,6 +40,23 @@ init([]) ->
 vhost_supervise([]) ->
     [];
 vhost_supervise([{Domain, _HostConfig}|R]) ->
-    [{uce_vhost:name(Domain),
+    [{name(Domain, "vhost"),
       {uce_vhost, start_link, [Domain]},
-      permanent, brutal_kill, worker, [uce_vhost]}|vhost_supervise(R)].
+      permanent, brutal_kill, worker, [uce_vhost]},
+    {name(Domain, "timeout"),
+     {uce_timeout, start_link, [Domain]},
+     permanent, brutal_kill, worker, [uce_timeout]}] ++ vhost_supervise(R).
+
+
+%%
+%% Tests
+%%
+
+-ifdef(TEST).
+-include_lib("eunit/include/eunit.hrl").
+
+name_test() ->
+    ?assertEqual(vhost_localhost, name(localhost, "vhost")),
+    ?assertEqual('vhost_example.com', name('example.com', "vhost")).
+
+-endif.

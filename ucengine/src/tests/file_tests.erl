@@ -25,43 +25,68 @@ file_test_() ->
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
     , fun([_, BaseUrl, [Root|_]]) ->
-	      [?_test(test_upload_small(BaseUrl, Root)),
-	       ?_test(test_upload_big(BaseUrl, Root)),
-	       ?_test(test_upload_not_found_meeting(BaseUrl, Root)),
+              [?_test(test_upload_small(BaseUrl, Root)),
+               ?_test(test_upload_with_force_content_type(BaseUrl, Root)),
+               ?_test(test_upload_big(BaseUrl, Root)),
+               ?_test(test_upload_big_param(BaseUrl, Root)),
+               ?_test(test_upload_not_found_meeting(BaseUrl, Root)),
 
-	       ?_test(test_list(BaseUrl, Root)),
-	       ?_test(test_list_not_found_meeting(BaseUrl, Root)),
+               ?_test(test_list(BaseUrl, Root)),
+               ?_test(test_list_reverse(BaseUrl, Root)),
+               ?_test(test_list_not_found_meeting(BaseUrl, Root)),
 
-	       ?_test(test_get(BaseUrl, Root)),
-	       ?_test(test_get_not_found(BaseUrl, Root)),
+               ?_test(test_get(BaseUrl, Root)),
+               ?_test(test_get_not_found(BaseUrl, Root)),
 
-	       ?_test(test_delete(BaseUrl, Root))]
+               ?_test(test_delete(BaseUrl, Root))]
       end
     }.
 
 gen_file(Size, FileName) ->
     Body = string:copies("content", Size),
     "------WebKitFormBoundaryLwCN5mZmxIA54Aif\r\n" ++
-	"Content-Disposition: form-data; name=\"content\"; filename=\"" ++ FileName ++ "\"\r\n" ++
-	"Content-Type: application/octet-stream\r\n\r\n" ++
-	Body ++ "\r\n" ++
-	"------WebKitFormBoundaryLwCN5mZmxIA54Aif--\r\n".
+        "Content-Disposition: form-data; name=\"content\"; filename=\"" ++ FileName ++ "\"\r\n" ++
+        "Content-Type: application/octet-stream\r\n\r\n" ++
+        Body ++ "\r\n".
 
-upload(BaseUrl, Params, File) ->
-    upload(BaseUrl, "testmeeting", Params, File).
+gen_param(Name, Value) ->
+    "------WebKitFormBoundaryLwCN5mZmxIA54Aif\r\n" ++
+        "Content-Disposition: form-data; name=\""++ Name ++"\"\r\n\r\n" ++
+        Value ++ "\r\n".
 
-upload(BaseUrl, Meeting, Params, File) ->
+gen_params(Body, []) ->
+    Body ++ "------WebKitFormBoundaryLwCN5mZmxIA54Aif--\r\n";
+
+gen_params(Body, [{Name, Value} | Rest]) ->
+    gen_params(Body ++ gen_param(Name, Value), Rest).
+
+gen_params(Params) when is_list(Params) ->
+    gen_params("", Params).
+
+upload(BaseUrl, Params, Body) ->
+    upload(BaseUrl, "testmeeting", Params, Body).
+
+upload(BaseUrl, Meeting, URIParams, Body) ->
     tests_utils:post(BaseUrl,
                      "/file/" ++ Meeting ++"/",
-                     Params,
+                     URIParams,
                      "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
-                     File).
+                     Body).
+
+upload_raw(BaseUrl, Params, Body) ->
+    upload_raw(BaseUrl, "testmeeting", Params, Body).
+upload_raw(BaseUrl, Meeting, URIParams, Body) ->
+    tests_utils:post_raw(BaseUrl,
+                     "/file/" ++ Meeting ++"/",
+                     URIParams,
+                     "multipart/form-data; boundary=----WebKitFormBoundaryLwCN5mZmxIA54Aif",
+                     Body).
 
 test_upload_small(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "test_file"}],
-    {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4, "small")),
+    {struct,[{"result", _}]} = upload(BaseUrl, [], gen_file(4, "small.pdf") ++ gen_params(Params)),
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid},
                  {"type", "internal.file.add"},
@@ -75,28 +100,44 @@ test_upload_small(BaseUrl, {RootUid, RootSid}) ->
                                            {"from", RootUid},
                                            {"metadata", Metadata}]}]}}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
-    {struct, [{"id", _},
-              {"domain", _},
-              {"name", "small"},
-              {"size", "28"},
-              {"mime", "text/plain"}]} = Metadata.
+    ?assertMatch({struct, [{"id", _},
+                           {"domain", _},
+                           {"name", "small.pdf"},
+                           {"size", "28"},
+                           {"mime", "application/pdf"},
+                           {"description", "test_file"}]}, Metadata).
+
+test_upload_with_force_content_type(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"metadata[description]", "test_file"},
+              {"forceContentType", "text/html"}],
+    {ok, "201", Headers, _} = upload_raw(BaseUrl, [], gen_file(4, "small.pdf") ++ gen_params(Params)),
+    ?assertEqual(lists:keyfind("Content-Type", 1, Headers), {"Content-Type", "text/html"}).
 
 test_upload_big(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "test_file"}],
-    {struct,[{"result", _}]} = upload(BaseUrl, Params, gen_file(4000, "big")).
+    ?assertMatch({struct,[{"result", _}]}, upload(BaseUrl, [], gen_file(4000, "big") ++ gen_params(Params))).
+
+test_upload_big_param(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"metadata[description]", string:copies("test_file", 4000)}],
+    ?assertMatch({struct,[{"result", _}]}, upload(BaseUrl, [], gen_file(4, "small") ++ gen_params(Params))).
 
 test_upload_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
-	      {"sid", RootSid},
-	      {"metadata[description]", "test_file"}],
-    {struct,[{"error", "not_found"}]} = upload(BaseUrl, "testorg", Params, gen_file(4, "small")).
+              {"sid", RootSid},
+              {"metadata[description]", "test_file"}],
+    ?assertEqual({struct,[{"error", "not_found"}]}, upload(BaseUrl, "nonexistentmeeting", [], gen_file(4, "small") ++ gen_params(Params))).
 
 test_list(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct,
+    Result = tests_utils:get(BaseUrl, "/file/testmeeting/", Params),
+    ?assertMatch({struct,
      [{"result",
        {array,
         [{struct,
@@ -105,22 +146,38 @@ test_list(BaseUrl, {RootUid, RootSid}) ->
            {"name",_},
            {"uri", _},
            {"location", "testmeeting"},
-           {"metadata",{struct,_}}]}|_]}}]} = tests_utils:get(BaseUrl, "/file/testmeeting/", Params).
+           {"metadata",{struct,[{"description", "test_file"}]}}]}|_]}}]}, Result).
+
+test_list_reverse(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"order", "desc"}],
+    Result = tests_utils:get(BaseUrl, "/file/testmeeting/", Params),
+    String = string:copies("test_file", 4000),
+    ?assertMatch({struct,
+     [{"result",
+       {array,
+        [{struct,
+          [{"id", _},
+           {"domain", _},
+           {"name",_},
+           {"uri", _},
+           {"location", "testmeeting"},
+           {"metadata",{struct,[{"description", String}]}}]}|_]}}]}, Result).
 
 test_list_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct,[{"error", "not_found"}]} = tests_utils:get(BaseUrl, "/file/unexistentmeeting/", Params).
+    ?assertMatch({struct,[{"error", "not_found"}]}, tests_utils:get(BaseUrl, "/file/unexistentmeeting/", Params)).
 
 test_get(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "test_file"}],
-    {struct,[{"result", Id}]} = upload(BaseUrl, Params, gen_file(4, "small")),
+    {struct,[{"result", Id}]} = upload(BaseUrl, [], gen_file(4, "small") ++ gen_params(Params)),
     ParamsGet = [{"uid", RootUid},
                  {"sid", RootSid}],
-    tests_utils:get_raw(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet),
-    true.
+    tests_utils:get_raw(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet).
 
 test_get_not_found(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
@@ -131,13 +188,11 @@ test_get_not_found(BaseUrl, {RootUid, RootSid}) ->
 test_delete(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct,[{"result", Id}]} =
-        upload(BaseUrl, Params, gen_file(4, "small")),    ParamsDelete = [{"uid", RootUid},
-                                                                          {"sid", RootSid}],
-    {struct,[{"result", "ok"}]} =
-        tests_utils:delete(BaseUrl, "/file/testmeeting/" ++ Id, ParamsDelete),
 
-    ParamsGet = [{"uid", RootUid},
-                 {"sid", RootSid}],
-    {struct,[{"error", "not_found"}]} =
-        tests_utils:get(BaseUrl, "/file/testmeeting/" ++ Id, ParamsGet).
+    {struct,[{"result", Id}]} = upload(BaseUrl, [], gen_file(4, "small") ++ gen_params(Params)),
+
+    ?assertMatch({struct,[{"result", "ok"}]},
+        tests_utils:delete(BaseUrl, "/file/testmeeting/" ++ Id, Params)),
+
+    ?assertMatch({struct,[{"error", "not_found"}]},
+        tests_utils:get(BaseUrl, "/file/testmeeting/" ++ Id, Params)).

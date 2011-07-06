@@ -3,3 +3,4 @@ ucengine/ebin/*
 deps/*
 .eunit
 rel/ucengine/
+benchmarks/results

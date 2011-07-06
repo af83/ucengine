@@ -39,6 +39,7 @@ start(_, _) ->
     mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
     ibrowse:start(),
+    application:start(metrics),
 
     Arguments = init:get_arguments(),
     [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),
@@ -53,6 +54,7 @@ start(_, _) ->
 setup() ->
     save_pid(),
     setup_search(),
+    setup_routes(),
     setup_server(),
     ok.
 
@@ -66,34 +68,39 @@ setup_search() ->
             ChildSpec = {uce_solr_commiter,
                          {uce_solr_commiter, start_link, []},
                          permanent, brutal_kill, worker, [uce_solr_commiter]},
-            {ok, _Pid} = supervisor:start_child(uce_sup, ChildSpec);
+            {ok, _Pid} = uce_sup:start_child(ChildSpec);
         _ ->
             []
     end.
 
+setup_routes() ->
+    routes:init().
+
 setup_server() ->
     [{DefaultHost, _Config}|Hosts] = config:get(hosts),
-    yaws:start_embedded(config:get(DefaultHost, root),
+    yaws:start_embedded(config:get(DefaultHost, wwwroot),
                         [{servername, DefaultHost},
-                         {listen, {0,0,0,0}},
+                         {listen, config:get(bind_ip)},
                          {port, config:get(port)},
                          {access_log, true},
-                         {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}],
-                        [{auth_log, false},
+                         {partial_post_size, nolimit},
+                         {opaque, DefaultHost},
+                         {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}],
+                        [{flags, [{auth_log, false},
+                                  {copy_errlog, false},
+                                  {pick_first_virthost_on_nomatch, false},
+                                  {debug, false}
+                                 ]},
                          {logdir, config:get(log_dir)},
-                         {copy_errlog, false},
-                         {debug, false},
-                         {copy_error_log, false},
-                         {max_connections, nolimit}]),
+                         {cache_refresh_secs, config:get(cache_refresh)}]),
     lists:foreach(fun({Vhost, _}) ->
-                          yaws:add_server(config:get(Vhost, root),
+                          yaws:add_server(config:get(Vhost, wwwroot),
                                           [{servername, Vhost},
-                                           {listen, {0,0,0,0}},
+                                           {listen, config:get(bind_ip)},
                                            {port, config:get(port)},
-                                           {appmods, [{"/api/" ++ ?VERSION, appmod_uce}]}])
-                  end, Hosts),
-    {ok, GConf, SConfs} = yaws_api:getconf(),
-    yaws_api:setconf(GConf#gconf{cache_refresh_secs=config:get(cache_refresh)}, SConfs).
+                                           {opaque, Vhost},
+                                           {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}])
+                  end, Hosts).
 
 save_pid() ->
     Pid = os:getpid(),

@@ -32,39 +32,39 @@
 
 -include("uce.hrl").
 
-add(Domain, #uce_presence{id={none,Domain}}=Presence) ->
-    add(Domain, Presence#uce_presence{id={utils:random(),Domain}});
+add(Domain, #uce_presence{id=none}=Presence) ->
+    add(Domain, Presence#uce_presence{id=utils:random()});
 add(Domain, #uce_presence{last_activity=0}=Presence) ->
     add(Domain, Presence#uce_presence{last_activity=utils:now()});
 add(Domain, #uce_presence{timeout=0}=Presence) ->
     add(Domain, Presence#uce_presence{timeout=config:get(presence_timeout)});
 add(Domain, #uce_presence{}=Presence) ->
-    apply(db:get(?MODULE, Domain), add, [Domain, Presence]).
+    (db:get(?MODULE, Domain)):add(Domain, Presence).
 
 get(Domain, Id) ->
-    apply(db:get(?MODULE, Domain), get, [Domain, Id]).
+    (db:get(?MODULE, Domain)):get(Domain, Id).
 
 all(Domain) ->
-    apply(db:get(?MODULE, Domain), all, [Domain]).
+    (db:get(?MODULE, Domain)):all(Domain).
 
 delete(Domain, Id) ->
-    case ?MODULE:exists(Domain, Id) of
+    case exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            apply(db:get(?MODULE, Domain), delete, [Domain, Id])
+            (db:get(?MODULE, Domain)):delete(Domain, Id)
     end.
 
-update(Domain, #uce_presence{}=Presence) ->
-    case ?MODULE:exists(Domain, Presence#uce_presence.id) of
+update(Domain, #uce_presence{id=Id}=Presence) ->
+    case exists(Domain, Id) of
         false ->
             throw({error, not_found});
         true ->
-            apply(db:get(?MODULE, Domain), update, [Domain, Presence])
+            (db:get(?MODULE, Domain)):update(Domain, Presence)
     end.
 
 exists(Domain, Id) ->
-    case catch ?MODULE:get(Domain, Id) of
+    case catch get(Domain, Id) of
         {error, not_found} ->
             false;
         {error, Reason} ->
@@ -73,55 +73,35 @@ exists(Domain, Id) ->
             true
     end.
 
-assert(Domain, User, {_, _} = Sid) ->
-    case check(Domain, User, Sid) of
+assert(Domain, Uid, Sid) ->
+    case check(Domain, Uid, Sid) of
         {ok, true} ->
             {ok, true};
         {ok, false} ->
             throw({error, unauthorized})
     end.
 
-check(Domain, User, {_, _} = Sid) when is_list(User) ->
-    {ok, RecordUser} = uce_user:get(Domain, User),
-    UserId = RecordUser#uce_user.id,
-    {ok, Record} = uce_presence:get(Domain, Sid),
-    case Record#uce_presence.user of
-        UserId ->
-            uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
-            {ok, true};
-        _OtherUserId ->
-            {ok, false}
-    end;
-check(Domain, User, {_, _} = Sid) ->
-    {ok, Record} = uce_presence:get(Domain, Sid),
-    case Record#uce_presence.user of
-        User ->
-            uce_presence:update(Domain, Record#uce_presence{last_activity=utils:now()}),
+check(Domain, Uid, Sid) ->
+    {ok, Presence} = uce_presence:get(Domain, Sid),
+    case Presence#uce_presence.user of
+        Uid ->
+            uce_presence:update(Domain, Presence#uce_presence{last_activity=utils:now()}),
             {ok, true};
         _OtherUser ->
             {ok, false}
     end.
 
-join(Domain, {_, _}=Sid, Meeting) ->
-    {ok, Record} = apply(db:get(?MODULE, Domain), get, [Domain, Sid]),
-    case lists:member(Meeting, Record#uce_presence.meetings) of
+join(Domain, Sid, Meeting) ->
+    {ok, Presence} = (db:get(?MODULE, Domain)):get(Domain, Sid),
+    case lists:member(Meeting, Presence#uce_presence.meetings) of
         true ->
             {ok, updated};
         false ->
-            Meetings = Record#uce_presence.meetings ++ [Meeting],
-            apply(db:get(?MODULE, Domain), update, [Domain, Record#uce_presence{meetings=Meetings}])
+            Meetings = [Meeting|Presence#uce_presence.meetings],
+            (db:get(?MODULE, Domain)):update(Domain, Presence#uce_presence{meetings=Meetings})
     end.
 
 leave(Domain, Sid, Meeting) ->
-    {ok, Record} = apply(db:get(?MODULE, Domain), get, [Domain, Sid]),
-    Meetings = del_entry(Record#uce_presence.meetings, Meeting),
-    apply(db:get(?MODULE, Domain), update, [Domain, Record#uce_presence{meetings=Meetings}]).
-
-del_entry([Entry], Entry) ->
-    [];
-del_entry([Entry | Tl], Entry) ->
-    Tl;
-del_entry([Hd | Tl], Entry) ->
-    [Hd] ++ del_entry(Tl, Entry);
-del_entry([], _Entry) ->
-    [].
+    {ok, Record} = (db:get(?MODULE, Domain)):get(Domain, Sid),
+    Meetings = lists:delete(Meeting, Record#uce_presence.meetings),
+    (db:get(?MODULE, Domain)):update(Domain, Record#uce_presence{meetings=Meetings}).

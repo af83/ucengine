@@ -25,57 +25,42 @@
          delete/2,
          update/2,
          list/1,
-         get/2]).
+         get/2,
+         get_by_name/2,
+         index/1]).
 
 -include("uce.hrl").
 -include("mongodb.hrl").
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_user{}) -> {ok, created} | {error, bad_parameters}
+%% @spec (Domain::list, #uce_user{}) -> {ok, created}
 %% @doc Insert given record #uce_user{} in uce_user mongodb table
 %% @end
 %%--------------------------------------------------------------------
 add(Domain, #uce_user{} = User) ->
-    case catch emongo:insert_sync(Domain, "uce_user", to_collection(User)) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, created}
-    end.
+    mongodb_helpers:ok(emongo:insert_sync(Domain, "uce_user", to_collection(Domain, User))),
+    {ok, created}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, deleted} | {error, bad_parameters}
+%% @spec (Domain::list, Id::list) -> {ok, deleted}
 %% @doc Delete uce_user record which corresponds to given id and domain
 %% @end
 %%--------------------------------------------------------------------
-delete(Domain, {Id, Domain}) ->
-    case catch emongo:delete_sync(Domain, "uce_user", [{"id", Id},
-                                                       {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, deleted}
-    end.
+delete(Domain, Id) ->
+    mongodb_helpers:ok(emongo:delete_sync(Domain, "uce_user", [{"id", Id},
+                                                               {"domain", Domain}])),
+    {ok, deleted}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, #uce_user{}) -> {ok, updated} | {error, bad_parameters}
+%% @spec (Domain::list, #uce_user{}) -> {ok, updated}
 %% @doc Update given record #uce_user{} in uce_user mongodb table
 %% @end
 %%--------------------------------------------------------------------
-update(Domain, #uce_user{id={Id, UDomain}} = User) ->
-    UserCollection = to_collection(User),
-    ?DEBUG("UserCollection : ~p~n", [UserCollection]),
-    case catch emongo:update_sync(Domain, "uce_user", [{"id", Id},
-                                                       {"domain", UDomain}],
-                                  to_collection(User), false) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        _ ->
-            {ok, updated}
-    end.
+update(Domain, #uce_user{id=Id} = User) ->
+    mongodb_helpers:updated(emongo:update_sync(Domain, "uce_user", [{"id", Id},
+                                                                    {"domain", Domain}],
+                                               to_collection(Domain, User), false)),
+    {ok, updated}.
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list) -> {ok, [#uce_user{}, #uce_user{}, ...] = Users::list} | {error, bad_parameters}
@@ -83,40 +68,30 @@ update(Domain, #uce_user{id={Id, UDomain}} = User) ->
 %% @end
 %%--------------------------------------------------------------------
 list(Domain) ->
-    case catch emongo:find_all(Domain, "uce_user", [{"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
-        Collections ->
-            Users = lists:map(fun(Collection) ->
-                                      from_collection(Collection)
-                              end,
-                              Collections),
-            {ok, Users}
-    end.
+    Collections = emongo:find_all(Domain, "uce_user", [{"domain", Domain}]),
+    Users = lists:map(fun(Collection) ->
+                              from_collection(Collection)
+                      end,
+                      Collections),
+    {ok, Users}.
 
 %%--------------------------------------------------------------------
-%% @spec (Domain::list, {Id::list, Domain::list}) -> {ok, #uce_user{}} | {error, not_found} | {error, bad_parameters}
+%% @spec (Domain::list, Id::list) -> {ok, #uce_user{}} | {error, not_found} | {error, bad_parameters}
 %% @doc Get uce_user record for given name or id and domain
 %% @end
 %%--------------------------------------------------------------------
-get(Domain, Name) when is_list(Name) ->
-    case catch emongo:find_one(Domain, "uce_user", [{"name", Name},
-                                                    {"domain", Domain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+get_by_name(Domain, Name) ->
+    case emongo:find_one(Domain, "uce_user", [{"name", Name},
+                                              {"domain", Domain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->
             throw({error, not_found})
-    end;
-get(Domain, {UId, UDomain}) ->
-    case catch emongo:find_one(Domain, "uce_user", [{"id", UId},
-                                                    {"domain", UDomain}]) of
-        {'EXIT', Reason} ->
-            ?ERROR_MSG("~p~n", [Reason]),
-            throw({error, bad_parameters});
+    end.
+
+get(Domain, UId) ->
+    case emongo:find_one(Domain, "uce_user", [{"id", UId},
+                                              {"domain", Domain}]) of
         [Collection] ->
             {ok, from_collection(Collection)};
         [] ->
@@ -131,8 +106,8 @@ get(Domain, {UId, UDomain}) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["id", "name", "domain", "auth", "credential", "metadata", "roles"]) of
-        [Id, Name, Domain, Auth, Credential, Metadata, Roles] ->
-            #uce_user{id={Id, Domain},
+        [Id, Name, _Domain, Auth, Credential, Metadata, Roles] ->
+            #uce_user{id=Id,
                       name=Name,
                       auth=Auth,
                       credential=Credential,
@@ -147,12 +122,12 @@ from_collection(Collection) ->
 %% @doc Convert #uce_user{} record to valid collection
 %% @end
 %%--------------------------------------------------------------------
-to_collection(#uce_user{id={Id, Domain},
-                        name=Name,
-                        auth=Auth,
-                        credential=Credential,
-                        metadata=Metadata,
-                        roles=Roles}) ->
+to_collection(Domain, #uce_user{id=Id,
+                                name=Name,
+                                auth=Auth,
+                                credential=Credential,
+                                metadata=Metadata,
+                                roles=Roles}) ->
     [{"id", Id},
      {"name", Name},
      {"domain", Domain},
@@ -160,3 +135,16 @@ to_collection(#uce_user{id={Id, Domain},
      {"credential", Credential},
      {"metadata", Metadata},
      {"roles", [[Role, Location] || {Role, Location} <- Roles]}].
+
+%%--------------------------------------------------------------------
+%% @spec (Domain::list) -> ok::atom
+%% @doc Create index for uce_user collection in database 
+%% @end
+%%--------------------------------------------------------------------
+index(Domain) ->
+    Indexes = [
+                [{"id", 1}, {"domain", 1}],
+                [{"name", 1}, {"domain", 1}]
+              ],
+    [emongo:ensure_index(Domain, "uce_user", Index) || Index <- Indexes],
+    ok.
