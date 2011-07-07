@@ -40,6 +40,7 @@ start(_, _) ->
     application:start(mnesia, permanent),
     ibrowse:start(),
     application:start(metrics),
+    application:start(gproc),
 
     Arguments = init:get_arguments(),
     [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),

@@ -15,28 +15,24 @@
 %%  You should have received a copy of the GNU Affero General Public License
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
--module(mnesia_db).
+-module(uce_vhost_presence_sup).
 
--author('victor.goya@af83.com').
-
--export([init/2,
-         drop/0,
-         terminate/0]).
+-behaviour(supervisor).
 
 -include("uce.hrl").
 
-call_mnesia_modules(Fun) ->
-    lists:foreach(fun(Module) ->
-                          (list_to_atom(lists:concat([Module, "_mnesia"]))):Fun()
-                  end,
-                  [uce_role, uce_user, uce_meeting, uce_file, uce_event, uce_infos]).
+% External API
+-export([start_link/1, start_child/2]).
+% Supervisor API
+-export([init/1]).
 
-init(_Domain, undefined) ->
-    call_mnesia_modules(init).
+start_link(Domain) ->
+    supervisor:start_link({local, uce_vhost_sup:name(Domain, "presence")}, ?MODULE, []).
 
-drop() ->
-    call_mnesia_modules(drop),
-    ok.
+init([]) ->
+    {ok, {{simple_one_for_one, 0, 1},
+          [{uce_presence, {uce_presence, start_link, []},
+            temporary, brutal_kill, worker, [uce_presence]}]}}.
 
-terminate() ->
-    ok.
+start_child(Domain, Args) ->
+    supervisor:start_child(uce_vhost_sup:name(Domain, "presence"), Args).

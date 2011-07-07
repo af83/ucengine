@@ -19,11 +19,9 @@
 
 -behaviour(gen_server).
 
--author('victor.goya@af83.com').
-
 -include("uce.hrl").
 
--export([start_link/1, clean_meetings/3]).
+-export([start_link/1, clean_meetings/3, force/1]).
 
 -export([init/1,
          code_change/3,
@@ -32,25 +30,34 @@
          handle_info/2,
          terminate/2]).
 
+%
+% Public API
+%
+
 start_link(Domain) ->
-    gen_server:start_link(?MODULE, [Domain], []).
+    gen_server:start_link({local, uce_vhost_sup:name(Domain, "timeout")}, ?MODULE, [Domain], []).
+
+force(Domain) ->
+    gen_server:call(uce_vhost_sup:name(Domain, "timeout"), run).
+
+%
+% gen_server callbacks
+%
 
 init([Domain]) ->
     gen_server:cast(self(), run),
     {ok, Domain}.
 
-handle_call(_ , _, State) ->
-    {reply, ok, State}.
+handle_call(run , _, Domain) ->
+    clean(Domain),
+    {reply, ok, Domain}.
 
 %%
 %% Cleanup old session in database and kick user from meeting room
 %%
 handle_cast(run, Domain) ->
     timer:sleep(config:get(timeout_refresh) * 1000),
-    {ok, Presences} = uce_presence:all(Domain),
-    % delete expired presences
-    Now = utils:now(),
-    cleanup_presence(Domain, Presences, Now),
+    clean(Domain),
     handle_cast(run, Domain),
     {noreply, Domain};
 
@@ -70,16 +77,27 @@ terminate(_Reason, _State) ->
 % Private functions
 %
 
+clean(Domain) ->
+    {ok, Pids} = uce_presence:all(Domain),
+    % delete expired presences
+    Now = utils:now(),
+    cleanup_presence(Domain, Pids, Now).
+
 %
 % Cleanup old presence
 %
+cleanup_presence(Domain, [Pid|Rest], Now) when is_pid(Pid) ->
+    Presences = uce_presence:get_all(Domain, Pid),
+    cleanup_presence(Domain, Presences, Now),
+    cleanup_presence(Domain, Rest, Now);
+
 cleanup_presence(Domain, [#uce_presence{id=Sid, user=Uid,
                                         last_activity=LastActivity,
                                         timeout=Timeout,
                                         meetings=Meetings}|Rest], Now) ->
     if
         LastActivity + (Timeout * 1000) < Now ->
-            UserMeetings = diff(Meetings, get_all_meetings_of_user(Rest, Uid)),
+            UserMeetings = diff(Meetings, get_all_meetings_of_user(Rest)),
             ok = clean_meetings(Domain, Uid, UserMeetings),
             {ok, deleted} = uce_presence:delete(Domain, Sid),
             ?COUNTER(timeout);
@@ -93,23 +111,18 @@ cleanup_presence(_Domain, [], _Now) ->
 diff(L1, L2) ->
     lists:filter(fun(X) -> not lists:member(X, L2) end, L1).
 
--type uid() :: list().
--type meeting() :: list().
 -spec get_all_meetings_of_user(list(#uce_presence{}), uid())
                               -> list(meeting()) | list().
 %
 % Return all presence associated to the user
 %
-get_all_meetings_of_user(Presences, Uid) ->
-    get_all_meetings_of_user(Presences, Uid, []).
-% We found one presence for this user
-get_all_meetings_of_user([#uce_presence{user=Uid, meetings=Meetings}|Rest], Uid, Result) ->
-    get_all_meetings_of_user(Rest, Uid, Meetings ++ Result);
-% No match
-get_all_meetings_of_user([_Presence|Rest], Uid, Result) ->
-    get_all_meetings_of_user(Rest, Uid, Result);
+get_all_meetings_of_user(Presences) ->
+    get_all_meetings_of_user(Presences, []).
+
+get_all_meetings_of_user([#uce_presence{meetings=Meetings}|Rest], Result) ->
+    get_all_meetings_of_user(Rest, Meetings ++ Result);
 % the end
-get_all_meetings_of_user([], _Uid, Result) ->
+get_all_meetings_of_user([], Result) ->
     Result.
 %
 % Cleanup presence in meetings
@@ -131,7 +144,7 @@ clean_meeting(Domain, [Meeting|Meetings], Uid) ->
                                          location=Meeting}) of
         {ok, _Id} ->
             try uce_meeting:leave(Domain, Meeting, Uid) of
-                {ok, deleted} ->
+                {ok, updated} ->
                     ok
             catch
                 {error, Reason} ->

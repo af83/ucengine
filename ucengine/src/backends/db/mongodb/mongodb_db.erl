@@ -27,7 +27,7 @@
 -include("mongodb.hrl").
 
 create_indexes(Domain) ->
-    Modules = [uce_event_mongodb, uce_presence_mongodb, uce_user_mongodb, uce_role_mongodb],
+    Modules = [uce_event_mongodb, uce_user_mongodb, uce_role_mongodb],
     [ Module:index(Domain) || Module <- Modules].
 
 %%--------------------------------------------------------------------

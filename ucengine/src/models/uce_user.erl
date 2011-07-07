@@ -17,12 +17,23 @@
 %%
 -module(uce_user).
 
--author('tbomandouki@af83.com').
-
--export([add/2, delete/2, update/2, list/1, get/2, get_by_name/2, exists/2, acl/3, add_role/3, delete_role/3]).
+% public api
+-export([add/2,
+         delete/2,
+         update/2,
+         list/1,
+         get/2,
+         get_by_name/2,
+         exists/2,
+         acl/3,
+         add_role/3,
+         delete_role/3]).
 
 -include("uce.hrl").
 
+%
+% Public api
+%
 add(Domain, #uce_user{id=none} = User) ->
     add(Domain, User#uce_user{id=utils:random()});
 add(Domain, #uce_user{id=UId, name=Name} = User) ->

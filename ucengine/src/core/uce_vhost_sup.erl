@@ -22,7 +22,7 @@
 -include("uce.hrl").
 
 % External API
--export([start_link/0]).
+-export([start_link/0, name/2]).
 % Supervisor API
 -export([init/1]).
 
@@ -45,7 +45,10 @@ vhost_supervise([{Domain, _HostConfig}|R]) ->
       permanent, brutal_kill, worker, [uce_vhost]},
     {name(Domain, "timeout"),
      {uce_timeout, start_link, [Domain]},
-     permanent, brutal_kill, worker, [uce_timeout]}] ++ vhost_supervise(R).
+     permanent, brutal_kill, worker, [uce_timeout]},
+    {name(Domain, "presence"),
+     {uce_vhost_presence_sup, start_link, [Domain]},
+     permanent, brutal_kill, supervisor, [uce_vhost_presence_sup]}] ++ vhost_supervise(R).
 
 
 %%

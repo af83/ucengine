@@ -1,3 +1,8 @@
+-type domain() :: list().
+-type sid() :: list().
+-type uid() :: list().
+-type meeting() :: list().
+
 -record(uce_event, {
           %% eventid
           id = none,

@@ -127,30 +127,35 @@ test_presence_timeout(BaseUrl) ->
 %% We should not cleanup meeting in this case
 %%
 test_multiple_presence_timeout(BaseUrl) ->
-    DefaultTimeout = config:get(timeout_refresh),
-    % Create first presence and join a meeting
-    {struct,[{"result", {struct, [{"uid", Uid}, {"sid", Sid}]}}]} =
-        create_presence(BaseUrl, "participant.user@af83.com", "pwd", [{"timeout", integer_to_list(DefaultTimeout)}]),
-    Params = [ {"uid", Uid}
-             , {"sid", Sid}],
-    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params)),
-    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/closedmeeting/roster/", Params)),
-    % Create second presence and join the same meeting
-    {struct,[{"result", {struct, [{"uid", Uid}, {"sid", Sid2}]}}]} =
-        create_presence(BaseUrl, "participant.user@af83.com", "pwd", [{"timeout", integer_to_list(DefaultTimeout * 15000)}]),
-    Params2 = [ {"uid", Uid}
-              , {"sid", Sid2}],
-    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params2)),
-    timer:sleep(DefaultTimeout * 4000),
-    ?assertMatch({struct, [{"error", "not_found"}]}, tests_utils:get(BaseUrl, "/presence/" ++ Sid, Params)),
-    ?assertMatch({struct, [{"result", _}]}, tests_utils:get(BaseUrl, "/presence/" ++ Sid2, Params2)),
-    {struct, [{"result", {array, Array}}]} =
-        tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster/", Params2),
-    %% We should be here
-    [{struct,[{"uid", Uid},
-              {"name",_},
-              {"domain",_},
-              {"auth","password"},
-              {"metadata",{struct,[]}}]}] = Array,
-    ?assertMatch({struct, [{"result", {array, []}}]},
-                 tests_utils:get(BaseUrl, "/meeting/all/closedmeeting/roster/", Params2)).
+    {timeout, 120,
+          fun() ->
+                  DefaultTimeout = config:get(timeout_refresh),
+                                                % Create first presence and join a meeting
+                  {struct,[{"result", {struct, [{"uid", Uid}, {"sid", Sid}]}}]} =
+                      create_presence(BaseUrl, "participant.user@af83.com", "pwd", [{"timeout", integer_to_list(DefaultTimeout)}]),
+                  Params = [ {"uid", Uid}
+                             , {"sid", Sid}],
+                  ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params)),
+                  ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/closedmeeting/roster/", Params)),
+                                                % Create second presence and join the same meeting
+                  {struct,[{"result", {struct, [{"uid", Uid}, {"sid", Sid2}]}}]} =
+                      create_presence(BaseUrl, "participant.user@af83.com", "pwd", [{"timeout", integer_to_list(DefaultTimeout * 15000)}]),
+                  Params2 = [ {"uid", Uid}
+                              , {"sid", Sid2}],
+                  ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params2)),
+                  %% Manual cleanup
+                  timer:sleep(DefaultTimeout * 1000),
+                  uce_timeout:force("localhost"),
+                  ?assertMatch({struct, [{"error", "not_found"}]}, tests_utils:get(BaseUrl, "/presence/" ++ Sid, Params)),
+                  ?assertMatch({struct, [{"result", _}]}, tests_utils:get(BaseUrl, "/presence/" ++ Sid2, Params2)),
+                  {struct, [{"result", {array, Array}}]} =
+                      tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster/", Params2),
+                  %% We should be here
+                  [{struct,[{"uid", Uid},
+                            {"name",_},
+                            {"domain",_},
+                            {"auth","password"},
+                            {"metadata",{struct,[]}}]}] = Array,
+                  ?assertMatch({struct, [{"result", {array, []}}]},
+                               tests_utils:get(BaseUrl, "/meeting/all/closedmeeting/roster/", Params2))
+          end}.
