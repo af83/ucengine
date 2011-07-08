@@ -37,6 +37,8 @@ sort(List, Order) ->
             lists:reverse(List)
     end.
 
+paginate(List, 0, infinity) ->
+    List;
 paginate(List, Start, Count) ->
     Max = case Count of
               infinity ->
