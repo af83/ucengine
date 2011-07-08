@@ -34,9 +34,22 @@ get_base_url() ->
 setup() ->
     Domain = get_default_domain(),
     (list_to_atom(lists:concat([config:get(Domain, db), "_db"]))):drop(),
+    drop_model(Domain, [uce_role, uce_user, uce_meeting, uce_file, uce_event, uce_infos]),
     setup_meetings(Domain),
     UsersUid = setup_users(Domain),
     [Domain, get_base_url(), setup_testers(Domain, UsersUid)].
+
+drop_model(_Domain, []) ->
+    ok;
+drop_model(Domain, [Model|Models]) ->
+    {exports, Funs} = proplists:lookup(exports, Model:module_info()),
+    case proplists:lookup(drop, Funs) of
+        {drop, 1} ->
+            Model:drop(Domain);
+        _ ->
+            ok
+    end,
+    drop_model(Domain, Models).
 
 teardown([Domain, _, _Testers]) ->
     teardown_solr(Domain),

@@ -1,7 +1,7 @@
--type domain() :: list().
--type sid() :: list().
--type uid() :: list().
--type meeting() :: list().
+-type domain() :: list(string()).
+-type sid() :: list(string()).
+-type uid() :: list(string()).
+-type meeting() :: list(string()).
 
 -record(uce_event, {
           %% eventid

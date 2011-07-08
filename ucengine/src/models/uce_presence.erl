@@ -71,10 +71,11 @@ add(Domain, #uce_presence{id=Sid, user=Uid}=Presence) ->
 get(Domain, Sid) ->
     call_if_proc_found(Domain, Sid, {get_presence, Sid}).
 
+-spec get_all(domain(), pid()) -> list(#uce_presence{}).
 get_all(_Domain, Pid) ->
     gen_server:call(Pid, get_presences).
 %
-% Return pid of all user connected
+% Return pid of all users with at least one session/presence
 %
 -spec all(domain()) -> {ok, list()}.
 all(Domain) ->
@@ -88,6 +89,7 @@ all(Domain) ->
 delete(Domain, Sid) ->
     call_if_proc_found(Domain, Sid, {delete_presence, Sid}).
 
+-spec assert(domain(), uid(), sid()) -> {ok, true} | erlang:throw({error, unauthorized}).
 assert(Domain, Uid, Sid) ->
     case check(Domain, Uid, Sid) of
         {ok, true} ->
@@ -96,15 +98,7 @@ assert(Domain, Uid, Sid) ->
             throw({error, unauthorized})
     end.
 
-check(Domain, Uid, Sid) ->
-    case get(Domain, Sid) of
-        {ok, #uce_presence{user=Uid} = Presence} ->
-            {ok, _Presence} = update(Domain, Presence#uce_presence{last_activity=utils:now()}),
-            {ok, true};
-        {error, not_found} ->
-            {ok, false}
-    end.
-
+-spec join(domain(), sid(), meeting()) -> {ok, updated}.
 join(Domain, Sid, Meeting) ->
     {ok, Presence} = get(Domain, Sid),
     case lists:member(Meeting, Presence#uce_presence.meetings) of
@@ -115,6 +109,7 @@ join(Domain, Sid, Meeting) ->
             update(Domain, Presence#uce_presence{meetings=Meetings})
     end.
 
+-spec leave(domain(), sid(), meeting()) -> {ok, updated}.
 leave(Domain, Sid, Meeting) ->
     {ok, Record} = get(Domain, Sid),
     Meetings = lists:delete(Meeting, Record#uce_presence.meetings),
@@ -190,6 +185,15 @@ call_if_proc_found(Domain, Sid, Call) ->
 -spec update(domain(), #uce_presence{}) -> {ok, #uce_presence{}} | {error, not_found}.
 update(Domain, #uce_presence{id=Sid} = Presence) ->
     call_if_proc_found(Domain, Sid, {update_presence, Presence}).
+
+check(Domain, Uid, Sid) ->
+    case get(Domain, Sid) of
+        {ok, #uce_presence{user=Uid} = Presence} ->
+            {ok, _Presence} = update(Domain, Presence#uce_presence{last_activity=utils:now()}),
+            {ok, true};
+        {error, not_found} ->
+            {ok, false}
+    end.
 
 -spec get_presence_by_sid(sid(), list(#uce_presence{})) -> {ok, #uce_presence{}} | {error, not_found}.
 get_presence_by_sid(_Sid, []) ->
