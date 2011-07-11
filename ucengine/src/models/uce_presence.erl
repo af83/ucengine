@@ -18,8 +18,7 @@
 -module(uce_presence).
 
 % public api
--export([start_link/2,
-         add/2,
+-export([add/2,
          all/1,
          get/2,
          get_all/2,
@@ -27,17 +26,6 @@
          assert/3,
          join/3,
          leave/3]).
-
-
-% gen_server callbacks
--export([init/1,
-         code_change/3,
-         handle_call/3,
-         handle_cast/2,
-         handle_info/2,
-         terminate/2]).
-
--behaviour(gen_server).
 
 -include("uce.hrl").
 -include_lib("stdlib/include/qlc.hrl").
@@ -56,7 +44,7 @@ add(Domain, #uce_presence{timeout=0}=Presence) ->
 add(Domain, #uce_presence{id=Sid, user=Uid}=Presence) ->
     UPid = case gproc:lookup_local_name({Domain, uid, Uid}) of
                undefined ->
-                   {ok, NewPid} = uce_vhost_presence_sup:start_child(Domain, [Domain, Uid]),
+                   {ok, NewPid} = uce_vhost:add_user(Domain, Uid),
                    NewPid;
                Pid ->
                    Pid
@@ -116,68 +104,8 @@ leave(Domain, Sid, Meeting) ->
     update(Domain, Record#uce_presence{meetings=Meetings}).
 
 %
-% gen server callbacks
-%
-
--record(state, {
-          domain,
-          presences = []
-         }).
-
-init([Domain, Uid]) ->
-    gproc:add_local_name({Domain, uid, Uid}),
-    {ok, #state{domain=Domain}}.
-
-handle_call({add_presence, #uce_presence{id=Sid}=Presence}, _From, #state{domain=Domain, presences=Presences} = State) ->
-    gproc:add_local_name({Domain, sid, Sid}),
-    {reply, ok, State#state{presences=[Presence|Presences]}};
-
-handle_call({get_presence, Sid}, _From, #state{presences=Presences} = State) ->
-    {reply, get_presence_by_sid(Sid, Presences), State};
-
-handle_call(get_presences, _From, #state{presences=Presences} = State) ->
-    {reply, Presences, State};
-
-handle_call({update_presence, #uce_presence{id=Sid}=NewPresence}, _From, #state{presences=Presences} = State) ->
-    {ok, Presence} = get_presence_by_sid(Sid, Presences),
-    NewPresences = lists:delete(Presence, Presences),
-    {reply, get_presence_by_sid(Sid, Presences), State#state{presences=[NewPresence|NewPresences]}};
-
-handle_call({delete_presence, Sid}, _From, #state{presences=Presences} = State) ->
-    {ok, Presence} = get_presence_by_sid(Sid, Presences),
-    NewPresences = lists:delete(Presence, Presences),
-    case NewPresences of
-        [] ->
-            {stop, "end of process", {ok, deleted}, State#state{presences=NewPresences}};
-        _Other ->
-            {reply, {ok, deleted}, State#state{presences=NewPresences}}
-    end.
-
-handle_cast(_Msg, State) ->
-    {noreply, State}.
-
-handle_info(_Info, State) ->
-    {noreply, State}.
-
-terminate(_Reason, _State) ->
-    ok.
-
-code_change(_OldVsn, State, _Extra) ->
-    {ok, State}.
-
-%
 % Private function
 %
-start_link(Domain, User) ->
-    gen_server:start_link(?MODULE, [Domain, User], []).
-
-call_if_proc_found(Domain, Sid, Call) ->
-    case gproc:lookup_local_name({Domain, sid, Sid}) of
-        undefined ->
-            {error, not_found};
-        Pid ->
-            gen_server:call(Pid, Call)
-    end.
 
 %
 % Update presence
@@ -195,10 +123,10 @@ check(Domain, Uid, Sid) ->
             {ok, false}
     end.
 
--spec get_presence_by_sid(sid(), list(#uce_presence{})) -> {ok, #uce_presence{}} | {error, not_found}.
-get_presence_by_sid(_Sid, []) ->
-    {error, not_found};
-get_presence_by_sid(Sid, [#uce_presence{id=Sid} = Presence|_Presences]) ->
-    {ok, Presence};
-get_presence_by_sid(Sid, [_Presence|Presences]) ->
-    get_presence_by_sid(Sid, Presences).
+call_if_proc_found(Domain, Sid, Call) ->
+    case gproc:lookup_local_name({Domain, sid, Sid}) of
+        undefined ->
+            {error, not_found};
+        Pid ->
+            gen_server:call(Pid, Call)
+    end.

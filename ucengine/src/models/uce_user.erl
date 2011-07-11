@@ -27,13 +27,27 @@
          exists/2,
          acl/3,
          add_role/3,
-         delete_role/3]).
+         delete_role/3,
+         start_link/2]).
+
+% gen_server callbacks
+-export([init/1,
+         code_change/3,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         terminate/2]).
+
+-behaviour(gen_server).
 
 -include("uce.hrl").
+
+-type rolelocation() :: {list(), list()}.
 
 %
 % Public api
 %
+-spec add(domain(), #uce_user{}) -> {ok, uid()} | erlang:throw({error, conflict}).
 add(Domain, #uce_user{id=none} = User) ->
     add(Domain, User#uce_user{id=utils:random()});
 add(Domain, #uce_user{id=UId, name=Name} = User) ->
@@ -48,6 +62,7 @@ add(Domain, #uce_user{id=UId, name=Name} = User) ->
             {ok, UId}
     end.
 
+-spec delete(domain(), uid()) -> {ok, deleted} | erlang:throw({error, not_found}) | erlang:throw({error, any()}).
 delete(Domain, Uid) ->
     case exists(Domain, Uid) of
         true ->
@@ -56,53 +71,71 @@ delete(Domain, Uid) ->
                 {error, Reason} when Reason /= not_found ->
                     throw({error, Reason});
                 {ok, deleted}->
+                    case get_pid_of(Domain, Uid) of
+                        {error, not_found} ->
+                            ok;
+                        {ok, Pid} ->
+                            ok = uce_vhost_user_sup:terminate_child(Domain, Pid)
+                    end,
                     (db:get(?MODULE, Domain)):delete(Domain, Uid)
             end;
         false ->
             throw({error, not_found})
     end.
 
+-spec update(domain(), #uce_user{}) -> {ok, updated} | erlang:throw({error, not_found}).
 update(Domain, #uce_user{id=Uid} = User) ->
     case exists(Domain, Uid) of
         true ->
+            case get_pid_of(Domain, Uid) of
+                {error, not_found} ->
+                    ok;
+                {ok, Pid} ->
+                    gen_server:cast(Pid, {update_user, User})
+            end,
             (db:get(?MODULE, Domain)):update(Domain, User);
         false ->
             throw({error, not_found})
    end.
 
+-spec list(domain()) -> {ok, list(#uce_user{})}.
 list(Domain) ->
     (db:get(?MODULE, Domain)):list(Domain).
 
-get(Domain, User) ->
-    (db:get(?MODULE, Domain)):get(Domain, User).
+-spec get(domain(), uid()) -> {ok, #uce_user{}} | erlang:throw({error, not_found}).
+get(Domain, Uid) ->
+    case get_pid_of(Domain, Uid) of
+        {error, not_found} ->
+            (db:get(?MODULE, Domain)):get(Domain, Uid);
+        {ok, Pid} ->
+            gen_server:call(Pid, get_user)
+    end.
 
+-spec get_by_name(domain(), list()) -> {ok, #uce_user{}} | erlang:throw({error, not_found}).
 get_by_name(Domain, Name) ->
     (db:get(?MODULE, Domain)):get_by_name(Domain, Name).
 
+-spec exists(domain(), uid()) -> true | false | erlang:throw({error, any()}).
 % "" value are used in uce_event:add
 % From or To can be empty
 exists(_Domain, "") ->
     true;
-exists(Domain, Id) ->
-    case catch get(Domain, Id) of
+exists(Domain, Uid) ->
+    case get_pid_of(Domain, Uid) of
         {error, not_found} ->
-            false;
-        {error, Reason} ->
-            throw({error, Reason});
-        {ok, _User}->
+            case catch get(Domain, Uid) of
+                {error, not_found} ->
+                    false;
+                {error, Reason} ->
+                    throw({error, Reason});
+                {ok, _User}->
+                    true
+            end;
+        {ok, _Pid} ->
             true
     end.
 
-exists_by_name(Domain, Name) ->
-    case catch get_by_name(Domain, Name) of
-        {error, not_found} ->
-            false;
-        {error, Reason} ->
-            throw({error, Reason});
-        {ok, _User}->
-            true
-    end.
-
+-spec add_role(domain(), uid(), rolelocation()) -> {ok, updated} | erlang:throw({error, not_found}).
 add_role(Domain, Uid, {Role, Location}) ->
     % Just ensure the role and location exists
     case uce_meeting:exists(Domain, Location) of
@@ -123,6 +156,7 @@ add_role(Domain, Uid, {Role, Location}) ->
             throw({error, not_found})
     end.
 
+-spec delete_role(domain(), uid(), rolelocation()) -> {ok, updated} | erlang:throw({error, not_found}).
 delete_role(Domain, Id, {Role, Location}) ->
     {ok, User} = get(Domain, Id),
     Roles = case lists:member({Role, Location}, User#uce_user.roles) of
@@ -133,6 +167,7 @@ delete_role(Domain, Id, {Role, Location}) ->
             end,
     update(Domain, User#uce_user{roles=Roles}).
 
+-spec acl(domain(), uid(), list()) -> {ok, list()}.
 acl(Domain, User, Location) ->
     {ok, Record} = get(Domain, User),
     ACL = lists:map(fun({RoleName, RoleLocation}) ->
@@ -149,3 +184,92 @@ acl(Domain, User, Location) ->
                     end,
                     Record#uce_user.roles),
     {ok, lists:flatten(ACL)}.
+
+%
+% gen server callbacks
+%
+
+-record(state, {
+          domain,
+          user,
+          presences = []
+         }).
+
+init([Domain, #uce_user{id=Uid} = User]) ->
+    gproc:add_local_name({Domain, uid, Uid}),
+    {ok, #state{domain=Domain, user=User}}.
+
+handle_call(get_user, _From, #state{user=User} = State) ->
+    {reply, {ok, User}, State};
+
+handle_call({add_presence, #uce_presence{id=Sid}=Presence}, _From, #state{domain=Domain, presences=Presences} = State) ->
+    gproc:add_local_name({Domain, sid, Sid}),
+    {reply, ok, State#state{presences=[Presence|Presences]}};
+
+handle_call({get_presence, Sid}, _From, #state{presences=Presences} = State) ->
+    {reply, get_presence_by_sid(Sid, Presences), State};
+
+handle_call(get_presences, _From, #state{presences=Presences} = State) ->
+    {reply, Presences, State};
+
+handle_call({update_presence, #uce_presence{id=Sid}=NewPresence}, _From, #state{presences=Presences} = State) ->
+    {ok, Presence} = get_presence_by_sid(Sid, Presences),
+    NewPresences = lists:delete(Presence, Presences),
+    {reply, get_presence_by_sid(Sid, Presences), State#state{presences=[NewPresence|NewPresences]}};
+
+handle_call({delete_presence, Sid}, _From, #state{presences=Presences} = State) ->
+    {ok, Presence} = get_presence_by_sid(Sid, Presences),
+    NewPresences = lists:delete(Presence, Presences),
+    case NewPresences of
+        [] ->
+            {stop, "end of process", {ok, deleted}, State#state{presences=NewPresences}};
+        _Other ->
+            {reply, {ok, deleted}, State#state{presences=NewPresences}}
+    end.
+
+handle_cast({update_user, User}, State) ->
+    {noreply, State#state{user=User}}.
+
+handle_info(_Info, State) ->
+    {noreply, State}.
+
+terminate(_Reason, _State) ->
+    ok.
+
+code_change(_OldVsn, State, _Extra) ->
+    {ok, State}.
+
+
+%
+% Private function
+%
+
+start_link(Domain, User) ->
+    gen_server:start_link(?MODULE, [Domain, User], []).
+
+-spec exists_by_name(domain(), list()) -> true | false | erlang:throw({error, any()}).
+exists_by_name(Domain, Name) ->
+    case catch get_by_name(Domain, Name) of
+        {error, not_found} ->
+            false;
+        {error, Reason} ->
+            throw({error, Reason});
+        {ok, _User}->
+            true
+    end.
+
+-spec get_presence_by_sid(sid(), list(#uce_presence{})) -> {ok, #uce_presence{}} | {error, not_found}.
+get_presence_by_sid(_Sid, []) ->
+    {error, not_found};
+get_presence_by_sid(Sid, [#uce_presence{id=Sid} = Presence|_Presences]) ->
+    {ok, Presence};
+get_presence_by_sid(Sid, [_Presence|Presences]) ->
+    get_presence_by_sid(Sid, Presences).
+
+get_pid_of(Domain, Uid) ->
+    case gproc:lookup_local_name({Domain, uid, Uid}) of
+        undefined ->
+            {error, not_found};
+        Pid ->
+            {ok, Pid}
+    end.

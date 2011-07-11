@@ -47,8 +47,8 @@ vhost_supervise([{Domain, _HostConfig}|R]) ->
      {uce_timeout, start_link, [Domain]},
      permanent, brutal_kill, worker, [uce_timeout]},
     {name(Domain, "presence"),
-     {uce_vhost_presence_sup, start_link, [Domain]},
-     permanent, brutal_kill, supervisor, [uce_vhost_presence_sup]}] ++ vhost_supervise(R).
+     {uce_vhost_user_sup, start_link, [Domain]},
+     permanent, brutal_kill, supervisor, [uce_vhost_user_sup]}] ++ vhost_supervise(R).
 
 
 %%

@@ -21,7 +21,7 @@
 
 -include("uce.hrl").
 
--export([start_link/1]).
+-export([start_link/1, add_user/2]).
 
 -export([init/1,
          code_change/3,
@@ -30,8 +30,15 @@
          handle_info/2,
          terminate/2]).
 
+%%
+%% Public api
+%%
+
 start_link(Domain) ->
-    gen_server:start_link(?MODULE, [Domain], []).
+    gen_server:start_link({local, uce_vhost_sup:name(Domain, "vhost")}, ?MODULE, [Domain], []).
+
+add_user(Domain, Uid) ->
+    gen_server:call(uce_vhost_sup:name(Domain, "vhost"), {add_user, Uid}).
 
 %%
 %% gen_server callbacks
@@ -45,8 +52,19 @@ init([Domain]) ->
     setup_admin(Domain),
     {ok, Domain}.
 
-handle_call(_, _From, State) ->
-    {reply, ok, State}.
+handle_call({add_user, Uid}, _From, Domain) ->
+    {ok, User} = uce_user:get(Domain, Uid),
+    case uce_vhost_user_sup:start_child(Domain, [Domain, User]) of
+        {ok, Pid} ->
+            {reply, {ok, Pid}, Domain};
+        {error, Reason} ->
+            case gproc:lookup_local_name({Domain, uid, Uid}) of
+                undefined ->
+                    {error, Reason};
+                Pid ->
+                    {reply, {ok, Pid}, Domain}
+            end
+    end.
 
 handle_cast(_, State) ->
     {noreply, State}.
