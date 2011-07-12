@@ -131,7 +131,6 @@ cache_add(Domain, #uce_role{id=Id} = Role) ->
     ets:insert(?TAB, {{Domain, Id}, Role}).
 
 cache_update(Domain, Role) ->
-    ?INFO_MSG("cache update", []),
     cache_add(Domain, Role).
 
 cache_delete(Domain, Id) ->
