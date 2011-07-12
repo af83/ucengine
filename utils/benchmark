@@ -24,6 +24,9 @@ then
     exit 1
 fi
 
+# Launch the bootstrap script
+PATH=$PATH:rel/ucengine/bin ./benchmarks/scenarii/$1.sh localhost
+
 cp $SCENARII_FILE benchmarks/results
 # Update the path to tsung dtd
 SCENARII_FILE_MODIFIED=benchmarks/results/$1.xml
