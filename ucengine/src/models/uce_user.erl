@@ -75,7 +75,7 @@ delete(Domain, Uid) ->
                         {error, not_found} ->
                             ok;
                         {ok, Pid} ->
-                            ok = uce_vhost_user_sup:terminate_child(Domain, Pid)
+                            ok = gen_server:call(Pid, stop)
                     end,
                     (db:get(?MODULE, Domain)):delete(Domain, Uid)
             end;
@@ -225,7 +225,13 @@ handle_call({delete_presence, Sid}, _From, #state{presences=Presences} = State) 
             {stop, "end of process", {ok, deleted}, State#state{presences=NewPresences}};
         _Other ->
             {reply, {ok, deleted}, State#state{presences=NewPresences}}
-    end.
+    end;
+
+%%
+%% supervisor:terminate_child doesn't work with simple_one_for_one in erlang < R14BO3
+%%
+handle_call(stop, _From, State) ->
+    {stop, "normal", ok, State}.
 
 handle_cast({update_user, User}, State) ->
     {noreply, State#state{user=User}}.
