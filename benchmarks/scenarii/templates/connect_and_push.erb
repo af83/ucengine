@@ -1,0 +1,27 @@
+<setdynvars sourcetype="file" fileid="users" delimiter=";" order="iter">
+  <var name="username" />
+  <var name="password" />
+</setdynvars>
+
+<transaction name="post_event" >
+  <!-- Authenticate -->
+  <request subst="true">
+    <dyn_variable name="sid" jsonpath="result.sid" />
+    <dyn_variable name="uid" jsonpath="result.uid" />
+    <http url='/api/0.5/presence' contents='name=%%_username%%&amp;auth=password&amp;credential=%%_password%%' method='POST' />
+  </request>
+
+  <!-- Main Loop -->
+  <for from="1" to="100" incr="1" var="counter">
+
+    <!-- POST an event -->
+    <transaction name="post_event">
+      <request subst="true">
+        <http url='/api/0.5/event/<%= meeting %>' contents='type=test&amp;uid=%%_uid%%&amp;sid=%%_sid%%' method='POST' />
+      </request>
+    </transaction>
+
+    <thinktime random='true' value='2'/>
+  </for>
+
+</transaction>

@@ -16,7 +16,7 @@ then
     exit 1
 fi
 
-SCENARII_FILE=benchmarks/scenarii/$1.xml
+SCENARII_FILE=benchmarks/scenarii/$1.yml
 
 if [ ! -f $SCENARII_FILE ];
 then
@@ -25,9 +25,9 @@ then
 fi
 
 # Launch the bootstrap script
-PATH=$PATH:rel/ucengine/bin ./benchmarks/scenarii/$1.sh localhost
+#PATH=$PATH:rel/ucengine/bin ./benchmarks/scenarii/$1.sh localhost
 
-cp $SCENARII_FILE benchmarks/results
+benchmarks/generate.rb $1 > benchmarks/results/$1.xml
 # Update the path to tsung dtd
 SCENARII_FILE_MODIFIED=benchmarks/results/$1.xml
 sed -i "s=TSUNG_SHARE_PATH=$TSUNG_SHARE_PATH=" $SCENARII_FILE_MODIFIED

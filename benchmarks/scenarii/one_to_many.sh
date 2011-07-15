@@ -10,7 +10,7 @@ then
     exit 1
 fi
 
-MEETINGS="demo demo2 demo3 demo4 demo5"
+MEETINGS="demo demo2"
 
 for meeting in $MEETINGS
 do
@@ -33,7 +33,7 @@ FILE="users.csv"
 
 # Users
 rm -f $FILE
-for id in $(seq 1 120)
+for id in $(seq 1 1200)
 do
   user="participant_$id"
   $UCENGINE_ADMIN $HOST user add $user "password" "pwd"
