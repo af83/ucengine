@@ -85,7 +85,7 @@ add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
                                                name=Name,
                                                auth=Auth,
                                                credential=Credential,
-                                               metadata=Metadata}),
+                                               metadata=json_helpers:to_struct(Metadata)}),
 
     {ok, _} = uce_event:add(Domain, #uce_event{id=none,
                                                from=UId,
@@ -114,7 +114,7 @@ update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     {ok, updated} = uce_user:update(Domain, Record#uce_user{name=Name,
                                                             auth=Auth,
                                                             credential=Credential,
-                                                            metadata=Metadata}),
+                                                            metadata=json_helpers:to_struct(Metadata)}),
 
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id=none,

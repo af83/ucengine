@@ -46,7 +46,7 @@ get(Domain) ->
         [Infos] ->
             {ok, Infos};
         [] ->
-            {ok, #uce_infos{domain=Domain, metadata=[]}};
+            {ok, #uce_infos{domain=Domain}};
         {aborted, _} ->
             throw({error, bad_parameters})
     end.

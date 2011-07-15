@@ -143,8 +143,7 @@ setup_bricks(Domain) ->
     lists:foreach(fun({Name, Token}) ->
                           setup_root_user(Domain, #uce_user{name=Name,
                                                             auth="token",
-                                                            credential=Token,
-                                                            metadata=[]})
+                                                            credential=Token})
                   end,
                   config:get(Domain, bricks)).
 
@@ -158,4 +157,4 @@ setup_admin(Domain) ->
     setup_root_user(Domain, #uce_user{name=Name,
                                       auth=Auth,
                                       credential=Credential,
-                                      metadata=Metadata}).
+                                      metadata={struct, Metadata}}).

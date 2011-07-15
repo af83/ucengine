@@ -153,6 +153,9 @@ usage() ->
     io:format("Usage:~n"),
     io:format("ucengine-admin <domain> <object> <action> [--<parameter> <value>]~n~n"),
 
+    io:format("\tinfos get~n"),
+    io:format("\tinfos update [--<parameter> <value>]~n~n"),
+
     io:format("Meetings:~n"),
     io:format("\tmeeting add <name> [--start <date>] [--end <date>] [--<metadata> <value>]~n"),
     io:format("\tmeeting update <name> [--start <date>] [--end <date>] [--<metadata> <value>]~n"),
@@ -222,7 +225,7 @@ meeting(Domain, "add", Name, Args) ->
                                         #uce_meeting{id=Name,
                                                      start_date=parse_date(Start),
                                                      end_date=parse_date(End),
-                                                     metadata=Metadata}]),
+                                                     metadata={struct, Metadata}}]),
     success(created);
 
 %%
@@ -237,7 +240,7 @@ meeting(Domain, "update", Name, Args) ->
                                            #uce_meeting{id=Name,
                                                         start_date=parse_date(Start),
                                                         end_date=parse_date(End),
-                                                        metadata=Metadata}]),
+                                                        metadata={struct, Metadata}}]),
     success(updated);
 
 %%
@@ -270,7 +273,7 @@ user(Domain, "add", Name, Auth, Credential, Metadata) ->
                                            name=Name,
                                            auth=Auth,
                                            credential=Credential,
-                                           metadata=Metadata}]),
+                                           metadata={struct, Metadata}}]),
     success(Uid);
 
 %%
@@ -283,7 +286,7 @@ user(Domain, "update", Name, Auth, Credential, Metadata) ->
                                                   name=Name,
                                                   auth=Auth,
                                                   credential=Credential,
-                                                  metadata=Metadata}]),
+                                                  metadata={struct, Metadata}}]),
     success(updated);
 
 %%
@@ -316,7 +319,7 @@ user(Domain, "add", Name, Auth, Metadata) ->
                                  #uce_user{id=none,
                                            name=Name,
                                            auth=Auth,
-                                           metadata=Metadata}]),
+                                           metadata=json_helpers:to_struct(Metadata)}]),
     success(Uid).
 
 %%

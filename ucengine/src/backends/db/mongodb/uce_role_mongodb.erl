@@ -57,10 +57,10 @@ get(Domain, Name) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["name", "domain", "acl"]) of
-        [Name, _Domain, ACL] ->
+        [Name, _Domain, {array, ACL}] ->
             #uce_role{id=Name,
                       acl=[#uce_access{object=Object, action=Action, conditions=Conditions} ||
-                              [Object, Action, Conditions] <- ACL]};
+                              {array, [Object, Action, Conditions]} <- ACL]};
         _ ->
             throw({error, bad_parameters})
     end.
@@ -69,13 +69,13 @@ to_collection(Domain, #uce_role{id=Name,
                                 acl=ACL}) ->
     [{"name", Name},
      {"domain", Domain},
-     {"acl", [[Object, Action, Conditions] || #uce_access{object=Object,
-                                                          action=Action,
-                                                          conditions=Conditions} <- ACL]}].
+     {"acl", {array, [[Object, Action, Conditions] || #uce_access{object=Object,
+                                                                   action=Action,
+                                                                   conditions=Conditions} <- ACL]}}].
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list) -> ok::atom
-%% @doc Create index for uce_role collection in database 
+%% @doc Create index for uce_role collection in database
 %% @end
 %%--------------------------------------------------------------------
 index(Domain) ->
