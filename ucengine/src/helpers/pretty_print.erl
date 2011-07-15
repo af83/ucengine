@@ -33,25 +33,12 @@ print(#uce_meeting{id=Id,
     Out = [io_lib:format("Id: ~s~n", [Id]),
            io_lib:format("Start: ~p~n", [Start]),
            io_lib:format("End: ~p~n", [End])],
-    StrMetadata =
-        if
-            Metadata == [] ->
-                ["Metadata: none~n"];
-            true ->
-                [io_lib:format("Metadata:~n", [])] ++
-                    [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
-        end,
+    StrMetadata = print_metadata(Metadata),
     lists:flatten(Out ++ StrMetadata);
 print(#uce_infos{domain=Domain,
                  metadata=Metadata}, flat) ->
     Out = [io_lib:format("Domain: ~s~n", [Domain])],
-    StrMetadata = case Metadata of
-                      [] ->
-                          ["Metadata: none~n"];
-                      Metadata ->
-                          [io_lib:format("Metadata:~n", [])] ++
-                              [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
-                  end,
+    StrMetadata = print_metadata(Metadata),
     lists:flatten(Out ++ StrMetadata);
 print(#uce_user{id=Uid,
                 name=Name,
@@ -61,14 +48,7 @@ print(#uce_user{id=Uid,
     Out = [io_lib:format("Id: ~s~n", [Uid]),
            io_lib:format("Name: ~s~n", [Name]),
            io_lib:format("Authentification method: ~s~n", [Auth])],
-    StrMetadata =
-        if
-            Metadata == [] ->
-                ["Metadata: none~n"];
-            true ->
-                [io_lib:format("Metadata:~n", [])] ++
-                    [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ]
-        end,
+    StrMetadata = print_metadata(Metadata),
     StrRoles =
         if
             Roles == [] ->
@@ -83,3 +63,11 @@ print(#uce_user{id=Uid,
                       end || {Role, Location} <- Roles ]
         end,
     lists:flatten(Out ++ StrMetadata ++ StrRoles).
+
+print_metadata({struct, Metadata}) ->
+    print_metadata(Metadata);
+print_metadata([]) ->
+    ["Metadata: none~n"];
+print_metadata(Metadata) ->
+    [io_lib:format("Metadata:~n", [])] ++
+        [ io_lib:format("\t~s: ~s~n", [Key, Value]) || {Key, Value} <- Metadata ].

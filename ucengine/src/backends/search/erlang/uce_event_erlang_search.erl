@@ -39,13 +39,19 @@ search_value(Value, [Word|Words]) ->
 
 search_metadata([], _) ->
     false;
-search_metadata([{_, Value}|Tail], Words) ->
+search_metadata({struct, Values}, Words) ->
+    search_metadata(Values, Words);
+search_metadata({array, Values}, Words) ->
+    search_metadata(Values, Words);
+search_metadata([{_, Value}|Tail], Words) when is_list(Value) ->
     case search_value(Value, Words) of
         true ->
             true;
         false ->
             search_metadata(Tail, Words)
-    end.
+    end;
+search_metadata(_, _Words) ->
+    false.
 
 filter(Events, []) ->
     Events;

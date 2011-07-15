@@ -35,7 +35,7 @@ get(Domain) ->
         [Record] ->
             {ok, from_collection(Record)};
         [] ->
-            {ok, #uce_infos{domain=Domain, metadata=[]}}
+            {ok, #uce_infos{domain=Domain}}
     end.
 
 %%--------------------------------------------------------------------
@@ -67,7 +67,7 @@ update(Domain, #uce_infos{} = Infos) ->
 to_collection(#uce_infos{domain=Domain,
                          metadata=Metadata}) ->
     [{"domain", Domain},
-     {"metadata", Metadata}].
+     {"metadata", mongodb_helpers:to_bson(Metadata)}].
 
 %%--------------------------------------------------------------------
 %% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_infos{} | {error, bad_parameters}
@@ -76,7 +76,7 @@ to_collection(#uce_infos{domain=Domain,
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-		   ["domain", "metadata"]) of
+                   ["domain", "metadata"]) of
         [Domain, Metadata] ->
             #uce_infos{domain=Domain, metadata=Metadata};
         _ ->

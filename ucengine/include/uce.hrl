@@ -19,7 +19,7 @@
           %% parent id
           parent = "",
           %% MetaData : list
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_presence, {
           %% presenceid
@@ -37,7 +37,7 @@
           %% list meetings joined by user
           meetings = [],
           %% MetaData : list
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_meeting, {
           %% uce meeting id
@@ -47,7 +47,7 @@
           end_date = none,
           roster = [],
           %% [{"description",Desc}, {"language",Lang}, ... ]
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_file, {
           % fileid
@@ -63,7 +63,7 @@
           % mime type
           mime = "text/plain",
           % name as send by the browser
-          metadata = []
+          metadata = {struct, []}
          }).
 
 -record(uce_user, {
@@ -73,7 +73,7 @@
           name,
           auth,
           credential = "",
-          metadata = [],
+          metadata = {struct, []},
           roles=[]}).
 
 -record(uce_role, {
@@ -87,7 +87,7 @@
 
 -record(uce_infos, {
           domain = none,
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_route, {
           method,

@@ -49,7 +49,7 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                                user=Uid,
                                                timeout=Timeout,
                                                auth=User#uce_user.auth,
-                                               metadata=Metadata}),
+                                               metadata=json_helpers:to_struct(Metadata)}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id=none,
                                        from=User#uce_user.id,
