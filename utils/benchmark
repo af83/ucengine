@@ -25,7 +25,7 @@ then
 fi
 
 # Launch the bootstrap script
-#PATH=$PATH:rel/ucengine/bin ./benchmarks/scenarii/$1.sh localhost
+PATH=$PATH:rel/ucengine/bin ./benchmarks/scenarii/$1.sh localhost
 
 benchmarks/generate.rb $1 > benchmarks/results/$1.xml
 # Update the path to tsung dtd
