@@ -92,6 +92,7 @@
 -record(uce_route, {
           method,
           path,
+          content_type = any,
           callback}).
 
 -record(file_upload, {
