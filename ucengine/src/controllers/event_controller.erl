@@ -83,11 +83,12 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _Arg) ->
 add2(Domain, [Meeting], [], Arg) ->
     {struct, Json} = mochijson:decode(Arg#arg.clidata),
     Uid = proplists:get_value("uid", Json),
-    Sid = proplists:get_value("sid", Json),
+    _Sid = proplists:get_value("sid", Json),
     Type = proplists:get_value("type", Json),
     To = proplists:get_value("to", Json, ""),
     Parent = proplists:get_value("parent", Json, ""),
     Metadata = proplists:get_value("metadata", Json, []),
+    %TODO: uce_presence:assert and uce_access:assert
     {ok, Id} = uce_event:add(Domain,
                              #uce_event{id=none,
                                         location=Meeting,

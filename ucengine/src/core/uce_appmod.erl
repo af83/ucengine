@@ -123,7 +123,8 @@ process(Host, 'OPTIONS', Path, _Query, _Arg) ->
 process(Host, 'HEAD', Path, Query, Arg) ->
     process(Host, 'GET', Path, Query, Arg);
 process(Host, Method, Path, Query, Arg) ->
-    case routes:get(Method, Path) of
+    ContentType = Arg#arg.headers#headers.content_type,
+    case routes:get(Method, Path, ContentType) of
         {ok, Match, Handlers} ->
             call_handlers(Host, Handlers, Query, Match, Arg);
         {error, not_found} ->
