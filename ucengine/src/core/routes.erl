@@ -21,7 +21,8 @@
 
 -export([init/0,
          get/1,
-         get/2]).
+         get/2,
+         get/3]).
 
 init() ->
     Routes = setup_routes(),
@@ -40,24 +41,46 @@ get(Path) ->
 get(Method, Path) ->
     route(Method, Path, ets:tab2list(uce_routes)).
 
-route(_, _, []) ->
+get(Method, Path, ContentType) ->
+    route(Method, Path, ContentType, ets:tab2list(uce_routes)).
+ 
+route(Method, Path, Routes) ->
+    route(Method, Path, "", Routes).
+
+-spec route(Mathod :: atom(), Path :: string(), ContentType :: string(), Routes :: [#uce_route{}])
+    -> {'error', 'not_found'} | {'ok', list(atom()|string()), fun()}.
+route(_, _, _, []) ->
     {error, not_found};
-route('_', Path, [#uce_route{callback=Callback} = Route|Routes]) ->
+route('_', Path, ContentType, [#uce_route{callback=Callback} = Route|Routes]) ->
     case match_path(Path, Route) of
         false ->
-            route('_', Path, Routes);
+            route('_', Path, ContentType, Routes);
         {ok, Binds, List} ->
             {ok, lists:reverse(Binds) ++ List, Callback}
     end;
-route(Method, Path, [#uce_route{method=Method, callback=Callback} = Route|Routes]) ->
+route(Method, Path, ContentType, [#uce_route{
+        method=Method,
+        content_type=any,
+        callback=Callback} = Route|Routes]) ->
     case match_path(Path, Route) of
         false ->
-            route(Method, Path, Routes);
+            route(Method, Path, ContentType, Routes);       
         {ok, Binds, List} ->
             {ok, lists:reverse(Binds) ++ List, Callback}
     end;
-route(Method, Path, [#uce_route{}|Routes]) ->
-    route(Method, Path, Routes).
+route(Method, Path, ContentType, [#uce_route{
+        method=Method,
+        content_type=ContentType,
+        callback=Callback} = Route|Routes]) ->
+    case match_path(Path, Route) of
+        false ->
+            route(Method, Path, ContentType, Routes);       
+        {ok, Binds, List} ->
+            {ok, lists:reverse(Binds) ++ List, Callback}
+    end;
+route(Method, Path, ContentType, [#uce_route{}|Routes]) ->
+    route(Method, Path, ContentType, Routes).
+   
 
 match_path("/"++ Path, #uce_route{path=PathRule}) ->
     List = re:split(Path, "[/]", [{return,list}, trim]),
@@ -157,4 +180,22 @@ route__with_method_test() ->
     ?assertMatch({ok, [{name, "plop"}], {?MODULE, update_user, []}}, route('POST', "/user/plop", Routes)),
     ?assertMatch({ok, [{name, "plop"}, "plip"], {?MODULE, put_user_plop, []}}, route('PUT', "/user/plop/plip", Routes)).
 
+route_with_content_type_test() ->
+     Routes = [#uce_route{method='GET',
+                         path=["user"],
+                         callback={?MODULE, get, []}},
+              #uce_route{method='POST',
+                         content_type="application/json",
+                         path=["user", name],
+                         callback={?MODULE, update_user, []}},
+              #uce_route{method='POST',
+                         path=["user", name],
+                         callback={?MODULE, update_user_inline, []}},
+              #uce_route{method='PUT',
+                         path=["user", name, '...'],
+                         callback={?MODULE, put_user_plop, []}}],
+    io:format("~p~n", [Routes]),
+    ?assertMatch({ok, [{name, "42"}], {?MODULE, update_user, []}}, route('POST', "/user/42", "application/json", Routes)),
+    ?assertMatch({ok, _, {?MODULE, update_user_inline, []}}, route('POST', "/user/42", "", Routes)),
+    ?assertMatch({ok, _, {?MODULE, update_user_inline, []}}, route('POST', "/user/42", "text/plain", Routes)).
 -endif.
