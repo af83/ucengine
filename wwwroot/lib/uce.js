@@ -18,10 +18,10 @@
             });
         }
 
-        function uce_api_call(method, url, data, callback) {
+        function uce_api_call(method, url, data, callback, overridedOptions) {
             var call_back = callback || $.noop;
             url = baseUrl +'/api/' + VERSION + url;
-            return $.ajax({
+            var options = {
                 type     : method,
                 dataType : "json",
                 url      : url,
@@ -34,25 +34,26 @@
                         call_back(null, response, xhr);
                     }
                 }
-            });
+            };
+            return $.ajax($.extend(options, overridedOptions || {}));
         }
 
-        function get(url, data, callback) {
-            return uce_api_call("get", url, data, callback);
+        function get(url, data, callback, options) {
+            return uce_api_call("get", url, data, callback, options);
         }
 
-        function post(url, data, callback) {
-            return uce_api_call("post", url, data, callback);
+        function post(url, data, callback, options) {
+            return uce_api_call("post", url, data, callback, options);
         }
 
-        function put(url, data, callback) {
+        function put(url, data, callback, options) {
             data = $.extend({"_method": "put"}, data);
-            return uce_api_call("post", url, data, callback);
+            return uce_api_call("post", url, data, callback, options);
         }
 
-        function del(url, data, callback) {
+        function del(url, data, callback, options) {
             data = $.extend({"_method": "delete"}, data);
-            return uce_api_call("post", url, data, callback);
+            return uce_api_call("post", url, data, callback, options);
         }
 
         function UCEMeeting(client, meetingname, presence) {
@@ -123,20 +124,26 @@
             },
 
             /**
-             * Push event
+             * Generic Push event
              */
             _push: function(params, callback) {
-                post("/event/" + this.name,
-                     this.params.merge(params),
-                     callback);
+                post("/event2/" + this.name,
+                     JSON.stringify(this.params.merge(params)),
+                     callback, {contentType: "application/json"});
                 return this;
             },
+            /**
+             * Push event to all users in the current meeting room
+             */
             push: function(type, metadata, callback) {
                 this._push({'type': type,
                             'metadata': metadata},
                            callback);
                 return this;
             },
+            /**
+             * Push private event to the user in the current meeting room
+             */
             pushTo: function(to, type, metadata, callback) {
                 this._push({'type': type,
                             'to': to,
