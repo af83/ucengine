@@ -40,6 +40,16 @@ tests: dev
 	rel/ucengine/bin/ucengine-admin tests
 	./rebar skip_deps=true eunit
 
+mnesia_tests: dev
+	sed -i  's/db, mongodb/db, mnesia/' rel/ucengine/etc/uce.cfg
+	rel/ucengine/bin/ucengine-admin tests
+	./rebar skip_deps=true eunit
+
+mongodb_tests: dev
+	sed -i  's/db, mnesia/db, mongodb/' rel/ucengine/etc/uce.cfg
+	rel/ucengine/bin/ucengine-admin tests
+	./rebar skip_deps=true eunit
+
 dialyze: compile
 	./rebar skip_deps=true check-plt
 	./rebar skip_deps=true dialyze
