@@ -12,7 +12,7 @@ sessions:
   -
    name: passive_1
    type: connect_and_listen
-   probability: 42
+   probability: 47
    variables:
      meeting: demo
   -
@@ -24,7 +24,7 @@ sessions:
   -
    name: passive_2
    type: connect_and_listen
-   probability: 42
+   probability: 47
    variables:
      meeting: demo2
   -

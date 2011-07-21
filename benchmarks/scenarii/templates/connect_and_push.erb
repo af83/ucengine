@@ -12,7 +12,7 @@
   </request>
 
   <!-- Main Loop -->
-  <for from="1" to="100" incr="1" var="counter">
+  <for from="1" to="50" incr="1" var="counter">
 
     <!-- POST an event -->
     <transaction name="post_event">
@@ -21,7 +21,7 @@
       </request>
     </transaction>
 
-    <thinktime random='true' value='2'/>
+    <thinktime random='true' value='5'/>
   </for>
 
 </transaction>
