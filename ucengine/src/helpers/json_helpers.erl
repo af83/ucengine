@@ -24,6 +24,7 @@
 -export([format_response/4,
          unexpected_error/1,
          error/2,
+         error/3,
          ok/1,
          true/1,
          false/1,
@@ -51,6 +52,9 @@ unexpected_error(Domain) ->
 error(Domain, Reason) ->
     Code = http_helpers:error_to_code(Reason),
     format_response(Code, add_cors_headers(Domain), [{error, Reason}]).
+error(Domain, Reason, Infos) ->
+    Code = http_helpers:error_to_code(Reason),
+    format_response(Code, add_cors_headers(Domain), [{error, Reason}, {infos, Infos}]).
 
 ok(Domain) ->
     format_response(200, add_cors_headers(Domain), [{result, ok}]).
