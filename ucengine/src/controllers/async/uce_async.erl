@@ -19,12 +19,12 @@
 
 -author('victor.goya@af83.com').
 
--export([listen/9]).
+-export([listen/8]).
 
 -include("uce.hrl").
 
-listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
-    ?PUBSUB_MODULE:subscribe(self(), Domain, Location, Search, From, Types, Uid, Start, End, Parent),
+listen(Domain, Location, Uid, Search, From, Types, Start, Parent) ->
+    ?PUBSUB_MODULE:subscribe(self(), Domain, Location, Search, From, Types, Uid, Start, Parent),
     Res = receive
               % TODO: filter messages in _Message according to the request criterias.
               % For now _Message is ignored and the whole thing is used as a
@@ -32,16 +32,12 @@ listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
               {message, _Message} ->
                   {ok, Events} = uce_event:list(Domain,
                                                 Location,
+                                                Uid,
                                                 Search,
                                                 From,
                                                 Types,
-                                                Uid,
                                                 Start,
-                                                End,
-                                                Parent,
-                                                0,
-                                                infinity,
-                                                asc),
+                                                Parent),
                   JSONEvents = mochijson:encode({struct,
                                                  [{result,
                                                    json_helpers:to_json(Domain, Events)}]}),

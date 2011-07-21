@@ -19,21 +19,20 @@
 
 -author('victor.goya@af83.com').
 
--export([wait/9]).
+-export([wait/8]).
 
 -include("uce.hrl").
 
-wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
+wait(Domain, Location, Uid, Search, From, Types, Start, Parent) ->
     Self = self(),
     spawn(fun() ->
                   {ok, JSONEvents} = uce_async:listen(Domain,
                                                       Location,
+                                                      Uid,
                                                       Search,
                                                       From,
                                                       Types,
-                                                      Uid,
                                                       Start,
-                                                      End,
                                                       Parent),
                   yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents)),
                   yaws_api:stream_chunk_end(Self)

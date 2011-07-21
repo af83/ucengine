@@ -784,7 +784,7 @@ test_long_polling(BaseUrl, {RootUid, RootSid}) ->
                  {"sid", RootSid},
                  {"start", integer_to_list(Now)},
                  {"type", "long_polling_event"},
-                 {"_async", "lp"}],
+                 {"mode", "longpolling"}],
     spawn(?MODULE, send_long_polling_event, [BaseUrl, {RootUid, RootSid}]),
     {struct, [{"result", {array,
                           [{struct, [{"type", "long_polling_event"}
@@ -794,7 +794,7 @@ test_long_polling(BaseUrl, {RootUid, RootSid}) ->
                                      , {"location", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
-                                    ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
+                                    ]}]}}]} = tests_utils:get(BaseUrl, "/live/testmeeting", ParamsGet),
     LongPollingDelay = utils:now() - Now,
     EventDelay = Datetime - Now,
     % both should be around 2000

@@ -19,7 +19,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/2, get/2, exists/2, list/12, search/12]).
+-export([add/2, get/2, exists/2, list/8, list/12, search/12]).
 
 -include("uce.hrl").
 
@@ -88,6 +88,8 @@ search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, S
     ?COUNTER(event_search),
     {ok, NumTotal, filter_private(Events, Uid)}.
 
+list(Domain, Location, Uid, Search, From, Types, Start, Parent) ->
+    list(Domain, Location, Search, From, Types, Uid, Start, infinity, Parent, 0, infinity, asc).
 list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
     N = now(),
     {ok, _Num, Events} = uce_event_erlang_search:list(Domain,

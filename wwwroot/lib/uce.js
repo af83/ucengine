@@ -197,8 +197,8 @@
             waitEvents: function(params, callback, one_shot) {
                 var that = this;
                 function startLongPolling(p, callback) {
-                    var getParams = that.params.merge({'_async': 'lp'}, p);
-                    return get("/event/" + that.name,
+                    var getParams = that.params.merge({'mode': 'longpolling'}, p);
+                    return get("/live/" + that.name,
                                getParams,
                                callback);
                 }

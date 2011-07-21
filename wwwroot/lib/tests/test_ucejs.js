@@ -401,7 +401,7 @@ jackTest("getEvents with type", function() {
 
 jackTest("waitEvents without type param", function() {
     stop();
-    addUceApiCall("get", "/api/" + uce.version + "/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}');
+    addUceApiCall("get", "/api/" + uce.version + "/live/mymeeting",  {"uid": "myuid", "sid": "mysid", "mode": "longpolling", "start": "pouet"}, 200, '{"result": [{}]}');
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -410,7 +410,7 @@ jackTest("waitEvents without type param", function() {
 
 jackTest("waitEvents with type param", function() {
     stop();
-    addUceApiCall("get", "/api/" + uce.version + "/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet", "type" : "chuck_norris"}, 200, '{"result": [{}]}');
+    addUceApiCall("get", "/api/" + uce.version + "/live/mymeeting",  {"uid": "myuid", "sid": "mysid", "mode": "longpolling", "start": "pouet", "type" : "chuck_norris"}, 200, '{"result": [{}]}');
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({"start": "pouet", type: "chuck_norris"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -419,7 +419,7 @@ jackTest("waitEvents with type param", function() {
 
 jackTest("waitEvents without wait param", function() {
     stop();
-    addUceApiCall("get", "/api/" + uce.version + "/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}');
+    addUceApiCall("get", "/api/" + uce.version + "/live/mymeeting",  {"uid": "myuid", "sid": "mysid", "mode": "longpolling", "start": "pouet"}, 200, '{"result": [{}]}');
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
@@ -429,7 +429,7 @@ jackTest("waitEvents without wait param", function() {
 jackTest("waitEvents can be stopped", function() {
     expect(5);
     stop();
-    addUceApiCall("get", "/api/" + uce.version + "/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}]}', {
+    addUceApiCall("get", "/api/" + uce.version + "/live/mymeeting",  {"uid": "myuid", "sid": "mysid", "mode": "longpolling", "start": "pouet"}, 200, '{"result": [{}]}', {
         abort: function() {
             start();
             ok(true, "waitEvent stopped");
@@ -444,7 +444,7 @@ test("waitEvents auto restart after wait", function() {
     var ajaxcall = 0; // nb of ajax request/response
     var called   = 0;
     $.mockjax({
-        url: '/api/' + uce.version + '/event/mymeeting',
+        url: '/api/' + uce.version + '/live/mymeeting',
         responseTime: 10,
         response: function() {
             this.responseText = {
@@ -479,7 +479,7 @@ jackTest("waitEvents, callback is called on each events", function() {
     stop();
     expect(5);
     var called = 0;
-    addUceApiCall("get", "/api/" + uce.version + "/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "_async": "lp", "start": "pouet"}, 200, '{"result": [{}, {}]}');
+    addUceApiCall("get", "/api/" + uce.version + "/live/mymeeting",  {"uid": "myuid", "sid": "mysid", "mode": "longpolling", "start": "pouet"}, 200, '{"result": [{}, {}]}');
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {
         called++;
         if (called == 2) {
@@ -499,7 +499,7 @@ function longPollingTest(events, test) {
         mock : function() {
             var that = this;
             $.mockjax({
-                url: '/api/' + uce.version + '/event/mymeeting',
+                url: '/api/' + uce.version + '/live/mymeeting',
                 responseTime: 1,
                 response: function() {
                     this.responseText = {

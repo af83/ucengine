@@ -24,7 +24,7 @@
 -export([init/1,
          start_link/0,
          publish/2,
-         subscribe/10,
+         subscribe/9,
          unsubscribe/1,
          handle_call/3,
          handle_cast/2,
@@ -59,9 +59,9 @@ publish(Domain, #uce_event{location=Location, type=Type, from=From, id=Id}) ->
             gen_server:call(?MODULE, {publish, Domain, "", [], From, Id})
     end.
 
-subscribe(Pid, Domain, Location, Search, From, "", Uid, Start, End, Parent) ->
-    subscribe(Pid, Domain, Location, Search, From, [""], Uid, Start, End, Parent);
-subscribe(Pid, Domain, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
+subscribe(Pid, Domain, Location, Search, From, "", Uid, Start, Parent) ->
+    subscribe(Pid, Domain, Location, Search, From, [""], Uid, Start, Parent);
+subscribe(Pid, Domain, Location, Search, From, Types, Uid, _Start, _Parent) ->
     ?COUNTER('pubsub:suscribe'),
     [gen_server:cast(?MODULE, {subscribe,
                                Domain,

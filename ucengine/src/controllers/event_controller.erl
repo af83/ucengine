@@ -17,7 +17,7 @@
 %%
 -module(event_controller).
 
--export([init/0, get/4, list/4, add/4]).
+-export([init/0, get/4, list/4, add/4, live/4]).
 
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
@@ -40,6 +40,18 @@ init() ->
                            {"sid", required, string}]}},
 
      #uce_route{method='GET',
+                path=["live", '...'],
+                callback={?MODULE, live,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"search", "", string},
+                           {"type", "", string},
+                           {"from", "", string},
+                           {"start", 0, integer},
+                           {"parent", "", string},
+                           {"mode", "longpolling", string}]}},
+
+     #uce_route{method='GET',
                 path=["event", '...'],
                 callback={?MODULE, list,
                           [{"uid", required, string},
@@ -52,8 +64,7 @@ init() ->
                            {"count", infinity, [integer, atom]},
                            {"page", 1, integer},
                            {"order", asc, atom},
-                           {"parent", "", string},
-                           {"_async", "no", string}]}}].
+                           {"parent", "", string}]}}].
 
 add(Domain, [], Params, Arg) ->
     add(Domain, [""], Params, Arg);
@@ -92,7 +103,7 @@ get(Domain, [_, {id, Id}], [Uid, Sid], _) ->
 list(Domain, [], Params, Arg) ->
     list(Domain, [""], Params, Arg);
 list(Domain, [Meeting],
-     [Uid, Sid, Search, Type, From, DateStart, DateEnd, Count, Page, Order, Parent, Async], _Arg) ->
+     [Uid, Sid, Search, Type, From, DateStart, DateEnd, Count, Page, Order, Parent], _Arg) ->
 
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "list", [{"from", From}]),
@@ -101,31 +112,49 @@ list(Domain, [Meeting],
     Types = string:tokens(Type, ","),
 
     Start = uce_paginate:index(Count, 0, Page),
+    {ok, Events} = uce_event:list(Domain,
+                                  Meeting,
+                                  Keywords,
+                                  From,
+                                  Types,
+                                  Uid,
+                                  DateStart,
+                                  DateEnd,
+                                  Parent,
+                                  Start,
+                                  Count,
+                                  Order),
+    json_helpers:json(Domain, Events).
+
+live(Domain, [], Params, Arg) ->
+    live(Domain, [""], Params, Arg);
+live(Domain, [Meeting],
+     [Uid, Sid, Search, Type, From, Start, Parent, Mode], _Arg) ->
+
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "list", [{"from", From}]),
+
+    Keywords = string:tokens(Search, ","),
+    Types = string:tokens(Type, ","),
+
     case uce_event:list(Domain,
                         Meeting,
+                        Uid,
                         Keywords,
                         From,
                         Types,
-                        Uid,
-                        DateStart,
-                        DateEnd,
-                        Parent,
                         Start,
-                        Count,
-                        Order) of
+                        Parent) of
         {ok, []} ->
-            case Async of
-                "no" ->
-                    json_helpers:json(Domain, []);
-                "lp" ->
+            case Mode of
+                "longpolling" ->
                     uce_async_lp:wait(Domain,
                                       Meeting,
+                                      Uid,
                                       Keywords,
                                       From,
                                       Types,
-                                      Uid,
-                                      DateStart,
-                                      DateEnd,
+                                      Start,
                                       Parent);
                 _ ->
                     {error, bad_parameters}

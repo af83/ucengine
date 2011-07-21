@@ -27,7 +27,7 @@
     <transaction name="pending">
       <request subst="true">
         <dyn_variable name="events" jsonpath="result"/>
-        <http url='/api/0.5/event/<%= meeting %>?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=%%_last%%&amp;_async=lp' method='GET' />
+        <http url='/api/0.5/live/<%= meeting %>?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=%%_last%%&amp;mode=longpolling' method='GET' />
       </request>
     </transaction>
 
