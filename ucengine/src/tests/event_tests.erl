@@ -268,9 +268,10 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
 
 test_push_json(BaseUrl, AuthParams) ->
     RequestBody = {struct, [{"type", "test_json"},
-                            {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"}]}]}}]}}] ++ auth_params(AuthParams)},
+                            {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"}]}]}}]}}]
+                                ++ auth_params(AuthParams)},
     {ok, "201", _, Body} =
-        tests_utils:post_raw(BaseUrl, "/event2/testmeeting", [], "application/json", mochijson:encode(RequestBody)),
+        tests_utils:post_raw(BaseUrl, "/event/testmeeting", [], "application/json", mochijson:encode(RequestBody)),
     {struct, [{"result", Id}]} = mochijson:decode(Body),
     {struct, [{"result",
                {struct, [{"type", "test_json"},

@@ -25,6 +25,11 @@
 init() ->
     [#uce_route{method='POST',
                 path=["event", '...'],
+                content_type="application/json",
+                callback={?MODULE, add2, []}},
+
+     #uce_route{method='POST',
+                path=["event", '...'],
                 callback={?MODULE, add,
                           [{"uid", required, string},
                            {"sid", required, string},
@@ -32,10 +37,6 @@ init() ->
                            {"to", "", string},
                            {"parent", "", string},
                            {"metadata", [], dictionary}]}},
-
-     #uce_route{method='POST',
-                path=["event2", '...'],
-                callback={?MODULE, add2, []}},
 
      #uce_route{method='GET',
                 path=["event", meeting, id],
@@ -94,12 +95,15 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _Arg) ->
 add2(Domain, [Meeting], [], Arg) ->
     {struct, Json} = mochijson:decode(Arg#arg.clidata),
     Uid = proplists:get_value("uid", Json),
-    _Sid = proplists:get_value("sid", Json),
+    Sid = proplists:get_value("sid", Json),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+
     Type = proplists:get_value("type", Json),
     To = proplists:get_value("to", Json, ""),
+    {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "add",
+                                   [{"type", Type}, {"to", To}]),
     Parent = proplists:get_value("parent", Json, ""),
     Metadata = proplists:get_value("metadata", Json, []),
-    %TODO: uce_presence:assert and uce_access:assert
     {ok, Id} = uce_event:add(Domain,
                              #uce_event{id=none,
                                         location=Meeting,
