@@ -72,7 +72,7 @@ request(BaseUrl, Path, Method, Params, ContentType, Body) ->
                 _ ->
                     "?" ++ url_encode(Params)
             end,
-   ibrowse:send_req(BaseUrl ++ Path ++ Query, [{"Content-type", ContentType}], Method, Body, [{content_type, ContentType}]).
+   ibrowse:send_req(BaseUrl ++ Path ++ Query, [{"Content-Type", ContentType}], Method, Body, [{content_type, ContentType}]).
 
 url_encode(Params) ->
     UrlEncodedParams = [yaws_api:url_encode(Elem) ++ "=" ++
