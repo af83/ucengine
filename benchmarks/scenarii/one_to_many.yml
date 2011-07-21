@@ -12,24 +12,24 @@ sessions:
   -
    name: passive_1
    type: connect_and_listen
-   probability: 45
+   probability: 42
    variables:
      meeting: demo
   -
    name: active_1
    type: connect_and_push
-   probability: 5
+   probability: 3
    variables:
      meeting: demo
   -
    name: passive_2
    type: connect_and_listen
-   probability: 45
+   probability: 42
    variables:
      meeting: demo2
   -
     name: active_2
     type: connect_and_push
-    probability: 5
+    probability: 3
     variables:
       meeting: demo2
