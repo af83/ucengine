@@ -68,7 +68,7 @@ test_add_conflict(BaseUrl, {RootUid, RootSid}) ->
 test_add_missing_name(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/role/", Params).
 
 test_delete_unauthorized(BaseUrl, {UglyUid, UglySid}) ->

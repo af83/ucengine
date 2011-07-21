@@ -259,7 +259,7 @@ test_push_missing_type(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"metadata[description]", "pushed_event"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/event/testmeeting", Params).
 
 test_push_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
