@@ -127,7 +127,7 @@
              * Generic Push event
              */
             _push: function(params, callback) {
-                post("/event2/" + this.name,
+                post("/event/" + this.name,
                      JSON.stringify(this.params.merge(params)),
                      callback, {contentType: "application/json"});
                 return this;
