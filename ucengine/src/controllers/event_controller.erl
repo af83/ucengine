@@ -150,11 +150,9 @@ live(Domain, [Meeting],
                 "longpolling" ->
                     uce_async_lp:wait(Domain,
                                       Meeting,
-                                      Uid,
                                       Keywords,
                                       From,
                                       Types,
-                                      Start,
                                       Parent);
                 _ ->
                     {error, bad_parameters}

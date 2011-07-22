@@ -19,36 +19,33 @@
 
 -author('victor.goya@af83.com').
 
--export([listen/8]).
+-export([listen/6]).
 
 -include("uce.hrl").
 
-listen(Domain, Location, Uid, Search, From, Types, Start, Parent) ->
-    ?PUBSUB_MODULE:subscribe(self(), Domain, Location, Search, From, Types, Uid, Start, Parent),
-    Res = receive
-              % TODO: filter messages in _Message according to the request criterias.
-              % For now _Message is ignored and the whole thing is used as a
-              % callback to retrieve new events from the database.
-              {message, _Message} ->
-                  {ok, Events} = uce_event:list(Domain,
-                                                Location,
-                                                Uid,
-                                                Search,
-                                                From,
-                                                Types,
-                                                Start,
-                                                Parent),
-                  JSONEvents = mochijson:encode({struct,
-                                                 [{result,
-                                                   json_helpers:to_json(Domain, Events)}]}),
-                  {ok, JSONEvents};
-              Other ->
-                  ?WARNING_MSG("unattended message ~p", [Other]),
-                  {ok, []}
-          after
-              config:get(long_polling_timeout) * 1000 ->
-                  JSONEmpty = mochijson:encode({struct, [{result, {array, []}}]}),
-                  {ok, JSONEmpty}
-          end,
-    ?PUBSUB_MODULE:unsubscribe(self()),
-    Res.
+listen(Domain, Location, Search, From, Types, Parent) ->
+    receive
+        {event, Event} ->
+            case filter(Search, Event) of
+                false ->
+                    listen(Domain, Location, Search, From, Types, Parent);
+                true ->
+                    JSONEvents = mochijson:encode({struct,
+                                                   [{result,
+                                                     json_helpers:to_json(Domain, [Event])}]}),
+                    {ok, JSONEvents}
+                end;
+        Other ->
+            ?WARNING_MSG("unattended message ~p", [Other]),
+            {ok, []}
+    after
+        config:get(long_polling_timeout) * 1000 ->
+            JSONEmpty = mochijson:encode({struct, [{result, {array, []}}]}),
+            {ok, JSONEmpty}
+    end.
+
+
+filter("", _Event) ->
+    true;
+filter(Search, #uce_event{metadata=Metadata}) ->
+    uce_event_erlang_search:search_metadata(Metadata, Search).

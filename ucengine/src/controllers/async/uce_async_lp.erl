@@ -17,25 +17,23 @@
 %%
 -module(uce_async_lp).
 
--author('victor.goya@af83.com').
-
--export([wait/8]).
+-export([wait/6]).
 
 -include("uce.hrl").
 
-wait(Domain, Location, Uid, Search, From, Types, Start, Parent) ->
+wait(Domain, Location, Search, From, Types, Parent) ->
     Self = self(),
     spawn(fun() ->
+                  ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
                   {ok, JSONEvents} = uce_async:listen(Domain,
                                                       Location,
-                                                      Uid,
                                                       Search,
                                                       From,
                                                       Types,
-                                                      Start,
                                                       Parent),
                   yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents)),
-                  yaws_api:stream_chunk_end(Self)
+                  yaws_api:stream_chunk_end(Self),
+                  ?PUBSUB_MODULE:unsubscribe(self())
           end),
     Timeout = (config:get(long_polling_timeout) + 1) * 1000,
     {streamcontent_with_timeout, "application/json", <<>>, Timeout}.

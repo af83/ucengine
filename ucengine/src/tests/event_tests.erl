@@ -20,8 +20,7 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--export([send_long_polling_event/2]).
-
+-export([send_long_polling_event/2, send_long_polling_event/3]).
 
 setup_events(Domain) ->
     {ok, Participant} = uce_user:get_by_name(Domain, "participant.user@af83.com"),
@@ -84,7 +83,35 @@ event_test_() ->
                  ?_test(test_get_with_type_and_timestart_and_timeend(BaseUrl, Root)),
                  ?_test(test_get_with_type_and_timeend(BaseUrl, Root)),
                  ?_test(test_last(BaseUrl, Root)),
-                 ?_test(test_long_polling(BaseUrl, Root))]
+                 ?_test(test_long_polling(BaseUrl, Root)),
+                 ?_test(test_long_polling_with_types(BaseUrl, Root))
+                ]
+        end}.
+
+event_timeout_test_() ->
+    { setup
+      , fun() ->
+                [Domain, BaseUrl, Testers] = fixtures:setup(),
+                setup_events(Domain),
+                % Set the timeout to a low value to avoid waiting too long.
+                PreviousTimeout = config:get(long_polling_timeout),
+                config:set(long_polling_timeout, 10),
+                [Domain, BaseUrl, Testers, PreviousTimeout]
+        end
+      , fun ([Domain, BaseUrl, Testers, PreviousTimeout]) ->
+                %% Restore the previous long polling timeout
+                config:set(long_polling_timeout, PreviousTimeout),
+                fixtures:teardown([Domain, BaseUrl, Testers])
+        end
+      , fun([Domain, BaseUrl, [Root|_], _]) ->
+                [
+                 {timeout, 40, ?_test(test_long_polling_with_from(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_other_from(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_parent(Domain, BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_other_parent(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_search(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_other_search(BaseUrl, Root))}
+                ]
         end}.
 
 test_push(BaseUrl, {RootUid, RootSid}) ->
@@ -771,46 +798,87 @@ test_last(BaseUrl, {RootUid, RootSid}) ->
                                  ]}]}}]}, tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetLast)).
 
 send_long_polling_event(BaseUrl, {RootUid, RootSid}) ->
+    send_long_polling_event(BaseUrl, {RootUid, RootSid}, []).
+send_long_polling_event(BaseUrl, {RootUid, RootSid}, ParamsEvent) ->
     timer:sleep(4000),
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "long_polling_event"},
-              {"metadata[description]", "relax, don't do it"}],
+    Params = ParamsEvent ++[{"uid", RootUid},
+                            {"sid", RootSid},
+                            {"type", "long_polling_event"},
+                            {"metadata[description]", "relax, don't do it"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params).
 
-test_long_polling(BaseUrl, {RootUid, RootSid}) ->
+do_long_polling(BaseUrl, {RootUid, RootSid}, Now, Params) ->
+    ParamsGet = Params ++ [{"uid", RootUid},
+                           {"sid", RootSid},
+                           {"start", integer_to_list(Now)},
+                           {"mode", "longpolling"}],
+    tests_utils:get(BaseUrl, "/live/testmeeting", ParamsGet).
+
+assert_long_polling(BaseUrl, AuthParams = {RootUid, _RootSid}, Params) ->
     Now = utils:now(),
-    ParamsGet = [{"uid", RootUid},
-                 {"sid", RootSid},
-                 {"start", integer_to_list(Now)},
-                 {"type", "long_polling_event"},
-                 {"mode", "longpolling"}],
-    spawn(?MODULE, send_long_polling_event, [BaseUrl, {RootUid, RootSid}]),
+    Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
     {struct, [{"result", {array,
                           [{struct, [{"type", "long_polling_event"}
                                      , {"domain", _}
-                                     , {"datetime", Datetime}
+                                     , {"datetime", _Datetime}
                                      , {"id", _}
                                      , {"location", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
-                                    ]}]}}]} = tests_utils:get(BaseUrl, "/live/testmeeting", ParamsGet),
-    LongPollingDelay = utils:now() - Now,
-    EventDelay = Datetime - Now,
-    % both should be around 2000
-    if
-        LongPollingDelay < 3700 ->
-            throw({error, too_fast});
-        LongPollingDelay > 4700 ->
-            throw({error, too_much_delay});
-        true ->
-            nothing
-    end,
-    if
-        EventDelay < 3700 ->
-            throw({error, too_fast});
-        EventDelay > 4700 ->
-            throw({error, too_much_delay});
-        true ->
-            nothing
-    end.
+                                    ]}]}}]} = Result.
+
+assert_long_polling_parent(BaseUrl, AuthParams = {RootUid, _RootSid}, Params, Parent) ->
+    Now = utils:now(),
+    Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
+    {struct, [{"result", {array,
+                          [{struct, [{"type", "long_polling_event"}
+                                     , {"domain", _}
+                                     , {"datetime", _Datetime}
+                                     , {"id", _}
+                                     , {"location", "testmeeting"}
+                                     , {"from", RootUid}
+                                     , {"parent", Parent}
+                                     , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
+                                    ]}]}}]} = Result.
+
+assert_no_result_long_polling(BaseUrl, AuthParams, Params) ->
+    Now = utils:now(),
+    Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
+    {struct, [{"result", {array, []}}]} = Result.
+
+test_long_polling(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_long_polling(BaseUrl, AuthParams, [{"type", "long_polling_event"}]).
+
+test_long_polling_with_types(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_long_polling(BaseUrl, AuthParams, [{"type", "long_polling_event,long_polling_event2"}]).
+
+test_long_polling_with_from(BaseUrl, AuthParams = {RootUid, _}) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_long_polling(BaseUrl, AuthParams, [{"from", RootUid}]).
+
+test_long_polling_with_other_from(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_no_result_long_polling(BaseUrl, AuthParams, [{"from", "other_from"}]).
+
+test_long_polling_with_parent(Domain, BaseUrl, AuthParams = {RootUid, _}) ->
+    {ok, EventId} = uce_event:add(Domain,
+                                  #uce_event{ id=none,
+                                              type="test_long_polling_for_parent",
+                                              location="testmeeting",
+                                              from=RootUid}),
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams, [{"parent", EventId}]]),
+    assert_long_polling_parent(BaseUrl, AuthParams, [{"parent", EventId}], EventId).
+
+test_long_polling_with_other_parent(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_no_result_long_polling(BaseUrl, AuthParams, [{"parent", "other_parent"}]).
+
+test_long_polling_with_search(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_long_polling(BaseUrl, AuthParams, [{"search", "relax"}]).
+
+test_long_polling_with_other_search(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_no_result_long_polling(BaseUrl, AuthParams, [{"search", "plop"}]).

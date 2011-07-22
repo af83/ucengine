@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([add/2, list/11]).
+-export([add/2, list/11, search_metadata/2]).
 
 -include("uce.hrl").
 
