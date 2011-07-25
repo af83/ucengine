@@ -43,13 +43,11 @@ publish(Domain, #uce_event{location=Location, type=Type} = Event) ->
     ?COUNTER('pubsub:publish'),
     %% Publish on the domain
     gen_server:call(?MODULE, {publish, Domain, "", Type, Event}),
-    gen_server:call(?MODULE, {publish, Domain, "", [], Event}),
     case Location of
         "" ->
             ok;
         Location ->
-            gen_server:call(?MODULE, {publish, Domain, Location, Type, Event}),
-            gen_server:call(?MODULE, {publish, Domain, Location, [], Event})
+            gen_server:call(?MODULE, {publish, Domain, Location, Type, Event})
     end.
 
 subscribe(Pid, Domain, Location, From, "", Parent) ->
