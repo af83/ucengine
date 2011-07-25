@@ -41,8 +41,13 @@ get(Path) ->
 get(Method, Path) ->
     route(Method, Path, ets:tab2list(uce_routes)).
 
-get(Method, Path, ContentType) ->
-    route(Method, Path, ContentType, ets:tab2list(uce_routes)).
+get(Method, Path, undefined) -> % default value of the #headers record (in yaw_api.hrl)
+    route(Method, Path, undefined, ets:tab2list(uce_routes));
+get(Method, Path, "") ->
+    route(Method, Path, "", ets:tab2list(uce_routes));
+get(Method, Path, ContentType) when is_list(ContentType) ->
+    [ContentType2|_] = string:tokens(ContentType, ";"),
+    route(Method, Path, ContentType2, ets:tab2list(uce_routes)).
  
 route(Method, Path, Routes) ->
     route(Method, Path, "", Routes).
