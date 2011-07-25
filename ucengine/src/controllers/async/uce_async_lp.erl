@@ -17,11 +17,11 @@
 %%
 -module(uce_async_lp).
 
--export([wait/6]).
+-export([wait/7]).
 
 -include("uce.hrl").
 
-wait(Domain, Location, Search, From, Types, Parent) ->
+wait(Domain, Location, Search, From, Types, Parent, []) ->
     Self = self(),
     spawn(fun() ->
                   ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
@@ -45,4 +45,6 @@ wait(Domain, Location, Search, From, Types, Parent) ->
                   yaws_api:stream_chunk_end(Self),
                   ?PUBSUB_MODULE:unsubscribe(self())
           end),
-    {streamcontent_with_timeout, "application/json", <<>>, infinity}.
+    {streamcontent_with_timeout, "application/json", <<>>, infinity};
+wait(Domain, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
+    json_helpers:json(Domain, PreviousEvents).

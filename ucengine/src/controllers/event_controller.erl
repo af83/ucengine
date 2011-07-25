@@ -164,32 +164,31 @@ live(Domain, [Meeting],
     Keywords = string:tokens(Search, ","),
     Types = string:tokens(Type, ","),
 
-    case uce_event:list(Domain,
-                        Meeting,
-                        Uid,
-                        Keywords,
-                        From,
-                        Types,
-                        Start,
-                        Parent) of
-        {ok, []} ->
-            case Mode of
-                "longpolling" ->
-                    uce_async_lp:wait(Domain,
-                                      Meeting,
-                                      Keywords,
-                                      From,
-                                      Types,
-                                      Parent);
-                "eventsource" ->
-                    uce_async_stream:wait(Domain,
+    {ok, PreviousEvents} = uce_event:list(Domain,
                                           Meeting,
+                                          Uid,
                                           Keywords,
                                           From,
                                           Types,
-                                          Parent);
-                _ ->
-                    {error, bad_parameters}
-            end;
-        {ok, Events} -> json_helpers:json(Domain, Events)
+                                          Start,
+                                          Parent),
+    case Mode of
+        "longpolling" ->
+            uce_async_lp:wait(Domain,
+                              Meeting,
+                              Keywords,
+                              From,
+                              Types,
+                              Parent,
+                              PreviousEvents);
+        "eventsource" ->
+            uce_async_stream:wait(Domain,
+                                  Meeting,
+                                  Keywords,
+                                  From,
+                                  Types,
+                                  Parent,
+                                  PreviousEvents);
+        _ ->
+            {error, bad_parameters}
     end.

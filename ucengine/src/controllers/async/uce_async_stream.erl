@@ -17,13 +17,14 @@
 %%
 -module(uce_async_stream).
 
--export([wait/6]).
+-export([wait/7]).
 
 -include("uce.hrl").
 
-wait(Domain, Location, Search, From, Types, Parent) ->
+wait(Domain, Location, Search, From, Types, Parent, PreviousEvents) ->
     YawsPid = self(),
     spawn(fun() ->
+                  send_events(YawsPid, Domain, PreviousEvents),
                   ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
                   listen(YawsPid,
                          Domain,
@@ -43,7 +44,13 @@ listen(YawsPid, Domain, Location, Search, From, Types, Parent) ->
                                    Types,
                                    Parent,
                                    infinity),
+    send_events(YawsPid, Domain, [Event]),
+    listen(YawsPid, Domain, Location, Search, From, Types, Parent).
+
+send_events(_, _, []) ->
+    ok;
+send_events(YawsPid, Domain, [Event|Events]) ->
     yaws_api:stream_chunk_deliver(YawsPid, "data: "),
     yaws_api:stream_chunk_deliver(YawsPid, mochijson:encode(json_helpers:to_json(Domain, Event))),
     yaws_api:stream_chunk_deliver(YawsPid, "\n\n"),
-    listen(YawsPid, Domain, Location, Search, From, Types, Parent).
+    send_events(YawsPid, Domain, Events).
