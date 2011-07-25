@@ -19,29 +19,25 @@
 
 -author('victor.goya@af83.com').
 
--export([listen/6]).
+-export([listen/7]).
 
 -include("uce.hrl").
 
-listen(Domain, Location, Search, From, Types, Parent) ->
+listen(Domain, Location, Search, From, Types, Parent, Timeout) ->
     receive
         {event, Event} ->
             case filter(Search, Event) of
                 false ->
-                    listen(Domain, Location, Search, From, Types, Parent);
+                    listen(Domain, Location, Search, From, Types, Parent, Timeout);
                 true ->
-                    JSONEvents = mochijson:encode({struct,
-                                                   [{result,
-                                                     json_helpers:to_json(Domain, [Event])}]}),
-                    {ok, JSONEvents}
+                    {ok, Event}
                 end;
         Other ->
             ?WARNING_MSG("unattended message ~p", [Other]),
             {ok, []}
     after
-        config:get(long_polling_timeout) * 1000 ->
-            JSONEmpty = mochijson:encode({struct, [{result, {array, []}}]}),
-            {ok, JSONEmpty}
+        Timeout ->
+            {ok, []}
     end.
 
 

@@ -181,6 +181,13 @@ live(Domain, [Meeting],
                                       From,
                                       Types,
                                       Parent);
+                "eventsource" ->
+                    uce_async_stream:wait(Domain,
+                                          Meeting,
+                                          Keywords,
+                                          From,
+                                          Types,
+                                          Parent);
                 _ ->
                     {error, bad_parameters}
             end;

@@ -25,15 +25,24 @@ wait(Domain, Location, Search, From, Types, Parent) ->
     Self = self(),
     spawn(fun() ->
                   ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
-                  {ok, JSONEvents} = uce_async:listen(Domain,
-                                                      Location,
-                                                      Search,
-                                                      From,
-                                                      Types,
-                                                      Parent),
+                  {ok, Event} = uce_async:listen(Domain,
+                                                  Location,
+                                                  Search,
+                                                  From,
+                                                  Types,
+                                                  Parent,
+                                                  (config:get(long_polling_timeout) * 1000)),
+                  Event2 = case Event of
+                               [] ->
+                                   [];
+                               Event ->
+                                   [Event]
+                           end,
+                  JSONEvents = mochijson:encode({struct,
+                                                 [{result,
+                                                   json_helpers:to_json(Domain, Event2)}]}),
                   yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents)),
                   yaws_api:stream_chunk_end(Self),
                   ?PUBSUB_MODULE:unsubscribe(self())
           end),
-    Timeout = (config:get(long_polling_timeout) + 1) * 1000,
-    {streamcontent_with_timeout, "application/json", <<>>, Timeout}.
+    {streamcontent_with_timeout, "application/json", <<>>, infinity}.
