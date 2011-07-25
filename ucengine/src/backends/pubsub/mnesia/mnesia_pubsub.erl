@@ -42,12 +42,12 @@ start_link() ->
 publish(Domain, #uce_event{location=Location, type=Type} = Event) ->
     ?COUNTER('pubsub:publish'),
     %% Publish on the domain
-    gen_server:call(?MODULE, {publish, Domain, "", Type, Event}),
+    gen_server:cast(?MODULE, {publish, Domain, "", Type, Event}),
     case Location of
         "" ->
             ok;
         Location ->
-            gen_server:call(?MODULE, {publish, Domain, Location, Type, Event})
+            gen_server:cast(?MODULE, {publish, Domain, Location, Type, Event})
     end.
 
 subscribe(Pid, Domain, Location, From, "", Parent) ->
@@ -77,17 +77,13 @@ init([]) ->
                          {attributes, record_info(fields, uce_mnesia_pubsub)}]),
     {ok, {}}.
 
-handle_call({publish, Domain, Location, Type, #uce_event{from=From, parent=Parent} = Event}, _From, State) ->
-    Return =
-        case get_subscribers(Domain, Location, Type, From, Parent) of
-            {error, Reason} ->
-                {error, Reason};
-            Subscribers ->
-                [Subscriber#uce_mnesia_pubsub.pid ! {event, Event} || Subscriber <- Subscribers],
-                ok
-        end,
-    {reply, Return, State}.
+handle_call(_Type, _From, State) ->
+    {reply, error, State}.
 
+handle_cast({publish, Domain, Location, Type, #uce_event{from=From, parent=Parent} = Event}, State) ->
+    Subscribers = get_subscribers(Domain, Location, Type, From, Parent),
+    [Subscriber#uce_mnesia_pubsub.pid ! {event, Event} || Subscriber <- Subscribers],
+    {noreply, State};
 handle_cast({subscribe, Domain, Location, From, Type, Parent, Pid}, State) ->
     mnesia:transaction(fun() ->
                                mnesia:write(#uce_mnesia_pubsub{pid=Pid,
@@ -133,9 +129,5 @@ get_subscribers(Domain, Location, Type, From, Parent) ->
                                         ]),
                           qlc:eval(Query)
                   end,
-    case mnesia:transaction(Transaction) of
-        {aborted, _} ->
-            {error, bad_parameters};
-        {atomic, Subscribers} ->
-            Subscribers
-    end.
+    {atomic, Subscribers} = mnesia:transaction(Transaction),
+    Subscribers.
