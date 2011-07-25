@@ -405,7 +405,7 @@ jackTest("waitEvents without type param", function() {
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
-    }, true);
+    }, true, ["longpolling"]);
 });
 
 jackTest("waitEvents with type param", function() {
@@ -414,7 +414,7 @@ jackTest("waitEvents with type param", function() {
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({"start": "pouet", type: "chuck_norris"}, function(err, r, xhr) {
         start();
         equals(err, null);
-    }, true);
+    }, true, ["longpolling"]);
 });
 
 jackTest("waitEvents without wait param", function() {
@@ -423,7 +423,7 @@ jackTest("waitEvents without wait param", function() {
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {
         start();
         equals(err, null);
-    }, true);
+    }, true, ["longpolling"]);
 });
 
 jackTest("waitEvents can be stopped", function() {
@@ -434,8 +434,8 @@ jackTest("waitEvents can be stopped", function() {
             start();
             ok(true, "waitEvent stopped");
         }
-    });
-    this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {}, true).stop();
+    }, false, ["longpolling"]);
+    this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").waitEvents({start: "pouet"}, function(err, r, xhr) {}, true, ["longpolling"]).stop();
 });
 
 test("waitEvents auto restart after wait", function() {
@@ -469,7 +469,7 @@ test("waitEvents auto restart after wait", function() {
                         equals(3, called, "callback");
                     }, 1000);
                 }
-            });
+            }, false, ["longpolling"]);
         }
     };
     env.start();
@@ -486,7 +486,7 @@ jackTest("waitEvents, callback is called on each events", function() {
             start();
             ok(true, "callback have been called 2 times");
         }
-    }, true);
+    }, true, ["longpolling"]);
 });
 
 function longPollingTest(events, test) {
@@ -522,7 +522,7 @@ test("startLoop with bind", function() {
             equals(longPolling.ajaxcall, 1);
             longPolling.xhr.stop();
             start();
-        }).startLoop(1213);
+        }).startLoop(1213, ["longpolling"]);
     });
 });
 
@@ -537,7 +537,7 @@ test("startLoop widgets/whatever can bind event handler with special type", func
                             equals(longPolling.ajaxcall, 1);
                             longPolling.xhr.stop();
                             start();
-                        }).startLoop(1213);
+                        }).startLoop(1213, ["longpolling"]);
                     });
 });
 
@@ -552,7 +552,7 @@ test("startLoop with 'bind', alias of 'on'", function() {
             equals(longPolling.ajaxcall, 1);
             longPolling.xhr.stop();
             start();
-        }).startLoop(1213);
+        }).startLoop(1213, ["longpolling"]);
     });
 });
 

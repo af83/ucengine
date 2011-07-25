@@ -18,9 +18,13 @@
             });
         }
 
+        function format_api_url(url) {
+            return baseUrl +'/api/' + VERSION + url;
+        }
+
         function uce_api_call(method, url, data, callback, overridedOptions) {
             var call_back = callback || $.noop;
-            url = baseUrl +'/api/' + VERSION + url;
+            url = format_api_url(url);
             var options = {
                 type     : method,
                 dataType : "json",
@@ -199,49 +203,86 @@
              *    from
              * @param Function callback
              * @param Boolean one_shot
+             * @param Array transports
              * @return Object with a stop() method
              */
-            waitEvents: function(params, callback, one_shot) {
+            waitEvents: function(params, callback, one_shot, transportsSelected) {
+                transportsSelected = transportsSelected || ['eventsource', 'longpolling'];
                 var that = this;
-                function startLongPolling(p, callback) {
-                    var getParams = that.params.merge({'mode': 'longpolling'}, p);
-                    return get("/live/" + that.name,
-                               getParams,
-                               callback);
-                }
-                var longPolling = {
-                    aborted : false,
-                    _start : function(p, callback) {
-                        var that = this;
-                        this.xhr = startLongPolling(p, function(err, result, xhr) {
-                            try {
-                                var events = result.result;
-                                $.each(events, function(index, event) {
-                                    try {
-                                        callback(err, event, xhr);
-                                    } catch (e) {
-                                        // naive but it's better than nothing
-                                        if (window.console) console.error(e);
-                                    }
-                                });
-                                if (events.length > 0) {
-                                    p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                var transports = {
+                    // EventSource transport
+                    // http://dev.w3.org/html5/eventsource/
+                    eventsource : {
+                        available: window.EventSource,
+                        fun: function() {
+                            var getParams = that.params.merge({'mode': 'eventsource'}, params);
+                            var source = new EventSource(format_api_url("/live/" + that.name) +"?"+ $.param(getParams));
+                            source.onmessage = function(event) {
+                                try {
+                                    callback(null, $.parseJSON(event.data), null);
+                                } catch (e) {
+                                    // naive but it's better than nothing
+                                    if (window.console) console.error(e);
                                 }
-                            } catch (e) {
-                                // do nothing
-                            }
-                            if (that.aborted === false && one_shot !== true) {
-                                that._start(p, callback);
-                            }
-                        });
+                            };
+                            return {
+                                close: function() {
+                                    source.close();
+                                }
+                            };
+                        }
                     },
-                    stop: function() {
-                        this.aborted = true;
-                        this.xhr.abort();
+                    // long polling transport
+                    longpolling: {
+                        available: true,
+                        fun: function() {
+                            function startLongPolling(p, callback) {
+                                var getParams = that.params.merge({'mode': 'longpolling'}, p);
+                                return get("/live/" + that.name, getParams, callback);
+                            }
+                            var longPolling = {
+                                aborted : false,
+                                _start : function() {
+                                    var that = this;
+                                    this.xhr = startLongPolling(params, function(err, result, xhr) {
+                                        try {
+                                            var events = result.result;
+                                            $.each(events, function(index, event) {
+                                                try {
+                                                    callback(err, event, xhr);
+                                                } catch (e) {
+                                                    // naive but it's better than nothing
+                                                    if (window.console) console.error(e);
+                                                }
+                                            });
+                                            if (events.length > 0) {
+                                                params.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                            }
+                                        } catch (e) {
+                                            // do nothing
+                                        }
+                                        if (that.aborted === false && one_shot !== true) {
+                                            that._start(params, callback);
+                                        }
+                                    });
+                                },
+                                stop: function() {
+                                    this.aborted = true;
+                                    this.xhr.abort();
+                                }
+                            };
+                            longPolling._start();
+                            return longPolling;
+                        }
                     }
                 };
-                longPolling._start(params, callback);
-                return longPolling;
+                for (var i = 0; i < transportsSelected.length; i++) {
+                    var transport = transports[transportsSelected[i]];
+                    if (transport.available) {
+                        return transport.fun();
+                    }
+                }
+                throw new Error("no transport available");
             },
 
             /**
@@ -297,12 +338,13 @@
             /**
              * Start main loop event
              * [@param Integer start]
+             * [@param Array transport longpolling or eventsource]
              */
-            startLoop: function(start) {
+            startLoop: function(start, transports) {
                 var that = this;
                 return this.waitEvents({start: start || 0}, function(err, result, xhr) {
                     that.trigger(result);
-                });
+                }, false, transports);
             },
 
             /**
