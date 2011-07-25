@@ -222,7 +222,7 @@ handle_call({delete_presence, Sid}, _From, #state{presences=Presences} = State) 
     NewPresences = lists:delete(Presence, Presences),
     case NewPresences of
         [] ->
-            {stop, "end of process", {ok, deleted}, State#state{presences=NewPresences}};
+            {stop, normal, {ok, deleted}, State#state{presences=NewPresences}};
         _Other ->
             {reply, {ok, deleted}, State#state{presences=NewPresences}}
     end;
