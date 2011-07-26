@@ -33,11 +33,10 @@
          terminate/2]).
 
 start_link() ->
-    {ok, Pid} = gen_server:start_link({local, ?MODULE}, ?MODULE, [], []),
-    gen_server:cast(?MODULE, run),
-    {ok, Pid}.
+    gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
 
 init([]) ->
+    gen_server:cast(?MODULE, run),
     {ok, nothing}.
 
 handle_call(_ , _, State) ->

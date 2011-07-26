@@ -421,6 +421,19 @@
                 return this;
             },
             /**
+             * Remove event listener
+             */
+            unbind: function(type, callback) {
+                 if (!callback) {
+                    callback  = type;
+                    type = null;
+                }
+                this.handlers = $(this.handlers).filter(function(index, handler) {
+                    return !(handler.callback == callback && handler.type == type);
+                });
+                return this;
+            },
+            /**
              * Search event in current meeting
              */
             search: function(terms, options, callback) {
