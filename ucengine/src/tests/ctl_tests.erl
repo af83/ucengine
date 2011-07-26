@@ -274,6 +274,6 @@ test_infos_get(Domain) ->
 
 test_infos_update(Domain) ->
     {ok, {uce_infos, Domain, {struct, []}}} = uce_infos:get(Domain),
-    Params = {struct, [{"description", "Informations"}]},
+    Params = [{"description", "Informations"}],
     ok = uce_ctl:cmd({dummy, [Domain, "infos", "update"]}, Params),
     {ok, {uce_infos, Domain, {struct, [{"description", "Informations"}]}}} = uce_infos:get(Domain).
