@@ -65,15 +65,15 @@ add_meeting(Domain, Meeting) ->
 setup_meetings(Domain) ->
     Now = utils:now(),
     ok = add_meeting(Domain, #uce_meeting{id="testmeeting",
-                                          metadata=[{"description", "Meeting"}],
+                                          metadata={struct, [{"description", "Meeting"}]},
                                           start_date=Now,
                                           end_date=?NEVER_ENDING_MEETING}),
     ok = add_meeting(Domain, #uce_meeting{id="closedmeeting",
-                                          metadata=[{"description", "Meeting"}],
+                                          metadata={struct, [{"description", "Meeting"}]},
                                           start_date=Now,
                                           end_date=Now}),
     ok = add_meeting(Domain, #uce_meeting{id="upcomingmeeting",
-                                          metadata=[{"description", "Meeting"}],
+                                          metadata={struct, [{"description", "Meeting"}]},
                                           start_date=2569256203952,
                                           end_date=?NEVER_ENDING_MEETING}),
     ok.
@@ -179,20 +179,17 @@ setup_testers(Domain, {RootUid, ParticipantUid, UglyUid, AnonymousUid}) ->
     {ok, RootSid} = uce_presence:add(Domain,
                                      #uce_presence{id=none,
                                                    user=RootUid,
-                                                   auth="password",
-                                                   metadata=[]}),
+                                                   auth="password"}),
 
     {ok, ParticipantSid} = uce_presence:add(Domain,
                                             #uce_presence{id=none,
                                                           user=ParticipantUid,
-                                                          auth="password",
-                                                          metadata=[]}),
+                                                          auth="password"}),
 
     {ok, UglySid} = uce_presence:add(Domain,
                                      #uce_presence{id=none,
                                                    user=UglyUid,
-                                                   auth="password",
-                                                   metadata=[]}),
+                                                   auth="password"}),
 
     [{RootUid, RootSid}, {ParticipantUid, ParticipantSid}, {UglyUid, UglySid}, {AnonymousUid, ""}].
 

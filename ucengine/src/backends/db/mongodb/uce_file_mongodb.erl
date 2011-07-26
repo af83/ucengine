@@ -120,4 +120,4 @@ to_collection(Domain, #uce_file{id=Id,
      {"datetime", Datetime},
      {"mime", Mime},
      {"uri", Uri},
-     {"metadata", Metadata}].
+     {"metadata", mongodb_helpers:to_bson(Metadata)}].

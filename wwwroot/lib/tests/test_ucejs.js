@@ -342,7 +342,7 @@ jackTest("can leave meeting", function() {
 
 jackTest("can push event on meeting", function() {
     stop();
-    addUceApiCall("post", "/api/" + uce.version + "/event/mymeeting",  {"uid": "myuid", "sid": "mysid", "type": "test_event", "metadata": {_mymetadata: "myvalue"}}, 200, '');
+    addUceApiCall("post", "/api/" + uce.version + "/event/mymeeting",  JSON.stringify({"uid": "myuid", "sid": "mysid", "type": "test_event", "metadata": {_mymetadata: "myvalue"}}, 200, ''));
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").push('test_event', {_mymetadata:"myvalue"}, function(err, r, xhr) {
         start();
         equals(err, null);

@@ -17,13 +17,18 @@
 %%
 -module(event_controller).
 
--export([init/0, get/4, list/4, add/4, live/4]).
+-export([init/0, get/4, list/4, add/4, add2/4, live/4]).
 
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 
 init() ->
     [#uce_route{method='POST',
+                path=["event", '...'],
+                content_type="application/json",
+                callback={?MODULE, add2, []}},
+
+     #uce_route{method='POST',
                 path=["event", '...'],
                 callback={?MODULE, add,
                           [{"uid", required, string},
@@ -68,7 +73,7 @@ init() ->
 
 add(Domain, [], Params, Arg) ->
     add(Domain, [""], Params, Arg);
-add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
+add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _Arg) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "add",
                                    [{"type", Type}, {"to", To}]),
@@ -83,9 +88,31 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _) ->
                                                 type=Type,
                                                 to=To,
                                                 parent=Parent,
-                                                metadata=Metadata}),
+                                                metadata=json_helpers:to_struct(Metadata)}),
             json_helpers:created(Domain, Id)
     end.
+
+add2(Domain, [Meeting], [], Arg) ->
+    {struct, Json} = mochijson:decode(Arg#arg.clidata),
+    Uid = proplists:get_value("uid", Json),
+    Sid = proplists:get_value("sid", Json),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+
+    Type = proplists:get_value("type", Json),
+    To = proplists:get_value("to", Json, ""),
+    {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "add",
+                                   [{"type", Type}, {"to", To}]),
+    Parent = proplists:get_value("parent", Json, ""),
+    Metadata = proplists:get_value("metadata", Json, []),
+    {ok, Id} = uce_event:add(Domain,
+                             #uce_event{id=none,
+                                        location=Meeting,
+                                        from=Uid,
+                                        type=Type,
+                                        to=To,
+                                        parent=Parent,
+                                        metadata=Metadata}),
+    json_helpers:created(Domain, Id).
 
 get(Domain, [_, {id, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),

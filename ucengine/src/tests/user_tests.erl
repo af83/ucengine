@@ -86,20 +86,20 @@ test_register_missing_auth(BaseUrl) ->
     Params = [{"credential", "test"},
               {"name", "test.user@af83.com"},
               {"metadata[nickname]", "test_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_missing_credential(BaseUrl) ->
     Params = [{"auth", "test"},
               {"name", "test.user@af83.com"},
               {"metadata[nickname]", "test_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_missing_name(BaseUrl) ->
     Params = [{"auth", "test"},
               {"metadata[nickname]", "test_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_conflict(BaseUrl) ->
@@ -168,7 +168,7 @@ test_update_missing_auth(BaseUrl, {RootUid, RootSid}) ->
               {"name", "test.user@af83.com"},
               {"credential", "test_modified"},
               {"metadata[nickname]", "test_modified_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:put(BaseUrl, "/user/"++RootUid, Params).
 
 test_update_missing_credential(BaseUrl, {RootUid, RootSid}) ->
@@ -177,7 +177,7 @@ test_update_missing_credential(BaseUrl, {RootUid, RootSid}) ->
               {"name", "test.user@af83.com"},
               {"auth", "test_modified"},
               {"metadata[nickname]", "test_modified_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:put(BaseUrl, "/user/"++RootUid, Params).
 
 test_update_not_found(BaseUrl, {RootUid, RootSid}) ->
@@ -219,7 +219,7 @@ test_set_role_missing_role(BaseUrl, {RootUid, RootSid}, {AnonymousUid, _}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"location", "testmeeting"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/user/"++AnonymousUid++"/roles/", Params).
 
 test_set_role_not_found_user(BaseUrl, {RootUid, RootSid}) ->

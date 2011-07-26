@@ -127,11 +127,7 @@ from_collection(Collection) ->
             throw({error, bad_parameters})
     end.
 
-%%--------------------------------------------------------------------
-%% @spec (#uce_event{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
-%% @doc Convert #uce_event{} record to valid collection
-%% @end
-%%--------------------------------------------------------------------
+-spec to_collection(domain(), #uce_event{}) -> list({string(), any()}).
 to_collection(Domain, #uce_event{id=Id,
                                  location=Meeting,
                                  from=From,
@@ -145,17 +141,12 @@ to_collection(Domain, #uce_event{id=Id,
      {"meeting", Meeting},
      {"from", From},
      {"to", To},
-     {"metadata", Metadata},
+     {"metadata", mongodb_helpers:to_bson(Metadata)},
      {"datetime", Datetime},
      {"type", Type},
      {"parent", Parent}].
 
-
-%%--------------------------------------------------------------------
-%% @spec (Domain) -> ok::list
-%% @doc Create index for uce_event collection in database 
-%% @end
-%%--------------------------------------------------------------------
+-spec index(domain()) -> ok.
 index(Domain) ->
     Indexes = [{"domain", 1},
                {"meeting", 1},
@@ -165,4 +156,3 @@ index(Domain) ->
                {"type", 1}],
     [emongo:ensure_index(Domain, "uce_event", [Index]) || Index <- Indexes],
     ok.
-
