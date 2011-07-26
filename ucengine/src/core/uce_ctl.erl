@@ -210,7 +210,7 @@ infos(Domain, "get", _) ->
 infos(_Domain, "update", []) ->
     error(missing_parameter);
 infos(Domain, "update", Metadata) ->
-    {ok, updated} = call(infos, update, [Domain, #uce_infos{domain=Domain, metadata=Metadata}]),
+    {ok, updated} = call(infos, update, [Domain, #uce_infos{domain=Domain, metadata={struct, Metadata}}]),
     success(updated).
 
 %%
