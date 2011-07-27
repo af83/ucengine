@@ -205,6 +205,8 @@ get_last_event_id(Arg) ->
     case lists:keyfind(Header, 3, Arg#arg.headers#headers.other) of
         false ->
             undefined;
+        {http_header, _, Header, _, ""} ->
+            undefined;
         {http_header, _, Header, _, Value} ->
             list_to_integer(Value)
     end.
