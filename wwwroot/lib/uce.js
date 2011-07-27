@@ -4,7 +4,7 @@
  * (c) 2011 af83
  */
 (function(g) {
-    var VERSION = "0.5";
+    var VERSION = "0.6";
 
     function UCEngine(baseUrl) {
 
