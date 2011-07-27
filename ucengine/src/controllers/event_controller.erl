@@ -156,10 +156,17 @@ list(Domain, [Meeting],
 live(Domain, [], Params, Arg) ->
     live(Domain, [""], Params, Arg);
 live(Domain, [Meeting],
-     [Uid, Sid, Search, Type, From, Start, Parent, Mode], _Arg) ->
+     [Uid, Sid, Search, Type, From, UserStart, Parent, Mode], Arg) ->
 
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "list", [{"from", From}]),
+
+    Start = case get_last_event_id(Arg) of
+                undefined ->
+                    UserStart;
+                Value ->
+                    Value + 1
+            end,
 
     Keywords = string:tokens(Search, ","),
     Types = string:tokens(Type, ","),
@@ -191,4 +198,13 @@ live(Domain, [Meeting],
                                   PreviousEvents);
         _ ->
             {error, bad_parameters}
+    end.
+
+get_last_event_id(Arg) ->
+    Header = "Last-Event-Id",
+    case lists:keyfind(Header, 3, Arg#arg.headers#headers.other) of
+        false ->
+            undefined;
+        {http_header, _, Header, _, Value} ->
+            list_to_integer(Value)
     end.

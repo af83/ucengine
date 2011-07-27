@@ -49,8 +49,10 @@ listen(YawsPid, Domain, Location, Search, From, Types, Parent) ->
 
 send_events(_, _, []) ->
     ok;
-send_events(YawsPid, Domain, [Event|Events]) ->
+send_events(YawsPid, Domain, [#uce_event{datetime=Datetime} = Event|Events]) ->
     yaws_api:stream_chunk_deliver(YawsPid, "data: "),
     yaws_api:stream_chunk_deliver(YawsPid, mochijson:encode(json_helpers:to_json(Domain, Event))),
+    yaws_api:stream_chunk_deliver(YawsPid, "\nid: "),
+    yaws_api:stream_chunk_deliver(YawsPid, integer_to_list(Datetime)),
     yaws_api:stream_chunk_deliver(YawsPid, "\n\n"),
     send_events(YawsPid, Domain, Events).
