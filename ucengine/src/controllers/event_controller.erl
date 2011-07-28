@@ -195,6 +195,7 @@ live(Domain, [Meeting],
                                   From,
                                   Types,
                                   Parent,
+                                  Sid,
                                   PreviousEvents);
         _ ->
             {error, bad_parameters}

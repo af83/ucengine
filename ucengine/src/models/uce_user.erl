@@ -211,9 +211,8 @@ handle_call({get_presence, Sid}, _From, #state{presences=Presences} = State) ->
     {reply, get_presence_by_sid(Sid, Presences), State};
 
 handle_call({update_presence, #uce_presence{id=Sid}=NewPresence}, _From, #state{presences=Presences} = State) ->
-    {ok, Presence} = get_presence_by_sid(Sid, Presences),
-    NewPresences = lists:delete(Presence, Presences),
-    {reply, get_presence_by_sid(Sid, Presences), State#state{presences=[NewPresence|NewPresences]}};
+    {Presence, NewPresences} = delete_presence_from_sid(Sid, Presences),
+    {reply, {ok, Presence}, State#state{presences=[NewPresence|NewPresences]}};
 
 %%
 %% supervisor:terminate_child doesn't work with simple_one_for_one in erlang < R14BO3
@@ -224,9 +223,19 @@ handle_call(stop, _From, State) ->
 handle_cast({update_user, User}, State) ->
     {noreply, State#state{user=User}};
 
+handle_cast({add_stream, Sid}, #state{presences=Presences} = State) ->
+    {Presence, NewPresences} = delete_presence_from_sid(Sid, Presences),
+    NbStream = Presence#uce_presence.streams + 1,
+    {noreply, State#state{presences=[Presence#uce_presence{streams=NbStream}|NewPresences]}};
+
+handle_cast({remove_stream, Sid}, #state{presences=Presences} = State) ->
+    {Presence, NewPresences} = delete_presence_from_sid(Sid, Presences),
+    NbStream = Presence#uce_presence.streams - 1,
+    {noreply, State#state{presences=[Presence#uce_presence{streams=NbStream,
+                                                           last_activity=utils:now()}|NewPresences]}};
+
 handle_cast({delete_presence, Sid}, #state{domain=Domain, user=User, presences=Presences} = State) ->
-    {ok, PresenceToDelete} = get_presence_by_sid(Sid, Presences),
-    NewPresences = lists:delete(PresenceToDelete, Presences),
+    {PresenceToDelete, NewPresences} = delete_presence_from_sid(Sid, Presences),
     ok = disconnect_from_meetings(Domain, User, PresenceToDelete, NewPresences),
     case NewPresences of
         [] ->
@@ -286,6 +295,7 @@ get_pid_of(Domain, Uid) ->
 % Cleanup old presence
 %
 cleanup_presence(Domain, [#uce_presence{id=Sid,
+                                        streams=0,
                                         last_activity=LastActivity,
                                         timeout=Timeout}|Rest], Now) ->
     if
@@ -295,6 +305,8 @@ cleanup_presence(Domain, [#uce_presence{id=Sid,
         true ->
             nothing
     end,
+    cleanup_presence(Domain, Rest, Now);
+cleanup_presence(Domain, [_Presence|Rest], Now) ->
     cleanup_presence(Domain, Rest, Now);
 cleanup_presence(_Domain, [], _Now) ->
     ok.
@@ -349,3 +361,8 @@ clean_meeting(Domain, [Meeting|Meetings], Uid) ->
             ?ERROR_MSG("Error when cleanup roster presence of ~p : ~p", [Uid, Reason])
     end,
     clean_meeting(Domain, Meetings, Uid).
+
+delete_presence_from_sid(Sid, Presences) ->
+    {ok, Presence} = get_presence_by_sid(Sid, Presences),
+    NewPresences = lists:delete(Presence, Presences),
+    {Presence, NewPresences}.

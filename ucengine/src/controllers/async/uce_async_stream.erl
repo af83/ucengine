@@ -17,7 +17,7 @@
 %%
 -module(uce_async_stream).
 
--export([wait/7]).
+-export([wait/8]).
 
 -include("uce.hrl").
 
@@ -34,23 +34,25 @@
 % Public API
 %
 
-wait(Domain, Location, Search, From, Types, Parent, PreviousEvents) ->
+wait(Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
     YawsPid = self(),
-    {ok, _Pid} = gen_server:start_link(?MODULE, [YawsPid, Domain, Location, Search, From, Types, Parent, PreviousEvents], []),
+    {ok, _Pid} = gen_server:start_link(?MODULE, [YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents], []),
     {streamcontent_with_timeout, "text/event-stream", <<>>, config:get(connection_timeout) * 1000}.
 
 %
 % gen_server callbacks
 %
 
-init([YawsPid, Domain, Location, Search, From, Types, Parent, PreviousEvents]) ->
+init([YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents]) ->
     process_flag(trap_exit, true),
     link(YawsPid),
     send_events(YawsPid, Domain, PreviousEvents),
     ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
+    uce_presence:add_stream(Domain, Sid),
     {ok, {YawsPid,
           Domain,
-          Search}}.
+          Search,
+          Sid}}.
 
 handle_call(_ , _, State) ->
     {reply, ok, State}.
@@ -61,7 +63,7 @@ handle_cast(_, State) ->
 code_change(_, State,_) ->
     {ok, State}.
 
-handle_info({event, Event}, {YawsPid, Domain, Search} = State) ->
+handle_info({event, Event}, {YawsPid, Domain, Search, _Sid} = State) ->
     case uce_async:filter(Search, Event) of
         false ->
             ok;
@@ -73,8 +75,9 @@ handle_info(Event, State) ->
     ?ERROR_MSG("unexpected ~p", [Event]),
     {noreply, State}.
 
-terminate(_Reason, _State) ->
+terminate(_Reason, {_, Domain, _, Sid}) ->
     ?PUBSUB_MODULE:unsubscribe(self()),
+    uce_presence:remove_stream(Domain, Sid),
     ok.
 
 %

@@ -22,6 +22,8 @@
          get/2,
          delete/2,
          assert/3,
+         add_stream/2,
+         remove_stream/2,
          join/3,
          leave/3]).
 
@@ -90,6 +92,17 @@ leave(Domain, Sid, Meeting) ->
     {ok, Record} = get(Domain, Sid),
     Meetings = lists:delete(Meeting, Record#uce_presence.meetings),
     update(Domain, Record#uce_presence{meetings=Meetings}).
+
+%
+% Add active stream connection to prevent timeout
+%
+-spec add_stream(domain(), sid()) -> ok.
+add_stream(Domain, Sid) ->
+    cast_if_proc_found(Domain, Sid, {add_stream, Sid}).
+
+-spec remove_stream(domain(), sid()) -> ok.
+remove_stream(Domain, Sid) ->
+    cast_if_proc_found(Domain, Sid, {remove_stream, Sid}).
 
 %
 % Private function
