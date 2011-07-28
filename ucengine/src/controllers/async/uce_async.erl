@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([listen/7]).
+-export([listen/7, filter/2]).
 
 -include("uce.hrl").
 
@@ -31,7 +31,7 @@ listen(Domain, Location, Search, From, Types, Parent, Timeout) ->
                     listen(Domain, Location, Search, From, Types, Parent, Timeout);
                 true ->
                     {ok, Event}
-                end;
+            end;
         Other ->
             ?WARNING_MSG("unattended message ~p", [Other]),
             {ok, []}

@@ -31,7 +31,7 @@ wait(Domain, Location, Search, From, Types, Parent, []) ->
                                                   From,
                                                   Types,
                                                   Parent,
-                                                  (config:get(long_polling_timeout) * 1000)),
+                                                  (config:get(connection_timeout) * 1000)),
                   Event2 = case Event of
                                [] ->
                                    [];

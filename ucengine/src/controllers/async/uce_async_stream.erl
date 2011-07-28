@@ -21,31 +21,65 @@
 
 -include("uce.hrl").
 
+-behaviour(gen_server).
+
+-export([init/1,
+         code_change/3,
+         handle_call/3,
+         handle_cast/2,
+         handle_info/2,
+         terminate/2]).
+
+%
+% Public API
+%
+
 wait(Domain, Location, Search, From, Types, Parent, PreviousEvents) ->
     YawsPid = self(),
-    spawn(fun() ->
-                  send_events(YawsPid, Domain, PreviousEvents),
-                  ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
-                  listen(YawsPid,
-                         Domain,
-                         Location,
-                         Search,
-                         From,
-                         Types,
-                         Parent)
-          end),
-    {streamcontent_with_timeout, "text/event-stream", <<>>, infinity}.
+    {ok, _Pid} = gen_server:start_link(?MODULE, [YawsPid, Domain, Location, Search, From, Types, Parent, PreviousEvents], []),
+    {streamcontent_with_timeout, "text/event-stream", <<>>, config:get(connection_timeout) * 1000}.
 
-listen(YawsPid, Domain, Location, Search, From, Types, Parent) ->
-    {ok, Event} = uce_async:listen(Domain,
-                                   Location,
-                                   Search,
-                                   From,
-                                   Types,
-                                   Parent,
-                                   infinity),
-    send_events(YawsPid, Domain, [Event]),
-    listen(YawsPid, Domain, Location, Search, From, Types, Parent).
+%
+% gen_server callbacks
+%
+
+init([YawsPid, Domain, Location, Search, From, Types, Parent, PreviousEvents]) ->
+    process_flag(trap_exit, true),
+    link(YawsPid),
+    send_events(YawsPid, Domain, PreviousEvents),
+    ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
+    {ok, {YawsPid,
+          Domain,
+          Search}}.
+
+handle_call(_ , _, State) ->
+    {reply, ok, State}.
+
+handle_cast(_, State) ->
+    {noreply, State}.
+
+code_change(_, State,_) ->
+    {ok, State}.
+
+handle_info({event, Event}, {YawsPid, Domain, Search} = State) ->
+    case uce_async:filter(Search, Event) of
+        false ->
+            ok;
+        true ->
+            send_events(YawsPid, Domain, [Event])
+    end,
+    {noreply, State};
+handle_info(Event, State) ->
+    ?ERROR_MSG("unexpected ~p", [Event]),
+    {noreply, State}.
+
+terminate(_Reason, _State) ->
+    ?PUBSUB_MODULE:unsubscribe(self()),
+    ok.
+
+%
+% Private API
+%
 
 send_events(_, _, []) ->
     ok;

@@ -95,13 +95,13 @@ event_timeout_test_() ->
                 [Domain, BaseUrl, Testers] = fixtures:setup(),
                 setup_events(Domain),
                 % Set the timeout to a low value to avoid waiting too long.
-                PreviousTimeout = config:get(long_polling_timeout),
-                config:set(long_polling_timeout, 10),
+                PreviousTimeout = config:get(connection_timeout),
+                config:set(connection_timeout, 10),
                 [Domain, BaseUrl, Testers, PreviousTimeout]
         end
       , fun ([Domain, BaseUrl, Testers, PreviousTimeout]) ->
                 %% Restore the previous long polling timeout
-                config:set(long_polling_timeout, PreviousTimeout),
+                config:set(connection_timeout, PreviousTimeout),
                 fixtures:teardown([Domain, BaseUrl, Testers])
         end
       , fun([Domain, BaseUrl, [Root|_], _]) ->
