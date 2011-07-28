@@ -19,9 +19,7 @@
 
 % public api
 -export([add/2,
-         all/1,
          get/2,
-         get_all/2,
          delete/2,
          assert/3,
          join/3,
@@ -59,23 +57,13 @@ add(Domain, #uce_presence{id=Sid, user=Uid}=Presence) ->
 get(Domain, Sid) ->
     call_if_proc_found(Domain, Sid, {get_presence, Sid}).
 
--spec get_all(domain(), pid()) -> list(#uce_presence{}).
-get_all(_Domain, Pid) ->
-    gen_server:call(Pid, get_presences).
-%
-% Return pid of all users with at least one session/presence
-%
--spec all(domain()) -> {ok, list()}.
-all(Domain) ->
-    Result = qlc:eval(qlc:q([Pid || {{n, l, {D, Type, _Id}}, Pid, _} <- gproc:table({l, n}), D == Domain, Type == uid])),
-    {ok, Result}.
-
 %
 % Delete presence
 %
 -spec delete(domain(), sid()) -> {ok, deleted} | {error, not_found}.
 delete(Domain, Sid) ->
-    call_if_proc_found(Domain, Sid, {delete_presence, Sid}).
+    cast_if_proc_found(Domain, Sid, {delete_presence, Sid}),
+    {ok, deleted}.
 
 -spec assert(domain(), uid(), sid()) -> {ok, true} | erlang:throw({error, unauthorized}).
 assert(Domain, Uid, Sid) ->
@@ -129,4 +117,12 @@ call_if_proc_found(Domain, Sid, Call) ->
             {error, not_found};
         Pid ->
             gen_server:call(Pid, Call)
+    end.
+
+cast_if_proc_found(Domain, Sid, Call) ->
+    case gproc:lookup_local_name({Domain, sid, Sid}) of
+        undefined ->
+            {error, not_found};
+        Pid ->
+            ok = gen_server:cast(Pid, Call)
     end.

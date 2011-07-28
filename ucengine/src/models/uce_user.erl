@@ -197,6 +197,7 @@ acl(Domain, User, Location) ->
 
 init([Domain, #uce_user{id=Uid} = User]) ->
     gproc:add_local_name({Domain, uid, Uid}),
+    timer:send_after(config:get(timeout_refresh) * 1000, check_timeout),
     {ok, #state{domain=Domain, user=User}}.
 
 handle_call(get_user, _From, #state{user=User} = State) ->
@@ -209,23 +210,10 @@ handle_call({add_presence, #uce_presence{id=Sid}=Presence}, _From, #state{domain
 handle_call({get_presence, Sid}, _From, #state{presences=Presences} = State) ->
     {reply, get_presence_by_sid(Sid, Presences), State};
 
-handle_call(get_presences, _From, #state{presences=Presences} = State) ->
-    {reply, Presences, State};
-
 handle_call({update_presence, #uce_presence{id=Sid}=NewPresence}, _From, #state{presences=Presences} = State) ->
     {ok, Presence} = get_presence_by_sid(Sid, Presences),
     NewPresences = lists:delete(Presence, Presences),
     {reply, get_presence_by_sid(Sid, Presences), State#state{presences=[NewPresence|NewPresences]}};
-
-handle_call({delete_presence, Sid}, _From, #state{presences=Presences} = State) ->
-    {ok, Presence} = get_presence_by_sid(Sid, Presences),
-    NewPresences = lists:delete(Presence, Presences),
-    case NewPresences of
-        [] ->
-            {stop, normal, {ok, deleted}, State#state{presences=NewPresences}};
-        _Other ->
-            {reply, {ok, deleted}, State#state{presences=NewPresences}}
-    end;
 
 %%
 %% supervisor:terminate_child doesn't work with simple_one_for_one in erlang < R14BO3
@@ -234,9 +222,23 @@ handle_call(stop, _From, State) ->
     {stop, "normal", ok, State}.
 
 handle_cast({update_user, User}, State) ->
-    {noreply, State#state{user=User}}.
+    {noreply, State#state{user=User}};
 
-handle_info(_Info, State) ->
+handle_cast({delete_presence, Sid}, #state{domain=Domain, user=User, presences=Presences} = State) ->
+    {ok, PresenceToDelete} = get_presence_by_sid(Sid, Presences),
+    NewPresences = lists:delete(PresenceToDelete, Presences),
+    ok = disconnect_from_meetings(Domain, User, PresenceToDelete, NewPresences),
+    case NewPresences of
+        [] ->
+            {stop, normal, State#state{presences=NewPresences}};
+        _Other ->
+            {noreply, State#state{presences=NewPresences}}
+    end.
+
+handle_info(check_timeout, #state{domain=Domain,
+                                  presences=Presences} = State) ->
+    cleanup_presence(Domain, Presences, utils:now()),
+    timer:send_after(config:get(timeout_refresh) * 1000, check_timeout),
     {noreply, State}.
 
 terminate(_Reason, _State) ->
@@ -279,3 +281,71 @@ get_pid_of(Domain, Uid) ->
         Pid ->
             {ok, Pid}
     end.
+
+%
+% Cleanup old presence
+%
+cleanup_presence(Domain, [#uce_presence{id=Sid,
+                                        last_activity=LastActivity,
+                                        timeout=Timeout}|Rest], Now) ->
+    if
+        LastActivity + (Timeout * 1000) < Now ->
+            {ok, deleted} = uce_presence:delete(Domain, Sid),
+            ?COUNTER(timeout);
+        true ->
+            nothing
+    end,
+    cleanup_presence(Domain, Rest, Now);
+cleanup_presence(_Domain, [], _Now) ->
+    ok.
+
+
+-spec get_all_meetings_of_user(list(#uce_presence{}), uid())
+                              -> list(meeting()) | list().
+%
+% Return all presence associated to the user
+%
+get_all_meetings_of_user(Presences) ->
+    get_all_meetings_of_user(Presences, []).
+
+get_all_meetings_of_user([#uce_presence{meetings=Meetings}|Rest], Result) ->
+    get_all_meetings_of_user(Rest, Meetings ++ Result);
+% the end
+get_all_meetings_of_user([], Result) ->
+    Result.
+
+%
+% Cleanup presence in meetings
+%
+disconnect_from_meetings(Domain, #uce_user{id=Uid}, #uce_presence{meetings=Meetings}, Presences) ->
+    UserMeetings = sets:to_list(sets:subtract(sets:from_list(Meetings), sets:from_list(get_all_meetings_of_user(Presences)))),
+    clean_meetings(Domain, Uid, UserMeetings).
+
+clean_meetings(Domain, Uid, Meetings) ->
+    clean_meeting(Domain, Meetings, Uid),
+    uce_event:add(Domain, #uce_event{id=none,
+                                     from=Uid,
+                                     type="internal.presence.delete",
+                                     location=""}),
+    ok.
+
+clean_meeting(_Domain, [], _Uid) ->
+    ok;
+clean_meeting(Domain, [Meeting|Meetings], Uid) ->
+    try uce_event:add(Domain, #uce_event{id=none,
+                                         from=Uid,
+                                         type="internal.roster.delete",
+                                         location=Meeting}) of
+        {ok, _Id} ->
+            try uce_meeting:leave(Domain, Meeting, Uid) of
+                {ok, updated} ->
+                    ok
+            catch
+                {error, Reason} ->
+                    ?ERROR_MSG("Error when cleanup meeting presence of ~p : ~p", [Uid, Reason])
+            end
+    catch
+        {error, Reason} ->
+            ?ERROR_MSG("Error when cleanup roster presence of ~p : ~p", [Uid, Reason])
+    end,
+    clean_meeting(Domain, Meetings, Uid).

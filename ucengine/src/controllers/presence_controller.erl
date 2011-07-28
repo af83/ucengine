@@ -68,10 +68,9 @@ get(Domain, [{sid, Sid}], [], _) ->
 delete(Domain, [{sid, Sid2}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     case uce_presence:get(Domain, Sid2) of
-        {ok, #uce_presence{id=Id, user=User, meetings=Meetings}} ->
+        {ok, #uce_presence{id=Id}} ->
             {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "delete",
                                            [{"id", Id}]),
-            ok = uce_timeout:clean_meetings(Domain, User, Meetings),
             {ok, deleted} = uce_presence:delete(Domain, Sid2),
             json_helpers:ok(Domain);
         {error, not_found} ->
