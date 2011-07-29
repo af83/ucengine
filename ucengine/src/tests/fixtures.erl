@@ -116,7 +116,8 @@ setup_users(Domain) ->
                                          #uce_access{action="add", object="roster"},
                                          #uce_access{action="list", object="roster"},
                                          #uce_access{action="get", object="meeting"},
-                                         #uce_access{action="list", object="meeting"}]}),
+                                         #uce_access{action="list", object="meeting"},
+                                         #uce_access{action="find", object="user"}]}),
     ok = add_role(Domain, #uce_role{id="testrole_location",
                                     acl=[#uce_access{action="testaction", object="testobject", conditions=[{"a", "b"}]}]}),
 

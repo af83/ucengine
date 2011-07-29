@@ -52,7 +52,7 @@ get(Method, Path, ContentType) when is_list(ContentType) ->
 route(Method, Path, Routes) ->
     route(Method, Path, "", Routes).
 
--spec route(Mathod :: atom(), Path :: string(), ContentType :: string(), Routes :: [#uce_route{}])
+-spec route(Method :: atom(), Path :: string(), ContentType :: string(), Routes :: [#uce_route{}])
     -> {'error', 'not_found'} | {'ok', list(atom()|string()), fun()}.
 route(_, _, _, []) ->
     {error, not_found};

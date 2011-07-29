@@ -17,7 +17,7 @@
 %%
 -module(user_controller).
 
--export([init/0, add/4, update/4, get/4, list/4, delete/4, check_access/4, add_role/4, delete_role/4]).
+-export([init/0, add/4, update/4, get/4, find/4, list/4, delete/4, check_access/4, add_role/4, delete_role/4]).
 
 -include("uce.hrl").
 
@@ -41,6 +41,14 @@ init() ->
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
+
+     #uce_route{method='GET',
+                path=["find","user"],
+                callback={?MODULE, find,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"by_name", "", string},
+                           {"by_uid", "", string}]}},
 
      #uce_route{method='PUT',
                 path=["user", id],
@@ -105,6 +113,20 @@ get(Domain, [{id, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", [{"user", Id}]),
     {ok, User} = uce_user:get(Domain, Id),
     json_helpers:json(Domain, User).
+
+find(Domain, [], [Uid, Sid, ByName, _ByUid], _ ) when ByName /= "" ->
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "find", []),
+    {ok, User} = uce_user:get_by_name(Domain, ByName),
+    json_helpers:json(Domain, User);
+
+find(Domain, [], [Uid, Sid, _ByName, ByUid], _ ) when ByUid /= "" ->
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "find", []),
+    {ok, User} = uce_user:get(Domain, ByUid),
+    json_helpers:json(Domain, User);
+find(_Domain, [], [_Uid, _Sid, _ByName, _ByUid], _ )->
+    throw({error, missing_parameter}).
 
 update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),

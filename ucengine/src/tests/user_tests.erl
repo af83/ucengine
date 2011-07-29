@@ -35,6 +35,8 @@ user_test_() ->
                ?_test(test_get_not_found(BaseUrl, Root)),
                ?_test(test_get_unauthorized(BaseUrl, Ugly)),
 
+               ?_test(test_find_by_name(BaseUrl, Root)),
+
                ?_test(test_list(BaseUrl, Root)),
                ?_test(test_list_unauthorized(BaseUrl, Ugly)),
 
@@ -132,6 +134,19 @@ test_get_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
               {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:get(BaseUrl, "/user/unexistent.user@af83.com", Params).
+
+test_find_by_name(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"by_name", "test.user@af83.com"}],
+    {struct,[{"result",
+              {struct,[{"uid",_},
+                       {"name","test.user@af83.com"},
+                       {"domain",_},
+                       {"auth",_},
+                       {"metadata",_}
+                      ]}
+             }]} = tests_utils:get(BaseUrl, "/find/user", Params).
 
 test_list(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
