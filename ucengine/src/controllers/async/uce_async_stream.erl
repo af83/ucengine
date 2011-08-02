@@ -37,7 +37,7 @@
 wait(Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
     YawsPid = self(),
     {ok, _Pid} = gen_server:start_link(?MODULE, [YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents], []),
-    {streamcontent_with_timeout, "text/event-stream", <<>>, config:get(connection_timeout) * 1000}.
+    {streamcontent_with_timeout, "text/event-stream", <<>>, infinity}.
 
 %
 % gen_server callbacks
