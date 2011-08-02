@@ -8,7 +8,7 @@
   <request subst="true">
     <dyn_variable name="sid" jsonpath="result.sid" />
     <dyn_variable name="uid" jsonpath="result.uid" />
-    <http url='/api/0.5/presence' contents='name=%%_username%%&amp;auth=password&amp;credential=%%_password%%' method='POST' />
+    <http url='/api/0.6/presence' contents='name=%%_username%%&amp;auth=password&amp;credential=%%_password%%' method='POST' />
   </request>
 
   <!-- Main Loop -->
@@ -17,7 +17,7 @@
     <!-- POST an event -->
     <transaction name="post_event">
       <request subst="true">
-        <http url='/api/0.5/event/<%= meeting %>' contents='type=test&amp;uid=%%_uid%%&amp;sid=%%_sid%%' method='POST' />
+        <http url='/api/0.6/event/<%= meeting %>' contents='type=test&amp;uid=%%_uid%%&amp;sid=%%_sid%%' method='POST' />
       </request>
     </transaction>
 

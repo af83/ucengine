@@ -9,12 +9,12 @@
   <request subst="true">
     <dyn_variable name="sid" jsonpath="result.sid" />
     <dyn_variable name="uid" jsonpath="result.uid" />
-    <http url='/api/0.5/presence' contents='name=%%_username%%&amp;auth=password&amp;credential=%%_password%%' method='POST' />
+    <http url='/api/0.6/presence' contents='name=%%_username%%&amp;auth=password&amp;credential=%%_password%%' method='POST' />
   </request>
 
   <request subst="true">
     <dyn_variable name="events" jsonpath="result"/>
-    <http url='/api/0.5/event/<%= meeting %>?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=0&amp;count=1&amp;order=desc' method='GET' />
+    <http url='/api/0.6/event/<%= meeting %>?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=0&amp;count=1&amp;order=desc' method='GET' />
   </request>
 
   <setdynvars sourcetype="erlang" callback="tsung_utils:extract_last_timestamp">
@@ -27,7 +27,7 @@
     <transaction name="pending">
       <request subst="true">
         <dyn_variable name="events" jsonpath="result"/>
-        <http url='/api/0.5/live/<%= meeting %>?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=%%_last%%&amp;mode=longpolling' method='GET' />
+        <http url='/api/0.6/live/<%= meeting %>?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=%%_last%%&amp;mode=longpolling' method='GET' />
       </request>
     </transaction>
 
