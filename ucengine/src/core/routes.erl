@@ -48,7 +48,7 @@ get(Method, Path, "") ->
 get(Method, Path, ContentType) when is_list(ContentType) ->
     [ContentType2|_] = string:tokens(ContentType, ";"),
     route(Method, Path, ContentType2, ets:tab2list(uce_routes)).
- 
+
 route(Method, Path, Routes) ->
     route(Method, Path, "", Routes).
 
@@ -69,7 +69,7 @@ route(Method, Path, ContentType, [#uce_route{
         callback=Callback} = Route|Routes]) ->
     case match_path(Path, Route) of
         false ->
-            route(Method, Path, ContentType, Routes);       
+            route(Method, Path, ContentType, Routes);
         {ok, Binds, List} ->
             {ok, lists:reverse(Binds) ++ List, Callback}
     end;
@@ -79,13 +79,12 @@ route(Method, Path, ContentType, [#uce_route{
         callback=Callback} = Route|Routes]) ->
     case match_path(Path, Route) of
         false ->
-            route(Method, Path, ContentType, Routes);       
+            route(Method, Path, ContentType, Routes);
         {ok, Binds, List} ->
             {ok, lists:reverse(Binds) ++ List, Callback}
     end;
 route(Method, Path, ContentType, [#uce_route{}|Routes]) ->
     route(Method, Path, ContentType, Routes).
-   
 
 match_path("/"++ Path, #uce_route{path=PathRule}) ->
     List = re:split(Path, "[/]", [{return,list}, trim]),
