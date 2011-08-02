@@ -349,6 +349,15 @@ jackTest("can push event on meeting", function() {
     });
 });
 
+jackTest("can push event on meeting with a parent", function() {
+    stop();
+    addUceApiCall("post", "/api/" + uce.version + "/event/mymeeting",  JSON.stringify({"uid": "myuid", "sid": "mysid", "type": "test_event", "parent": "test", "metadata": {_mymetadata: "myvalue"}}, 200, ''));
+    this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").push({parent: "test", type: 'test_event'}, {_mymetadata:"myvalue"}, function(err, r, xhr) {
+        start();
+        equals(err, null);
+    });
+});
+
 jackTest("getEvents with callback on global success", function() {
     stop();
     addUceApiCall("get", "/api/" + uce.version + "/event/mymeeting",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": [{}, {}]}');

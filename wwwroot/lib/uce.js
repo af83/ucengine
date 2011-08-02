@@ -138,10 +138,20 @@
             },
             /**
              * Push event to all users in the current meeting room
+             * @param params can be a string with the type or an object
              */
-            push: function(type, metadata, callback) {
-                this._push({'type': type,
-                            'metadata': metadata},
+            push: function(params, metadata, callback) {
+                // is params a string ?
+                if (params.charAt) {
+                    params = {
+                        type: params
+                    }
+                }
+                var type = params.type;
+                var parent = params.parent;
+                this._push({type: type,
+                            parent: parent,
+                            metadata: metadata},
                            callback);
                 return this;
             },
