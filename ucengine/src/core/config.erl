@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,9 @@
 
 -export([start_link/1,
          get/1,
-         get/2]).
+         get/2,
+         set/2,
+         set/3]).
 
 -export([init/1,
          code_change/3,
@@ -63,8 +65,14 @@ get(Key) ->
 get(Domain, Key) ->
     gen_server:call(?MODULE, {get, Domain, Key}).
 
+set(Key, Value) ->
+    set(global, Key, Value).
+
+set(Domain, Key, Value) ->
+    gen_server:call(?MODULE, {set, Domain, Key, Value}).
+
 init([UCEConfig]) ->
-    DB = ets:new(uce_config, [duplicate_bag, private, {keypos, 1}]),
+    DB = ets:new(uce_config, [set, private, {keypos, 1}]),
     Hosts = proplists:get_value(hosts, UCEConfig),
     lists:foreach(fun({Domain, HostConfig}) ->
                           insert_in(Domain, merge(HostConfig, UCEConfig), DB)
@@ -74,20 +82,22 @@ init([UCEConfig]) ->
 
 insert_in(Domain, Config, DB) ->
     lists:foreach(fun({Key, Value}) ->
-                          ets:insert(DB, {Key, Value, Domain})
+                          ets:insert(DB, {{Domain, Key}, Value})
                   end, Config).
 
 handle_call({get, Domain, Key}, _From, DB) ->
-    Reply = case ets:match_object(DB, {Key, '_', Domain}) of
-                [{Key, Value, Domain}] ->
+    Reply = case ets:lookup(DB, {Domain, Key}) of
+                [{{Domain, Key}, Value}] ->
                     Value;
                 _ ->
                     undefined
             end,
-    {reply, Reply, DB}.
+    {reply, Reply, DB};
+handle_call({set, Domain, Key, Value}, _From, DB) ->
+    ets:insert(DB, {{Domain, Key}, Value}),
+    {reply, ok, DB}.
 
-handle_cast({set, Domain, {Key, Value}}, DB) ->
-    ets:insert(DB, {Key, Value, Domain}),
+handle_cast(_, DB) ->
     {noreply, DB}.
 
 handle_info(_Info, State) ->

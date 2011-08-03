@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -17,26 +17,34 @@
 %%
 -module(uce_async_lp).
 
--author('victor.goya@af83.com').
-
--export([wait/9]).
+-export([wait/7]).
 
 -include("uce.hrl").
 
-wait(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
+wait(Domain, Location, Search, From, Types, Parent, []) ->
     Self = self(),
     spawn(fun() ->
-                  {ok, JSONEvents} = uce_async:listen(Domain,
-                                                      Location,
-                                                      Search,
-                                                      From,
-                                                      Types,
-                                                      Uid,
-                                                      Start,
-                                                      End,
-                                                      Parent),
+                  ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
+                  {ok, Event} = uce_async:listen(Domain,
+                                                  Location,
+                                                  Search,
+                                                  From,
+                                                  Types,
+                                                  Parent,
+                                                  (config:get(connection_timeout) * 1000)),
+                  Event2 = case Event of
+                               [] ->
+                                   [];
+                               Event ->
+                                   [Event]
+                           end,
+                  JSONEvents = mochijson:encode({struct,
+                                                 [{result,
+                                                   json_helpers:to_json(Domain, Event2)}]}),
                   yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents)),
-                  yaws_api:stream_chunk_end(Self)
+                  yaws_api:stream_chunk_end(Self),
+                  ?PUBSUB_MODULE:unsubscribe(self())
           end),
-    Timeout = (config:get(long_polling_timeout) + 1) * 1000,
-    {streamcontent_with_timeout, "application/json", <<>>, Timeout}.
+    {streamcontent_with_timeout, "application/json", <<>>, infinity};
+wait(Domain, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
+    json_helpers:json(Domain, PreviousEvents).

@@ -1,3 +1,8 @@
+-type domain() :: list(string()).
+-type sid() :: list(string()).
+-type uid() :: list(string()).
+-type meeting() :: list(string()).
+
 -record(uce_event, {
           %% eventid
           id = none,
@@ -14,7 +19,7 @@
           %% parent id
           parent = "",
           %% MetaData : list
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_presence, {
           %% presenceid
@@ -31,8 +36,10 @@
           resource,
           %% list meetings joined by user
           meetings = [],
+          %% nb streams open
+          streams = 0,
           %% MetaData : list
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_meeting, {
           %% uce meeting id
@@ -42,7 +49,7 @@
           end_date = none,
           roster = [],
           %% [{"description",Desc}, {"language",Lang}, ... ]
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_file, {
           % fileid
@@ -58,7 +65,7 @@
           % mime type
           mime = "text/plain",
           % name as send by the browser
-          metadata = []
+          metadata = {struct, []}
          }).
 
 -record(uce_user, {
@@ -68,7 +75,7 @@
           name,
           auth,
           credential = "",
-          metadata = [],
+          metadata = {struct, []},
           roles=[]}).
 
 -record(uce_role, {
@@ -82,11 +89,12 @@
 
 -record(uce_infos, {
           domain = none,
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_route, {
           method,
           path,
+          content_type = any,
           callback}).
 
 -record(file_upload, {
@@ -96,7 +104,7 @@
 
 -define(TIMEOUT, 5000).
 
--define(VERSION, "0.5").
+-define(VERSION, "0.6").
 
 -define(SESSION_TIMEOUT, (config:get(presence_timeout) * 1000)).
 

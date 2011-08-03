@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -120,4 +120,4 @@ to_collection(Domain, #uce_file{id=Id,
      {"datetime", Datetime},
      {"mime", Mime},
      {"uri", Uri},
-     {"metadata", Metadata}].
+     {"metadata", mongodb_helpers:to_bson(Metadata)}].

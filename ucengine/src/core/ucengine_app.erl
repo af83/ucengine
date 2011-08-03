@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -34,12 +34,10 @@ start() ->
     application:start(ucengine).
 
 start(_, _) ->
-    error_logger:tty(false),
-    application:start(crypto),
+    start_apps([sasl, crypto, metrics, gproc, ibrowse]),
     mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
-    ibrowse:start(),
-    application:start(metrics),
+    error_logger:tty(false),
 
     Arguments = init:get_arguments(),
     [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),
@@ -50,6 +48,19 @@ start(_, _) ->
         Error ->
             {error, Error}
     end.
+
+start_apps([]) ->
+    ok;
+start_apps([App|Apps]) ->
+    case application:start(App) of
+        ok ->
+            ok;
+        {error, {already_started, App}} ->
+            ok;
+        Error ->
+            io:format("error ~p~n", [Error])
+    end,
+    start_apps(Apps).
 
 setup() ->
     save_pid(),

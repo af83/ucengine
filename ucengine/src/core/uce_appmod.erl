@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -65,7 +65,7 @@ validate(_, []) ->
 validate(Query, [{Name, Default, Types}|ParamsSpecList]) ->
     case utils:get(Query, [Name], [Default]) of
         [required] ->
-            throw({error, missing_parameters});
+            throw({error, missing_parameters, lists:flatten(io_lib:format("Parameter '~s' is missing", [Name]))});
         [RawValue] ->
             [convert(RawValue, Types)] ++ validate(Query, ParamsSpecList)
     end.
@@ -74,6 +74,9 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
     case catch validate(Query, ParamsSpecList) of
         {error, Reason} ->
             json_helpers:error(Domain, Reason);
+        {error, Reason, Infos} ->
+            ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Reason, Infos]),
+            json_helpers:error(Domain, Reason, Infos);
         Params ->
             ?DEBUG("~p: call ~p:~p matching ~p with ~p~n", [Domain, Module, Function, Match, Params]),
             Now = now(),
@@ -123,7 +126,8 @@ process(Host, 'OPTIONS', Path, _Query, _Arg) ->
 process(Host, 'HEAD', Path, Query, Arg) ->
     process(Host, 'GET', Path, Query, Arg);
 process(Host, Method, Path, Query, Arg) ->
-    case routes:get(Method, Path) of
+    ContentType = Arg#arg.headers#headers.content_type,
+    case routes:get(Method, Path, ContentType) of
         {ok, Match, Handlers} ->
             call_handlers(Host, Handlers, Query, Match, Arg);
         {error, not_found} ->

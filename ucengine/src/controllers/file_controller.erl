@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -60,7 +60,7 @@ add(Domain, [{meeting, Meeting}], [Uid, Sid, FileUploaded, Metadata, ForceConten
                                               name=FileUploaded#file_upload.filename,
                                               uri=FileUploaded#file_upload.uri,
                                               datetime=utils:now(),
-                                              metadata=Metadata}),
+                                              metadata={struct, Metadata}}),
 
     {ok, File} = uce_file:get(Domain, Id),
     {ok, FileInfo} = file:read_file_info(get_path(File#uce_file.uri)),
@@ -74,7 +74,7 @@ add(Domain, [{meeting, Meeting}], [Uid, Sid, FileUploaded, Metadata, ForceConten
                              location=Meeting,
                              from=Uid,
                              type="internal.file.add",
-                             metadata=EventMetadata}),
+                             metadata={struct, EventMetadata}}),
     %% In old webbrowser we cannot send file with xmlhttprequest, so we send a
     %% file via an iframe, and if we reply with a content-type
     %% 'application/json', browser show a popup allowing users to select the

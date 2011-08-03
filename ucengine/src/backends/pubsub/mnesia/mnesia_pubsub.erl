@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -19,12 +19,12 @@
 
 -behaviour(gen_server).
 
--author('victor.goya@af83.com').
+-include_lib("stdlib/include/qlc.hrl").
 
 -export([init/1,
          start_link/0,
          publish/2,
-         subscribe/10,
+         subscribe/6,
          unsubscribe/1,
          handle_call/3,
          handle_cast/2,
@@ -34,10 +34,41 @@
 
 -include("uce.hrl").
 
--record(uce_mnesia_pubsub, {pid, domain, location, uid, search, type, from}).
+-record(uce_mnesia_pubsub, {pid, domain, location, type, from, parent}).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
+
+publish(Domain, #uce_event{location=Location, type=Type} = Event) ->
+    ?COUNTER('pubsub:publish'),
+    %% Publish on the domain
+    gen_server:cast(?MODULE, {publish, Domain, "", Type, Event}),
+    case Location of
+        "" ->
+            ok;
+        Location ->
+            gen_server:cast(?MODULE, {publish, Domain, Location, Type, Event})
+    end.
+
+subscribe(Pid, Domain, Location, From, "", Parent) ->
+    subscribe(Pid, Domain, Location, From, [""], Parent);
+subscribe(Pid, Domain, Location, From, Types, Parent) ->
+    ?COUNTER('pubsub:suscribe'),
+    [gen_server:cast(?MODULE, {subscribe,
+                               Domain,
+                               Location,
+                               From,
+                               Type,
+                               Parent,
+                               Pid}) || Type <- Types].
+
+unsubscribe(Pid) ->
+    ?COUNTER('pubsub:unsubscribe'),
+    gen_server:cast(?MODULE, {unsubscribe, Pid}).
+
+%
+% Gen server callbacks
+%
 
 init([]) ->
     mnesia:create_table(uce_mnesia_pubsub,
@@ -46,96 +77,21 @@ init([]) ->
                          {attributes, record_info(fields, uce_mnesia_pubsub)}]),
     {ok, {}}.
 
-publish(Domain, #uce_event{location=Location, type=Type, from=From, id=Id}) ->
-    ?COUNTER('pubsub:publish'),
-    case Location of
-        "" ->
-            gen_server:call(?MODULE, {publish, Domain, Location, Type, From, Id}),
-            gen_server:call(?MODULE, {publish, Domain, Location, [], From, Id});
-        Location ->
-            gen_server:call(?MODULE, {publish, Domain, Location, Type, From, Id}),
-            gen_server:call(?MODULE, {publish, Domain, Location, [], From, Id}),
-            gen_server:call(?MODULE, {publish, Domain, "", Type, From, Id}),
-            gen_server:call(?MODULE, {publish, Domain, "", [], From, Id})
-    end.
+handle_call(_Type, _From, State) ->
+    {reply, error, State}.
 
-subscribe(Pid, Domain, Location, Search, From, "", Uid, Start, End, Parent) ->
-    subscribe(Pid, Domain, Location, Search, From, [""], Uid, Start, End, Parent);
-subscribe(Pid, Domain, Location, Search, From, Types, Uid, _Start, _End, _Parent) ->
-    ?COUNTER('pubsub:suscribe'),
-    [gen_server:cast(?MODULE, {subscribe,
-                               Domain,
-                               Location,
-                               Uid,
-                               Search,
-                               Type,
-                               From,
-                               Pid}) || Type <- Types].
-
-unsubscribe(Pid) ->
-    ?COUNTER('pubsub:unsubscribe'),
-    gen_server:cast(?MODULE, {unsubscribe, Pid}).
-
-get_subscribers(Domain, Location, Type, From) ->
-    case mnesia:transaction(fun() ->
-                                    mnesia:match_object(#uce_mnesia_pubsub{domain=Domain,
-                                                                           location=Location,
-                                                                           uid='_',
-                                                                           search='_',
-                                                                           type='_',
-                                                                           from='_',
-                                                                           pid='_'})
-                            end) of
-        {aborted, _} ->
-            {error, bad_parameters};
-        {atomic, Subscribers} ->
-            lists:filter(fun(#uce_mnesia_pubsub{type=SubType, from=SubFrom}) ->
-                                 if
-                                     SubType == Type ->
-                                         case SubFrom of
-                                             "" ->
-                                                 true;
-                                             From ->
-                                                 true;
-                                             _ ->
-                                                 false
-                                         end;
-                                     SubType == [] ->
-                                         case SubFrom of
-                                             "" ->
-                                                 true;
-                                             From ->
-                                                 true;
-                                             _ ->
-                                                 false
-                                         end;
-                                     true ->
-                                         false
-                                 end
-                         end,
-                         Subscribers)
-    end.
-
-handle_call({publish, Domain, Location, Type, From, Message}, _From, State) ->
-    Return =
-        case get_subscribers(Domain, Location, Type, From) of
-            {error, Reason} ->
-                {error, Reason};
-            Subscribers ->
-                [Subscriber#uce_mnesia_pubsub.pid ! {message, Message} || Subscriber <- Subscribers],
-                ok
-        end,
-    {reply, Return, State}.
-
-handle_cast({subscribe, Domain, Location, Uid, Search, Type, From, Pid}, State) ->
+handle_cast({publish, Domain, Location, Type, #uce_event{from=From, parent=Parent} = Event}, State) ->
+    Subscribers = get_subscribers(Domain, Location, Type, From, Parent),
+    [Subscriber#uce_mnesia_pubsub.pid ! {event, Event} || Subscriber <- Subscribers],
+    {noreply, State};
+handle_cast({subscribe, Domain, Location, From, Type, Parent, Pid}, State) ->
     mnesia:transaction(fun() ->
                                mnesia:write(#uce_mnesia_pubsub{pid=Pid,
                                                                domain=Domain,
                                                                location=Location,
-                                                               uid=Uid,
-                                                               search=Search,
                                                                type=Type,
-                                                               from=From})
+                                                               from=From,
+                                                               parent=Parent})
                        end),
     {noreply, State};
 handle_cast({unsubscribe, Pid}, State) ->
@@ -152,3 +108,26 @@ handle_info(_Info, State) ->
 
 terminate(_Reason, _State) ->
     ok.
+
+%
+% Private functions
+%
+
+get_subscribers(Domain, Location, Type, From, Parent) ->
+    Transaction = fun() ->
+                          Query = qlc:q([Subscriber || #uce_mnesia_pubsub{domain=SubscribedDomain,
+                                                                          location=SubscribedLocation,
+                                                                          type=SubscribedType,
+                                                                          from=SubscribedFrom,
+                                                                          parent=SubscribedParent} = Subscriber
+                                                           <- mnesia:table(uce_mnesia_pubsub),
+                                                (SubscribedDomain == Domain) andalso
+                                                (SubscribedLocation == Location) andalso
+                                                ((SubscribedType == Type) or (SubscribedType == "")) andalso
+                                                ((SubscribedFrom == From) or (SubscribedFrom == "")) andalso
+                                                ((SubscribedParent == Parent) or (SubscribedParent == ""))
+                                        ]),
+                          qlc:eval(Query)
+                  end,
+    {atomic, Subscribers} = mnesia:transaction(Transaction),
+    Subscribers.

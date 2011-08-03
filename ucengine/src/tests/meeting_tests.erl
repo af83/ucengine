@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -233,7 +233,7 @@ test_join_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
 test_join_not_found_uid(BaseUrl) ->
     Params = [ {"uid", "unexistentuid"},
                {"sid", ""}],
-    {struct, [{"error", "not_found"}]} =
+    {struct, [{"error", "unauthorized"}]} =
         tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params).
 
 test_join_unauthorized(BaseUrl, {UglyUid, UglySid}) ->

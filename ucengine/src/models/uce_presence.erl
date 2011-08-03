@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -17,62 +17,57 @@
 %%
 -module(uce_presence).
 
--author('tbomandouki@af83.com').
-
+% public api
 -export([add/2,
-         all/1,
          get/2,
          delete/2,
-         update/2,
-         exists/2,
-         check/3,
          assert/3,
+         add_stream/2,
+         remove_stream/2,
          join/3,
          leave/3]).
 
 -include("uce.hrl").
+-include_lib("stdlib/include/qlc.hrl").
 
+%
+% Add presence
+% Attach a presence to the user
+%
+-spec add(domain(), #uce_presence{}) -> {ok, sid()}.
 add(Domain, #uce_presence{id=none}=Presence) ->
     add(Domain, Presence#uce_presence{id=utils:random()});
 add(Domain, #uce_presence{last_activity=0}=Presence) ->
     add(Domain, Presence#uce_presence{last_activity=utils:now()});
 add(Domain, #uce_presence{timeout=0}=Presence) ->
     add(Domain, Presence#uce_presence{timeout=config:get(presence_timeout)});
-add(Domain, #uce_presence{}=Presence) ->
-    (db:get(?MODULE, Domain)):add(Domain, Presence).
+add(Domain, #uce_presence{id=Sid, user=Uid}=Presence) ->
+    UPid = case gproc:lookup_local_name({Domain, uid, Uid}) of
+               undefined ->
+                   {ok, NewPid} = uce_vhost:add_user(Domain, Uid),
+                   NewPid;
+               Pid ->
+                   Pid
+           end,
+    ok = gen_server:call(UPid, {add_presence, Presence}),
+    {ok, Sid}.
 
-get(Domain, Id) ->
-    (db:get(?MODULE, Domain)):get(Domain, Id).
+%
+% Get presence
+%
+-spec get(domain(), sid()) -> {ok, #uce_presence{}} | {error, not_found}.
+get(Domain, Sid) ->
+    call_if_proc_found(Domain, Sid, {get_presence, Sid}).
 
-all(Domain) ->
-    (db:get(?MODULE, Domain)):all(Domain).
+%
+% Delete presence
+%
+-spec delete(domain(), sid()) -> {ok, deleted} | {error, not_found}.
+delete(Domain, Sid) ->
+    cast_if_proc_found(Domain, Sid, {delete_presence, Sid}),
+    {ok, deleted}.
 
-delete(Domain, Id) ->
-    case exists(Domain, Id) of
-        false ->
-            throw({error, not_found});
-        true ->
-            (db:get(?MODULE, Domain)):delete(Domain, Id)
-    end.
-
-update(Domain, #uce_presence{id=Id}=Presence) ->
-    case exists(Domain, Id) of
-        false ->
-            throw({error, not_found});
-        true ->
-            (db:get(?MODULE, Domain)):update(Domain, Presence)
-    end.
-
-exists(Domain, Id) ->
-    case catch get(Domain, Id) of
-        {error, not_found} ->
-            false;
-        {error, Reason} ->
-            throw({error, Reason});
-        {ok, _} ->
-            true
-    end.
-
+-spec assert(domain(), uid(), sid()) -> {ok, true} | erlang:throw({error, unauthorized}).
 assert(Domain, Uid, Sid) ->
     case check(Domain, Uid, Sid) of
         {ok, true} ->
@@ -81,27 +76,66 @@ assert(Domain, Uid, Sid) ->
             throw({error, unauthorized})
     end.
 
-check(Domain, Uid, Sid) ->
-    {ok, Presence} = uce_presence:get(Domain, Sid),
-    case Presence#uce_presence.user of
-        Uid ->
-            uce_presence:update(Domain, Presence#uce_presence{last_activity=utils:now()}),
-            {ok, true};
-        _OtherUser ->
-            {ok, false}
-    end.
-
+-spec join(domain(), sid(), meeting()) -> {ok, updated}.
 join(Domain, Sid, Meeting) ->
-    {ok, Presence} = (db:get(?MODULE, Domain)):get(Domain, Sid),
+    {ok, Presence} = get(Domain, Sid),
     case lists:member(Meeting, Presence#uce_presence.meetings) of
         true ->
             {ok, updated};
         false ->
             Meetings = [Meeting|Presence#uce_presence.meetings],
-            (db:get(?MODULE, Domain)):update(Domain, Presence#uce_presence{meetings=Meetings})
+            update(Domain, Presence#uce_presence{meetings=Meetings})
     end.
 
+-spec leave(domain(), sid(), meeting()) -> {ok, updated}.
 leave(Domain, Sid, Meeting) ->
-    {ok, Record} = (db:get(?MODULE, Domain)):get(Domain, Sid),
+    {ok, Record} = get(Domain, Sid),
     Meetings = lists:delete(Meeting, Record#uce_presence.meetings),
-    (db:get(?MODULE, Domain)):update(Domain, Record#uce_presence{meetings=Meetings}).
+    update(Domain, Record#uce_presence{meetings=Meetings}).
+
+%
+% Add active stream connection to prevent timeout
+%
+-spec add_stream(domain(), sid()) -> ok.
+add_stream(Domain, Sid) ->
+    cast_if_proc_found(Domain, Sid, {add_stream, Sid}).
+
+-spec remove_stream(domain(), sid()) -> ok.
+remove_stream(Domain, Sid) ->
+    cast_if_proc_found(Domain, Sid, {remove_stream, Sid}).
+
+%
+% Private function
+%
+
+%
+% Update presence
+%
+-spec update(domain(), #uce_presence{}) -> {ok, #uce_presence{}} | {error, not_found}.
+update(Domain, #uce_presence{id=Sid} = Presence) ->
+    call_if_proc_found(Domain, Sid, {update_presence, Presence}).
+
+check(Domain, Uid, Sid) ->
+    case get(Domain, Sid) of
+        {ok, #uce_presence{user=Uid} = Presence} ->
+            {ok, _Presence} = update(Domain, Presence#uce_presence{last_activity=utils:now()}),
+            {ok, true};
+        {error, not_found} ->
+            {ok, false}
+    end.
+
+call_if_proc_found(Domain, Sid, Call) ->
+    case gproc:lookup_local_name({Domain, sid, Sid}) of
+        undefined ->
+            {error, not_found};
+        Pid ->
+            gen_server:call(Pid, Call)
+    end.
+
+cast_if_proc_found(Domain, Sid, Call) ->
+    case gproc:lookup_local_name({Domain, sid, Sid}) of
+        undefined ->
+            {error, not_found};
+        Pid ->
+            ok = gen_server:cast(Pid, Call)
+    end.

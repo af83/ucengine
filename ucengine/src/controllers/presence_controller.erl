@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -49,7 +49,7 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                                user=Uid,
                                                timeout=Timeout,
                                                auth=User#uce_user.auth,
-                                               metadata=Metadata}),
+                                               metadata=json_helpers:to_struct(Metadata)}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id=none,
                                        from=User#uce_user.id,
@@ -58,16 +58,21 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
     json_helpers:json(Domain, 201, {struct, [{uid, Uid}, {sid, Sid}]}).
 
 get(Domain, [{sid, Sid}], [], _) ->
-    {ok, Presence} = uce_presence:get(Domain, Sid),
-    json_helpers:json(Domain, Presence).
+    case uce_presence:get(Domain, Sid) of
+        {ok, Presence} ->
+            json_helpers:json(Domain, Presence);
+        {error, not_found} ->
+            json_helpers:error(Domain, not_found)
+    end.
 
 delete(Domain, [{sid, Sid2}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, #uce_presence{id=Id, user=User, meetings=Meetings}} = uce_presence:get(Domain, Sid2),
-    {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "delete",
-                                   [{"id", Id}]),
-
-    ok = uce_timeout:clean_meetings(Domain, User, Meetings),
-    {ok, deleted} = uce_presence:delete(Domain, Sid2),
-
-    json_helpers:ok(Domain).
+    case uce_presence:get(Domain, Sid2) of
+        {ok, #uce_presence{id=Id}} ->
+            {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "delete",
+                                           [{"id", Id}]),
+            {ok, deleted} = uce_presence:delete(Domain, Sid2),
+            json_helpers:ok(Domain);
+        {error, not_found} ->
+            json_helpers:error(Domain, not_found)
+    end.

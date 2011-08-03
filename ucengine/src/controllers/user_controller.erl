@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -17,7 +17,7 @@
 %%
 -module(user_controller).
 
--export([init/0, add/4, update/4, get/4, list/4, delete/4, check_access/4, add_role/4, delete_role/4]).
+-export([init/0, add/4, update/4, get/4, find/4, list/4, delete/4, check_access/4, add_role/4, delete_role/4]).
 
 -include("uce.hrl").
 
@@ -41,6 +41,14 @@ init() ->
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
+
+     #uce_route{method='GET',
+                path=["find","user"],
+                callback={?MODULE, find,
+                          [{"uid", required, string},
+                           {"sid", required, string},
+                           {"by_name", "", string},
+                           {"by_uid", "", string}]}},
 
      #uce_route{method='PUT',
                 path=["user", id],
@@ -85,7 +93,7 @@ add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
                                                name=Name,
                                                auth=Auth,
                                                credential=Credential,
-                                               metadata=Metadata}),
+                                               metadata=json_helpers:to_struct(Metadata)}),
 
     {ok, _} = uce_event:add(Domain, #uce_event{id=none,
                                                from=UId,
@@ -106,6 +114,21 @@ get(Domain, [{id, Id}], [Uid, Sid], _) ->
     {ok, User} = uce_user:get(Domain, Id),
     json_helpers:json(Domain, User).
 
+find(Domain, [], [Uid, Sid, ByName, _ByUid], _ ) when ByName /= "" ->
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", []),
+    {ok, User} = uce_user:get_by_name(Domain, ByName),
+    json_helpers:json(Domain, User);
+
+find(Domain, [], [Uid, Sid, _ByName, ByUid], _ ) when ByUid /= "" ->
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", []),
+    {ok, User} = uce_user:get(Domain, ByUid),
+    json_helpers:json(Domain, User);
+
+find(_Domain, [], [_Uid, _Sid, _ByName, _ByUid], _ )->
+    throw({error, missing_parameter}).
+
 update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "update", [{"user", Id},
@@ -114,7 +137,7 @@ update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     {ok, updated} = uce_user:update(Domain, Record#uce_user{name=Name,
                                                             auth=Auth,
                                                             credential=Credential,
-                                                            metadata=Metadata}),
+                                                            metadata=json_helpers:to_struct(Metadata)}),
 
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id=none,

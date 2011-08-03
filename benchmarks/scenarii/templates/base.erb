@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!DOCTYPE tsung SYSTEM "TSUNG_SHARE_PATH/share/tsung/tsung-1.0.dtd" [] >
+<!--
+Use the following root element if you want to debug the scenario.
+This should be uncommented only for developement purpose.
+<tsung loglevel="debug" dumptraffic="true" version="1.0">
+-->
+<tsung>
+  <!-- Client side setup -->
+  <clients>
+    <client host="localhost" use_controller_vm="true" maxusers="10000" />
+  </clients>
+  <!-- Server side setup -->
+  <servers>
+    <server host="localhost" port="5280" type="tcp" />
+  </servers>
+
+  <!-- to start os monitoring (cpu, network, memory). Use an erlang
+  agent on the remote machine or SNMP. erlang is the default -->
+  <monitoring>
+    <monitor host="localhost" type="munin"></monitor>
+  </monitoring>
+
+  <load duration="<%= load['duration'] %>" unit="<%= load['unit'] %>">
+  <% arrivals.each_with_index do |arrival, index| %>
+  <arrivalphase phase="<%= index + 1 %>" duration="<%= arrival['duration'] %>" unit="<%= arrival['unit'] %>">
+    <users interarrival="<%= arrival['users']['interval'] %>" unit="<%= arrival['users']['unit'] %>"></users>
+  </arrivalphase>
+  <% end %>
+  </load>
+
+  <options>
+    <option name="file_server" id="users" value="users.csv"/>
+  </options>
+
+  <sessions>
+    <% sessions.each_with_index do |session, index| %>
+    <session name='<%= session['name'] %>' probability='<%= session['probability'] %>' type='ts_http'>
+       <%= render_session(session) %>
+     </session>
+    <% end %>
+  </sessions>
+</tsung>

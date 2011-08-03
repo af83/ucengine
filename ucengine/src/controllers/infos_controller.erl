@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -44,7 +44,7 @@ get(Domain, _UrlParams, [Uid, Sid], _) ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "infos", "get"),
     {ok, #uce_infos{domain=Domain, metadata=Metadata}} = uce_infos:get(Domain),
     json_helpers:json(Domain, {struct, [{domain, Domain},
-                                        {metadata, {struct, Metadata}}]}).
+                                        {metadata, Metadata}]}).
 
 %%
 %% Update domain informations
@@ -53,5 +53,5 @@ get(Domain, _UrlParams, [Uid, Sid], _) ->
 update(Domain, _UrlParams, [Uid, Sid, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "infos", "update"),
-    {ok, updated} = uce_infos:update(Domain, #uce_infos{domain=Domain, metadata=Metadata}),
+    {ok, updated} = uce_infos:update(Domain, #uce_infos{domain=Domain, metadata={struct, Metadata}}),
     json_helpers:ok(Domain).

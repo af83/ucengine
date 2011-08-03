@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -79,7 +79,7 @@ add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
                                     #uce_meeting{id=Name,
                                                  start_date=Start,
                                                  end_date=End,
-                                                 metadata=Metadata}),
+                                                 metadata=json_helpers:to_struct(Metadata)}),
     {ok, _} = uce_event:add(Domain, #uce_event{id=none,
                                                from=Uid,
                                                location="",
@@ -107,7 +107,7 @@ update(Domain, [{meeting, Name}], [Uid, Sid, Start, End, Metadata], _) ->
                                                     start_date=Start,
                                                     end_date=End,
                                                     roster=Meeting#uce_meeting.roster,
-                                                    metadata=Metadata}),
+                                                    metadata=json_helpers:to_struct(Metadata)}),
     {ok, _} = uce_event:add(Domain, #uce_event{id=none,
                                                from=Uid,
                                                location=Name,

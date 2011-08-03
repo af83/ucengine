@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -38,8 +38,8 @@ presence_test_() ->
                 ?_test(test_presence_close(BaseUrl)),
                 ?_test(test_presence_close_unauthorized(BaseUrl, Ugly)),
                 ?_test(test_presence_close_not_foundsid(BaseUrl)),
-                ?_test(test_presence_timeout(BaseUrl)),
-                ?_test(test_multiple_presence_timeout(BaseUrl))]
+                {timeout, 120, ?_test(test_presence_timeout(BaseUrl))},
+                {timeout, 120, ?_test(test_multiple_presence_timeout(BaseUrl)) }]
       end
     }.
 
@@ -135,13 +135,14 @@ test_multiple_presence_timeout(BaseUrl) ->
              , {"sid", Sid}],
     ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params)),
     ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/closedmeeting/roster/", Params)),
+    timer:sleep(1000),
     % Create second presence and join the same meeting
     {struct,[{"result", {struct, [{"uid", Uid}, {"sid", Sid2}]}}]} =
         create_presence(BaseUrl, "participant.user@af83.com", "pwd", [{"timeout", integer_to_list(DefaultTimeout * 15000)}]),
     Params2 = [ {"uid", Uid}
               , {"sid", Sid2}],
     ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params2)),
-    timer:sleep(DefaultTimeout * 4000),
+    timer:sleep(DefaultTimeout * 1000),
     ?assertMatch({struct, [{"error", "not_found"}]}, tests_utils:get(BaseUrl, "/presence/" ++ Sid, Params)),
     ?assertMatch({struct, [{"result", _}]}, tests_utils:get(BaseUrl, "/presence/" ++ Sid2, Params2)),
     {struct, [{"result", {array, Array}}]} =

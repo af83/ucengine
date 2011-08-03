@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -27,7 +27,7 @@
 -include("mongodb.hrl").
 
 create_indexes(Domain) ->
-    Modules = [uce_event_mongodb, uce_presence_mongodb, uce_user_mongodb, uce_role_mongodb],
+    Modules = [uce_event_mongodb, uce_user_mongodb, uce_role_mongodb],
     [ Module:index(Domain) || Module <- Modules].
 
 %%--------------------------------------------------------------------
