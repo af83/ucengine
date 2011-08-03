@@ -116,15 +116,16 @@ get(Domain, [{id, Id}], [Uid, Sid], _) ->
 
 find(Domain, [], [Uid, Sid, ByName, _ByUid], _ ) when ByName /= "" ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "find", []),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", []),
     {ok, User} = uce_user:get_by_name(Domain, ByName),
     json_helpers:json(Domain, User);
 
 find(Domain, [], [Uid, Sid, _ByName, ByUid], _ ) when ByUid /= "" ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "find", []),
+    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", []),
     {ok, User} = uce_user:get(Domain, ByUid),
     json_helpers:json(Domain, User);
+
 find(_Domain, [], [_Uid, _Sid, _ByName, _ByUid], _ )->
     throw({error, missing_parameter}).
 
