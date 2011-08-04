@@ -21,7 +21,7 @@ require "em-ucengine"
 # Here we stop because we reached EVENTS_LIMIT
 
 COUNTER_LIMIT = 10 # Number of runs per batch
-EVENTS_LIMIT = 128 # Maximum number of event sent per batch
+EVENTS_LIMIT = 256 # Maximum number of event sent per batch
 
 EventMachine::UCEngine.run('localhost', 5280) do |uce|
     broadcast_scores = {}
@@ -65,8 +65,11 @@ EventMachine::UCEngine.run('localhost', 5280) do |uce|
             if nb_events > EVENTS_LIMIT
                 timer.cancel
                 subcription.cancel { EM.stop }
-                broadcast_scores.values.map(&:sort).each_with_index do |score, n|
-                    p "90% of #{2**n} events travel in less than #{score[score.length * 0.9]} µs, min: #{score[0]} µs, max: #{score[-1]} µs"
+                File.open('scores.csv','w') do |f|
+                    broadcast_scores.values.map(&:sort).each_with_index do |score, n|
+                        p "90% of #{2**n} events travel in less than #{score[score.length * 0.9]} µs, min: #{score[0]} µs, max: #{score[-1]} µs"
+                        f.write("#{2**n};#{score[score.length * 0.9]}\n")
+                    end
                 end
 
                 publishing_scores.values.map(&:sort).each_with_index do |score, n|
