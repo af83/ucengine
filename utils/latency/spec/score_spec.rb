@@ -27,6 +27,7 @@ describe Score do
         s['toto'].must_equal [42, 41]
         s.sort!
         s.to_csv.must_equal "toto;42\n"
+        p s.to_all_csv
     end
  
 end

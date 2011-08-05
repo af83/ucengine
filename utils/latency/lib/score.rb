@@ -23,6 +23,16 @@ class Score < Hash
         buff
     end
 
+    def to_all_csv
+        buff = ""
+        self.each do |k, vs|
+            vs.each do |v|
+                buff += "#{k};#{v}\n"
+            end
+        end
+        buff
+     end
+
     ## get the 9nth decile
     def get_9_decile key
         v = self[key]
