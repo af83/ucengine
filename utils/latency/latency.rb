@@ -22,7 +22,7 @@ require "./lib/score"
 # Here we stop because we reached EVENTS_LIMIT
 
 COUNTER_LIMIT = 5 # Number of runs per batch
-EVENTS_LIMIT = 20 # Maximum number of event sent per batch
+EVENTS_LIMIT = 100 # Maximum number of event sent per batch
 
 $test_number = 0
 
@@ -41,8 +41,12 @@ def latency(filters={})
         uce.connect("participant", "pwd") do |error, session|
             session.publish("parent_event", "demo") do |err, event_id|
                 parent_event = (filters[:parent]) ? event_id : nil
+                params = {
+                    :type => filters[:types],
+                    :parent => parent_event,
+                }
 
-                subcription = session.subscribe("demo", :type => filters[:types], :parent => parent_event) do |err, events|
+                subcription = session.subscribe("demo", params) do |err, events|
                     events.each do |event|
                         received = Time.new
                         batch = event['metadata']['batch']
@@ -57,10 +61,12 @@ def latency(filters={})
                     nb_events.times do |i|
                         sent = Time.new
                         event =filters[:event_generator].call(repeat + i, parent_event)
-                        session.publish(event[:type], "demo", {
+                        metadata = {
                             :timer => (sent.to_f * 1000000).to_i,
                             :batch => nb_events
-                        }, event[:parent]) do |err, event_id|
+                        }.merge(event[:metadata] || {})
+
+                        session.publish(event[:type], "demo", metadata, event[:parent]) do |err, event_id|
                             score = ((Time.new - sent) * 1000000).to_i
                             publishing_scores[nb_events] << score
                             last_event = event_id
@@ -76,7 +82,7 @@ def latency(filters={})
                             $test_number += 1
                             broadcast_scores.sort!
                             File.open("scores#{$test_number}.csv",'w') do |f|
-                                f.write broadcast_scores.to_csv
+                                f.write broadcast_scores.to_all_csv
                             end
                             broadcast_scores.each do |batch, scores|
                                 p "90% of #{batch} events travel in less than #{broadcast_scores.get_9_decile(batch)} µs, min: #{scores[0]} µs, max: #{scores[-1]} µs"
@@ -134,7 +140,6 @@ latency({
     end
 })
 
-
 ## Test with parent
 latency({
     :types => 'test.latency',
@@ -145,5 +150,3 @@ latency({
     end
 })
 
-
-## Test with search
