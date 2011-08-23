@@ -92,6 +92,8 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _Arg) ->
             json_helpers:created(Domain, Id)
     end.
 
+add2(Domain, [], [], Arg) ->
+    add2(Domain, [""], [], Arg);
 add2(Domain, [Meeting], [], Arg) ->
     {struct, Json} = mochijson:decode(Arg#arg.clidata),
     Uid = proplists:get_value("uid", Json),
