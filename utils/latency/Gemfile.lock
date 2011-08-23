@@ -1,0 +1,35 @@
+GIT
+  remote: git://github.com/AF83/ucengine.em.git
+  revision: c051fb38202de822694af76d297a9da36fb27629
+  specs:
+    em-ucengine (0.2.0)
+      em-eventsource (~> 0.1.0)
+      em-http-request (= 1.0.0.beta4)
+      eventmachine (= 1.0.0.beta3)
+      multipart_body (~> 0.2)
+      yajl-ruby (~> 0.8)
+
+GEM
+  remote: http://rubygems.org/
+  specs:
+    addressable (2.2.6)
+    em-eventsource (0.1.2)
+      em-http-request (~> 1.0.0.beta4)
+      eventmachine (~> 1.0.0.beta3)
+    em-http-request (1.0.0.beta.4)
+      addressable (>= 2.2.3)
+      em-socksify
+      eventmachine (>= 1.0.0.beta.3)
+      http_parser.rb (>= 0.5.1)
+    em-socksify (0.1.0)
+      eventmachine
+    eventmachine (1.0.0.beta.3)
+    http_parser.rb (0.5.1)
+    multipart_body (0.2.1)
+    yajl-ruby (0.8.2)
+
+PLATFORMS
+  ruby
+
+DEPENDENCIES
+  em-ucengine!
