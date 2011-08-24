@@ -43,7 +43,7 @@ wait(Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
 % gen_server callbacks
 %
 
-init([YawsPid, Domain, Location, Search, _From, _Types, _Parent, Sid, PreviousEvents]) ->
+init([YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents]) ->
     process_flag(trap_exit, true),
     link(YawsPid),
     send_events(YawsPid, Domain, PreviousEvents),
@@ -51,7 +51,7 @@ init([YawsPid, Domain, Location, Search, _From, _Types, _Parent, Sid, PreviousEv
     uce_presence:add_stream(Domain, Sid),
     {ok, {YawsPid,
           Domain,
-          Search,
+          {From, Types, Parent, Search},
           Sid}}.
 
 handle_call(_ , _, State) ->
@@ -63,8 +63,8 @@ handle_cast(_, State) ->
 code_change(_, State,_) ->
     {ok, State}.
 
-handle_info({event, Event}, {YawsPid, Domain, Search, _Sid} = State) ->
-    case uce_async:filter(Search, Event) of
+handle_info({event, Event}, {YawsPid, Domain, {From, Types, Parent, Search}, _Sid} = State) ->
+    case uce_async:filter(Event, From, Types, Parent, Search) of
         false ->
             ok;
         true ->
