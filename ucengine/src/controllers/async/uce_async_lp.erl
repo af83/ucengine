@@ -42,7 +42,8 @@ wait(Domain, Location, Search, From, Types, Parent, []) ->
                                                  [{result,
                                                    json_helpers:to_json(Domain, Event2)}]}),
                   yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents)),
-                  yaws_api:stream_chunk_end(Self)
+                  yaws_api:stream_chunk_end(Self),
+                  uce_meeting:unsubscribe(Domain, Location, self())
           end),
     {streamcontent_with_timeout, "application/json", <<>>, infinity};
 wait(Domain, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
