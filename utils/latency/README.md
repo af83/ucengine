@@ -10,4 +10,7 @@
 * publishing*.csv: time to create events
 * scores*.csv: time of broadcasting to the streaming API
 
+## Graphing
 
+    sudo apt-get install r-base
+    ./test.R
