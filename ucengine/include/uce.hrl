@@ -41,12 +41,14 @@
           %% MetaData : list
           metadata = {struct, []}}).
 
+-define(NEVER_ENDING_MEETING, 0).
+
 -record(uce_meeting, {
           %% uce meeting id
           id = none,
           %% start_date and end_date format : ms since epoch
-          start_date = none,
-          end_date = none,
+          start_date = 0,
+          end_date = ?NEVER_ENDING_MEETING,
           roster = [],
           %% [{"description",Desc}, {"language",Lang}, ... ]
           metadata = {struct, []}}).
@@ -127,8 +129,6 @@
 -define(UCE_XMLNS, "http://ucengine.org").
 
 -define(DEFAULT_TIME_INTERVAL, 600000).
-
--define(NEVER_ENDING_MEETING, 0).
 
 -define(PRESENCE_EXPIRED_EVENT, "internal.presence.expired").
 

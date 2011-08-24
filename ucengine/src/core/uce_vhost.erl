@@ -46,6 +46,7 @@ add_user(Domain, Uid) ->
 
 init([Domain]) ->
     setup_db(Domain),
+    setup_meetings(Domain),
     setup_roles(Domain),
     setup_root_role(Domain),
     setup_bricks(Domain),
@@ -88,14 +89,24 @@ setup_db(Domain) ->
     DBBackendModule = list_to_atom(lists:concat([DBBackend, "_db"])),
     DBBackendModule:init(Domain, DBConfig).
 
-setup_roles(Domain) ->
-    case catch uce_role:add(Domain, #uce_role{id="default", acl=[]}) of
+setup_meetings(Domain) ->
+    Meeting = #uce_meeting{id=""},
+    try uce_meeting:add(Domain, Meeting) of
         {ok, created} ->
-            ok;
+            ok
+    catch
         {error, conflict} ->
-            ok;
-        {error, Reason} ->
-            throw({error, Reason})
+            ok
+    end.
+
+
+setup_roles(Domain) ->
+    try uce_role:add(Domain, #uce_role{id="default", acl=[]}) of
+        {ok, created} ->
+            ok
+    catch
+        {error, conflict} ->
+            ok
     end,
     setup_role(Domain, config:get(Domain, roles)).
 

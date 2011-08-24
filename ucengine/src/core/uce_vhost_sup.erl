@@ -40,12 +40,15 @@ init([]) ->
 vhost_supervise([]) ->
     [];
 vhost_supervise([{Domain, _HostConfig}|R]) ->
-    [{name(Domain, "vhost"),
+    [{name(Domain, "meetings"),
+      {uce_meeting_sup, start_link, [Domain]},
+      permanent, brutal_kill, supervisor, [uce_meeting_sup]},
+     {name(Domain, "vhost"),
       {uce_vhost, start_link, [Domain]},
       permanent, brutal_kill, worker, [uce_vhost]},
-    {name(Domain, "presence"),
-     {uce_vhost_user_sup, start_link, [Domain]},
-     permanent, brutal_kill, supervisor, [uce_vhost_user_sup]}] ++ vhost_supervise(R).
+     {name(Domain, "presence"),
+      {uce_vhost_user_sup, start_link, [Domain]},
+      permanent, brutal_kill, supervisor, [uce_vhost_user_sup]}] ++ vhost_supervise(R).
 
 
 %%
