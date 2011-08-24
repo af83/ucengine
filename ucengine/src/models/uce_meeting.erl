@@ -28,7 +28,10 @@
          join/3,
          leave/3,
          roster/2,
-         exists/2]).
+         exists/2,
+         publish/3,
+         subscribe/3,
+         get_event_manager/2]).
 
 -include("uce.hrl").
 
@@ -163,4 +166,27 @@ leave(Domain, Id, User) ->
 roster(Domain, Id) ->
     {ok, Meeting} = get(Domain, Id),
     {ok, Meeting#uce_meeting.roster}.
+
+
+% Live API
+
+-spec publish(domain(), meeting(), #uce_event{}) -> ok.
+publish(Domain, "", Event) ->
+    EventManager = get_event_manager(Domain, ""),
+    gen_event:notify(EventManager, {event, Event});
+publish(Domain, MeetingName, Event) ->
+    EventManager = get_event_manager(Domain, MeetingName),
+    gen_event:notify(EventManager, {event, Event}),
+    publish(Domain, "", Event).
+
+
+-spec subscribe(domain(), meeting(), pid()) -> ok.
+subscribe(Domain, MeetingName, Subscriber) ->
+    EventManager = get_event_manager(Domain, MeetingName),
+    gen_event:add_handler(EventManager, {uce_meeting_handler, Subscriber}, [Subscriber]).
+
+
+get_event_manager(Domain, MeetingName) ->
+    [[Pid]] = ets:match(meeting_event_managers, {{Domain, MeetingName}, '$1'}),
+    Pid.
 

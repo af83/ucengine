@@ -43,11 +43,11 @@ wait(Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
 % gen_server callbacks
 %
 
-init([YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents]) ->
+init([YawsPid, Domain, Location, Search, _From, _Types, _Parent, Sid, PreviousEvents]) ->
     process_flag(trap_exit, true),
     link(YawsPid),
     send_events(YawsPid, Domain, PreviousEvents),
-    ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
+    uce_meeting:subscribe(Domain, Location, self()),
     uce_presence:add_stream(Domain, Sid),
     {ok, {YawsPid,
           Domain,

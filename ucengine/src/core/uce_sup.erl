@@ -30,12 +30,9 @@ init(ConfigPath) ->
     Config = [{config,
                {config, start_link, [ConfigPath]},
                permanent, brutal_kill, worker, [config]}],
-    PubSubSup = [{?PUBSUB_MODULE,
-                  {?PUBSUB_MODULE, start_link, []},
-                  permanent, brutal_kill, worker, [?PUBSUB_MODULE]}],
     Vhost = [{uce_vhost_sup, {uce_vhost_sup, start_link, []},
               permanent, infinity, supervisor, [uce_vhost_sup]}],
-    {ok, {{one_for_one, 10, 10}, Config ++ PubSubSup ++ Vhost}}.
+    {ok, {{one_for_one, 10, 10}, Config ++ Vhost}}.
 
 start_child(ChildSpec) ->
     {ok, _Pid} = supervisor:start_child(?MODULE, ChildSpec).
