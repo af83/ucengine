@@ -46,6 +46,10 @@ add(Domain, Meeting) ->
             case exists(Domain, Id) of
                 false ->
                     (db:get(?MODULE, Domain)):add(Domain, Meeting),
+                    % Make the root meeting subscribe to the newly created
+                    % meeting
+                    EventManager = get_event_manager(Domain, ""),
+                    subscribe_meeting(Domain, Id, EventManager),
                     {ok, created};
                 true ->
                     throw({error, conflict})
@@ -174,19 +178,21 @@ roster(Domain, Id) ->
 % Live API
 
 -spec publish(domain(), meeting(), #uce_event{}) -> ok.
-publish(Domain, "", Event) ->
-    EventManager = get_event_manager(Domain, ""),
-    gen_event:notify(EventManager, {event, Event});
 publish(Domain, MeetingName, Event) ->
     EventManager = get_event_manager(Domain, MeetingName),
-    gen_event:notify(EventManager, {event, Event}),
-    publish(Domain, "", Event).
+    gen_event:notify(EventManager, {event, Event}).
 
 
 -spec subscribe(domain(), meeting(), pid()) -> ok.
 subscribe(Domain, MeetingName, Subscriber) ->
     EventManager = get_event_manager(Domain, MeetingName),
-    gen_event:add_handler(EventManager, {uce_meeting_handler, Subscriber}, [Subscriber]).
+    gen_event:add_handler(EventManager, {uce_subscription, Subscriber}, [Subscriber]).
+
+
+-spec subscribe_meeting(domain(), meeting(), pid()) -> ok.
+subscribe_meeting(Domain, MeetingName, Subscriber) ->
+    EventManager = get_event_manager(Domain, MeetingName),
+    gen_event:add_handler(EventManager, {uce_meeting_subscription, Subscriber}, [Subscriber]).
 
 -spec unsubscribe(domain(), meeting(), pid()) -> ok.
 unsubscribe(Domain, MeetingName, Subscriber) ->
