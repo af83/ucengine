@@ -19,6 +19,7 @@
 
 -author('victor.goya@af83.com').
 
+% Meeting API
 -export([add/2,
          delete/2,
          update/2,
@@ -32,12 +33,21 @@
 -include("uce.hrl").
 
 
-add(Domain, #uce_meeting{id=Id} = Meeting) ->
-    case exists(Domain, Id) of
-        true ->
-            throw({error, conflict});
-        false ->
-            (db:get(?MODULE, Domain)):add(Domain, Meeting)
+% FIXME: the spec miss the errors
+-spec add(domain(), #uce_meeting{}) -> {ok, created}.
+add(Domain, Meeting) ->
+    Id = Meeting#uce_meeting.id,
+    case uce_meeting_sup:start_child(Domain, Id) of
+        {ok, _EventManager} ->
+            case exists(Domain, Id) of
+                false ->
+                    (db:get(?MODULE, Domain)):add(Domain, Meeting),
+                    {ok, created};
+                true ->
+                    throw({error, conflict})
+            end;
+        {error, Reason} ->
+            {error, Reason}
     end.
 
 delete(Domain, Id) ->
@@ -45,9 +55,11 @@ delete(Domain, Id) ->
         false ->
             throw({error, not_found});
         true ->
+            uce_meeting_sup:terminate_child(Domain, Id),
             (db:get(?MODULE, Domain)):delete(Domain, Id)
     end.
 
+-spec get(domain(), meeting()) -> {ok, #uce_meeting{}}.
 get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
