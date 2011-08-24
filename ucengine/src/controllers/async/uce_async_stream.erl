@@ -51,6 +51,7 @@ init([YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvent
     uce_presence:add_stream(Domain, Sid),
     {ok, {YawsPid,
           Domain,
+          Location,
           {From, Types, Parent, Search},
           Sid}}.
 
@@ -63,7 +64,7 @@ handle_cast(_, State) ->
 code_change(_, State,_) ->
     {ok, State}.
 
-handle_info({event, Event}, {YawsPid, Domain, {From, Types, Parent, Search}, _Sid} = State) ->
+handle_info({event, Event}, {YawsPid, Domain, _Location, {From, Types, Parent, Search}, _Sid} = State) ->
     case uce_async:filter(Event, From, Types, Parent, Search) of
         false ->
             ok;
@@ -75,8 +76,8 @@ handle_info(Event, State) ->
     ?ERROR_MSG("unexpected ~p", [Event]),
     {noreply, State}.
 
-terminate(_Reason, {_, Domain, _, Sid}) ->
-    ?PUBSUB_MODULE:unsubscribe(self()),
+terminate(_Reason, {_YawsPid, Domain, Location, _Filters, Sid}) ->
+    uce_meeting:unsubscribe(Domain, Location, self()),
     uce_presence:remove_stream(Domain, Sid),
     ok.
 

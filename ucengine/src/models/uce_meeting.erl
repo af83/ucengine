@@ -31,6 +31,7 @@
          exists/2,
          publish/3,
          subscribe/3,
+         unsubscribe/3,
          get_event_manager/2]).
 
 -include("uce.hrl").
@@ -184,6 +185,12 @@ publish(Domain, MeetingName, Event) ->
 subscribe(Domain, MeetingName, Subscriber) ->
     EventManager = get_event_manager(Domain, MeetingName),
     gen_event:add_handler(EventManager, {uce_meeting_handler, Subscriber}, [Subscriber]).
+
+
+-spec unsubscribe(domain(), meeting(), pid()) -> ok.
+unsubscribe(Domain, MeetingName, Subscriber) ->
+    EventManager = get_event_manager(Domain, MeetingName),
+    get_event_manager:delete_handler(EventManager, {uce_meeting_handler, Subscriber}, [Subscriber]).
 
 
 get_event_manager(Domain, MeetingName) ->
