@@ -68,12 +68,8 @@ get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
 update(Domain, #uce_meeting{id=Id} = Meeting) ->
-    case exists(Domain, Id) of
-        false ->
-            throw({error, not_found});
-        true ->
-            (db:get(?MODULE, Domain)):update(Domain, Meeting)
-    end.
+    assert_exists(Domain, Id),
+    (db:get(?MODULE, Domain)):update(Domain, Meeting).
 
 list(Domain, Status) ->
     {ok, Meetings} = (db:get(?MODULE, Domain)):list(Domain),
@@ -123,6 +119,7 @@ list(Domain, Status) ->
             throw({error, bad_parameters})
     end.
 
+%% @deprecated
 exists(_Domain, "") ->
     true; % root
 exists(Domain, Id) ->
@@ -135,33 +132,37 @@ exists(Domain, Id) ->
             true
     end.
 
+assert_exists(_Domain, "") ->
+    ok;
+assert_exists(Domain, Id) ->
+    case catch get(Domain, Id) of
+        {error, not_found} ->
+            throw({error, not_found});%, "User " ++ Id ++ " is not found";
+        {error, Reason} ->
+            throw({error, Reason});
+        {ok, _} ->
+            ok
+    end.
+
 join(Domain, Id, User) ->
-    case uce_user:exists(Domain, User) of
+    assert_exists(Domain, Id),
+    {ok, Meeting} = get(Domain, Id),
+    case lists:member(User, Meeting#uce_meeting.roster) of
         false ->
-            throw({error, not_found});
+            update(Domain, Meeting#uce_meeting{roster=Meeting#uce_meeting.roster ++ [User]});
         true ->
-            {ok, Meeting} = get(Domain, Id),
-            case lists:member(User, Meeting#uce_meeting.roster) of
-                false ->
-                    update(Domain, Meeting#uce_meeting{roster=Meeting#uce_meeting.roster ++ [User]});
-                true ->
-                    {ok, updated}
-            end
+            {ok, updated}
     end.
 
 leave(Domain, Id, User) ->
-    case uce_user:exists(Domain, User) of
+    assert_exists(Domain, User),
+    {ok, Meeting} = get(Domain, Id),
+    case lists:member(User, Meeting#uce_meeting.roster) of
         false ->
             throw({error, not_found});
         true ->
-            {ok, Meeting} = get(Domain, Id),
-            case lists:member(User, Meeting#uce_meeting.roster) of
-                false ->
-                    throw({error, not_found});
-                true ->
-                    Roster = lists:subtract(Meeting#uce_meeting.roster, [User]),
-                    update(Domain, Meeting#uce_meeting{roster=Roster})
-            end
+           Roster = lists:subtract(Meeting#uce_meeting.roster, [User]),
+           update(Domain, Meeting#uce_meeting{roster=Roster})
     end.
 
 roster(Domain, Id) ->
@@ -186,13 +187,12 @@ subscribe(Domain, MeetingName, Subscriber) ->
     EventManager = get_event_manager(Domain, MeetingName),
     gen_event:add_handler(EventManager, {uce_meeting_handler, Subscriber}, [Subscriber]).
 
-
 -spec unsubscribe(domain(), meeting(), pid()) -> ok.
 unsubscribe(Domain, MeetingName, Subscriber) ->
     EventManager = get_event_manager(Domain, MeetingName),
     get_event_manager:delete_handler(EventManager, {uce_meeting_handler, Subscriber}, [Subscriber]).
 
-
+-spec get_event_manager(domain(), meeting()) -> pid().
 get_event_manager(Domain, MeetingName) ->
     [[Pid]] = ets:match(meeting_event_managers, {{Domain, MeetingName}, '$1'}),
     Pid.
