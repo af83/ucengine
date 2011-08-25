@@ -46,15 +46,18 @@ add_user(Domain, Uid) ->
 
 init([Domain]) ->
     setup_db(Domain),
-    setup_meetings(Domain),
-    setup_roles(Domain),
-    setup_root_role(Domain),
-    setup_bricks(Domain),
-    setup_admin(Domain),
+    ok = setup_meetings(Domain),
+    ok = setup_full_text(Domain),
+    ok = setup_roles(Domain),
+    ok = setup_root_role(Domain),
+    ok = setup_bricks(Domain),
+    {ok, _} = setup_admin(Domain),
     {ok, Domain}.
 
 handle_call({add_user, Uid}, _From, Domain) ->
     {ok, User} = uce_user:get(Domain, Uid),
+    % [FIXME] create child then throw?!
+    % [FIXME] what happens if I add twice?
     case uce_vhost_user_sup:start_child(Domain, [Domain, User]) of
         {ok, Pid} ->
             {reply, {ok, Pid}, Domain};
@@ -90,6 +93,7 @@ setup_db(Domain) ->
     DBBackendModule:init(Domain, DBConfig).
 
 setup_meetings(Domain) ->
+    % Building the root meeting.
     Meeting = #uce_meeting{id=""},
     try uce_meeting:add(Domain, Meeting) of
         {ok, created} ->
@@ -99,6 +103,9 @@ setup_meetings(Domain) ->
             ok
     end.
 
+setup_full_text(Domain) ->
+    % [TODO] listen event from root meeting
+    ok.
 
 setup_roles(Domain) ->
     try uce_role:add(Domain, #uce_role{id="default", acl=[]}) of
@@ -146,7 +153,7 @@ setup_root_user(Domain, #uce_user{} = User) ->
         {ok, UId} ->
             uce_user:add_role(Domain, UId, {"root", []});
         {error, conflict} ->
-            ok;
+            {ok, alreday_done};
         {error, _} = Error -> throw(Error)
     end.
 
