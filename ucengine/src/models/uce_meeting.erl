@@ -73,6 +73,7 @@ update(Domain, #uce_meeting{id=Id} = Meeting) ->
 
 list(Domain, Status) ->
     {ok, Meetings} = (db:get(?MODULE, Domain)):list(Domain),
+    % [FIXME] kill if, puts the throw in the last case or something like that.
     if
         Status == "all";
         Status == "upcoming";
