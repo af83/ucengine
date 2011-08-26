@@ -7,7 +7,7 @@
 
 
 add(_Domain, Event) ->
-    ets:insert(uce_event_test_search, {Event#uce_event.id, Event}),
+    ets:insert(uce_test_search_backend, {Event#uce_event.id, Event}),
     {ok, created}.
 
 setup_full_text(Domain) ->
