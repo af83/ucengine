@@ -25,6 +25,7 @@
          get/2,
          get_by_name/2,
          exists/2,
+         assert_exists/2,
          acl/3,
          add_role/3,
          delete_role/3,
@@ -121,18 +122,30 @@ get_by_name(Domain, Name) ->
 exists(_Domain, "") ->
     true;
 exists(Domain, Uid) ->
-    case get_pid_of(Domain, Uid) of
+    try
+        case get_pid_of(Domain, Uid) of
+            {ok, _Pid} ->
+                true;
+            {error, not_found} ->
+                {ok, _User} = get(Domain, Uid),
+                true
+        end
+    catch
         {error, not_found} ->
-            case catch get(Domain, Uid) of
-                {error, not_found} ->
-                    false;
-                {error, Reason} ->
-                    throw({error, Reason});
-                {ok, _User}->
-                    true
-            end;
-        {ok, _Pid} ->
-            true
+            false
+    end.
+
+-spec assert_exists(domain(), uid()) -> ok | erlang:throw({error, not_found}).
+% "" value are used in uce_event:add
+% From or To can be empty
+assert_exists(_Domain, "") ->
+    ok;
+assert_exists(Domain, Uid) ->
+    case exists(Domain, Uid) of
+        true ->
+            ok;
+        false ->
+            throw({error, not_found})
     end.
 
 -spec add_role(domain(), uid(), rolelocation()) -> {ok, updated} | erlang:throw({error, not_found}).
