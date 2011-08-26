@@ -160,7 +160,7 @@ join(Domain, Id, User) ->
     end.
 
 leave(Domain, Id, User) ->
-    assert_exists(Domain, User),
+    uce_user:assert_exists(Domain, User),
     {ok, Meeting} = get(Domain, Id),
     case lists:member(User, Meeting#uce_meeting.roster) of
         false ->
