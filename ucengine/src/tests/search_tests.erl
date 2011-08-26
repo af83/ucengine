@@ -92,9 +92,30 @@ search_test_() ->
                  ?_test(test_search_with_types(BaseUrl, Root, Events)),
                  ?_test(test_search_with_type_and_timestart(BaseUrl, Root, Events)),
                  ?_test(test_search_with_type_and_timestart_and_timeend(BaseUrl, Root, Events)),
-                 ?_test(test_search_with_type_and_timeend(BaseUrl, Root, Events))
+                 ?_test(test_search_with_type_and_timeend(BaseUrl, Root, Events)),
+
+                 ?_test(test_search_backend(BaseUrl, Root, Events))
                 ]
         end}.
+
+search_backend_test_() ->
+    { setup
+      , fun() ->
+                [Domain, BaseUrl, Testers] = fixtures:setup(),
+                Events = setup_events(Domain),
+                PreviousBackend = config:get(search),
+                config:set(search, test),
+                ?SEARCH_MODULE:setup_full_text(Domain),
+                [Domain, BaseUrl, Testers, Events, PreviousBackend]
+        end
+      , fun([Domain, BaseUrl, Testers, _Events, PreviousBackend]) ->
+                config:set(search, PreviousBackend),
+                fixtures:teardown([Domain, BaseUrl, Testers])
+        end
+      , fun([_, BaseUrl, [Root|_], Events, _]) ->
+                [?_test(test_search_backend(BaseUrl, Root, Events))]
+        end}.
+
 
 -define(MATCH_SEARCH_RESULTS(TotalResults, StartIndex, ItemsPerPage, SearchTerms, StartPage, Entries, Results),
         ?assertMatch({struct, [{"result", {struct,
@@ -422,3 +443,17 @@ test_search_with_type_and_timeend(BaseUrl, {RootUid, RootSid}, [_,
                                                                 ]}]
                                                     },
                           tests_utils:get(BaseUrl, "/search/event", ParamsGetStart)).
+
+test_search_backend(BaseUrl, {RootUid, RootSid}, _Events) ->
+    AuthParams = [{"uid", RootUid}, {"sid", RootSid}],
+    Params = [{"type", "test_search_backend"},
+              {"metadata[description]", "pushed_event"}],
+
+    ets:new(uce_test_search_backend, [set, public, named_table]),
+    {struct, [{"result", Id}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params ++ AuthParams),
+    timer:sleep(100),
+
+    [[Event]] = ets:match(uce_test_search_backend, {Id, '$1'}),
+    ?assertEqual(Event#uce_event.id, Id),
+    ok.
+

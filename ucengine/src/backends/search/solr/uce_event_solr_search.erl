@@ -19,7 +19,7 @@
 
 -author('thierry.bomandouki@af83.com').
 
--export([add/2, commit/0, list/11, delete/2]).
+-export([add/2, commit/0, list/11, delete/2, setup_full_text/1]).
 
 -include("uce.hrl").
 
@@ -258,3 +258,9 @@ delete(_Domain, Id) ->
     [Host] = utils:get(config:get(solr), [host], [?DEFAULT_HOST]),
     ibrowse:send_req(Host ++ ?SOLR_UPDATE, [], post, "<delete><query>"++ Id ++"</query></delete>"),
     {ok, deleted}.
+
+setup_full_text(Domain) ->
+    {ok, EventManager} = uce_meeting:get_event_manager(Domain, ""),
+    gen_event:add_handler(EventManager, uce_search_handler, [Domain]),
+    ok.
+

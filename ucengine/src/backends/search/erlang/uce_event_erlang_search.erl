@@ -19,7 +19,7 @@
 
 -author('victor.goya@af83.com').
 
--export([add/2, list/11, search_metadata/2]).
+-export([add/2, list/11, search_metadata/2, setup_full_text/1]).
 
 -include("uce.hrl").
 
@@ -67,3 +67,6 @@ list(Domain, Location, Search, From, Type, DateStart, DateEnd, Parent, Start, Ma
     FilteredEvents = filter(Events, Search),
     EventPage = uce_paginate:paginate(FilteredEvents, Start, Max),
     {ok, length(FilteredEvents), EventPage}.
+
+setup_full_text(_Domain) ->
+    ok.

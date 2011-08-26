@@ -36,7 +36,6 @@ add(Domain, #uce_event{location=Location, to=To, parent=Parent} = Event) ->
         {true, true, true} ->
             {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
             uce_meeting:publish(Domain, Location, Event),
-            ?SEARCH_MODULE:add(Domain, Event),
             ?COUNTER("event_add:" ++ Event#uce_event.type),
             {ok, Id};
         _ ->% [TODO] throw the missing exist

@@ -103,9 +103,8 @@ setup_meetings(Domain) ->
             ok
     end.
 
-setup_full_text(_Domain) ->
-    % [TODO] listen event from root meeting
-    ok.
+setup_full_text(Domain) ->
+    ?SEARCH_MODULE:setup_full_text(Domain).
 
 setup_roles(Domain) ->
     try uce_role:add(Domain, #uce_role{id="default", acl=[]}) of

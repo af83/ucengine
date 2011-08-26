@@ -174,8 +174,8 @@
          end())).
 -define(SEARCH_MODULE,
         (fun() ->
-                 list_to_atom(atom_to_list(?MODULE) ++ "_"
-                              ++ atom_to_list(config:get(search)) ++ "_search")
+                 Name = lists:concat(["uce_event_", config:get(search), "_search"]),
+                 list_to_atom(Name)
          end())).
 
 -define(REMOVE_ID_FROM_RECORD(Params, Record),
