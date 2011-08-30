@@ -116,12 +116,11 @@ add2(Domain, [Meeting], [], Arg) ->
                        parent=Parent,
                        metadata=Metadata},
 
-    IsSync = true,
-    case IsSync of
-      true ->
-        uce_event:add(Domain, Event);
-      false ->
-        spawn(uce_event, add, [Domain, Event])
+    case config:get(Domain, events) of
+      async ->
+        spawn(uce_event, add, [Domain, Event]);
+      _ ->
+        uce_event:add(Domain, Event)
     end,
 
     json_helpers:created(Domain, Id).
