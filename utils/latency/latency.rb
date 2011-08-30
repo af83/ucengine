@@ -21,9 +21,9 @@ require "./lib/score"
 # Then 8 events is sent every 1 second 5 times
 # Here we stop because we reached EVENTS_LIMIT
 
-COUNTER_LIMIT = 5 # Number of runs per batch
-EVENTS_LIMIT = 21 # Maximum number of event sent per batch
-NB_CLIENTS = 3 # Number of simultaneous users
+COUNTER_LIMIT = 10 # Number of runs per batch
+EVENTS_LIMIT = 100 # Maximum number of event sent per batch
+NB_CLIENTS = 1 # Number of simultaneous users
 
 $test_number = 0
 $broadcast_scores = Score.new
@@ -107,9 +107,12 @@ def run_client(user, uce, filters)
 
         p nb_events
         if nb_events >= EVENTS_LIMIT
+          puts "done for this batch"
           timer.cancel
+          # delay writes to ensure all elements had the time to come back
           EM::add_timer 2 do
             $finished_users -= 1
+            p "finished users:", $finished_users
             write_results if $finished_users <= 0
             subcription.cancel { EM.stop }
           end
@@ -121,7 +124,6 @@ def run_client(user, uce, filters)
           repeat = 0
           puts
         end
-
       end
     end
   end
@@ -134,21 +136,22 @@ def write_results
   EM::add_timer 2 do
     $test_number += 1
     $broadcast_scores.sort!
-    #File.open("scores#{$test_number}.csv",'w') do |f|
-    #  f.write $broadcast_scores.to_all_csv
-    #end
+    File.open("scores#{$test_number}.csv",'w') do |f|
+     f.write $broadcast_scores.to_all_csv
+    end
     $broadcast_scores.each do |batch, scores|
       p "90% of #{batch} events travel in less than #{$broadcast_scores.get_9_decile(batch)} µs, min: #{scores[0]} µs, max: #{scores[-1]} µs"
     end
 
     puts
     $publishing_scores.sort!
-    #File.open("publishing#{$test_number}.csv",'w') do |f|
-    #  f.write $publishing_scores.to_csv
-    #end
+    File.open("publishing#{$test_number}.csv",'w') do |f|
+     f.write $publishing_scores.to_csv
+    end
 
-    # $publishing_scores.values.map(&:sort).each_with_index do |score, n|
-    # p "90% of #{n*10} events were published in less than #{score[score.length * 0.9]} µs, min: #{score[0]} µs, max: #{score[-1]} µs"
+    $publishing_scores.values.map(&:sort).each_with_index do |score, n|
+      p "90% of #{n*10} events were published in less than #{score[score.length * 0.9]} µs, min: #{score[0]} µs, max: #{score[-1]} µs"
+    end
   end
 end
 
