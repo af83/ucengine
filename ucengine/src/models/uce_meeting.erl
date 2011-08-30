@@ -197,7 +197,7 @@ subscribe_meeting(Domain, MeetingName, Subscriber) ->
 -spec unsubscribe(domain(), meeting(), pid()) -> ok.
 unsubscribe(Domain, MeetingName, Subscriber) ->
     EventManager = get_event_manager(Domain, MeetingName),
-    get_event_manager:delete_handler(EventManager, {uce_meeting_handler, Subscriber}, [Subscriber]).
+    get_event_manager:delete_handler(EventManager, {uce_subscription, Subscriber}, [Subscriber]).
 
 -spec get_event_manager(domain(), meeting()) -> pid().
 get_event_manager(Domain, MeetingName) ->
