@@ -106,14 +106,24 @@ add2(Domain, [Meeting], [], Arg) ->
                                    [{"type", Type}, {"to", To}]),
     Parent = proplists:get_value("parent", Json, ""),
     Metadata = proplists:get_value("metadata", Json, []),
-    {ok, Id} = uce_event:add(Domain,
-                             #uce_event{id=none,
-                                        location=Meeting,
-                                        from=Uid,
-                                        type=Type,
-                                        to=To,
-                                        parent=Parent,
-                                        metadata=Metadata}),
+
+    Id = utils:random(),
+    Event = #uce_event{id=Id,
+                       location=Meeting,
+                       from=Uid,
+                       type=Type,
+                       to=To,
+                       parent=Parent,
+                       metadata=Metadata},
+
+    IsSync = true,
+    case IsSync of
+      true ->
+        uce_event:add(Domain, Event);
+      false ->
+        spawn(uce_event, add, [Domain, Event])
+    end,
+
     json_helpers:created(Domain, Id).
 
 get(Domain, [_, {id, Id}], [Uid, Sid], _) ->
