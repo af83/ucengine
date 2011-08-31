@@ -80,7 +80,7 @@ acl(Domain, Id) ->
     {ok, Role} = get(Domain, Id),
     {ok, Role#uce_role.acl}.
 
--spec add_access(domain(), string(), #uce_access{}) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec add_access(domain(), string(), access()) -> {ok, updated} | erlang:throw({error, not_found}).
 add_access(Domain, Id, #uce_access{} = Access) ->
     {ok, Role} = get(Domain, Id),
     case uce_access:exists(Access, Role#uce_role.acl) of
@@ -90,7 +90,7 @@ add_access(Domain, Id, #uce_access{} = Access) ->
             update(Domain, Role#uce_role{acl=(Role#uce_role.acl ++ [Access])})
     end.
 
--spec delete_access(domain(), string(), #uce_access{}) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec delete_access(domain(), string(), access()) -> {ok, updated} | erlang:throw({error, not_found}).
 delete_access(Domain, Id, #uce_access{} = Access) ->
     {ok, Role} = get(Domain, Id),
     ACL = case uce_access:exists(Access, Role#uce_role.acl) of

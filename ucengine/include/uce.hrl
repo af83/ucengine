@@ -104,6 +104,7 @@
 -type presence()   :: #uce_presence{}.
 -type sid()        :: list(string()).
 -type uid()        :: list(string()).
+-type access()     :: #uce_access{}.
 
 
 -define(TIMEOUT, 5000).
