@@ -107,6 +107,7 @@
 -type role_id()    :: string().
 -type role()       :: #uce_role{}.
 -type access()     :: #uce_access{}.
+-type route()      :: #uce_route{}.
 
 
 -define(TIMEOUT, 5000).

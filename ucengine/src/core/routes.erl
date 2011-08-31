@@ -52,8 +52,8 @@ get(Method, Path, ContentType) when is_list(ContentType) ->
 route(Method, Path, Routes) ->
     route(Method, Path, "", Routes).
 
--spec route(Method :: atom(), Path :: string(), ContentType :: string(), Routes :: [#uce_route{}])
-    -> {'error', 'not_found'} | {'ok', list(atom()|string()), fun()}.
+-spec route(Method :: atom(), Path :: string(), ContentType :: string(), Routes :: [route()])
+    -> {error, not_found} | {ok, list(atom()|string()), fun()}.
 route(_, _, _, []) ->
     {error, not_found};
 route('_', Path, ContentType, [#uce_route{callback=Callback} = Route|Routes]) ->
