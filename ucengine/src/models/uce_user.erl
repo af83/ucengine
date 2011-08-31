@@ -47,7 +47,7 @@
 %
 % Public api
 %
--spec add(domain(), #uce_user{}) -> {ok, uid()} | erlang:throw({error, conflict}).
+-spec add(domain(), user()) -> {ok, uid()} | erlang:throw({error, conflict}).
 add(Domain, #uce_user{id=none} = User) ->
     add(Domain, User#uce_user{id=utils:random()});
 add(Domain, #uce_user{id=UId, name=Name} = User) ->
@@ -83,7 +83,7 @@ delete(Domain, Uid) ->
             throw({error, not_found})
     end.
 
--spec update(domain(), #uce_user{}) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec update(domain(), user()) -> {ok, updated} | erlang:throw({error, not_found}).
 update(Domain, #uce_user{id=Uid} = User) ->
     case exists(Domain, Uid) of
         true ->
@@ -98,11 +98,11 @@ update(Domain, #uce_user{id=Uid} = User) ->
             throw({error, not_found})
    end.
 
--spec list(domain()) -> {ok, list(#uce_user{})}.
+-spec list(domain()) -> {ok, list(user())}.
 list(Domain) ->
     (db:get(?MODULE, Domain)):list(Domain).
 
--spec get(domain(), uid()) -> {ok, #uce_user{}} | erlang:throw({error, not_found}).
+-spec get(domain(), uid()) -> {ok, user()} | erlang:throw({error, not_found}).
 get(Domain, Uid) ->
     case get_pid_of(Domain, Uid) of
         {error, not_found} ->
@@ -111,7 +111,7 @@ get(Domain, Uid) ->
             gen_server:call(Pid, get_user)
     end.
 
--spec get_by_name(domain(), list()) -> {ok, #uce_user{}} | erlang:throw({error, not_found}).
+-spec get_by_name(domain(), list()) -> {ok, user()} | erlang:throw({error, not_found}).
 get_by_name(Domain, Name) ->
     (db:get(?MODULE, Domain)):get_by_name(Domain, Name).
 

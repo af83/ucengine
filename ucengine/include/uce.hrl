@@ -100,6 +100,7 @@
 % Types
 -type domain()     :: list(string()).
 -type meeting_id() :: list(string()).
+-type user()       :: #uce_user{}.
 -type presence()   :: #uce_presence{}.
 -type sid()        :: list(string()).
 -type uid()        :: list(string()).
