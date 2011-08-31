@@ -34,7 +34,7 @@
 % Add presence
 % Attach a presence to the user
 %
--spec add(domain(), #uce_presence{}) -> {ok, sid()}.
+-spec add(domain(), presence()) -> {ok, sid()}.
 add(Domain, #uce_presence{id=none}=Presence) ->
     add(Domain, Presence#uce_presence{id=utils:random()});
 add(Domain, #uce_presence{last_activity=0}=Presence) ->
@@ -55,7 +55,7 @@ add(Domain, #uce_presence{id=Sid, user=Uid}=Presence) ->
 %
 % Get presence
 %
--spec get(domain(), sid()) -> {ok, #uce_presence{}} | {error, not_found}.
+-spec get(domain(), sid()) -> {ok, presence()} | {error, not_found}.
 get(Domain, Sid) ->
     call_if_proc_found(Domain, Sid, {get_presence, Sid}).
 
@@ -111,7 +111,7 @@ remove_stream(Domain, Sid) ->
 %
 % Update presence
 %
--spec update(domain(), #uce_presence{}) -> {ok, #uce_presence{}} | {error, not_found}.
+-spec update(domain(), presence()) -> {ok, presence()} | {error, not_found}.
 update(Domain, #uce_presence{id=Sid} = Presence) ->
     call_if_proc_found(Domain, Sid, {update_presence, Presence}).
 

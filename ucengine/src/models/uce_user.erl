@@ -275,7 +275,7 @@ exists_by_name(Domain, Name) ->
             true
     end.
 
--spec get_presence_by_sid(sid(), list(#uce_presence{})) -> {ok, #uce_presence{}} | {error, not_found}.
+-spec get_presence_by_sid(sid(), list(presence())) -> {ok, presence()} | {error, not_found}.
 get_presence_by_sid(_Sid, []) ->
     {error, not_found};
 get_presence_by_sid(Sid, [#uce_presence{id=Sid} = Presence|_Presences]) ->
@@ -315,7 +315,7 @@ cleanup_presence(_Domain, [], _Now) ->
 %
 % Return all presence associated to the user
 %
--spec get_all_meetings_of_user(list(#uce_presence{}), uid()) -> list(meeting_id()) | [].
+-spec get_all_meetings_of_user(list(presence()), uid()) -> list(meeting_id()) | [].
 get_all_meetings_of_user(Presences) ->
     get_all_meetings_of_user(Presences, []).
 
