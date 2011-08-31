@@ -1,8 +1,3 @@
--type domain() :: list(string()).
--type sid() :: list(string()).
--type uid() :: list(string()).
--type meeting() :: list(string()).
-
 -record(uce_event, {
           %% eventid
           id = none,
@@ -101,6 +96,13 @@
           fd,
           filename,
           uri}).
+
+% Types
+-type domain()     :: list(string()).
+-type meeting_id() :: list(string()).
+-type sid()        :: list(string()).
+-type uid()        :: list(string()).
+
 
 -define(TIMEOUT, 5000).
 

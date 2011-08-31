@@ -76,7 +76,7 @@ assert(Domain, Uid, Sid) ->
             throw({error, unauthorized})
     end.
 
--spec join(domain(), sid(), meeting()) -> {ok, updated}.
+-spec join(domain(), sid(), meeting_id()) -> {ok, updated}.
 join(Domain, Sid, Meeting) ->
     {ok, Presence} = get(Domain, Sid),
     case lists:member(Meeting, Presence#uce_presence.meetings) of
@@ -87,7 +87,7 @@ join(Domain, Sid, Meeting) ->
             update(Domain, Presence#uce_presence{meetings=Meetings})
     end.
 
--spec leave(domain(), sid(), meeting()) -> {ok, updated}.
+-spec leave(domain(), sid(), meeting_id()) -> {ok, updated}.
 leave(Domain, Sid, Meeting) ->
     {ok, Record} = get(Domain, Sid),
     Meetings = lists:delete(Meeting, Record#uce_presence.meetings),

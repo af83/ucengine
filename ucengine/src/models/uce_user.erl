@@ -312,11 +312,10 @@ cleanup_presence(_Domain, [], _Now) ->
     ok.
 
 
--spec get_all_meetings_of_user(list(#uce_presence{}), uid())
-                              -> list(meeting()) | list().
 %
 % Return all presence associated to the user
 %
+-spec get_all_meetings_of_user(list(#uce_presence{}), uid()) -> list(meeting_id()) | [].
 get_all_meetings_of_user(Presences) ->
     get_all_meetings_of_user(Presences, []).
 
