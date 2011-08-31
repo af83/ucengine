@@ -131,6 +131,7 @@ process(Host, Method, Path, Query, Arg) ->
         {ok, Match, Handlers} ->
             call_handlers(Host, Handlers, Query, Match, Arg);
         {error, not_found} ->
-            ?ERROR_MSG("~p ~p: no route found", [Method, Path]),
-            json_helpers:error(Host, not_found)
+            Description = lists:flatten(io_lib:format("~s on ~s did not match any route.", [Method, Path])),
+            ?ERROR_MSG(Description, []),
+            json_helpers:error(Host, not_found, Description)
     end.
