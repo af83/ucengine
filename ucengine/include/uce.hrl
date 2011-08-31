@@ -98,12 +98,12 @@
           uri}).
 
 % Types
--type domain()     :: list(string()).
--type meeting_id() :: list(string()).
+-type domain()     :: string().
+-type meeting_id() :: string().
 -type user()       :: #uce_user{}.
 -type presence()   :: #uce_presence{}.
--type sid()        :: list(string()).
--type uid()        :: list(string()).
+-type sid()        :: string().
+-type uid()        :: string().
 -type access()     :: #uce_access{}.
 
 
