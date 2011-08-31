@@ -33,7 +33,7 @@
 % Public api
 %
 
--spec add(domain(), #uce_role{}) -> {ok, created} | erlang:throw({error, conflict}).
+-spec add(domain(), role()) -> {ok, created} | erlang:throw({error, conflict}).
 add(Domain, #uce_role{id=Id} = Role) ->
     case exists(Domain, Id) of
         true ->
@@ -42,7 +42,7 @@ add(Domain, #uce_role{id=Id} = Role) ->
             internal_add(Domain, Role)
     end.
 
--spec update(domain(), #uce_role{}) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec update(domain(), role()) -> {ok, updated} | erlang:throw({error, not_found}).
 update(Domain, #uce_role{id=Id} = Role) ->
     case exists(Domain, Id) of
         true ->
@@ -51,7 +51,7 @@ update(Domain, #uce_role{id=Id} = Role) ->
             throw({error, not_found})
     end.
 
--spec delete(domain(), string()) -> {ok, deleted} | erlang:throw({error, not_found}).
+-spec delete(domain(), role_id()) -> {ok, deleted} | erlang:throw({error, not_found}).
 delete(Domain, Id) ->
     case exists(Domain, Id) of
         true ->
@@ -60,11 +60,11 @@ delete(Domain, Id) ->
             throw({error, not_found})
     end.
 
--spec get(domain(), string()) -> {ok, #uce_role{}} | erlang:throw({error, not_found}).
+-spec get(domain(), role_id()) -> {ok, role()} | erlang:throw({error, not_found}).
 get(Domain, Id) ->
     internal_get(Domain, Id).
 
--spec exists(domain(), string()) -> true | false | erlang:throw({error, atom()}).
+-spec exists(domain(), role_id()) -> true | false | erlang:throw({error, atom()}).
 exists(Domain, Id) ->
     case catch get(Domain, Id) of
         {error, not_found} ->
@@ -75,12 +75,12 @@ exists(Domain, Id) ->
             true
     end.
 
--spec acl(domain(), string()) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec acl(domain(), role_id()) -> {ok, updated} | erlang:throw({error, not_found}).
 acl(Domain, Id) ->
     {ok, Role} = get(Domain, Id),
     {ok, Role#uce_role.acl}.
 
--spec add_access(domain(), string(), access()) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec add_access(domain(), role_id(), access()) -> {ok, updated} | erlang:throw({error, not_found}).
 add_access(Domain, Id, #uce_access{} = Access) ->
     {ok, Role} = get(Domain, Id),
     case uce_access:exists(Access, Role#uce_role.acl) of
@@ -90,7 +90,7 @@ add_access(Domain, Id, #uce_access{} = Access) ->
             update(Domain, Role#uce_role{acl=(Role#uce_role.acl ++ [Access])})
     end.
 
--spec delete_access(domain(), string(), access()) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec delete_access(domain(), role_id(), access()) -> {ok, updated} | erlang:throw({error, not_found}).
 delete_access(Domain, Id, #uce_access{} = Access) ->
     {ok, Role} = get(Domain, Id),
     ACL = case uce_access:exists(Access, Role#uce_role.acl) of

@@ -104,6 +104,8 @@
 -type presence()   :: #uce_presence{}.
 -type sid()        :: string().
 -type uid()        :: string().
+-type role_id()    :: string().
+-type role()       :: #uce_role{}.
 -type access()     :: #uce_access{}.
 
 
