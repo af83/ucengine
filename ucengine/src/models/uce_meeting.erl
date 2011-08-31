@@ -32,6 +32,7 @@
 -include("uce.hrl").
 
 
+-spec add(domain(), meeting()) -> {ok, created} | erlang:throw({error, conflict}).
 add(Domain, #uce_meeting{id=Id} = Meeting) ->
     case exists(Domain, Id) of
         true ->
@@ -40,6 +41,7 @@ add(Domain, #uce_meeting{id=Id} = Meeting) ->
             (db:get(?MODULE, Domain)):add(Domain, Meeting)
     end.
 
+-spec delete(domain(), meeting_id()) -> {ok, deleted} | erlang:throw({error, not_found}).
 delete(Domain, Id) ->
     case exists(Domain, Id) of
         false ->
@@ -48,9 +50,11 @@ delete(Domain, Id) ->
             (db:get(?MODULE, Domain)):delete(Domain, Id)
     end.
 
+-spec get(domain(), meeting_id()) -> {ok, meeting()} | erlang:throw({error, not_found}).
 get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
+-spec update(domain(), meeting()) -> {ok, updated} | erlang:throw({error, not_found}).
 update(Domain, #uce_meeting{id=Id} = Meeting) ->
     case exists(Domain, Id) of
         false ->
@@ -59,6 +63,7 @@ update(Domain, #uce_meeting{id=Id} = Meeting) ->
             (db:get(?MODULE, Domain)):update(Domain, Meeting)
     end.
 
+-spec list(domain(), meeting_status()) -> list(meeting) | erlang:throw({error, bad_parameters}).
 list(Domain, Status) ->
     {ok, Meetings} = (db:get(?MODULE, Domain)):list(Domain),
     if
@@ -107,6 +112,7 @@ list(Domain, Status) ->
             throw({error, bad_parameters})
     end.
 
+-spec exists(domain(), meeting_id()) -> boolean().
 exists(_Domain, "") ->
     true; % root
 exists(Domain, Id) ->
@@ -119,6 +125,7 @@ exists(Domain, Id) ->
             true
     end.
 
+-spec join(domain(), meeting_id(), user()) -> {ok, updated} | erlang:throw({error, not_found}).
 join(Domain, Id, User) ->
     case uce_user:exists(Domain, User) of
         false ->
@@ -133,6 +140,7 @@ join(Domain, Id, User) ->
             end
     end.
 
+-spec leave(domain(), meeting_id(), user()) -> {ok, updated} | erlang:throw({error, not_found}).
 leave(Domain, Id, User) ->
     case uce_user:exists(Domain, User) of
         false ->
@@ -148,6 +156,7 @@ leave(Domain, Id, User) ->
             end
     end.
 
+-spec roster(domain(), meeting_id()) -> list(user()) | erlang:throw({error, not_found}).
 roster(Domain, Id) ->
     {ok, Meeting} = get(Domain, Id),
     {ok, Meeting#uce_meeting.roster}.

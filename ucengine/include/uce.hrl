@@ -98,16 +98,18 @@
           uri}).
 
 % Types
--type domain()     :: string().
--type meeting_id() :: string().
--type user()       :: #uce_user{}.
--type presence()   :: #uce_presence{}.
--type sid()        :: string().
--type uid()        :: string().
--type role_id()    :: string().
--type role()       :: #uce_role{}.
--type access()     :: #uce_access{}.
--type route()      :: #uce_route{}.
+-type domain()         :: string().
+-type meeting_id()     :: string().
+-type meeting()        :: #uce_meeting{}.
+-type meeting_status() :: string(). %"all" | "upcoming" | "opened" | "closed"
+-type user()           :: #uce_user{}.
+-type presence()       :: #uce_presence{}.
+-type sid()            :: string().
+-type uid()            :: string().
+-type role_id()        :: string().
+-type role()           :: #uce_role{}.
+-type access()         :: #uce_access{}.
+-type route()          :: #uce_route{}.
 
 
 -define(TIMEOUT, 5000).
