@@ -23,6 +23,7 @@
 
 -include("uce.hrl").
 
+-spec add(domain(), event()) -> {ok, event_id()} | erlang:throw({error, not_found}).
 add(Domain, #uce_event{id=none}=Event) ->
     add(Domain, Event#uce_event{id=utils:random()});
 add(Domain, #uce_event{datetime=undefined}=Event) ->
@@ -43,9 +44,11 @@ add(Domain, #uce_event{location=Location, to=To, parent=Parent} = Event) ->
             throw({error, not_found})
     end.
 
+-spec get(domain(), event_id()) -> {ok, event()} | erlang:throw({error, bad_parameters}).
 get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
+-spec exists(domain(), event_id()) -> boolean().
 exists(_Domain, "") ->
     true;
 exists(Domain, Id) ->
@@ -58,6 +61,7 @@ exists(Domain, Id) ->
             true
     end.
 
+-spec filter_private(list(event()), uid()) -> list(event()).
 filter_private(Events, Name) ->
     lists:filter(fun(#uce_event{to=To, from=From}) ->
                          if
@@ -73,6 +77,18 @@ filter_private(Events, Name) ->
                  end,
                  Events).
 
+-spec search(Domain    :: domain(),
+             Location  :: meeting_id(),
+             Search    :: string(),
+             From      :: uid(),
+             Types     :: string(),
+             Uid       :: uid(),
+             DateStart :: timestamp(),
+             DateEnd   :: timestamp(),
+             Parent    :: event_id(),
+             Start     :: integer(),
+             Max       :: integer(),
+             Order     :: string()) -> {ok, integer(), list(event())}.
 search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
     {ok, NumTotal, Events} = ?SEARCH_MODULE:list(Domain,
                                                  Location,

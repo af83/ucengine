@@ -102,6 +102,8 @@
 -type meeting_id()     :: string().
 -type meeting()        :: #uce_meeting{}.
 -type meeting_status() :: string(). %"all" | "upcoming" | "opened" | "closed"
+-type event_id()       :: string().
+-type event()          :: #uce_event{}.
 -type user()           :: #uce_user{}.
 -type presence()       :: #uce_presence{}.
 -type sid()            :: string().
@@ -110,6 +112,7 @@
 -type role()           :: #uce_role{}.
 -type access()         :: #uce_access{}.
 -type route()          :: #uce_route{}.
+-type timestamp()      :: integer().
 
 
 -define(TIMEOUT, 5000).
