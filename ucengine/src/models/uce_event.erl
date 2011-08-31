@@ -19,7 +19,7 @@
 
 -author('tbomandouki@af83.com').
 
--export([add/2, get/2, exists/2, list/8, list/12, search/12]).
+-export([add/2, get/2, exists/2, assert_exists/2, list/8, list/12, search/12]).
 
 -include("uce.hrl").
 
@@ -52,13 +52,21 @@ get(Domain, Id) ->
 exists(_Domain, "") ->
     true;
 exists(Domain, Id) ->
-    case catch get(Domain, Id) of
-        {error, not_found} ->
-            false;
-        {error, Reason} ->
-            throw({error, Reason});
-        _ ->
+    try get(Domain, Id) of
+        {ok, _Event} ->
             true
+    catch
+        {error, not_found} ->
+            false
+    end.
+
+-spec assert_exists(domain(), event_id()) -> ok | erlang:throw({error, not_found}).
+assert_exists(Domain, Id) ->
+    case exists(Domain, Id) of
+        true ->
+            ok;
+        false ->
+            throw({error, not_found})
     end.
 
 -spec filter_private(list(event()), uid()) -> list(event()).
