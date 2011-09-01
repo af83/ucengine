@@ -49,6 +49,7 @@ init([YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvent
     send_events(YawsPid, Domain, PreviousEvents),
     ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
     uce_presence:add_stream(Domain, Sid),
+    ping(),
     {ok, {YawsPid,
           Domain,
           Search,
@@ -71,6 +72,10 @@ handle_info({event, Event}, {YawsPid, Domain, Search, _Sid} = State) ->
             send_events(YawsPid, Domain, [Event])
     end,
     {noreply, State};
+handle_info(ping, {YawsPid, _Domain, _Search, _Sid} = State) ->
+    yaws_api:stream_chunk_deliver(YawsPid, ":\n\n"),
+    ping(),
+    {noreply, State};
 handle_info(Event, State) ->
     ?ERROR_MSG("unexpected ~p", [Event]),
     {noreply, State}.
@@ -83,6 +88,10 @@ terminate(_Reason, {_, Domain, _, Sid}) ->
 %
 % Private API
 %
+
+ping() ->
+    %% Send a PING command every 15s
+    erlang:send_after(15000, self(), ping).
 
 send_events(_, _, []) ->
     ok;
