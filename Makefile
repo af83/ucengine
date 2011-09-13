@@ -57,6 +57,7 @@ mnesia_tests: dev
 
 mongodb_tests: dev
 	sed -i  's/db, mnesia/db, mongodb/' rel/ucengine/etc/uce.cfg
+	sed -i  's/database, "ucengine"}/database, "ucengine_test"},{index, 0}/' rel/ucengine/etc/uce.cfg
 	rel/ucengine/bin/ucengine-admin tests
 	./rebar skip_deps=true eunit
 

@@ -24,9 +24,11 @@
 -include("uce.hrl").
 -include("mongodb.hrl").
 
-create_indexes(Domain) ->
+create_indexes(0, _Domain) ->
+    ok;
+create_indexes(1, Domain) ->
     Modules = [uce_event_mongodb, uce_user_mongodb, uce_role_mongodb],
-    [ Module:index(Domain) || Module <- Modules].
+    [Module:index(Domain) || Module <- Modules].
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list, MongoPoolInfos::list) -> any()
@@ -35,13 +37,14 @@ create_indexes(Domain) ->
 %%--------------------------------------------------------------------
 init(Domain, MongoPoolInfos) ->
     catch application:start(emongo),
-    [Size, Host, Port, Name] = utils:get_values(MongoPoolInfos,
+    [Size, Host, Port, Name, Index] = utils:get_values(MongoPoolInfos,
                                                 [{size, "1"},
                                                  {host, "localhost"},
                                                  {port, ?DEFAULT_MONGODB_PORT},
-                                                 {database, ?DEFAULT_MONGODB_NAME}]),
+                                                 {database, ?DEFAULT_MONGODB_NAME},
+                                                 {index, 1}]),
     emongo:add_pool(Domain, Host, Port, Name, Size),
-    create_indexes(Domain).
+    create_indexes(Index, Domain).
 
 %%--------------------------------------------------------------------
 %% @spec () -> any()
@@ -61,4 +64,3 @@ drop() ->
 %%--------------------------------------------------------------------
 terminate() ->
     ok.
-
