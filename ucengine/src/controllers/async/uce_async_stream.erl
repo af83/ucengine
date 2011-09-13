@@ -17,7 +17,7 @@
 %%
 -module(uce_async_stream).
 
--export([wait/8]).
+-export([wait/9]).
 
 -include("uce.hrl").
 
@@ -34,20 +34,20 @@
 % Public API
 %
 
-wait(Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
+wait(Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
     YawsPid = self(),
-    {ok, _Pid} = gen_server:start_link(?MODULE, [YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents], []),
+    {ok, _Pid} = gen_server:start_link(?MODULE, [YawsPid, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents], []),
     {streamcontent_with_timeout, "text/event-stream", <<>>, infinity}.
 
 %
 % gen_server callbacks
 %
 
-init([YawsPid, Domain, Location, Search, From, Types, Parent, Sid, PreviousEvents]) ->
+init([YawsPid, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents]) ->
     process_flag(trap_exit, true),
     link(YawsPid),
     send_events(YawsPid, Domain, PreviousEvents),
-    ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
+    ?PUBSUB_MODULE:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
     uce_presence:add_stream(Domain, Sid),
     ping(),
     {ok, {YawsPid,

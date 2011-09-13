@@ -184,6 +184,7 @@ live(Domain, [Meeting],
     case Mode of
         "longpolling" ->
             uce_async_lp:wait(Domain,
+                              Uid,
                               Meeting,
                               Keywords,
                               From,
@@ -192,6 +193,7 @@ live(Domain, [Meeting],
                               PreviousEvents);
         "eventsource" ->
             uce_async_stream:wait(Domain,
+                                  Uid,
                                   Meeting,
                                   Keywords,
                                   From,

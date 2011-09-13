@@ -85,7 +85,9 @@ event_test_() ->
                  ?_test(test_get_with_type_and_timeend(BaseUrl, Root)),
                  ?_test(test_last(BaseUrl, Root)),
                  ?_test(test_long_polling(BaseUrl, Root)),
-                 ?_test(test_long_polling_with_types(BaseUrl, Root))
+                 ?_test(test_long_polling_with_types(BaseUrl, Root)),
+                 ?_test(test_long_polling_with_to(BaseUrl, Root, Participant)),
+                 ?_test(test_long_polling_with_to_and_participant(BaseUrl, Root, Participant))
                 ]
         end}.
 
@@ -104,14 +106,15 @@ event_timeout_test_() ->
                 config:set(connection_timeout, PreviousTimeout),
                 fixtures:teardown([Domain, BaseUrl, Testers])
         end
-      , fun([Domain, BaseUrl, [Root|_], _]) ->
+      , fun([Domain, BaseUrl, [Root, Participant, Ugly|_], _]) ->
                 [
                  {timeout, 40, ?_test(test_long_polling_with_from(BaseUrl, Root))},
                  {timeout, 40, ?_test(test_long_polling_with_other_from(BaseUrl, Root))},
                  {timeout, 40, ?_test(test_long_polling_with_parent(Domain, BaseUrl, Root))},
                  {timeout, 40, ?_test(test_long_polling_with_other_parent(BaseUrl, Root))},
                  {timeout, 40, ?_test(test_long_polling_with_search(BaseUrl, Root))},
-                 {timeout, 40, ?_test(test_long_polling_with_other_search(BaseUrl, Root))}
+                 {timeout, 40, ?_test(test_long_polling_with_other_search(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_to_and_other_participant(BaseUrl, Root, Participant, Ugly))}
                 ]
         end}.
 
@@ -793,6 +796,20 @@ assert_long_polling(BaseUrl, AuthParams = {RootUid, _RootSid}, Params) ->
                                      , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
                                     ]}]}}]} = Result.
 
+assert_long_polling_to(BaseUrl, AuthParams, Params, From, To) ->
+    Now = utils:now(),
+    Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
+    {struct, [{"result", {array,
+                          [{struct, [{"type", "long_polling_event"}
+                                     , {"domain", _}
+                                     , {"datetime", _Datetime}
+                                     , {"id", _}
+                                     , {"location", "testmeeting"}
+                                     , {"to", To}
+                                     , {"from", From}
+                                     , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
+                                    ]}]}}]} = Result.
+
 assert_long_polling_parent(BaseUrl, AuthParams = {RootUid, _RootSid}, Params, Parent) ->
     Now = utils:now(),
     Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
@@ -848,3 +865,15 @@ test_long_polling_with_search(BaseUrl, AuthParams) ->
 test_long_polling_with_other_search(BaseUrl, AuthParams) ->
     spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
     assert_no_result_long_polling(BaseUrl, AuthParams, [{"search", "plop"}]).
+
+test_long_polling_with_to(BaseUrl, {RootUid, _} = RootAuthParams, {ParticipantUid, _ParticipantSid} = _ParticipantAuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, RootAuthParams, [{"to", ParticipantUid}]]),
+    assert_long_polling_to(BaseUrl, RootAuthParams, [{"type", "long_polling_event"}], RootUid, ParticipantUid).
+
+test_long_polling_with_to_and_participant(BaseUrl, {RootUid, _} = RootAuthParams, {ParticipantUid, _} = ParticipantAuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, RootAuthParams, [{"to", ParticipantUid}]]),
+    assert_long_polling_to(BaseUrl, ParticipantAuthParams, [{"type", "long_polling_event"}], RootUid, ParticipantUid).
+
+test_long_polling_with_to_and_other_participant(BaseUrl, RootAuthParams, ParticipantAuthParams, {OtherUid, _}) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, RootAuthParams, [{"to", OtherUid}]]),
+    assert_no_result_long_polling(BaseUrl, ParticipantAuthParams, [{"type", "long_polling_event"}]).

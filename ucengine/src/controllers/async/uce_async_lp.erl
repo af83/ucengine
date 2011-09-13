@@ -17,21 +17,21 @@
 %%
 -module(uce_async_lp).
 
--export([wait/7]).
+-export([wait/8]).
 
 -include("uce.hrl").
 
-wait(Domain, Location, Search, From, Types, Parent, []) ->
+wait(Domain, Uid, Location, Search, From, Types, Parent, []) ->
     Self = self(),
     spawn(fun() ->
-                  ?PUBSUB_MODULE:subscribe(self(), Domain, Location, From, Types, Parent),
+                  ?PUBSUB_MODULE:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
                   {ok, Event} = uce_async:listen(Domain,
-                                                  Location,
-                                                  Search,
-                                                  From,
-                                                  Types,
-                                                  Parent,
-                                                  (config:get(connection_timeout) * 1000)),
+                                                 Location,
+                                                 Search,
+                                                 From,
+                                                 Types,
+                                                 Parent,
+                                                 (config:get(connection_timeout) * 1000)),
                   Event2 = case Event of
                                [] ->
                                    [];
@@ -46,5 +46,5 @@ wait(Domain, Location, Search, From, Types, Parent, []) ->
                   ?PUBSUB_MODULE:unsubscribe(self())
           end),
     {streamcontent_with_timeout, "application/json", <<>>, infinity};
-wait(Domain, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
+wait(Domain, _Uid, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
     json_helpers:json(Domain, PreviousEvents).

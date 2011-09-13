@@ -24,7 +24,7 @@
 -export([init/1,
          start_link/0,
          publish/2,
-         subscribe/6,
+         subscribe/7,
          unsubscribe/1,
          handle_call/3,
          handle_cast/2,
@@ -34,7 +34,7 @@
 
 -include("uce.hrl").
 
--record(uce_mnesia_pubsub, {pid, domain, location, type, from, parent}).
+-record(uce_mnesia_pubsub, {pid, domain, uid, location, type, from, parent}).
 
 start_link() ->
     gen_server:start_link({local, ?MODULE}, ?MODULE, [], []).
@@ -50,12 +50,13 @@ publish(Domain, #uce_event{location=Location, type=Type} = Event) ->
             gen_server:cast(?MODULE, {publish, Domain, Location, Type, Event})
     end.
 
-subscribe(Pid, Domain, Location, From, "", Parent) ->
-    subscribe(Pid, Domain, Location, From, [""], Parent);
-subscribe(Pid, Domain, Location, From, Types, Parent) ->
+subscribe(Pid, Domain, Uid, Location, From, "", Parent) ->
+    subscribe(Pid, Domain, Uid, Location, From, [""], Parent);
+subscribe(Pid, Domain, Uid, Location, From, Types, Parent) ->
     ?COUNTER('pubsub:suscribe'),
     [gen_server:cast(?MODULE, {subscribe,
                                Domain,
+                               Uid,
                                Location,
                                From,
                                Type,
@@ -80,14 +81,15 @@ init([]) ->
 handle_call(_Type, _From, State) ->
     {reply, error, State}.
 
-handle_cast({publish, Domain, Location, Type, #uce_event{from=From, parent=Parent} = Event}, State) ->
-    Subscribers = get_subscribers(Domain, Location, Type, From, Parent),
+handle_cast({publish, Domain, Location, Type, #uce_event{from=From, parent=Parent, to=To} = Event}, State) ->
+    Subscribers = get_subscribers(Domain, Location, Type, From, Parent, To),
     [Subscriber#uce_mnesia_pubsub.pid ! {event, Event} || Subscriber <- Subscribers],
     {noreply, State};
-handle_cast({subscribe, Domain, Location, From, Type, Parent, Pid}, State) ->
+handle_cast({subscribe, Domain, Uid, Location, From, Type, Parent, Pid}, State) ->
     mnesia:transaction(fun() ->
                                mnesia:write(#uce_mnesia_pubsub{pid=Pid,
                                                                domain=Domain,
+                                                               uid=Uid,
                                                                location=Location,
                                                                type=Type,
                                                                from=From,
@@ -113,9 +115,10 @@ terminate(_Reason, _State) ->
 % Private functions
 %
 
-get_subscribers(Domain, Location, Type, From, Parent) ->
+get_subscribers(Domain, Location, Type, From, Parent, To) ->
     Transaction = fun() ->
                           Query = qlc:q([Subscriber || #uce_mnesia_pubsub{domain=SubscribedDomain,
+                                                                          uid=SubscribedUid,
                                                                           location=SubscribedLocation,
                                                                           type=SubscribedType,
                                                                           from=SubscribedFrom,
@@ -125,7 +128,8 @@ get_subscribers(Domain, Location, Type, From, Parent) ->
                                                 (SubscribedLocation == Location) andalso
                                                 ((SubscribedType == Type) or (SubscribedType == "")) andalso
                                                 ((SubscribedFrom == From) or (SubscribedFrom == "")) andalso
-                                                ((SubscribedParent == Parent) or (SubscribedParent == ""))
+                                                ((SubscribedParent == Parent) or (SubscribedParent == "")) andalso
+                                                ((To == "") or (To == SubscribedUid) or (From == SubscribedUid))
                                         ]),
                           qlc:eval(Query)
                   end,
