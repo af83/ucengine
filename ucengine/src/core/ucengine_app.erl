@@ -41,7 +41,8 @@ start(_, _) ->
 
     Arguments = init:get_arguments(),
     [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),
-    case uce_sup:start_link(ConfigurationPath) of
+    ok = config:init(ConfigurationPath),
+    case uce_sup:start_link() of
         {ok, Pid} ->
             setup(),
             {ok, Pid};

@@ -21,30 +21,65 @@
 
 -include("uce.hrl").
 
--behaviour(gen_server).
-
--export([start_link/1,
+-export([init/1,
          get/1,
          get/2,
          set/2,
          set/3]).
 
--export([init/1,
-         code_change/3,
-         handle_call/3,
-         handle_cast/2,
-         handle_info/2,
-         terminate/2]).
-
-
-start_link(Path) ->
+%%
+%% Init the config module with path to the config file
+%%
+init(Path) ->
     case file:consult(Path) of
-        {ok, Configs} ->
-            {ok, _Pid} = gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []);
+        {ok, Config} ->
+            init2(Config),
+            ok;
         {error, Reason} ->
             ?ERROR_MSG("config file error: ~p~n", [Reason]),
-            {error, Reason}
+            error
     end.
+
+%%
+%% Get a global config value
+%%
+get(Key) ->
+    get(global, Key).
+
+%%
+%% Get a config value for the specified host
+%%
+get(Domain, Key) ->
+    case ets:lookup(uce_config, {Domain, Key}) of
+        [{{Domain, Key}, Value}] ->
+            Value;
+        _ ->
+            undefined
+    end.
+
+%%
+%% Set a global config value
+%%
+set(Key, Value) ->
+    set(global, Key, Value).
+
+%%
+%% Set a config value for the specified host
+%%
+set(Domain, Key, Value) ->
+    ets:insert(uce_config, {{Domain, Key}, Value}).
+
+%
+% Private functions
+%
+
+init2(Config) ->
+    DB = ets:new(uce_config, [set, public, {keypos, 1}, named_table]),
+    Hosts = proplists:get_value(hosts, Config),
+    lists:foreach(fun({Domain, HostConfig}) ->
+                          insert_in(Domain, merge(HostConfig, Config), DB)
+                  end, Hosts),
+    insert_in(global, Config, DB).
 
 merge(Config, Default) ->
     Config ++ merge_keys(Config, Default).
@@ -59,55 +94,10 @@ merge_keys(Config, [{Key, Value}|R]) ->
             merge_keys(Config, R)
     end.
 
-get(Key) ->
-    get(global, Key).
-
-get(Domain, Key) ->
-    gen_server:call(?MODULE, {get, Domain, Key}).
-
-set(Key, Value) ->
-    set(global, Key, Value).
-
-set(Domain, Key, Value) ->
-    gen_server:call(?MODULE, {set, Domain, Key, Value}).
-
-init([UCEConfig]) ->
-    DB = ets:new(uce_config, [set, private, {keypos, 1}]),
-    Hosts = proplists:get_value(hosts, UCEConfig),
-    lists:foreach(fun({Domain, HostConfig}) ->
-                          insert_in(Domain, merge(HostConfig, UCEConfig), DB)
-                  end, Hosts),
-    insert_in(global, UCEConfig, DB),
-    {ok, DB}.
-
 insert_in(Domain, Config, DB) ->
     lists:foreach(fun({Key, Value}) ->
                           ets:insert(DB, {{Domain, Key}, Value})
                   end, Config).
-
-handle_call({get, Domain, Key}, _From, DB) ->
-    Reply = case ets:lookup(DB, {Domain, Key}) of
-                [{{Domain, Key}, Value}] ->
-                    Value;
-                _ ->
-                    undefined
-            end,
-    {reply, Reply, DB};
-handle_call({set, Domain, Key, Value}, _From, DB) ->
-    ets:insert(DB, {{Domain, Key}, Value}),
-    {reply, ok, DB}.
-
-handle_cast(_, DB) ->
-    {noreply, DB}.
-
-handle_info(_Info, State) ->
-    {reply, State}.
-
-code_change(_,State,_) ->
-    {ok, State}.
-
-terminate(_Reason, _State) ->
-    ok.
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").
@@ -129,7 +119,7 @@ config_test() ->
                {wwwroot, "/var/www"},
                {hosts, [{"localhost", [{bricks, [{"translation", "1"}]}]},
                         {"example.com", [{data, "/var/spool"}]}]}],
-    gen_server:start_link({local, ?MODULE}, ?MODULE, [Configs], []),
+    init2(Configs),
     ?assertEqual([{"translation", "1"}], config:get("localhost", bricks)),
     ?assertEqual([{"erlyvideo", "2"}], config:get("example.com", bricks)),
     ?assertEqual("/var/www", config:get(wwwroot)).
