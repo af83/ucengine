@@ -70,13 +70,11 @@ embedded_start_conf(DocRoot, SL, GL, Id)
                   [Cnf|_] when is_list(Cnf) ->
                       [[yaws:create_sconf(DocRoot, SLItem)] || SLItem <- SL]
               end,
-    SoapChild = yaws_config:add_yaws_soap_srv(GC, false),
-
     %% In case a server is started before any configuration has been set,
     %% this makes it possible to get hold of the 'pending' configuration.
     %% (see for example the start of the yaws_session_server)
     ok = application:set_env(yaws, embedded_conf, [{sclist,SCList},{gc,GC}]),
-    {ok, SCList, GC, ChildSpecs ++ SoapChild}.
+    {ok, SCList, GC, ChildSpecs}.
 
 child_specs() ->
     YawsLog = {yaws_log, {yaws_log, start_link, []},
