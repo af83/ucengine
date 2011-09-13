@@ -17,8 +17,6 @@
 %%
 -module(password_auth).
 
--author('victor.goya@af83.com').
-
 -include("uce.hrl").
 
 -export([assert/2, check/2]).

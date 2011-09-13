@@ -17,8 +17,6 @@
 %%
 -module(uce_paginate).
 
--author('victor.goya@af83.com').
-
 -export([index/3, sort/2, paginate/3]).
 
 index(Count, Index, Page) ->

@@ -17,8 +17,6 @@
 %%
 -module(gen_uce_meeting).
 
--author('victor.goya@af83.com').
-
 -export([behaviour_info/1]).
 
 behaviour_info(callbacks) ->

@@ -17,8 +17,6 @@
 %%
 -module(uce_file).
 
--author('victor.goya@af83.com').
-
 -export([add/2, list/3, get/2, delete/2]).
 
 -include("uce.hrl").

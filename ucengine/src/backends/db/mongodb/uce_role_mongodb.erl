@@ -17,8 +17,6 @@
 %%
 -module(uce_role_mongodb).
 
--author('victor.goya@af83.com').
-
 -behaviour(gen_uce_role).
 
 -export([add/2,

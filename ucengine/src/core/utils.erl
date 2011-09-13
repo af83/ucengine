@@ -17,8 +17,6 @@
 %%
 -module(utils).
 
--author('tbomandouki@af83.com').
-
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 

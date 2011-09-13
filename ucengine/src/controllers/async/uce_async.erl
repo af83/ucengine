@@ -17,8 +17,6 @@
 %%
 -module(uce_async).
 
--author('victor.goya@af83.com').
-
 -export([listen/7, filter/2]).
 
 -include("uce.hrl").

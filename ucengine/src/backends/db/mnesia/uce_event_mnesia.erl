@@ -17,8 +17,6 @@
 %%
 -module(uce_event_mnesia).
 
--author('victor.goya@af83.com').
-
 -behaviour(gen_uce_event).
 
 -export([init/0, drop/0]).

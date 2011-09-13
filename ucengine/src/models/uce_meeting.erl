@@ -17,8 +17,6 @@
 %%
 -module(uce_meeting).
 
--author('victor.goya@af83.com').
-
 -export([add/2,
          delete/2,
          update/2,

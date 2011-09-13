@@ -19,8 +19,6 @@
 
 -behaviour(gen_server).
 
--author('victor.goya@af83.com').
-
 -include("uce.hrl").
 
 -export([start_link/0]).

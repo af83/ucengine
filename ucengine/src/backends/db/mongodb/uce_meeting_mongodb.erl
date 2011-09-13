@@ -17,8 +17,6 @@
 %%
 -module(uce_meeting_mongodb).
 
--author('victor.goya@af83.com').
-
 -behaviour(gen_uce_meeting).
 
 -export([add/2,

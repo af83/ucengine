@@ -19,8 +19,6 @@
 
 -include("uce.hrl").
 
--author('victor.goya@af83.com').
-
 -export([to_bson/1, ok/1, updated/1, collection_to_list/1]).
 
 -include_lib("eunit/include/eunit.hrl").

@@ -17,8 +17,6 @@
 %%
 -module(uce_event_solr_search).
 
--author('thierry.bomandouki@af83.com').
-
 -export([add/2, commit/0, list/11, delete/2]).
 
 -include("uce.hrl").

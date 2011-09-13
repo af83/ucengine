@@ -17,8 +17,6 @@
 %%
 -module(uce_http).
 
--author('victor.goya@af83.com').
-
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 

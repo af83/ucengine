@@ -17,8 +17,6 @@
 %%
 -module(uce_user_mnesia).
 
--author('victor.goya@af83.com').
-
 -export([init/0, drop/0]).
 
 -export([add/2,

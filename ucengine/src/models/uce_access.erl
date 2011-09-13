@@ -17,8 +17,6 @@
 %%
 -module(uce_access).
 
--author('victor.goya@af83.com').
-
 -export([exists/2,
          delete/2,
          assert/5,

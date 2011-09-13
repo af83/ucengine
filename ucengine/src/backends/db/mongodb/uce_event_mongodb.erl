@@ -17,8 +17,6 @@
 %%
 -module(uce_event_mongodb).
 
--author('victor.goya@af83.com').
-
 -behaviour(gen_uce_event).
 
 -export([add/2,

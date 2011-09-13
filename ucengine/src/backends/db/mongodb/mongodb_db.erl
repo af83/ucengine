@@ -17,8 +17,6 @@
 %%
 -module(mongodb_db).
 
--author('victor.goya@af83.com').
-
 -export([init/2,
          drop/0,
          terminate/0]).

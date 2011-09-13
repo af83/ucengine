@@ -17,8 +17,6 @@
 %%
 -module(config).
 
--author("victor.goya@af83.com").
-
 -include("uce.hrl").
 
 -export([init/1,

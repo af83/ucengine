@@ -17,8 +17,6 @@
 %%
 -module(event_helpers).
 
--author('victor.goya@af83.com').
-
 -include("uce.hrl").
 
 -export([sort/1, sort/2]).

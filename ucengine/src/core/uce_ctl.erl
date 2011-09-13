@@ -17,8 +17,6 @@
 %%
 -module(uce_ctl).
 
--author('victor.goya@af83.com').
-
 -export([start/0, stop/0, cmd/2]).
 
 -export([infos/3, meeting/4, user/3, user/4, user/5, user/6, role/4, role/7, time/2]).

@@ -21,8 +21,6 @@
 -include_lib("stdlib/include/qlc.hrl").
 -include("uce.hrl").
 
--author('victor.goya@af83.com').
-
 -behaviour(gen_uce_file).
 
 -export([init/0, drop/0]).

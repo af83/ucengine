@@ -17,8 +17,6 @@
 %%
 -module(uce_event).
 
--author('tbomandouki@af83.com').
-
 -export([add/2, get/2, exists/2, assert_exists/2, list/8, list/12, search/12]).
 
 -include("uce.hrl").
