@@ -21,13 +21,10 @@
 
 -export([start/0]).
 
-
 %% application callback
 -export([start/2, stop/1]).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws.hrl").
-
 
 start() ->
     application:start(ucengine).
@@ -66,7 +63,6 @@ setup() ->
     save_pid(),
     setup_search(),
     setup_routes(),
-    setup_server(),
     ok.
 
 stop(State) ->
@@ -86,32 +82,6 @@ setup_search() ->
 
 setup_routes() ->
     routes:init().
-
-setup_server() ->
-    [{DefaultHost, _Config}|Hosts] = config:get(hosts),
-    yaws:start_embedded(config:get(DefaultHost, wwwroot),
-                        [{servername, DefaultHost},
-                         {listen, config:get(bind_ip)},
-                         {port, config:get(port)},
-                         {access_log, true},
-                         {partial_post_size, nolimit},
-                         {opaque, DefaultHost},
-                         {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}],
-                        [{flags, [{auth_log, false},
-                                  {copy_errlog, false},
-                                  {pick_first_virthost_on_nomatch, false},
-                                  {debug, false}
-                                 ]},
-                         {logdir, config:get(log_dir)},
-                         {cache_refresh_secs, config:get(cache_refresh)}]),
-    lists:foreach(fun({Vhost, _}) ->
-                          yaws:add_server(config:get(Vhost, wwwroot),
-                                          [{servername, Vhost},
-                                           {listen, config:get(bind_ip)},
-                                           {port, config:get(port)},
-                                           {opaque, Vhost},
-                                           {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}])
-                  end, Hosts).
 
 save_pid() ->
     Pid = os:getpid(),
