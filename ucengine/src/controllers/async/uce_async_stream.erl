@@ -47,7 +47,7 @@ init([YawsPid, Domain, Uid, Location, Search, From, Types, Parent, Sid, Previous
     process_flag(trap_exit, true),
     link(YawsPid),
     send_events(YawsPid, Domain, PreviousEvents),
-    ?PUBSUB_MODULE:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
+    uce_meeting:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
     uce_presence:add_stream(Domain, Sid),
     ping(),
     {ok, {YawsPid,
@@ -81,7 +81,7 @@ handle_info(Event, State) ->
     {noreply, State}.
 
 terminate(_Reason, {_, Domain, _, Sid}) ->
-    ?PUBSUB_MODULE:unsubscribe(self()),
+    uce_meeting:unsubscribe(self()),
     uce_presence:remove_stream(Domain, Sid),
     ok.
 

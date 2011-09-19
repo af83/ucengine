@@ -24,7 +24,7 @@
 wait(Domain, Uid, Location, Search, From, Types, Parent, []) ->
     Self = self(),
     spawn(fun() ->
-                  ?PUBSUB_MODULE:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
+                  uce_meeting:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
                   {ok, Event} = uce_async:listen(Domain,
                                                  Location,
                                                  Search,
@@ -43,7 +43,7 @@ wait(Domain, Uid, Location, Search, From, Types, Parent, []) ->
                                                    json_helpers:to_json(Domain, Event2)}]}),
                   yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents)),
                   yaws_api:stream_chunk_end(Self),
-                  ?PUBSUB_MODULE:unsubscribe(self())
+                  uce_meeting:unsubscribe(self())
           end),
     {streamcontent_with_timeout, "application/json", <<>>, infinity};
 wait(Domain, _Uid, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->

@@ -25,7 +25,10 @@
          join/3,
          leave/3,
          roster/2,
-         exists/2]).
+         exists/2,
+         publish/2,
+         subscribe/7,
+         unsubscribe/1]).
 
 -include("uce.hrl").
 
@@ -159,3 +162,12 @@ roster(Domain, Id) ->
     {ok, Meeting} = get(Domain, Id),
     {ok, Meeting#uce_meeting.roster}.
 
+
+publish(Domain, Event) ->
+    ?PUBSUB_MODULE:publish(Domain, Event).
+
+subscribe(Pid, Domain, Uid, Location, From, Types, Parent) ->
+    ?PUBSUB_MODULE:subscribe(Pid, Domain, Uid, Location, From, Types, Parent).
+
+unsubscribe(Pid) ->
+    ?PUBSUB_MODULE:unsubscribe(Pid).
