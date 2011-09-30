@@ -17,12 +17,18 @@
 %%
 -module(user_controller).
 
--export([init/0, add/4, update/4, get/4, find/4, list/4, delete/4, check_access/4, add_role/4, delete_role/4]).
+-export([init/0, add/4, add2/4, update/4, update2/4, get/4, find/4, list/4, delete/4, check_access/4, add_role/4, delete_role/4]).
 
 -include("uce.hrl").
+-include_lib("yaws/include/yaws_api.hrl").
 
 init() ->
     [#uce_route{method='POST',
+                content_type="application/json",
+                path=["user"],
+                callback={?MODULE, add2, []}},
+
+     #uce_route{method='POST',
                 path=["user"],
                 callback={?MODULE, add,
                           [{"name", required, string},
@@ -49,6 +55,11 @@ init() ->
                            {"sid", required, string},
                            {"by_name", "", string},
                            {"by_uid", "", string}]}},
+
+     #uce_route{method='PUT',
+                path=["user", id],
+                content_type="application/json",
+                callback={?MODULE, update2, []}},
 
      #uce_route{method='PUT',
                 path=["user", id],
@@ -89,6 +100,7 @@ init() ->
 
 
 add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
+    % [FIXME] Where is the assert?
     {ok, UId} = uce_user:add(Domain, #uce_user{id=none,
                                                name=Name,
                                                auth=Auth,
@@ -101,6 +113,28 @@ add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
                                                type="internal.user.add"}),
 
     json_helpers:created(Domain, UId).
+
+add2(Domain, [], [], Arg) ->
+    % [FIXME] Where is the assert?
+    {struct, Json} = mochijson:decode(Arg#arg.clidata),
+    Name       = proplists:get_value("metadata", Json),
+    Auth       = proplists:get_value("auth", Json),
+    Credential = proplists:get_value("credential", Json),
+    Metadata   = proplists:get_value("metadata", Json),
+    {ok, UId} = uce_user:add(Domain, #uce_user{id=none,
+                                               name=Name,
+                                               auth=Auth,
+                                               credential=Credential,
+                                               metadata=json_helpers:to_struct(Metadata)}),
+
+    {ok, _} = uce_event:add(Domain, #uce_event{id=none,
+                                               from=UId,
+                                               location="",
+                                               type="internal.user.add"}),
+
+    json_helpers:created(Domain, UId).
+
+
 
 list(Domain, [], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
@@ -146,6 +180,33 @@ update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
                                        type="internal.user.update"}),
 
     json_helpers:ok(Domain).
+
+update2(Domain, [{id, Id}], [], Arg) ->
+    {struct, Json} = mochijson:decode(Arg#arg.clidata),
+    Uid = proplists:get_value("uid", Json),
+    Sid = proplists:get_value("sid", Json),
+    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    % [TODO] remove auth
+    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "update",
+        [ {"user", Id}, {"auth", ""} ]),
+    {ok, Record} = uce_user:get(Domain, Id),
+    Auth       = proplists:get_value("auth", Json, Record#uce_user.auth),
+    Credential = proplists:get_value("credential", Json, Record#uce_user.credential),
+    Metadata   = proplists:get_value("metadata", Json, Record#uce_user.metadata),
+    Name       = proplists:get_value("metadata", Json, Record#uce_user.name),
+    {ok, updated} = uce_user:update(Domain, Record#uce_user{name=Name,
+                                                            auth=Auth,
+                                                            credential=Credential,
+                                                            metadata=json_helpers:to_struct(Metadata)}),
+
+    {ok, _} = uce_event:add(Domain,
+                            #uce_event{id=none,
+                                       from=Id,
+                                       location="",
+                                       type="internal.user.update"}),
+
+    json_helpers:ok(Domain).
+
 
 delete(Domain, [{id, Id}], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
