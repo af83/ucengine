@@ -82,7 +82,7 @@ add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
                                                  metadata=json_helpers:to_struct(Metadata)}),
     {ok, _} = uce_event:add(Domain, #uce_event{id=none,
                                                from=Uid,
-                                               location="",
+                                               location=Name,
                                                type="internal.meeting.add"}),
     json_helpers:created(Domain).
 
