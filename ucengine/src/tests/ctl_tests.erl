@@ -74,17 +74,6 @@ ctl_roles_test_() ->
         end
     }.
 
-ctl_infos_test_() ->
-    { setup
-      , fun fixtures:setup/0
-      , fun fixtures:teardown/1
-      , fun([Domain, _BaseUrl, _Testers]) ->
-                [ ?_test(test_infos_get(Domain))
-                ,  ?_test(test_infos_update(Domain))
-                ]
-        end
-    }.
-
 %%
 %% Meeting
 %%
@@ -264,16 +253,3 @@ test_role_delete_access(Domain) ->
     ok = uce_ctl:cmd({dummy, [Domain, "role", "access", "delete", "test_role_2", "testaction", "testobject"]}, Params),
     ?assertMatch({ok, #uce_role{id="test_role_2",
                    acl=[]}}, uce_role:get(Domain, "test_role_2")).
-
-%%
-%% Infos
-%%
-
-test_infos_get(Domain) ->
-    {ok, _} = uce_ctl:cmd({dummy, [Domain, "infos", "get"]}, []).
-
-test_infos_update(Domain) ->
-    {ok, {uce_infos, Domain, {struct, []}}} = uce_infos:get(Domain),
-    Params = [{"description", "Informations"}],
-    ok = uce_ctl:cmd({dummy, [Domain, "infos", "update"]}, Params),
-    {ok, {uce_infos, Domain, {struct, [{"description", "Informations"}]}}} = uce_infos:get(Domain).

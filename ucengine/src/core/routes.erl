@@ -141,7 +141,6 @@ setup_routes() ->
                   event_controller,
                   file_controller,
                   time_controller,
-                  infos_controller,
                   search_controller]).
 
 -ifdef(TEST).

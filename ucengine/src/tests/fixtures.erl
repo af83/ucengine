@@ -34,7 +34,7 @@ get_base_url() ->
 setup() ->
     Domain = get_default_domain(),
     (list_to_atom(lists:concat([config:get(Domain, db), "_db"]))):drop(),
-    drop_model(Domain, [uce_role, uce_user, uce_meeting, uce_file, uce_event, uce_infos]),
+    drop_model(Domain, [uce_role, uce_user, uce_meeting, uce_file, uce_event]),
     setup_meetings(Domain),
     UsersUid = setup_users(Domain),
     [Domain, get_base_url(), setup_testers(Domain, UsersUid)].

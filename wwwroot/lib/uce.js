@@ -540,43 +540,6 @@
                 return this;
             },
             /**
-             * Domain infos
-             */
-            infos: {
-                /**
-                 * Get infos
-                 */
-                get: function(callback) {
-                    get("/infos/", {'uid': _presence.user,
-                                    'sid': _presence.id},
-                        function(err, result, xhr) {
-                            if (!err) {
-                                callback(err, result.result, xhr);
-                            } else {
-                                callback(err, result, xhr);
-                            }
-                        });
-                    return this;
-                },
-                /**
-                 * Update infos
-                 */
-                update: function(metadata, callback) {
-                    put("/infos/", {'uid': _presence.user,
-                                    'sid': _presence.id,
-                                    metadata: metadata},
-                        function(err, result, xhr) {
-                        if (!err) {
-                            callback(err, result, xhr);
-                        } else {
-                            callback(err, result, xhr);
-                        }
-                    });
-                    return this;
-                }
-            },
-
-            /**
              * Search events
              */
             search: function(terms, params, callback) {

@@ -123,27 +123,6 @@ jackTest("can close a presence", function() {
     });
 });
 
-jackTest("can get current domain informations", function() {
-    stop();
-    addUceApiCall("get", "/infos/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : {"domain": "localhost", "metadata": {"name": "myuser", "plop": "plip"}}}');
-    this.client.attachPresence(Factories.createPresence()).infos.get(function(err, r, xhr) {
-        start();
-        equals(err, null);
-        same(r, {"domain": "localhost", "metadata": {name: 'myuser', plop: 'plip'}});
-    });
-});
-
-jackTest("can update current domain informations", function() {
-    stop();
-    addUceApiCall("post", "/infos/", {"_method": "put", "uid": "myuid", "sid": "mysid", "metadata": {"pouet" : "pouet"}}, 200, '{"result" : "ok"}');
-    var client = uce.createClient();
-    this.client.attachPresence(Factories.createPresence()).infos.update({pouet: "pouet"}, function(err, r, xhr) {
-        start();
-        equals(err, null);
-        same({result: "ok"}, r);
-    });
-});
-
 jackTest("can list users", function() {
     stop();
     addUceApiCall("get", "/user/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "myuser"}, {}]}');

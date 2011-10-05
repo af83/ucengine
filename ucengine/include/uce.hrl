@@ -82,10 +82,6 @@
           object,
           conditions=[]}).
 
--record(uce_infos, {
-          domain = none,
-          metadata = {struct, []}}).
-
 -record(uce_route, {
           method,
           path,

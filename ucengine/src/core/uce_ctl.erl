@@ -19,11 +19,9 @@
 
 -export([start/0, stop/0, cmd/2]).
 
--export([infos/3, meeting/4, user/3, user/4, user/5, user/6, role/4, role/7, time/2]).
+-export([meeting/4, user/3, user/4, user/5, user/6, role/4, role/7, time/2]).
 
 -export([parse_date/1, timestamp_to_iso/0, timestamp_to_iso/1]).
-
--compile({no_auto_import,[error/1]}).
 
 -include("uce.hrl").
 
@@ -107,10 +105,6 @@ success(Result) ->
     io:format("Success: ~p", [Result]),
     ok.
 
-error(Reason) ->
-    io:format("Error: ~p~n", [Reason]),
-    error.
-
 start() ->
     Command = init:get_arguments(),
     Args = lists:filter(fun filter_node/1, args_to_dictionary(Command)),
@@ -150,9 +144,6 @@ stop() ->
 usage() ->
     io:format("Usage:~n"),
     io:format("ucengine-admin <domain> <object> <action> [--<parameter> <value>]~n~n"),
-
-    io:format("\tinfos get~n"),
-    io:format("\tinfos update [--<parameter> <value>]~n~n"),
 
     io:format("Meetings:~n"),
     io:format("\tmeeting add <name> [--start <date>] [--end <date>] [--<metadata> <value>]~n"),
@@ -194,22 +185,6 @@ call(Object, Action, Args) ->
         Result ->
             Result
     end.
-
-%%
-%% Infos get
-%%
-infos(Domain, "get", _) ->
-    {ok, Infos} = call(infos, get, [Domain]),
-    {ok, pretty_print:print(Infos, flat)};
-
-%%
-%% Infos update
-%%
-infos(_Domain, "update", []) ->
-    error(missing_parameter);
-infos(Domain, "update", Metadata) ->
-    {ok, updated} = call(infos, update, [Domain, #uce_infos{domain=Domain, metadata={struct, Metadata}}]),
-    success(updated).
 
 %%
 %% Meeting add

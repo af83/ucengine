@@ -35,11 +35,6 @@ print(#uce_meeting{id=Id,
            io_lib:format("End: ~p~n", [End])],
     StrMetadata = print_metadata(Metadata),
     lists:flatten(Out ++ StrMetadata);
-print(#uce_infos{domain=Domain,
-                 metadata=Metadata}, flat) ->
-    Out = [io_lib:format("Domain: ~s~n", [Domain])],
-    StrMetadata = print_metadata(Metadata),
-    lists:flatten(Out ++ StrMetadata);
 print(#uce_user{id=Uid,
                 name=Name,
                 auth=Auth,

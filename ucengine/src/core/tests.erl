@@ -38,7 +38,6 @@ run() ->
                file_tests,
                role_tests,
                ctl_tests,
-               infos_tests,
                url_tests] ++
         case config:get(search) of
             solr ->
