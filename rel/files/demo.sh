@@ -12,15 +12,12 @@ then
     exit 1
 fi
 
-$UCENGINE_ADMIN $HOST infos update --description "U.C.Engine is a publish/subscribe server with persistence. It allows you to build real time applications like collaboration based services, live meetings, games or anything that fits well in an event driven philosophy." --htags "ucengine" --logo "ucengine.png"
-
 $UCENGINE_ADMIN $HOST meeting add "demo"  --name "Demonstration room" --description "U.C.Engine demonstration room"
 $UCENGINE_ADMIN $HOST meeting add "demo2" --name "Another room"       --description "Another test room"
 
 # Role participant
 $UCENGINE_ADMIN $HOST role add participant
 $UCENGINE_ADMIN $HOST role access add participant "add" "presence"
-$UCENGINE_ADMIN $HOST role access add participant "get" "infos"
 $UCENGINE_ADMIN $HOST role access add participant "add" "roster"
 $UCENGINE_ADMIN $HOST role access add participant "get" "meeting"
 $UCENGINE_ADMIN $HOST role access add participant "list" "meeting"
