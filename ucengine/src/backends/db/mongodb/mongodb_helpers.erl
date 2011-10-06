@@ -68,7 +68,10 @@ collection_member_to_list(Value) when is_list(Value) ->
     {struct, collection_to_list(Value)};
 
 collection_member_to_list(Value) when is_binary(Value) ->
-    unicode:characters_to_list(Value).
+    unicode:characters_to_list(Value);
+
+collection_member_to_list(Value) when is_atom(Value)->
+    Value.
 
 %%--------------------------------------------------------------------
 %% @spec ([{Key::binary, Value::Binary}, {Key::binary, Value::Binary}, ...] = Collection::list) -> [{Key::list, Value::list}, {Key::binary, Value:Binary}, ...] = NewCollection::list
@@ -115,6 +118,13 @@ to_bson_test() ->
                  to_bson({array, [10, {struct, [{"name", "plip"}]}]})),
 
     ?assertEqual([{"complex", {array, [10, [{"name", "plip"}]]}}],
-                 to_bson({struct, [{"complex", {array, [10, {struct, [{"name", "plip"}]}]}}]})).
+                 to_bson({struct, [{"complex", {array, [10, {struct, [{"name", "plip"}]}]}}]})),
+
+    ?assertEqual([{"score", null}],
+                 to_bson({struct, [{"score", null}]})),
+    ?assertEqual([{"score", true}],
+                 to_bson({struct, [{"score", true}]})),
+    ?assertEqual([{"score", false}],
+                 to_bson({struct, [{"score", false}]})).
 
 -endif.

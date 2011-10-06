@@ -267,7 +267,10 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
 
 test_push_json(BaseUrl, AuthParams) ->
     RequestBody = {struct, [{"type", "test_json"},
-                            {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"}]}]}}]}}]
+                            {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"},
+                                                                                      {"hop", null},
+                                                                                      {"hop2", true},
+                                                                                      {"hop3", false}]}]}}]}}]
                                 ++ auth_params(AuthParams)},
     {ok, "201", _, Body} =
         tests_utils:post_raw(BaseUrl, "/event/testmeeting", [], "application/json", mochijson:encode(RequestBody)),
@@ -279,7 +282,11 @@ test_push_json(BaseUrl, AuthParams) ->
                          {"id", Id},
                          {"location", "testmeeting"},
                          {"from", _},
-                         {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"}]}]}}]}}]}}]} =
+                         {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"},
+                                                                                   {"hop", null},
+                                                                                   {"hop2", true},
+                                                                                   {"hop3", false}
+                                                                                  ]}]}}]}}]}}]} =
                    tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, auth_params(AuthParams)).
 
 test_push_missing_type(BaseUrl, AuthParams) ->
