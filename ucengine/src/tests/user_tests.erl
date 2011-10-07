@@ -30,6 +30,8 @@ user_test_() ->
                ?_test(test_register_missing_credential(BaseUrl)),
                ?_test(test_register_missing_name(BaseUrl)),
                ?_test(test_register_conflict(BaseUrl)),
+               ?_test(test_register_with_restricted_access(BaseUrl)),
+               ?_test(test_register_with_restricted_access_and_root(BaseUrl, Root)),
 
                ?_test(test_get(BaseUrl, Root)),
                ?_test(test_get_not_found(BaseUrl, Root)),
@@ -110,6 +112,26 @@ test_register_conflict(BaseUrl) ->
               {"credential", "test"}],
     {struct, [{"error", "conflict"}]} =
         tests_utils:post(BaseUrl, "/user/", Params).
+
+test_register_with_restricted_access(BaseUrl) ->
+    config:set("localhost", register, denied),
+    Params = [{"auth", "test"},
+              {"name", "test.user2@af83.com"},
+              {"credential", "test"}],
+    ?assertMatch({struct, [{"error", "unauthorized"}]},
+                 tests_utils:post(BaseUrl, "/user/", Params)),
+    config:set("localhost", register, open).
+
+test_register_with_restricted_access_and_root(BaseUrl, {RootUid, RootSid}) ->
+    config:set("localhost", register, denied),
+    Params = [{"auth", "test"},
+              {"name", "test.user2@af83.com"},
+              {"credential", "test"},
+              {"uid", RootUid},
+              {"sid", RootSid}],
+    ?assertMatch({struct, [{"result", _}]},
+                 tests_utils:post(BaseUrl, "/user/", Params)),
+    config:set("localhost", register, open).
 
 test_get(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},

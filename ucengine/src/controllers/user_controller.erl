@@ -25,7 +25,9 @@ init() ->
     [#uce_route{method='POST',
                 path=["user"],
                 callback={?MODULE, add,
-                          [{"name", required, string},
+                          [{"uid", "", string},
+                           {"sid", "", string},
+                           {"name", required, string},
                            {"auth", required, string},
                            {"credential", required, string},
                            {"metadata", [], dictionary}]}},
@@ -88,19 +90,28 @@ init() ->
                            {"sid", required, string}]}}].
 
 
-add(Domain, [], [Name, Auth, Credential, Metadata], _) ->
-    {ok, UId} = uce_user:add(Domain, #uce_user{id=none,
-                                               name=Name,
-                                               auth=Auth,
-                                               credential=Credential,
-                                               metadata=json_helpers:to_struct(Metadata)}),
+add(Domain, [], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
+    case config:get(Domain, register) of
+        open ->
+            create_user(Domain, [Name, Auth, Credential, Metadata]);
+        denied ->
+            {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+            {ok, true} = uce_access:assert(Domain, Uid, "", "user", "add"),
+            create_user(Domain, [Name, Auth, Credential, Metadata])
+    end.
+
+create_user(Domain, [Name, Auth, Credential, Metadata]) ->
+    {ok, NewUserUid} = uce_user:add(Domain, #uce_user{id=none,
+                                                      name=Name,
+                                                      auth=Auth,
+                                                      credential=Credential,
+                                                      metadata=json_helpers:to_struct(Metadata)}),
 
     {ok, _} = uce_event:add(Domain, #uce_event{id=none,
-                                               from=UId,
+                                               from=NewUserUid,
                                                location="",
                                                type="internal.user.add"}),
-
-    json_helpers:created(Domain, UId).
+    json_helpers:created(Domain, NewUserUid).
 
 list(Domain, [], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
