@@ -158,14 +158,12 @@ to_json(Domain, #uce_file{id=Id,
          [{metadata, Metadata}]};
 to_json(Domain, #uce_presence{id=Id,
                               user=User,
-                              auth=Auth,
-                              metadata=Metadata}) ->
+                              auth=Auth}) ->
     {struct,
      [{id, Id},
       {domain, Domain},
       {user, User},
-      {auth, Auth},
-      {metadata, Metadata}]};
+      {auth, Auth}]};
 to_json(Domain, #uce_user{id=Id,
                           name=Name,
                           auth=Auth,

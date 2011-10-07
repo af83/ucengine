@@ -27,8 +27,7 @@ init() ->
                 callback={?MODULE, add,
                           [{"name", required, string},
                            {"credential", "", string},
-                           {"timeout", 0, integer},
-                           {"metadata", [], dictionary}]}},
+                           {"timeout", 0, integer}]}},
 
      #uce_route{method='GET',
                 path=["presence", sid],
@@ -40,7 +39,7 @@ init() ->
                           [{"uid", required, string},
                            {"sid", required, string}]}}].
 
-add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
+add(Domain, [], [Name, Credential, Timeout], _) ->
     {ok, #uce_user{id = Uid} = User} = uce_user:get_by_name(Domain, Name),
     {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "add"),
     {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
@@ -48,8 +47,7 @@ add(Domain, [], [Name, Credential, Timeout, Metadata], _) ->
                                  #uce_presence{id=none,
                                                user=Uid,
                                                timeout=Timeout,
-                                               auth=User#uce_user.auth,
-                                               metadata=json_helpers:to_struct(Metadata)}),
+                                               auth=User#uce_user.auth}),
     {ok, _} = uce_event:add(Domain,
                             #uce_event{id=none,
                                        from=User#uce_user.id,

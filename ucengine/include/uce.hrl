@@ -32,9 +32,7 @@
           %% list meetings joined by user
           meetings = [],
           %% nb streams open
-          streams = 0,
-          %% MetaData : list
-          metadata = {struct, []}}).
+          streams = 0}).
 
 -record(uce_meeting, {
           %% uce meeting id

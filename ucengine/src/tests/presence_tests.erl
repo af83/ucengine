@@ -74,14 +74,13 @@ test_presence_create_unauthorized(BaseUrl) ->
 test_presence_get(BaseUrl) ->
     Uid = "participant.user@af83.com",
     {struct,[{"result", {struct, [{"uid", _}, {"sid", Sid}]}}]} =
-        create_presence(BaseUrl, Uid, "pwd", [{"metadata[nickname]", "PasswordParticipantGet"}]),
+        create_presence(BaseUrl, Uid, "pwd"),
 
     {struct,[{"result",
               {struct,[{"id",Sid},
                        {"domain",_},
                        {"user",_}, %%"participant.user@af83.com"},
-                       {"auth","password"},
-                       {"metadata", {struct, [{"nickname", "PasswordParticipantGet"}]}}]}}]} =
+                       {"auth","password"}]}}]} =
         tests_utils:get(BaseUrl, "/presence/" ++ Sid).
 
 test_presence_get_not_found(BaseUrl) ->
