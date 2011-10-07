@@ -472,16 +472,11 @@
             /**
              * Create user presence
              */
-            auth: function(uname, credential, metadata, callback) {
+            auth: function(uname, credential, callback) {
                 var params = {name: uname};
                 name = uname;
                 if (credential) {
                     params.credential = credential;
-                }
-                if (!callback) {
-                    callback = metadata;
-                } else {
-                    params.metadata = metadata;
                 }
                 var that = this;
                 post("/presence/", params, function(err, result, xhr) {

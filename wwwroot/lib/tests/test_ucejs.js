@@ -64,19 +64,6 @@ jackTest("can create a presence", function() {
     });
 });
 
-jackTest("can create a presence with metadata", function() {
-    stop();
-    addUceApiCall("post", "/presence/", { "name": "name",
-                                          "credential": "pwd",
-                                          "metadata" : {"nickname": "nick"} }, 200, '{"result": {"uid":"uid", "sid":"sid"}}');
-    this.client.auth("name", "pwd", {nickname: "nick"}, function(err, presence, xhr) {
-        start();
-        equals(err, null, "shoud not have error");
-        equals(presence.user, "uid", "");
-        equals(presence.id, "sid", "");
-    });
-});
-
 jackTest("can get a presence", function() {
     stop();
     $.mockjax({
