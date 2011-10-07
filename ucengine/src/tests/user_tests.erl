@@ -114,7 +114,7 @@ test_register_conflict(BaseUrl) ->
         tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_with_restricted_access(BaseUrl) ->
-    config:set("localhost", register, denied),
+    config:set("localhost", register, restricted),
     Params = [{"auth", "test"},
               {"name", "test.user2@af83.com"},
               {"credential", "test"}],
@@ -123,7 +123,7 @@ test_register_with_restricted_access(BaseUrl) ->
     config:set("localhost", register, open).
 
 test_register_with_restricted_access_and_root(BaseUrl, {RootUid, RootSid}) ->
-    config:set("localhost", register, denied),
+    config:set("localhost", register, restricted),
     Params = [{"auth", "test"},
               {"name", "test.user2@af83.com"},
               {"credential", "test"},

@@ -94,7 +94,7 @@ add(Domain, [], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
     case config:get(Domain, register) of
         open ->
             create_user(Domain, [Name, Auth, Credential, Metadata]);
-        denied ->
+        restricted ->
             {ok, true} = uce_presence:assert(Domain, Uid, Sid),
             {ok, true} = uce_access:assert(Domain, Uid, "", "user", "add"),
             create_user(Domain, [Name, Auth, Credential, Metadata])
