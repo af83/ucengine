@@ -8,6 +8,8 @@
 
     function UCEngine(baseUrl) {
 
+        baseUrl = baseUrl || '/api';
+
         function getCollection(url, params, callback) {
             get(url, params, function(err, result, xhr) {
                 if (!err) {
@@ -19,7 +21,7 @@
         }
 
         function format_api_url(url) {
-            return baseUrl +'/api/' + VERSION + url;
+            return baseUrl +'/' + VERSION + url;
         }
 
         function uce_api_call(method, url, data, callback, overridedOptions) {
@@ -170,7 +172,7 @@
              * Get file upload url for this meeting
              */
             getFileUploadUrl: function() {
-                return baseUrl +"/api/"+ VERSION +"/file/"+this.name+"?uid="+this.uid+"&sid="+ this.sid;
+                return format_api_url("/file/"+this.name+"?uid="+this.uid+"&sid="+ this.sid);
             },
 
             /**
@@ -178,7 +180,7 @@
              * @param String filename
              */
             getFileDownloadUrl: function(filename) {
-                return baseUrl +"/api/"+ VERSION +"/file/"+this.name+"/"+ filename +"?uid="+this.uid+"&sid="+this.sid;
+                return format_api_url("/file/"+this.name+"/"+ filename +"?uid="+this.uid+"&sid="+this.sid);
             },
 
             /**

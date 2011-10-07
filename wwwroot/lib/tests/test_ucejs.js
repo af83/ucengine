@@ -522,7 +522,7 @@ jackTest("get user", function() {
 jackTest("custom api url", function() {
     stop();
     addUceApiCall("get", "http://example.com/api/" + uce.version + "/user/test@example.net",  {"uid": "myuid", "sid": "mysid"}, 200, '{"result": {}}');
-    var client = uce.createClient('http://example.com');
+    var client = uce.createClient('http://example.com/api');
     var meeting = client.attachPresence(Factories.createPresence()).meeting("mymeeting");
     var url = meeting.getFileDownloadUrl('mydoc.pdf');
     equals(url, "http://example.com/api/" + uce.version + "/file/mymeeting/mydoc.pdf?uid=myuid&sid=mysid");
