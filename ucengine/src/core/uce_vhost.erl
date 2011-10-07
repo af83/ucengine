@@ -143,7 +143,7 @@ setup_root_user(Domain, #uce_user{} = User) ->
 setup_bricks(Domain) ->
     lists:foreach(fun({Name, Token}) ->
                           setup_root_user(Domain, #uce_user{name=Name,
-                                                            auth="token",
+                                                            auth="password",
                                                             credential=Token})
                   end,
                   config:get(Domain, bricks)).

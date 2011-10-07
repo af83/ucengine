@@ -148,7 +148,7 @@ setup_users(Domain) ->
 
     ok = add_user(Domain, #uce_user{id="token.user@af83.com",
                                     name="token.user@af83.com",
-                                    auth="token",
+                                    auth="password",
                                     credential="4444"}),
     ok = add_user(Domain, #uce_user{id="user_2",
                                     name="user_2",
