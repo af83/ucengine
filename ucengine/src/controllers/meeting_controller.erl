@@ -58,7 +58,8 @@ init() ->
                 path=["meeting", "all", meeting, "roster"],
                 callback={?MODULE, join,
                           [{"uid", required, string},
-                           {"sid", required, string}]}},
+                           {"sid", required, string},
+                           {"metadata", [], dictionary}]}},
 
      #uce_route{method='DELETE',
                 path=["meeting", "all", meeting, "roster", uid],
@@ -114,7 +115,7 @@ update(Domain, [{meeting, Name}], [Uid, Sid, Start, End, Metadata], _) ->
                                                type="internal.meeting.update"}),
     json_helpers:ok(Domain).
 
-join(Domain, [{meeting, Name}], [Uid, Sid], _) ->
+join(Domain, [{meeting, Name}], [Uid, Sid, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "add"),
     {ok, updated} = uce_meeting:join(Domain, Name, Uid),
@@ -123,7 +124,8 @@ join(Domain, [{meeting, Name}], [Uid, Sid], _) ->
                             #uce_event{id=none,
                                        type="internal.roster.add",
                                        location=Name,
-                                       from=Uid}),
+                                       from=Uid,
+                                       metadata=Metadata}),
     json_helpers:ok(Domain).
 
 %% TODO : Incomplete Sid must be ToSid
