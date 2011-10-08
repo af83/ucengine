@@ -197,9 +197,9 @@ jackTest("can update meeting", function() {
 
 jackTest("can join meeting", function() {
     stop();
-    addUceApiCall("post", "/meeting/all/mymeeting/roster/",  {"uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
+    addUceApiCall("post", "/meeting/all/mymeeting/roster/",  {"uid": "myuid", "sid": "mysid", "metadata": {nickname: "plop"}}, 200, '{"name": "mymeeting"}');
     var meeting = this.client.attachPresence(Factories.createPresence()).meeting("mymeeting");
-    meeting.join(function(err, r, xhr) {
+    meeting.join({nickname: 'plop'}, function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.name, "mymeeting");

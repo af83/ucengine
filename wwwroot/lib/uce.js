@@ -106,9 +106,9 @@
                         callback(err, result, xhr);
                     });
             },
-            join: function(callback) {
+            join: function(metadata, callback) {
                 post("/meeting/all/" + this.name + "/roster/",
-                     this.params.merge(), callback);
+                     this.params.merge({metadata: metadata}), callback);
                 return this;
             },
             leave: function(callback) {
