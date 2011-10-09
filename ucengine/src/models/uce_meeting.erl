@@ -21,7 +21,7 @@
          delete/2,
          update/2,
          get/2,
-         list/2,
+         list/1,
          join/3,
          leave/3,
          roster/2,
@@ -64,54 +64,9 @@ update(Domain, #uce_meeting{id=Id} = Meeting) ->
             (db:get(?MODULE, Domain)):update(Domain, Meeting)
     end.
 
--spec list(domain(), meeting_status()) -> list(meeting) | erlang:throw({error, bad_parameters}).
-list(Domain, Status) ->
-    {ok, Meetings} = (db:get(?MODULE, Domain)):list(Domain),
-    if
-        Status == "all";
-        Status == "upcoming";
-        Status == "opened";
-        Status == "closed" ->
-            Now = utils:now(),
-            FilteredMeetings =
-                lists:filter(fun(#uce_meeting{start_date=Start, end_date=End}) ->
-                                     case Status of
-                                         "all" ->
-                                             true;
-                                         "upcoming" ->
-                                             Now < Start;
-                                         "opened" ->
-                                             case Now >= Start of
-                                                 true ->
-                                                     if
-                                                         End == ?NEVER_ENDING_MEETING ->
-                                                             true;
-                                                         Now =< End ->
-                                                             true;
-                                                         true ->
-                                                             false
-                                                     end;
-                                                 false ->
-                                                     false
-                                             end;
-                                         "closed" ->
-                                             if
-                                                 End == ?NEVER_ENDING_MEETING ->
-                                                     false;
-                                                 Now >= End ->
-                                                     true;
-                                                 true ->
-                                                     false
-                                             end;
-                                         _ ->
-                                             false
-                                     end
-                             end,
-                             Meetings),
-            {ok, FilteredMeetings};
-        true ->
-            throw({error, bad_parameters})
-    end.
+-spec list(domain()) -> {ok, list(meeting)} | erlang:throw({error, bad_parameters}).
+list(Domain) ->
+    (db:get(?MODULE, Domain)):list(Domain).
 
 -spec exists(domain(), meeting_id()) -> boolean().
 exists(_Domain, "") ->

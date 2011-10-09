@@ -78,8 +78,6 @@ update(Domain, #uce_meeting{id=Id} = Meeting) ->
 
 list(Domain) ->
     case mnesia:dirty_match_object(#uce_meeting{id={'_', Domain},
-                                                start_date='_',
-                                                end_date='_',
                                                 roster='_',
                                                 metadata='_'}) of
         {aborted, _} ->

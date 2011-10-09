@@ -21,14 +21,12 @@
           id = none,
           %% user id
           user,
-          %% authification method
+          %% authentication method
           auth,
           %% session timeout
           timeout = 0,
           %% last ping
           last_activity = 0,
-          %% resource
-          resource,
           %% list meetings joined by user
           meetings = [],
           %% nb streams open
@@ -37,9 +35,6 @@
 -record(uce_meeting, {
           %% uce meeting id
           id = none,
-          %% start_date and end_date format : ms since epoch
-          start_date = none,
-          end_date = none,
           roster = [],
           %% [{"description",Desc}, {"language",Lang}, ... ]
           metadata = {struct, []}}).
@@ -95,7 +90,6 @@
 -type domain()         :: string().
 -type meeting_id()     :: string().
 -type meeting()        :: #uce_meeting{}.
--type meeting_status() :: string(). %"all" | "upcoming" | "opened" | "closed"
 -type event_id()       :: string().
 -type event()          :: #uce_event{}.
 -type user()           :: #uce_user{}.
@@ -108,8 +102,6 @@
 -type route()          :: #uce_route{}.
 -type timestamp()      :: integer().
 
-
--define(TIMEOUT, 5000).
 
 -define(VERSION, "0.6").
 
@@ -129,15 +121,6 @@
 
 -define(CRITICAL_MSG(Format, Args),
         uce_log:critical(Format, [?MODULE, ?LINE], Args)).
-
--define(UCE_SCHEMA_LOCATION, "uce_schema_v1.xsd").
--define(UCE_XMLNS, "http://ucengine.org").
-
--define(DEFAULT_TIME_INTERVAL, 600000).
-
--define(NEVER_ENDING_MEETING, 0).
-
--define(PRESENCE_EXPIRED_EVENT, "internal.presence.expired").
 
 -define(COUNTER(Name), (
     fun() ->

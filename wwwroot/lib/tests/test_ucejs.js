@@ -120,40 +120,10 @@ jackTest("can list users", function() {
     });
 });
 
-jackTest("can get opened meetings", function() {
+jackTest("can list meetings", function() {
     stop();
-    addUceApiCall("get", "/meeting/opened", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}, {}]}');
-    this.client.attachPresence(Factories.createPresence()).meetings.opened(function(err, r, xhr) {
-        start();
-        equals(err, null);
-        equals(r.length, 2);
-    });
-});
-
-jackTest("can get closed meetings", function() {
-    stop();
-    addUceApiCall("get", "/meeting/closed", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}]}');
-    this.client.attachPresence(Factories.createPresence()).meetings.closed(function(err, r, xhr) {
-        start();
-        equals(err, null);
-        equals(r.length, 1);
-    });
-});
-
-jackTest("can get upcoming meetings", function() {
-    stop();
-    addUceApiCall("get", "/meeting/upcoming", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}]}');
-    this.client.attachPresence(Factories.createPresence()).meetings.upcoming(function(err, r, xhr) {
-        start();
-        equals(err, null);
-        equals(r.length, 1);
-    });
-});
-
-jackTest("can get all meetings", function() {
-    stop();
-    addUceApiCall("get", "/meeting/all", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}]}');
-    this.client.attachPresence(Factories.createPresence()).meetings.all(function(err, r, xhr) {
+    addUceApiCall("get", "/meeting/", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : [{"name": "mymeeting"}]}');
+    this.client.attachPresence(Factories.createPresence()).meetings(function(err, r, xhr) {
         start();
         equals(err, null);
         equals(r.length, 1);
@@ -168,7 +138,7 @@ test("meetings are the same", function() {
 
 jackTest("can get meeting", function() {
     stop();
-    addUceApiCall("get", "/meeting/all/mymeeting", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : {"name": "mymeeting"}}');
+    addUceApiCall("get", "/meeting/mymeeting", {"uid": "myuid", "sid": "mysid"}, 200, '{"result" : {"name": "mymeeting"}}');
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").get(function(err, r, xhr) {
         start();
         equals(err, null);
@@ -178,16 +148,14 @@ jackTest("can get meeting", function() {
 
 jackTest("can update meeting", function() {
     stop();
-    addUceApiCall("post", "/meeting/all/mymeeting",
+    addUceApiCall("post", "/meeting/mymeeting",
                   {"uid": "myuid",
                    "sid": "mysid",
                    "_method": "put",
-                   "start": 42,
-                   "end": 43,
                    "metadata": {'description': "a brand new description"}},
                   200, '{"result" : "ok"}');
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting")
-        .update(42, 43, {'description': 'a brand new description'},
+        .update({'description': 'a brand new description'},
                 function(err, r, xhr) {
                     start();
                     equals(err, null);
@@ -197,7 +165,7 @@ jackTest("can update meeting", function() {
 
 jackTest("can join meeting", function() {
     stop();
-    addUceApiCall("post", "/meeting/all/mymeeting/roster/",  {"uid": "myuid", "sid": "mysid", "metadata": {nickname: "plop"}}, 200, '{"name": "mymeeting"}');
+    addUceApiCall("post", "/meeting/mymeeting/roster/",  {"uid": "myuid", "sid": "mysid", "metadata": {nickname: "plop"}}, 200, '{"name": "mymeeting"}');
     var meeting = this.client.attachPresence(Factories.createPresence()).meeting("mymeeting");
     meeting.join({nickname: 'plop'}, function(err, r, xhr) {
         start();
@@ -209,7 +177,7 @@ jackTest("can join meeting", function() {
 
 jackTest("can leave meeting", function() {
     stop();
-    addUceApiCall("post", "/meeting/all/mymeeting/roster/myuid",  {"_method" :"delete", "uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
+    addUceApiCall("post", "/meeting/mymeeting/roster/myuid",  {"_method" :"delete", "uid": "myuid", "sid": "mysid"}, 200, '{"name": "mymeeting"}');
     this.client.attachPresence(Factories.createPresence()).meeting("mymeeting").leave(function(err, r, xhr) {
         start();
         equals(err, null);

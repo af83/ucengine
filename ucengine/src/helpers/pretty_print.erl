@@ -27,12 +27,8 @@
 print(Records, flat) when is_list(Records) ->
     lists:flatten([print(Record, flat) ++ "--~n" || Record <- Records]);
 print(#uce_meeting{id=Id,
-                   start_date=Start,
-                   end_date=End,
                    metadata=Metadata}, flat) ->
-    Out = [io_lib:format("Id: ~s~n", [Id]),
-           io_lib:format("Start: ~p~n", [Start]),
-           io_lib:format("End: ~p~n", [End])],
+    Out = [io_lib:format("Id: ~s~n", [Id])],
     StrMetadata = print_metadata(Metadata),
     lists:flatten(Out ++ StrMetadata);
 print(#uce_user{id=Uid,

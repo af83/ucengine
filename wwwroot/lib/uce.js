@@ -80,7 +80,7 @@
 
         UCEMeeting.prototype = {
             get: function(callback) {
-                get("/meeting/all/" + this.name, this.params.merge(),
+                get("/meeting/" + this.name, this.params.merge(),
                     function(err, result, xhr) {
                         if (!err) {
                             callback(err, result.result, xhr);
@@ -90,15 +90,9 @@
                     });
                 return this;
             },
-            update: function(start, end, metadata, callback) {
+            update: function(metadata, callback) {
                 var params = this.params.merge({'metadata': metadata});
-                if (start) {
-                    params.start = start;
-                }
-                if (end && end != "never") {
-                    params.end = end;
-                }
-                put("/meeting/all/" + this.name, params,
+                put("/meeting/" + this.name, params,
                     function(err, result, xhr) {
                         if (!callback) {
                             return;
@@ -107,18 +101,18 @@
                     });
             },
             join: function(metadata, callback) {
-                post("/meeting/all/" + this.name + "/roster/",
+                post("/meeting/" + this.name + "/roster/",
                      this.params.merge({metadata: metadata}), callback);
                 return this;
             },
             leave: function(callback) {
-                del("/meeting/all/" + this.name + "/roster/" + this.uid,
+                del("/meeting/" + this.name + "/roster/" + this.uid,
                     this.params.merge(),
                     callback);
                 return this;
             },
             getRoster: function(callback) {
-                get("/meeting/all/" + this.name + "/roster",
+                get("/meeting/" + this.name + "/roster",
                     this.params.merge(),
                     function (err, result, xhr) {
                         if (!callback) {
@@ -568,24 +562,10 @@
                     this._meetingsCache[meetingname] = new UCEMeeting(this, meetingname, _presence);
                 return this._meetingsCache[meetingname];
             },
-            meetings : {
-                opened: function(callback) {
-                    return this._getCollection("opened", callback);
-                },
-                closed: function(callback) {
-                    return this._getCollection("closed", callback);
-                },
-                upcoming: function(callback) {
-                    return this._getCollection("upcoming", callback);
-                },
-                all: function(callback) {
-                    return this._getCollection("all", callback);
-                },
-                _getCollection: function(type, callback) {
-                    getCollection("/meeting/"+ type, {'uid': _presence.user,
-                                                      'sid': _presence.id}, callback);
-                    return this;
-                }
+            meetings : function(callback) {
+                getCollection("/meeting/", {'uid': _presence.user,
+                                            'sid': _presence.id}, callback);
+                return this;
             },
             user: {
                 register: function(name, auth, credential, metadata, callback) {

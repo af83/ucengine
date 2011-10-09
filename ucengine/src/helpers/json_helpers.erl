@@ -89,18 +89,9 @@ to_json(_Domain, #uce_access{action=Action,
       {object, Object},
       {conditions, Conditions}]};
 to_json(Domain, #uce_meeting{id=Name,
-                             start_date=StartDate,
-                             end_date=EndDate,
                              metadata=Metadata}) ->
     {struct, [{name, Name},
               {domain, Domain},
-              {start_date, StartDate},
-              {end_date, case EndDate of
-                             ?NEVER_ENDING_MEETING ->
-                                 "never";
-                             _ ->
-                                 integer_to_list(EndDate)
-                         end},
               {metadata, Metadata}]};
 to_json(Domain, #uce_event{id=Id,
                            datetime=Datetime,

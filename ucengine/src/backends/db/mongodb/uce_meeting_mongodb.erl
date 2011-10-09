@@ -87,14 +87,10 @@ list(Domain) ->
 %% @end
 %%--------------------------------------------------------------------
 to_collection(Domain, #uce_meeting{id=Name,
-                                   start_date=Start,
-                                   end_date=End,
                                    roster=Roster,
                                    metadata=Metadata}) ->
     [{"name", Name},
      {"domain", Domain},
-     {"start_date", integer_to_list(Start)},
-     {"end_date", integer_to_list(End)},
      {"roster", {array, Roster}},
      {"metadata", mongodb_helpers:to_bson(Metadata)}].
 
@@ -105,13 +101,11 @@ to_collection(Domain, #uce_meeting{id=Name,
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-                   ["name", "domain", "start_date", "end_date", "roster", "metadata"]) of
-        [Name, _Domain, Start, End, {array, Roster}, Metadata] ->
+                   ["name", "domain", "roster", "metadata"]) of
+        [Name, _Domain, {array, Roster}, Metadata] ->
             #uce_meeting{id=Name,
-                     start_date=list_to_integer(Start),
-                     end_date=list_to_integer(End),
-                     roster=Roster,
-                     metadata=Metadata};
+                         roster=Roster,
+                         metadata=Metadata};
         _ ->
             throw({error, bad_parameters})
     end.

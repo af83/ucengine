@@ -83,7 +83,6 @@ test_meeting_add(Domain) ->
     Params = [{"description", ""}],
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "add", "newmeeting"]}, Params),
     Expected = {ok, #uce_meeting{id="newmeeting",
-                                 start_date=0, end_date=0,
                                  metadata=json_helpers:to_struct([{"description", ""}])}},
     ?assertEqual(Expected, uce_meeting:get(Domain, "newmeeting")).
 
@@ -95,17 +94,11 @@ test_meeting_get_not_found(Domain) ->
 
 test_meeting_update(Domain) ->
     {ok, #uce_meeting{ id="testmeeting"
-                     , start_date=Start
-                     , end_date=End
                      , metadata={struct, [{"description", _Description}]}
                      }} = uce_meeting:get(Domain, "testmeeting"),
-    StartDate = uce_ctl:timestamp_to_iso(Start),
-    EndDate = uce_ctl:timestamp_to_iso(End),
-    Params = [{"description", "A new description"}, {"start", StartDate}, {"end", EndDate}],
+    Params = [{"description", "A new description"}],
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "update", "testmeeting"]}, Params),
     Expected = {ok, #uce_meeting{ id="testmeeting"
-                                , start_date=uce_ctl:parse_date(StartDate)
-                                , end_date=uce_ctl:parse_date(EndDate)
                                 , metadata=json_helpers:to_struct([{"description", "A new description"}])
                                 }},
     ?assertMatch(Expected, uce_meeting:get(Domain, "testmeeting")).
@@ -116,8 +109,6 @@ test_meeting_update_not_found(Domain) ->
 
 test_meeting_delete(Domain) ->
     {ok, #uce_meeting{ id="testmeeting"
-                     , start_date=_Start
-                     , end_date=_End
                      , metadata={struct, [{"description", _Description}]}
                      }} = uce_meeting:get(Domain, "testmeeting"),
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "delete", "testmeeting"]}, []),
@@ -127,7 +118,7 @@ test_meeting_delete_not_found(Domain) ->
     {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "meeting", "delete", "meeting that doesn't exists"]}, [])).
 
 test_meeting_list(Domain) ->
-    {ok, _} = uce_ctl:cmd({dummy, [Domain, "meeting", "list", "all"]}, []).
+    {ok, _} = uce_ctl:cmd({dummy, [Domain, "meeting", "list"]}, []).
 
 %%
 %% User

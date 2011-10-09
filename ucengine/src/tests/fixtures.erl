@@ -63,19 +63,12 @@ add_meeting(Domain, Meeting) ->
     end.
 
 setup_meetings(Domain) ->
-    Now = utils:now(),
     ok = add_meeting(Domain, #uce_meeting{id="testmeeting",
-                                          metadata={struct, [{"description", "Meeting"}]},
-                                          start_date=Now,
-                                          end_date=?NEVER_ENDING_MEETING}),
-    ok = add_meeting(Domain, #uce_meeting{id="closedmeeting",
-                                          metadata={struct, [{"description", "Meeting"}]},
-                                          start_date=Now,
-                                          end_date=Now}),
-    ok = add_meeting(Domain, #uce_meeting{id="upcomingmeeting",
-                                          metadata={struct, [{"description", "Meeting"}]},
-                                          start_date=2569256203952,
-                                          end_date=?NEVER_ENDING_MEETING}),
+                                          metadata={struct, [{"description", "Meeting 1"}]}}),
+    ok = add_meeting(Domain, #uce_meeting{id="meeting2",
+                                          metadata={struct, [{"description", "Meeting 2"}]}}),
+    ok = add_meeting(Domain, #uce_meeting{id="meeting3",
+                                          metadata={struct, [{"description", "Meeting 3"}]}}),
     ok.
 
 
