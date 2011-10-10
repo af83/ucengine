@@ -1,9 +1,9 @@
 <setdynvars sourcetype="file" fileid="users" delimiter=";" order="iter">
+  <var name="meeting" />
   <var name="username" />
   <var name="password" />
 </setdynvars>
 
-<transaction name="post_event" >
   <!-- Authenticate -->
   <request subst="true">
     <dyn_variable name="sid" jsonpath="result.sid" />
@@ -12,16 +12,15 @@
   </request>
 
   <!-- Main Loop -->
-  <for from="1" to="50" incr="1" var="counter">
+  <for from="1" to="5000" incr="1" var="counter">
 
     <!-- POST an event -->
     <transaction name="post_event">
       <request subst="true">
-        <http url='/api/0.6/event/<%= meeting %>' contents='type=test&amp;uid=%%_uid%%&amp;sid=%%_sid%%' method='POST' />
+        <http url='/api/0.6/event/%%_meeting%%' contents='type=test&amp;uid=%%_uid%%&amp;sid=%%_sid%%' method='POST' />
       </request>
     </transaction>
 
-    <thinktime random='true' value='5'/>
+    <thinktime random='true' value='<%= level %>'/>
   </for>
 
-</transaction>

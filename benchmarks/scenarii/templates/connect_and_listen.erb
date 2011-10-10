@@ -1,10 +1,9 @@
 <setdynvars sourcetype="file" fileid="users" delimiter=";" order="iter">
+  <var name="meeting" />
   <var name="username" />
   <var name="password" />
 </setdynvars>
 
-<!-- First request -->
-<transaction name="total_pending">
   <!-- Authenticate -->
   <request subst="true">
     <dyn_variable name="sid" jsonpath="result.sid" />
@@ -14,22 +13,19 @@
 
   <request subst="true">
     <dyn_variable name="events" jsonpath="result"/>
-    <http url='/api/0.6/event/<%= meeting %>?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=0&amp;count=1&amp;order=desc' method='GET' />
+    <http url='/api/0.6/event/%%_meeting%%?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=0&amp;count=1&amp;order=desc' method='GET' />
   </request>
 
   <setdynvars sourcetype="erlang" callback="tsung_utils:extract_last_timestamp">
     <var name="last" />
   </setdynvars>
   <!-- Main Loop -->
-  <for var="pending_counter" from="1" to="0">
+  <for var="pending_counter" from="1" to="5000">
 
     <!-- Wait for events -->
-    <transaction name="pending">
       <request subst="true">
         <dyn_variable name="events" jsonpath="result"/>
-        <http url='/api/0.6/live/<%= meeting %>?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=%%_last%%&amp;mode=longpolling' method='GET' />
+        <http url='/api/0.6/live/%%_meeting%%?uid=%%_uid%%&amp;sid=%%_sid%%&amp;start=%%_last%%&amp;mode=longpolling' method='GET' />
       </request>
-    </transaction>
 
   </for>
-</transaction>

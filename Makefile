@@ -69,11 +69,14 @@ dialyze: compile
 # Benchmark
 ###############################################################################
 
+populate:
+	./benchmarks/scenarii/$(SCENARIO).sh localhost
+
 bench:
 	@mkdir -p benchmarks/ebin/
 	@erlc -o benchmarks/ebin/ benchmarks/tsung_utils.erl
 	@mkdir -p benchmarks/results
-	@./utils/benchmark $(SCENARIO)
+	@./utils/benchmark $(SCENARIO) $(LEVEL)
 	@rm -rf benchmarks/ebin
 
 ###############################################################################

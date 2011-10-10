@@ -17,6 +17,6 @@ extract_last_timestamp({_Pid, DynData}) ->
         true ->
             {struct, EventAttributes} = lists:last(Events),
             {<<"datetime">>, Datetime} = lists:keyfind(<<"datetime">>, 1, EventAttributes),
-            integer_to_list(Datetime)
+            integer_to_list(Datetime + 1)
     end.
 

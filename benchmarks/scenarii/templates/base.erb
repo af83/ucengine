@@ -23,8 +23,8 @@ This should be uncommented only for developement purpose.
 
   <load duration="<%= load['duration'] %>" unit="<%= load['unit'] %>">
   <% arrivals.each_with_index do |arrival, index| %>
-  <arrivalphase phase="<%= index + 1 %>" duration="<%= arrival['duration'] %>" unit="<%= arrival['unit'] %>">
-    <users interarrival="<%= arrival['users']['interval'] %>" unit="<%= arrival['users']['unit'] %>"></users>
+  <arrivalphase phase="<%= index + 1 %>" duration="<%= arrival['duration'] %>" unit="minute">
+    <users interarrival="<%= arrival['duration'] * 60.0 / arrival['users'] %>" unit="second"></users>
   </arrivalphase>
   <% end %>
   </load>

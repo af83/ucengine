@@ -21,11 +21,12 @@ class SessionBinding
 end
 
 class TsungBinding
-  attr_reader :load, :arrivals, :sessions
+  attr_reader :load, :arrivals, :level, :sessions
 
   def initialize(config)
     @load = config['load']
     @arrivals = load['arrivals']
+    @level = config['levels'][ARGV[1]]
     @sessions = config['sessions']
   end
 
@@ -39,6 +40,7 @@ class TsungBinding
     render = ERB.new(file)
 
     sessionbinding = SessionBinding.new
+    session['variables']['level'] = level
     session['variables'].each do |name, value|
       sessionbinding.instance_variable_set "@" + name, value
       SessionBinding.class_eval{attr_reader name}
