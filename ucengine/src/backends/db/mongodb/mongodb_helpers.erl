@@ -45,7 +45,7 @@ to_bson([], Acc) ->
 
 ok([Result]) ->
     case proplists:lookup(<<"err">>, Result) of
-        {<<"err">>, undefined} ->
+        {<<"err">>, null} ->
             ok;
         {<<"err">>, Err} ->
             ?ERROR_MSG("mongodb error ~p", [Err]),
