@@ -117,7 +117,7 @@ join(Domain, [{meeting, Name}], [Uid, Sid, Metadata], _) ->
                                        type="internal.roster.add",
                                        location=Name,
                                        from=Uid,
-                                       metadata=Metadata}),
+                                       metadata=json_helpers:to_struct(Metadata)}),
     json_helpers:ok(Domain).
 
 %% TODO : Incomplete Sid must be ToSid
