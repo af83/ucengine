@@ -30,14 +30,14 @@ assert(Domain, OwnerUid, OwnerSid, User, Credential) ->
     end.
 
 check(Domain, OwnerUid, OwnerSid, _User, _Credential) ->
-    case catch uce_presence:assert(Domain, OwnerUid, OwnerSid) of
-        {ok, true} ->
+    case uce_presence:assert(Domain, OwnerUid, OwnerSid) of
+        ok ->
             case catch uce_access:assert(Domain, OwnerUid, "", "presence", "delegate") of
                 {ok, true} ->
                     {ok, true};
                 {error, unauthorized} ->
                     {ok, false}
             end;
-        {error, unauthorized} ->
+        unauthorized ->
             {ok, false}
     end.

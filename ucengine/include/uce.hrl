@@ -75,10 +75,28 @@
           object,
           conditions=[]}).
 
+-record(uce_request, {
+          domain,
+          method,
+          path,
+          route,
+          match,
+          qparams=[],
+          params=[],
+          arg %% from yaws
+         }).
+
+-record(uce_response, {
+          status,
+          headers=[],
+          content
+         }).
+
 -record(uce_route, {
           method,
           path,
           content_type = any,
+          middlewares = [],
           callback}).
 
 -record(file_upload, {
@@ -99,6 +117,8 @@
 -type role_id()        :: string().
 -type role()           :: #uce_role{}.
 -type access()         :: #uce_access{}.
+-type request()        :: #uce_request{}.
+-type response()       :: #uce_response{}.
 -type route()          :: #uce_route{}.
 -type timestamp()      :: integer().
 

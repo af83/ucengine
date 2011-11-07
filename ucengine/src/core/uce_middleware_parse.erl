@@ -15,12 +15,12 @@
 %%  You should have received a copy of the GNU Affero General Public License
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
--module(uce_http).
+-module(uce_middleware_parse).
+
+-export([call/2]).
 
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
-
--export([parse/2]).
 
 write_file(Data, File) ->
     case file:write(File#file_upload.fd, Data) of
@@ -89,7 +89,7 @@ parse_multipart(Host, Arg, State) ->
                     FormDataParams;
                 FormDataParams ->
                     Params = yaws_api:parse_query(Arg) ++ FormDataParams,
-                    {'POST', Arg#arg.pathinfo, parse_query(Params)}
+                    {ok, parse_query(Params)}
             end
     end.
 
@@ -97,29 +97,20 @@ extract(Host, Arg, State) ->
     Request = Arg#arg.req,
     case Request#http_request.method of
         'GET' ->
-            {'GET', Arg#arg.pathinfo, parse_query(yaws_api:parse_query(Arg))};
+            {ok, parse_query(yaws_api:parse_query(Arg))};
         _ ->
             case Arg#arg.headers#headers.content_type of
                 "multipart/form-data;"++ _Boundary ->
                     parse_multipart(Host, Arg, State);
                 _ContentType ->
-                    OriginalMethod = Request#http_request.method,
                     NewArg = Arg#arg{req = Arg#arg.req#http_request{method = 'POST'}},
                     Query = yaws_api:parse_post(NewArg) ++ yaws_api:parse_query(NewArg),
-                    Method = case utils:get(Query, ["_method"]) of
-                                 [none] ->
-                                     OriginalMethod;
-                                 [StringMethod] ->
-                                     list_to_atom(string:to_upper(StringMethod))
-                             end,
-                    {Method, Arg#arg.pathinfo, parse_query(Query)}
+                    {ok, parse_query(Query)}
             end
     end.
 
-parse(Host, #arg{} = Arg)
-  when Arg#arg.state == undefined ->
+parse(Host, #arg{state=undefined} = Arg) ->
     extract(Host, Arg, []);
-
 parse(Host, #arg{} = Arg) ->
     extract(Host, Arg, Arg#arg.state).
 
@@ -189,6 +180,20 @@ parse_query(AsciiDirtyQuery) ->
                       end,
                       AsciiQuery),
     parse_query_elems(Query).
+
+%%
+%% Parse http query and body
+%%
+-spec call(Request :: request(), Response :: response()) -> {ok, request(), response()} | {stop, response()}.
+call(#uce_request{domain=Domain, arg=Arg} = Request, Response) ->
+    case parse(Domain, Arg) of
+        {error, Reason} ->
+            {stop, json_helpers:error(Response, Reason)};
+        {get_more, _, _} = State ->
+            State;
+        {ok, Query} ->
+            {ok, Request#uce_request{qparams=Query}, Response}
+    end.
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

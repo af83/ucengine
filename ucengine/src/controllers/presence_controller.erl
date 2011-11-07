@@ -17,31 +17,30 @@
 %%
 -module(presence_controller).
 
--export([init/0, delete/4, get/4, add/4]).
+-export([init/0, delete/5, get/5, add/5]).
 
 -include("uce.hrl").
 
 init() ->
     [#uce_route{method='POST',
                 path=["presence"],
-                callback={?MODULE, add,
-                          [{"uid", "", string},
-                           {"sid", "", string},
-                           {"name", required, string},
-                           {"credential", "", string},
-                           {"timeout", 0, integer}]}},
+                middlewares=[{params, [{"uid", "", string},
+                                       {"sid", "", string},
+                                       {"name", required, string},
+                                       {"credential", "", string},
+                                       {"timeout", 0, integer}]}],
+                callback={?MODULE, add}},
 
      #uce_route{method='GET',
                 path=["presence", sid],
-                callback={?MODULE, get, []}},
+                callback={?MODULE, get}},
 
      #uce_route{method='DELETE',
                 path=["presence", sid],
-                callback={?MODULE, delete,
-                          [{"uid", required, string},
-                           {"sid", required, string}]}}].
+                middlewares = [auth],
+                callback={?MODULE, delete}}].
 
-add(Domain, [], [OwnerUid, OwnerSid, Name, Credential, Timeout], _) ->
+add(Domain, [], [OwnerUid, OwnerSid, Name, Credential, Timeout], _Request, Response) ->
     {ok, #uce_user{id = Uid} = User} = uce_user:get_by_name(Domain, Name),
     {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "add"),
     {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(Domain, OwnerUid, OwnerSid, User, Credential),
@@ -55,24 +54,23 @@ add(Domain, [], [OwnerUid, OwnerSid, Name, Credential, Timeout], _) ->
                                        from=User#uce_user.id,
                                        location="",
                                        type="internal.presence.add"}),
-    json_helpers:json(Domain, 201, {struct, [{uid, Uid}, {sid, Sid}]}).
+    json_helpers:json(Response, Domain, 201, {struct, [{uid, Uid}, {sid, Sid}]}).
 
-get(Domain, [{sid, Sid}], [], _) ->
+get(Domain, [{sid, Sid}], [], _Request, Response) ->
     case uce_presence:get(Domain, Sid) of
         {ok, Presence} ->
-            json_helpers:json(Domain, Presence);
+            json_helpers:json(Response, Domain, Presence);
         {error, not_found} ->
-            json_helpers:error(Domain, not_found)
+            json_helpers:error(Response, not_found)
     end.
 
-delete(Domain, [{sid, Sid2}], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+delete(Domain, [{sid, Sid2}], [Uid, _Sid], _Request, Response) ->
     case uce_presence:get(Domain, Sid2) of
         {ok, #uce_presence{id=Id}} ->
             {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "delete",
                                            [{"id", Id}]),
             {ok, deleted} = uce_presence:delete(Domain, Sid2),
-            json_helpers:ok(Domain);
+            json_helpers:ok(Response);
         {error, not_found} ->
-            json_helpers:error(Domain, not_found)
+            json_helpers:error(Response, not_found)
     end.

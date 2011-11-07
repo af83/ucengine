@@ -22,6 +22,7 @@
 -export([ post/3
         , post/5
         , post_raw/5
+        , get_raw/2
         , get_raw/3
         , get/2
         , get/3
@@ -38,6 +39,8 @@ options_raw(BaseUrl, Path) ->
 head_raw(BaseUrl, Path) ->
     request(BaseUrl, Path, head, [], "", "").
 
+get_raw(BaseUrl, Path) ->
+    get_raw(BaseUrl, Path, []).
 get_raw(BaseUrl, Path, Params) ->
     request(BaseUrl, Path, get, Params, "", "").
 

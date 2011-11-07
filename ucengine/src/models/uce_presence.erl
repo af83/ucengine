@@ -67,13 +67,13 @@ delete(Domain, Sid) ->
     cast_if_proc_found(Domain, Sid, {delete_presence, Sid}),
     {ok, deleted}.
 
--spec assert(domain(), uid(), sid()) -> {ok, true} | erlang:throw({error, unauthorized}).
+-spec assert(domain(), uid(), sid()) -> ok | unauthorized.
 assert(Domain, Uid, Sid) ->
     case check(Domain, Uid, Sid) of
         {ok, true} ->
-            {ok, true};
+            ok;
         {ok, false} ->
-            throw({error, unauthorized})
+            unauthorized
     end.
 
 -spec join(domain(), sid(), meeting_id()) -> {ok, updated}.

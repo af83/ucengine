@@ -53,7 +53,7 @@ route(Method, Path, Routes) ->
     route(Method, Path, "", Routes).
 
 -spec route(Method :: atom(), Path :: string(), ContentType :: string(), Routes :: [route()])
-    -> {error, not_found} | {ok, list(atom()|string()), fun()}.
+    -> {error, not_found} | {ok, route(), list(atom()|string())}.
 route(_, _, _, []) ->
     {error, not_found};
 route('_', Path, ContentType, [#uce_route{callback=Callback} = Route|Routes]) ->
@@ -65,23 +65,21 @@ route('_', Path, ContentType, [#uce_route{callback=Callback} = Route|Routes]) ->
     end;
 route(Method, Path, ContentType, [#uce_route{
         method=Method,
-        content_type=any,
-        callback=Callback} = Route|Routes]) ->
+        content_type=any} = Route|Routes]) ->
     case match_path(Path, Route) of
         false ->
             route(Method, Path, ContentType, Routes);
         {ok, Binds, List} ->
-            {ok, lists:reverse(Binds) ++ List, Callback}
+            {ok, Route, lists:reverse(Binds) ++ List}
     end;
 route(Method, Path, ContentType, [#uce_route{
         method=Method,
-        content_type=ContentType,
-        callback=Callback} = Route|Routes]) ->
+        content_type=ContentType} = Route|Routes]) ->
     case match_path(Path, Route) of
         false ->
             route(Method, Path, ContentType, Routes);
         {ok, Binds, List} ->
-            {ok, lists:reverse(Binds) ++ List, Callback}
+            {ok, Route, lists:reverse(Binds) ++ List}
     end;
 route(Method, Path, ContentType, [#uce_route{}|Routes]) ->
     route(Method, Path, ContentType, Routes).
@@ -163,42 +161,43 @@ route__with_method_test() ->
     Routes = [#uce_route{method='GET',
                          path=["user"],
                          callback={?MODULE, get, []}},
-             #uce_route{method='GET',
+              #uce_route{method='GET',
                          path=["user", name],
                          callback={?MODULE, get_user, []}},
-             #uce_route{method='GET',
+              #uce_route{method='GET',
                          path=["user", name, id],
                          callback={?MODULE, get_user_name_id, []}},
               #uce_route{method='POST',
                          path=["user", name],
                          callback={?MODULE, update_user, []}},
-             #uce_route{method='PUT',
-                         path=["user", name, '...'],
-                         callback={?MODULE, put_user_plop, []}}],
-    ?assertMatch({error, not_found}, route('GET', "/user/", [])),
-    ?assertMatch({ok, [], {?MODULE, get, []}}, route('GET', "/user/", Routes)),
-    ?assertMatch({ok, [], {?MODULE, get, []}}, route('GET', "/user", Routes)),
-    ?assertMatch({ok, [{name, "plop"}], {?MODULE, get_user, []}}, route('GET', "/user/plop", Routes)),
-    ?assertMatch({ok, [{name, "plop"}, {id, "myid"}], {?MODULE, get_user_name_id, []}}, route('GET', "/user/plop/myid", Routes)),
-    ?assertMatch({ok, [{name, "plop"}], {?MODULE, update_user, []}}, route('POST', "/user/plop", Routes)),
-    ?assertMatch({ok, [{name, "plop"}, "plip"], {?MODULE, put_user_plop, []}}, route('PUT', "/user/plop/plip", Routes)).
-
-route_with_content_type_test() ->
-     Routes = [#uce_route{method='GET',
-                         path=["user"],
-                         callback={?MODULE, get, []}},
-              #uce_route{method='POST',
-                         content_type="application/json",
-                         path=["user", name],
-                         callback={?MODULE, update_user, []}},
-              #uce_route{method='POST',
-                         path=["user", name],
-                         callback={?MODULE, update_user_inline, []}},
               #uce_route{method='PUT',
                          path=["user", name, '...'],
                          callback={?MODULE, put_user_plop, []}}],
-    io:format("~p~n", [Routes]),
-    ?assertMatch({ok, [{name, "42"}], {?MODULE, update_user, []}}, route('POST', "/user/42", "application/json", Routes)),
-    ?assertMatch({ok, _, {?MODULE, update_user_inline, []}}, route('POST', "/user/42", "", Routes)),
-    ?assertMatch({ok, _, {?MODULE, update_user_inline, []}}, route('POST', "/user/42", "text/plain", Routes)).
+    ?assertMatch({error, not_found}, route('GET', "/user/", [])),
+    R = lists:nth(1, Routes),
+    ?assertMatch({ok, R, []}, route('GET', "/user/", Routes)),
+    ?assertMatch({ok, R, []}, route('GET', "/user", Routes)),
+    R2 = lists:nth(2, Routes),
+    ?assertMatch({ok, R2, [{name, "plop"}]}, route('GET', "/user/plop", Routes)),
+    R3 = lists:nth(3, Routes),
+    ?assertMatch({ok, R3, [{name, "plop"}, {id, "myid"}]}, route('GET', "/user/plop/myid", Routes)),
+    R4 = lists:nth(4, Routes),
+    ?assertMatch({ok, R4, [{name, "plop"}]}, route('POST', "/user/plop", Routes)),
+    R5 = lists:nth(5, Routes),
+    ?assertMatch({ok, R5, [{name, "plop"}, "plip"]}, route('PUT', "/user/plop/plip", Routes)).
+
+route_with_content_type_test() ->
+     Routes = [#uce_route{method='POST',
+                          content_type="application/json",
+                          path=["user", name],
+                          callback={?MODULE, update_user, []}},
+               #uce_route{method='POST',
+                          path=["user", name],
+                          callback={?MODULE, update_user_inline, []}}],
+    R1 = lists:nth(1, Routes),
+    ?assertMatch({ok, R1, [{name, "42"}]}, route('POST', "/user/42", "application/json", Routes)),
+    R2 = lists:nth(2, Routes),
+    ?assertMatch({ok, R2, _}, route('POST', "/user/42", "", Routes)),
+    ?assertMatch({ok, R2, _}, route('POST', "/user/42", "text/plain", Routes)).
+
 -endif.

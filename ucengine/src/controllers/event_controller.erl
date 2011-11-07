@@ -17,7 +17,7 @@
 %%
 -module(event_controller).
 
--export([init/0, get/4, list/4, add/4, add2/4, live/4]).
+-export([init/0, get/5, list/5, add/5, add2/5, live/5]).
 
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
@@ -26,55 +26,50 @@ init() ->
     [#uce_route{method='POST',
                 path=["event", '...'],
                 content_type="application/json",
-                callback={?MODULE, add2, []}},
+                callback={?MODULE, add2}},
 
      #uce_route{method='POST',
                 path=["event", '...'],
-                callback={?MODULE, add,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"type", required, string},
-                           {"to", "", string},
-                           {"parent", "", string},
-                           {"metadata", [], dictionary}]}},
+                middlewares = [auth,
+                               {params, [{"type", required, string},
+                                         {"to", "", string},
+                                         {"parent", "", string},
+                                         {"metadata", [], dictionary}]}],
+                callback={?MODULE, add}},
 
      #uce_route{method='GET',
                 path=["event", meeting, id],
-                callback={?MODULE, get,
-                          [{"uid", required, string},
-                           {"sid", required, string}]}},
+                middlewares = [auth],
+                callback={?MODULE, get}},
 
      #uce_route{method='GET',
                 path=["live", '...'],
-                callback={?MODULE, live,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"search", "", string},
-                           {"type", "", string},
-                           {"from", "", string},
-                           {"start", 0, integer},
-                           {"parent", "", string},
-                           {"mode", "longpolling", string}]}},
+                middlewares = [auth,
+                               {params, [{"search", "", string},
+                                         {"type", "", string},
+                                         {"from", "", string},
+                                         {"start", 0, integer},
+                                         {"parent", "", string},
+                                         {"mode", "longpolling", string}]}],
+                callback={?MODULE, live}},
 
      #uce_route{method='GET',
                 path=["event", '...'],
-                callback={?MODULE, list,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"search", "", string},
-                           {"type", "", string},
-                           {"from", "", string},
-                           {"start", 0, integer},
-                           {"end", infinity, [integer, atom]},
-                           {"count", infinity, [integer, atom]},
-                           {"page", 1, integer},
-                           {"order", asc, atom},
-                           {"parent", "", string}]}}].
+                middlewares = [auth,
+                               {params, [{"search", "", string},
+                                         {"type", "", string},
+                                         {"from", "", string},
+                                         {"start", 0, integer},
+                                         {"end", infinity, integer},
+                                         {"count", infinity, integer},
+                                         {"page", 1, integer},
+                                         {"order", asc, atom},
+                                         {"parent", "", string}]}],
+                callback={?MODULE, list}}].
 
-add(Domain, [], Params, Arg) ->
-    add(Domain, [""], Params, Arg);
-add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _Arg) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+add(Domain, [], Params, Request, Response) ->
+    add(Domain, [""], Params, Request, Response);
+add(Domain, [Meeting], [Uid, _Sid, Type, To, Parent, Metadata], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "add",
                                    [{"type", Type}, {"to", To}]),
     case Type of
@@ -89,16 +84,16 @@ add(Domain, [Meeting], [Uid, Sid, Type, To, Parent, Metadata], _Arg) ->
                                                 to=To,
                                                 parent=Parent,
                                                 metadata=json_helpers:to_struct(Metadata)}),
-            json_helpers:created(Domain, Id)
+            json_helpers:created(Response, Id)
     end.
 
-add2(Domain, [], [], Arg) ->
-    add2(Domain, [""], [], Arg);
-add2(Domain, [Meeting], [], Arg) ->
+add2(Domain, [], [], Request, Response) ->
+    add2(Domain, [""], [], Request, Response);
+add2(Domain, [Meeting], [], #uce_request{arg=Arg}, Response) ->
     {struct, Json} = mochijson:decode(Arg#arg.clidata),
     Uid = proplists:get_value("uid", Json),
     Sid = proplists:get_value("sid", Json),
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+    ok = uce_presence:assert(Domain, Uid, Sid),
 
     Type = proplists:get_value("type", Json),
     To = proplists:get_value("to", Json, ""),
@@ -114,27 +109,25 @@ add2(Domain, [Meeting], [], Arg) ->
                                         to=To,
                                         parent=Parent,
                                         metadata=Metadata}),
-    json_helpers:created(Domain, Id).
+    json_helpers:created(Response, Id).
 
-get(Domain, [_, {id, Id}], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+get(Domain, [_, {id, Id}], [Uid, _Sid], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "event", "get", [{"id", Id}]),
     {ok, #uce_event{to=To} = Event} = uce_event:get(Domain, Id),
     case To of
         "" ->
-            json_helpers:json(Domain, Event);
+            json_helpers:json(Response, Domain, Event);
         Uid ->
-            json_helpers:json(Domain, Event);
+            json_helpers:json(Response, Domain, Event);
         _ ->
             throw({error, unauthorized})
     end.
 
-list(Domain, [], Params, Arg) ->
-    list(Domain, [""], Params, Arg);
+list(Domain, [], Params, Request, Response) ->
+    list(Domain, [""], Params, Request, Response);
 list(Domain, [Meeting],
-     [Uid, Sid, Search, Type, From, DateStart, DateEnd, Count, Page, Order, Parent], _Arg) ->
+     [Uid, _Sid, Search, Type, From, DateStart, DateEnd, Count, Page, Order, Parent], _Request, Response) ->
 
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "list", [{"from", From}]),
 
     Keywords = string:tokens(Search, ","),
@@ -153,17 +146,16 @@ list(Domain, [Meeting],
                                   Start,
                                   Count,
                                   Order),
-    json_helpers:json(Domain, Events).
+    json_helpers:json(Response, Domain, Events).
 
-live(Domain, [], Params, Arg) ->
-    live(Domain, [""], Params, Arg);
+live(Domain, [], Params, Request, Response) ->
+    live(Domain, [""], Params, Request, Response);
 live(Domain, [Meeting],
-     [Uid, Sid, Search, Type, From, UserStart, Parent, Mode], Arg) ->
+     [Uid, Sid, Search, Type, From, UserStart, Parent, Mode], Request, Response) ->
 
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "event", "list", [{"from", From}]),
 
-    Start = case get_last_event_id(Arg) of
+    Start = case get_last_event_id(Request) of
                 undefined ->
                     UserStart;
                 Value ->
@@ -183,7 +175,8 @@ live(Domain, [Meeting],
                                           Parent),
     case Mode of
         "longpolling" ->
-            uce_async_lp:wait(Domain,
+            uce_async_lp:wait(Response,
+                              Domain,
                               Uid,
                               Meeting,
                               Keywords,
@@ -192,7 +185,8 @@ live(Domain, [Meeting],
                               Parent,
                               PreviousEvents);
         "eventsource" ->
-            uce_async_stream:wait(Domain,
+            uce_async_stream:wait(Response,
+                                  Domain,
                                   Uid,
                                   Meeting,
                                   Keywords,
@@ -205,7 +199,7 @@ live(Domain, [Meeting],
             {error, bad_parameters}
     end.
 
-get_last_event_id(Arg) ->
+get_last_event_id(#uce_request{arg=Arg}) ->
     Header = "Last-Event-Id",
     case lists:keyfind(Header, 3, Arg#arg.headers#headers.other) of
         false ->

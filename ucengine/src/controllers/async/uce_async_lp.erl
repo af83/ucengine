@@ -17,11 +17,11 @@
 %%
 -module(uce_async_lp).
 
--export([wait/8]).
+-export([wait/9]).
 
 -include("uce.hrl").
 
-wait(Domain, Uid, Location, Search, From, Types, Parent, []) ->
+wait(Response, Domain, Uid, Location, Search, From, Types, Parent, []) ->
     Self = self(),
     spawn(fun() ->
                   uce_meeting:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
@@ -45,6 +45,6 @@ wait(Domain, Uid, Location, Search, From, Types, Parent, []) ->
                   yaws_api:stream_chunk_end(Self),
                   uce_meeting:unsubscribe(self())
           end),
-    {streamcontent_with_timeout, "application/json", <<>>, infinity};
-wait(Domain, _Uid, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
-    json_helpers:json(Domain, PreviousEvents).
+    Response#uce_response{status=200, content={streamcontent_with_timeout, "application/json", <<>>, infinity}};
+wait(Response, Domain, _Uid, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
+    json_helpers:json(Response, Domain, PreviousEvents).

@@ -17,7 +17,7 @@
 %%
 -module(uce_async_stream).
 
--export([wait/9]).
+-export([wait/10]).
 
 -include("uce.hrl").
 
@@ -34,10 +34,10 @@
 % Public API
 %
 
-wait(Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
+wait(Response, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
     YawsPid = self(),
     {ok, _Pid} = gen_server:start_link(?MODULE, [YawsPid, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents], []),
-    {streamcontent_with_timeout, "text/event-stream", <<>>, infinity}.
+    Response#uce_response{status=200, content={streamcontent_with_timeout, "text/event-stream", <<>>, infinity}}.
 
 %
 % gen_server callbacks

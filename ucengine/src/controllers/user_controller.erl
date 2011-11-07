@@ -17,90 +17,86 @@
 %%
 -module(user_controller).
 
--export([init/0, add/4, update/4, get/4, find/4, list/4, delete/4, check_access/4, add_role/4, delete_role/4]).
+-export([init/0, add/5, update/5, get/5, find/5, list/5, delete/5, check_access/5, add_role/5, delete_role/5]).
 
 -include("uce.hrl").
 
 init() ->
     [#uce_route{method='POST',
                 path=["user"],
-                callback={?MODULE, add,
-                          [{"uid", "", string},
-                           {"sid", "", string},
-                           {"name", required, string},
-                           {"auth", required, string},
-                           {"credential", required, string},
-                           {"metadata", [], dictionary}]}},
+                middlewares=[{params, [{"uid", "", string},
+                                       {"sid", "", string},
+                                       {"name", required, string},
+                                       {"auth", required, string},
+                                       {"credential", required, string},
+                                       {"metadata", [], dictionary}]}],
+                callback={?MODULE, add}},
 
      #uce_route{method='GET',
                 path=["user"],
-                callback={?MODULE, list,
-                          [{"uid", required, string},
-                           {"sid", required, string}]}},
+                middlewares = [auth],
+                callback={?MODULE, list}},
 
      #uce_route{method='GET',
                 path=["user", id],
-                callback={?MODULE, get,
-                          [{"uid", required, string},
-                           {"sid", required, string}]}},
+                middlewares = [auth],
+                callback={?MODULE, get}},
 
      #uce_route{method='GET',
                 path=["find","user"],
-                callback={?MODULE, find,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"by_name", "", string},
-                           {"by_uid", "", string}]}},
+                middlewares = [auth,
+                               {params, [{"by_name", "", string},
+                                         {"by_uid", "", string}]}],
+                callback={?MODULE, find}},
 
      #uce_route{method='PUT',
                 path=["user", id],
-                callback={?MODULE, update,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"name", required, string},
-                           {"auth", required, string},
-                           {"credential", required, string},
-                           {"metadata", [], dictionary}]}},
+                middlewares = [auth,
+                               {params, [{"name", required, string},
+                                         {"auth", required, string},
+                                         {"credential", required, string},
+                                         {"metadata", [], dictionary}]}],
+                callback={?MODULE, update}},
 
      #uce_route{method='DELETE',
                 path=["user", id],
-                callback={?MODULE, delete,
-                          [{"uid", required, string},
-                           {"sid", required, string}]}},
+                middlewares = [auth],
+                callback={?MODULE, delete}},
 
      #uce_route{method='GET',
                 path=["user", id, "can", action, object, '...'],
-                callback={?MODULE, check_access,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"conditions", [], dictionary}]}},
+                middlewares = [auth,
+                               {params, [{"conditions", [], dictionary}]}],
+                callback={?MODULE, check_access}},
 
      #uce_route{method='POST',
                 path=["user", id, "roles"],
-                callback={?MODULE, add_role,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"role", required, string},
-                           {"location", "", string}]}},
+                middlewares = [auth,
+                               {params, [{"role", required, string},
+                                         {"location", "", string}]}],
+                callback={?MODULE, add_role}},
 
      #uce_route{method='DELETE',
                 path=["user", id, "roles", role, '...'],
-                callback={?MODULE, delete_role,
-                          [{"uid", required, string},
-                           {"sid", required, string}]}}].
+                middlewares = [auth],
+                callback={?MODULE, delete_role}}].
 
 
-add(Domain, [], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
+add(Domain, [], [Uid, Sid, Name, Auth, Credential, Metadata], _Request, Response) ->
     case config:get(Domain, register) of
         open ->
-            create_user(Domain, [Name, Auth, Credential, Metadata]);
+            create_user(Response, Domain, [Name, Auth, Credential, Metadata]);
         restricted ->
-            {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-            {ok, true} = uce_access:assert(Domain, Uid, "", "user", "add"),
-            create_user(Domain, [Name, Auth, Credential, Metadata])
+            case uce_presence:assert(Domain, Uid, Sid) of
+                ok ->
+                    {ok, true} = uce_access:assert(Domain, Uid, "", "user", "add"),
+                    create_user(Response, Domain, [Name, Auth, Credential, Metadata]);
+                unauthorized ->
+                    throw({error, unauthorized})
+            end
     end.
 
-create_user(Domain, [Name, Auth, Credential, Metadata]) ->
+create_user(Response, Domain, [Name, Auth, Credential, Metadata]) ->
     {ok, NewUserUid} = uce_user:add(Domain, #uce_user{id=none,
                                                       name=Name,
                                                       auth=Auth,
@@ -111,37 +107,32 @@ create_user(Domain, [Name, Auth, Credential, Metadata]) ->
                                                from=NewUserUid,
                                                location="",
                                                type="internal.user.add"}),
-    json_helpers:created(Domain, NewUserUid).
+    json_helpers:created(Response, NewUserUid).
 
-list(Domain, [], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+list(Domain, [], [Uid, _Sid], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "list"),
     {ok, Users} = uce_user:list(Domain),
-    json_helpers:json(Domain, Users).
+    json_helpers:json(Response, Domain, Users).
 
-get(Domain, [{id, Id}], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+get(Domain, [{id, Id}], [Uid, _Sid], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", [{"user", Id}]),
     {ok, User} = uce_user:get(Domain, Id),
-    json_helpers:json(Domain, User).
+    json_helpers:json(Response, Domain, User).
 
-find(Domain, [], [Uid, Sid, ByName, _ByUid], _ ) when ByName /= "" ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+find(Domain, [], [Uid, _Sid, ByName, _ByUid], _Request, Response) when ByName /= "" ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", []),
     {ok, User} = uce_user:get_by_name(Domain, ByName),
-    json_helpers:json(Domain, User);
+    json_helpers:json(Response, Domain, User);
 
-find(Domain, [], [Uid, Sid, _ByName, ByUid], _ ) when ByUid /= "" ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+find(Domain, [], [Uid, _Sid, _ByName, ByUid], _Request, Response) when ByUid /= "" ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "get", []),
     {ok, User} = uce_user:get(Domain, ByUid),
-    json_helpers:json(Domain, User);
+    json_helpers:json(Response, Domain, User);
 
-find(_Domain, [], [_Uid, _Sid, _ByName, _ByUid], _ )->
+find(_Domain, [], [_Uid, _Sid, _ByName, _ByUid], _Request, _Response)->
     throw({error, missing_parameter}).
 
-update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+update(Domain, [{id, Id}], [Uid, _Sid, Name, Auth, Credential, Metadata], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "update", [{"user", Id},
                                                                        {"auth", Auth}]),
     {ok, Record} = uce_user:get(Domain, Id),
@@ -156,31 +147,28 @@ update(Domain, [{id, Id}], [Uid, Sid, Name, Auth, Credential, Metadata], _) ->
                                        location="",
                                        type="internal.user.update"}),
 
-    json_helpers:ok(Domain).
+    json_helpers:ok(Response).
 
-delete(Domain, [{id, Id}], [Uid, Sid], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+delete(Domain, [{id, Id}], [Uid, _Sid], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "user", "delete", [{"user", Id}]),
     {ok, deleted} = uce_user:delete(Domain, Id),
-    json_helpers:ok(Domain).
+    json_helpers:ok(Response).
 
-check_access(Domain, [Name, Action, Object], [Uid, Sid, Conditions], Arg) ->
-    check_access(Domain, [Name, Action, Object, ""], [Uid, Sid, Conditions], Arg);
-check_access(Domain, [{id, Name}, {action, Action}, {object, Object}, Location], [Uid, Sid, Conditions], _Arg) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+check_access(Domain, [Name, Action, Object], [Uid, Sid, Conditions], Request, Response) ->
+    check_access(Domain, [Name, Action, Object, ""], [Uid, Sid, Conditions], Request, Response);
+check_access(Domain, [{id, Name}, {action, Action}, {object, Object}, Location], [Uid, _Sid, Conditions], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, "", "access", "check", [{"user", Name},
                                                                         {"action", Action},
                                                                         {"object", Object},
                                                                         {"location", Location}]),
     case uce_access:check(Domain, Name, Location, Object, Action, Conditions) of
         {ok, true} ->
-            json_helpers:true(Domain);
+            json_helpers:true(Response);
         {ok, false} ->
-            json_helpers:false(Domain)
+            json_helpers:false(Response)
     end.
 
-add_role(Domain, [{id, Name}], [Uid, Sid, Role, Location], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+add_role(Domain, [{id, Name}], [Uid, _Sid, Role, Location], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, Location, "user.role", "add", [{"user", Name},
                                                                                {"role", Role}]),
     {ok, updated} = uce_user:add_role(Domain, Name, {Role, Location}),
@@ -191,12 +179,11 @@ add_role(Domain, [{id, Name}], [Uid, Sid, Role, Location], _) ->
                                        type="internal.user.role.add",
                                        metadata=[{"role", Role},
                                                  {"user", Name}]}),
-    json_helpers:ok(Domain).
+    json_helpers:ok(Response).
 
-delete_role(Domain, [User, Role], [Uid, Sid], Arg) ->
-    delete_role(Domain, [User, Role, ""], [Uid, Sid], Arg);
-delete_role(Domain, [{id, User}, {role, Role}, Location], [Uid, Sid], _Arg) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+delete_role(Domain, [User, Role], [Uid, Sid], Request, Response) ->
+    delete_role(Domain, [User, Role, ""], [Uid, Sid], Request, Response);
+delete_role(Domain, [{id, User}, {role, Role}, Location], [Uid, _Sid], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, Location, "user.role", "delete", [{"user", User},
                                                                                   {"role", Role}]),
     {ok, updated} = uce_user:delete_role(Domain, User, {Role, Location}),
@@ -207,4 +194,4 @@ delete_role(Domain, [{id, User}, {role, Role}, Location], [Uid, Sid], _Arg) ->
                                        type="internal.user.role.delete",
                                        metadata=[{"role", Role},
                                                  {"user", User}]}),
-    json_helpers:ok(Domain).
+    json_helpers:ok(Response).

@@ -22,77 +22,40 @@
 
 -export([out/1]).
 
-convert2(string, Value) ->
-    Value;
-convert2(integer, Value) when is_integer(Value) ->
-    Value;
-convert2(integer, Value) ->
-    case string:to_integer(Value) of
-        {error, _} ->
-            {error, bad_parameters};
-        {Integer, _} ->
-            Integer
-    end;
-convert2(atom, Value) when is_atom(Value) ->
-    Value;
-convert2(atom, Value) ->
-    list_to_atom(Value);
-convert2(dictionary, Value) ->
-    Value;
-convert2(file, Value) when is_record(Value, file_upload) ->
-    Value;
-convert2(file, _Value) ->
-    {error, bad_parameters}.
-
-convert(Param, Type)
-  when is_atom(Type) ->
-    convert(Param, [Type]);
-convert(_, []) ->
-    throw({error, bad_parameters});
-convert(Param, [Type|Tail]) ->
-    Result = convert2(Type, Param),
-    case Result of
-        {error, _} ->
-            convert(Param, Tail);
-        _ ->
-            Result
+call_middlewares(Request, Response) ->
+    case call_middlewares(Request, Response, [cors, parse, method, router]) of
+        {stop, Resp} ->
+            Resp;
+        {ok, Req, Resp} ->
+            case call_middlewares(Req, Resp, Req#uce_request.route#uce_route.middlewares ++ [route]) of
+                {stop, Resp2} ->
+                    Resp2;
+                {ok, _Req2, Resp2} ->
+                    Resp2
+            end;
+        Other ->
+            Other
     end.
 
-validate(_, []) ->
-    [];
-validate(Query, [{Name, Default, Types}|ParamsSpecList]) ->
-    case utils:get(Query, [Name], [Default]) of
-        [required] ->
-            throw({error, missing_parameters, lists:flatten(io_lib:format("Parameter '~s' is missing", [Name]))});
-        [RawValue] ->
-            [convert(RawValue, Types)] ++ validate(Query, ParamsSpecList)
+call_middlewares(Request, Response, []) ->
+    {ok, Request, Response};
+call_middlewares(Request, Response, [Middleware|Middlewares]) ->
+    case call_middleware(Request, Response, Middleware) of
+        {ok, Req2, Response2} ->
+            call_middlewares(Req2, Response2, Middlewares);
+        {stop, Response2} ->
+            {stop, Response2};
+        Other ->
+            Other
     end.
 
-call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
-    case catch validate(Query, ParamsSpecList) of
-        {error, Reason} ->
-            json_helpers:error(Domain, Reason);
-        {error, Reason, Infos} ->
-            ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Reason, Infos]),
-            json_helpers:error(Domain, Reason, Infos);
-        Params ->
-            ?DEBUG("~p: call ~p:~p matching ~p with ~p~n", [Domain, Module, Function, Match, Params]),
-            Now = now(),
-            try Module:Function(Domain, Match, Params, Arg) of
-                {streamcontent_with_timeout, _, _, _} = Stream ->
-                    cors_helpers:format_cors_headers(Domain) ++ [Stream];
-                Response when is_list(Response) ->
-                    ?TIMER_APPEND(atom_to_list(Module) ++ "_" ++ atom_to_list(Function), Now),
-                    Response
-            catch
-                {error, Reason} ->
-                    ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Reason, Params]),
-                    json_helpers:error(Domain, Reason);
-                E ->
-                    ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Params, E]),
-                    json_helpers:unexpected_error(Domain)
-            end
-    end.
+middleware_name(Middleware) ->
+    list_to_atom(lists:concat([uce_middleware_, Middleware])).
+
+call_middleware(Request, Response, {Middleware, Params}) ->
+    (middleware_name(Middleware)):call(Request, Response, Params);
+call_middleware(Request, Response, Middleware) ->
+    (middleware_name(Middleware)):call(Request, Response).
 
 %%
 %% Function called by yaws
@@ -101,35 +64,17 @@ call_handlers(Domain, {Module, Function, ParamsSpecList}, Query, Match, Arg) ->
 out(#arg{} = Arg) ->
     ?COUNTER('http:request'),
     Host = Arg#arg.opaque,
-    case uce_http:parse(Host, Arg) of
-        {error, Reason} ->
-            json_helpers:error(Host, Reason);
-        {get_more, _, _} = State ->
-            State;
-        {Method, Path, Query} ->
-            process(Host, Method, Path, Query, Arg)
-    end.
+    Request = #uce_request{domain=Host,
+                           path=Arg#arg.pathinfo,
+                           arg=Arg},
 
-% Handle options method. If one route match, return ok
-process(Host, 'OPTIONS', Path, _Query, _Arg) ->
-    case routes:get(Path) of
-        {ok, _Match, _Handlers} ->
-            json_helpers:ok(Host);
-        {error, not_found} ->
-            ?ERROR_MSG("options ~p: no route found", [Path]),
-            json_helpers:error(Host, not_found)
-    end;
-% Handle head method. If a 'GET' route match, normal process
-% Yaws will strip the content
-process(Host, 'HEAD', Path, Query, Arg) ->
-    process(Host, 'GET', Path, Query, Arg);
-process(Host, Method, Path, Query, Arg) ->
-    ContentType = Arg#arg.headers#headers.content_type,
-    case routes:get(Method, Path, ContentType) of
-        {ok, Match, Handlers} ->
-            call_handlers(Host, Handlers, Query, Match, Arg);
-        {error, not_found} ->
-            Description = lists:flatten(io_lib:format("~s on ~s did not match any route.", [Method, Path])),
-            ?ERROR_MSG(Description, []),
-            json_helpers:error(Host, not_found, Description)
+    Response = call_middlewares(Request, #uce_response{}),
+
+    case Response of
+        %% normal response
+        #uce_response{status=Status, content=Content, headers=Headers} ->
+            Headers ++ [{status, Status}, Content];
+        %% in case of multipart
+        Other ->
+            Other
     end.

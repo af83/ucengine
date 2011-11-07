@@ -17,14 +17,14 @@
 %%
 -module(time_controller).
 
--export([init/0, get/4]).
+-export([init/0, get/5]).
 
 -include("uce.hrl").
 
 init() ->
     [#uce_route{method='GET',
                 path=["time"],
-                callback={?MODULE, get, []}}].
+                callback={?MODULE, get}}].
 
-get(Domain, _, [], _) ->
-    json_helpers:json(Domain, utils:now()).
+get(Domain, _, [], _Request, Response) ->
+    json_helpers:json(Response, Domain, utils:now()).

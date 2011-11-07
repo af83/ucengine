@@ -17,7 +17,9 @@
 %%
 -module(http_helpers).
 
--export([error_to_code/1, download/2]).
+-export([error_to_code/1, download/3]).
+
+-include("uce.hrl").
 
 error_to_code(Error) ->
     case Error of
@@ -45,7 +47,7 @@ error_to_code(Error) ->
 %%
 %% Download file
 %%
-download(Filename, Content) ->
-    [{status, 200},
-     {header, {"Content-Disposition", "filename=" ++ yaws_api:url_encode(Filename)}},
-     {content, "application/octet-stream", Content}].
+download(#uce_response{headers=Headers} = Response, Filename, Content) ->
+    Response#uce_response{status=200,
+                          headers=Headers ++ [{header, {"Content-Disposition", "filename=" ++ yaws_api:url_encode(Filename)}}],
+                          content={content, "application/octet-stream", Content}}.

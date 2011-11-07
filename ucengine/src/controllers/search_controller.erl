@@ -17,7 +17,7 @@
 %%
 -module(search_controller).
 
--export([init/0, search/4]).
+-export([init/0, search/5]).
 
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
@@ -25,14 +25,13 @@
 init() ->
     [#uce_route{method='GET',
                 path=["search", '_'],
-                callback={?MODULE, search,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"searchTerms", "", string},
-                           {"startIndex", 0, integer},
-                           {"startPage", 1, integer},
-                           {"count", 10, integer},
-                           {"order", "asc", string}]}}].
+                middlewares = [auth,
+                               {params, [{"searchTerms", "", string},
+                                         {"startIndex", 0, integer},
+                                         {"startPage", 1, integer},
+                                         {"count", 10, integer},
+                                         {"order", "asc", string}]}],
+                callback={?MODULE, search}}].
 
 extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
     {ok, Regexp} = re:compile("(^|.* )" ++ Term ++ ":([^ ]+)(.*)"),
@@ -48,9 +47,7 @@ extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
 extract_terms(SearchTerms, [], []) ->
     [{"keywords", string:tokens(SearchTerms, " ")}].
 
-search(Domain, [], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count, Order], Arg) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
-
+search(Domain, [], [Uid, _Sid, SearchTerms, StartIndex, StartPage, Count, Order], #uce_request{arg=Arg}, Response) ->
     [{"type", Type},
      {"start", DateStart},
      {"end", DateEnd},
@@ -99,4 +96,4 @@ search(Domain, [], [Uid, Sid, SearchTerms, StartIndex, StartPage, Count, Order],
                                          {searchTerms, SearchTerms},
                                          {startPage, StartPage}]}},
                      {'entries', Entries}]},
-    json_helpers:json(Domain, Feed).
+    json_helpers:json(Response, Domain, Feed).

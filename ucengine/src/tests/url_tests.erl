@@ -24,7 +24,8 @@ url_test_() ->
      [?_test(test_bad_url()),
       ?_test(test_options()),
       ?_test(test_head()),
-      ?_test(test_get_time())]}.
+      ?_test(test_get_time()),
+      ?_test(test_cors())]}.
 
 test_bad_url() ->
     BaseUrl = fixtures:get_base_url(),
@@ -51,3 +52,23 @@ test_get_time() ->
         true ->
             nothing
     end.
+
+match_cors([]) ->
+    ok;
+match_cors([{ok, _, Headers, _}| Requests]) ->
+    ?assertMatch("*", proplists:get_value("Access-Control-Allow-Origin", Headers)),
+    ?assertMatch("GET, POST, PUT, DELETE", proplists:get_value("Access-Control-Allow-Methods", Headers)),
+    ?assertMatch("X-Requested-With", proplists:get_value("Access-Control-Allow-Headers", Headers)),
+    match_cors(Requests).
+
+test_cors() ->
+    BaseUrl = fixtures:get_base_url(),
+    Requests = [
+                 tests_utils:get_raw(BaseUrl, "")
+               , tests_utils:get_raw(BaseUrl, "/time")
+               , tests_utils:options_raw(BaseUrl, "")
+               , tests_utils:options_raw(BaseUrl, "/time")
+               , tests_utils:head_raw(BaseUrl, "")
+               , tests_utils:head_raw(BaseUrl, "/time")
+                ],
+    match_cors(Requests).

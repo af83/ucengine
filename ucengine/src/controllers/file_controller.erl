@@ -17,7 +17,7 @@
 %%
 -module(file_controller).
 
--export([init/0, add/4, list/4, get/4, delete/4]).
+-export([init/0, add/5, list/5, get/5, delete/5]).
 
 -include("uce.hrl").
 
@@ -26,35 +26,30 @@
 init() ->
     [#uce_route{method='POST',
                 path=["file", meeting],
-                callback={?MODULE, add,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"content", required, file},
-                           {"metadata", [], dictionary},
-                           {"forceContentType", "application/json", string}]}},
+                middlewares = [auth,
+                               {params, [{"content", required, file},
+                                         {"metadata", [], dictionary},
+                                         {"forceContentType", "application/json", string}]}],
+                callback={?MODULE, add}},
 
      #uce_route{method='GET',
                 path=["file", meeting],
-                callback={?MODULE, list,
-                          [{"uid", required, string},
-                           {"sid", required, string},
-                           {"order", asc, atom}]}},
+                middlewares = [auth,
+                               {params, [{"order", asc, atom}]}],
+                callback={?MODULE, list}},
 
      #uce_route{method='GET',
                 path=["file", meeting, id],
-                callback={?MODULE, get,
-                          [{"uid", required, string},
-                           {"sid", required, string}]}},
+                middlewares = [auth],
+                callback={?MODULE, get}},
 
      #uce_route{method='DELETE',
                 path=["file", meeting, id],
-                callback={?MODULE, delete,
-                          [{"uid", required, string},
-                           {"sid", required, string}]}}].
+                middlewares = [auth],
+                callback={?MODULE, delete}}].
 
 
-add(Domain, [{meeting, Meeting}], [Uid, Sid, FileUploaded, Metadata, ForceContentType], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+add(Domain, [{meeting, Meeting}], [Uid, _Sid, FileUploaded, Metadata, ForceContentType], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "add"),
     {ok, Id} = uce_file:add(Domain, #uce_file{location=Meeting,
                                               name=FileUploaded#file_upload.filename,
@@ -81,16 +76,15 @@ add(Domain, [{meeting, Meeting}], [Uid, Sid, FileUploaded, Metadata, ForceConten
     %% correct programm to show it. This is very annoying.
     case ForceContentType of
         "application/json" ->
-            json_helpers:created(Domain, Id);
+            json_helpers:created(Response, Id);
         ContentType ->
-            json_helpers:format_response(201, ContentType, cors_helpers:format_cors_headers(Domain), {struct, [{result, Id}]})
+            json_helpers:format_response(Response, 201, ContentType, {struct, [{result, Id}]})
     end.
 
-list(Domain, [{meeting, Meeting}], [Uid, Sid, Order], _) ->
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
+list(Domain, [{meeting, Meeting}], [Uid, _Sid, Order], _Request, Response) ->
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "list"),
     {ok, Files} = uce_file:list(Domain, Meeting, Order),
-    json_helpers:json(Domain, Files).
+    json_helpers:json(Response, Domain, Files).
 
 %%
 %% @doc Get real path from encoded uri of record uce_file
@@ -99,9 +93,8 @@ list(Domain, [{meeting, Meeting}], [Uid, Sid, Order], _) ->
 get_path(Uri) ->
     re:replace(Uri, "file\:\/\/", "", [{return, list}]).
 
-get(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
+get(Domain, [{meeting, Meeting}, {id, Id}], [Uid, _Sid], _Request, Response) ->
     NormalizedId = unicode_helpers:normalize_unicode(Id),
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "get", [{"id", Id}]),
     {ok, File} = uce_file:get(Domain, NormalizedId),
     Path = get_path(File#uce_file.uri),
@@ -109,12 +102,11 @@ get(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
         {error, Reason} ->
             throw({error, Reason});
         {ok, Content} ->
-            http_helpers:download(File#uce_file.name, Content)
+            http_helpers:download(Response, File#uce_file.name, Content)
     end.
 
-delete(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
+delete(Domain, [{meeting, Meeting}, {id, Id}], [Uid, _Sid], _Request, Response) ->
     NormalizedId = unicode_helpers:normalize_unicode(Id),
-    {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Meeting, "file", "delete", [{"id", Id}]),
     {ok, File} = uce_file:get(Domain, NormalizedId),
     {ok, deleted} = uce_file:delete(Domain, NormalizedId),
@@ -126,4 +118,4 @@ delete(Domain, [{meeting, Meeting}, {id, Id}], [Uid, Sid], _) ->
                              metadata=[
                                 {"id", Id},
                                 {"name", File#uce_file.name}]}),
-    json_helpers:ok(Domain).
+    json_helpers:ok(Response).

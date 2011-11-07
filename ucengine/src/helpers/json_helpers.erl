@@ -30,52 +30,48 @@
          false/1,
          created/1,
          created/2,
-         json/2,
          json/3,
+         json/4,
          to_json/2,
          to_struct/1]).
 
-format_response(Status, Headers, Content) ->
-    format_response(Status, "application/json", Headers, to_struct(Content)).
+format_response(Response, Status, Content) ->
+    format_response(Response, Status, "application/json", to_struct(Content)).
 
-format_response(Status, ContentType, Headers, Content) ->
-    Body = mochijson:encode(Content),
-    [{status, Status},
-     {content, ContentType, lists:flatten(Body)}] ++ Headers.
+format_response(Response, Status, ContentType, Content) ->
+    Body = lists:flatten(mochijson:encode(Content)),
+    Response#uce_response{status=Status, content={content, ContentType, Body}}.
 
-add_cors_headers(Domain) ->
-    cors_helpers:format_cors_headers(Domain).
+unexpected_error(Response) ->
+    format_response(Response, 500, [{error, unexpected_error}]).
 
-unexpected_error(Domain) ->
-    format_response(500, add_cors_headers(Domain), [{error, unexpected_error}]).
-
-error(Domain, Reason) ->
+error(Response, Reason) ->
     Code = http_helpers:error_to_code(Reason),
-    format_response(Code, add_cors_headers(Domain), [{error, Reason}]).
-error(Domain, Reason, Infos) ->
+    format_response(Response, Code, [{error, Reason}]).
+error(Response, Reason, Infos) ->
     Code = http_helpers:error_to_code(Reason),
-    format_response(Code, add_cors_headers(Domain), [{error, Reason}, {infos, Infos}]).
+    format_response(Response, Code, [{error, Reason}, {infos, Infos}]).
 
-ok(Domain) ->
-    format_response(200, add_cors_headers(Domain), [{result, ok}]).
+ok(Response) ->
+    format_response(Response, 200, [{result, ok}]).
 
-true(Domain) ->
-    format_response(200, add_cors_headers(Domain), [{result, "true"}]).
+true(Response) ->
+    format_response(Response, 200, [{result, "true"}]).
 
-false(Domain) ->
-    format_response(200, add_cors_headers(Domain), [{result, "false"}]).
+false(Response) ->
+    format_response(Response, 200, [{result, "false"}]).
 
-created(Domain) ->
-    format_response(201, add_cors_headers(Domain), [{result, created}]).
+created(Response) ->
+    format_response(Response, 201, [{result, created}]).
 
-created(Domain, Id) ->
-    format_response(201, add_cors_headers(Domain), [{result, Id}]).
+created(Response, Id) ->
+    format_response(Response, 201, [{result, Id}]).
 
-json(Domain, Content) ->
-    json(Domain, 200, Content).
+json(Response, Domain, Content) ->
+    json(Response, Domain, 200, Content).
 
-json(Domain, Status, Content) ->
-    format_response(Status, add_cors_headers(Domain), [{result, to_json(Domain, Content)}]).
+json(Response, Domain, Status, Content) ->
+    format_response(Response, Status, [{result, to_json(Domain, Content)}]).
 %%
 %% Transform usual records to JSON
 %%
@@ -178,23 +174,13 @@ to_struct(Proplist) ->
 -include_lib("eunit/include/eunit.hrl").
 
 unexpected_error_test() ->
-    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"unexpected_error\"}"},
-                 {header, "Access-Control-Allow-Origin: *"},
-                 {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
-                 {header, "Access-Control-Allow-Headers: X-Requested-With"}], unexpected_error("")).
+    ?assertMatch(#uce_response{status=500, content={content, "application/json", "{\"error\":\"unexpected_error\"}"}}, unexpected_error(#uce_response{})).
 
 error_test() ->
-    ?assertMatch([{status, 400}, {content, "application/json", "{\"error\":\"bad_parameters\"}"},
-                  {header, "Access-Control-Allow-Origin: *"},
-                  {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
-                  {header, "Access-Control-Allow-Headers: X-Requested-With"}], error("", bad_parameters)),
-    ?assertMatch([{status, 500}, {content, "application/json", "{\"error\":\"hello_world\"}"},
-                  {header, "Access-Control-Allow-Origin: *"},
-                  {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
-                  {header, "Access-Control-Allow-Headers: X-Requested-With"}], error("", "hello_world")).
+    ?assertMatch(#uce_response{status=400, content={content, "application/json", "{\"error\":\"bad_parameters\"}"}}, error(#uce_response{}, bad_parameters)),
+    ?assertMatch(#uce_response{status=500, content={content, "application/json", "{\"error\":\"hello_world\"}"}}, error(#uce_response{}, "hello_world")).
 
 format_response_test() ->
-    ?assertMatch([{status, 200}, {content, "application/json", "{}"}], format_response(200, [], [])),
-    ?assertMatch([{status, 200}, {content, "application/json", "{}"}, {header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], format_response(200, [{header, "X-Plop: plop"}, {header, "Host: ucengine.org"}], [])).
+    ?assertMatch(#uce_response{status=200, content={content, "application/json", "{}"}}, format_response(#uce_response{}, 200, [])).
 
 -endif.
