@@ -60,9 +60,7 @@ delete(Domain, Id) ->
                                     mnesia:delete({uce_role, {Id, Domain}})
                             end) of
         {atomic, _} ->
-            {ok, deleted};
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            {ok, deleted}
     end.
 
 get(Domain, Id) ->
@@ -70,9 +68,7 @@ get(Domain, Id) ->
         [#uce_role{id={Id, Domain}} = Record] ->
             {ok, Record#uce_role{id=Id}};
         [] ->
-            throw({error, not_found});
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            throw({error, not_found})
     end.
 
 drop() ->

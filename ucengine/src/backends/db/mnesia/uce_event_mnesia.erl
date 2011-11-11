@@ -37,17 +37,11 @@ init() ->
     end.
 
 add(Domain, #uce_event{id=Id} = Event) ->
-    case mnesia:dirty_write(Event#uce_event{id={Id, Domain}}) of
-        ok ->
-            {ok, Id};
-        {aborted, _} ->
-            throw({error, bad_parameters})
-    end.
+    ok = mnesia:dirty_write(Event#uce_event{id={Id, Domain}}),
+    {ok, Id}.
 
 get(Domain, Id) ->
     case mnesia:dirty_read(uce_event, {Id, Domain}) of
-        {aborted, _} ->
-            throw({error, bad_parameters});
         [] ->
             throw({error, not_found});
         [Event] ->

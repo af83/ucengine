@@ -40,9 +40,7 @@ init() ->
 add(Domain, #uce_user{id=Id} = User) ->
     case mnesia:dirty_write(User#uce_user{id={Id, Domain}}) of
         ok ->
-            {ok, created};
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            {ok, created}
     end.
 
 delete(Domain, Id) ->
@@ -50,9 +48,7 @@ delete(Domain, Id) ->
                                     mnesia:delete({uce_user, {Id, Domain}})
                             end) of
         {atomic, ok} ->
-            {ok, deleted};
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            {ok, deleted}
     end.
 
 update(Domain, #uce_user{id=Id} = User) ->
@@ -60,9 +56,7 @@ update(Domain, #uce_user{id=Id} = User) ->
                                     mnesia:write(User#uce_user{id={Id, Domain}})
                             end) of
         {atomic, _} ->
-            {ok, updated};
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            {ok, updated}
     end.
 
 list(Domain) ->
@@ -73,9 +67,7 @@ list(Domain) ->
                                              metadata='_',
                                              roles='_'}) of
         Users when is_list(Users) ->
-            {ok, remove_domain_from_id(Users)};
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            {ok, remove_domain_from_id(Users)}
     end.
 
 get_by_name(Domain, Name) ->
@@ -88,9 +80,7 @@ get_by_name(Domain, Name) ->
         [User] ->
             {ok, remove_domain_from_id(User)};
         [] ->
-            throw({error, not_found});
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            throw({error, not_found})
     end.
 
 get(Domain, Id) ->
@@ -98,9 +88,7 @@ get(Domain, Id) ->
         [User] ->
             {ok, remove_domain_from_id(User)};
         [] ->
-            throw({error, not_found});
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            throw({error, not_found})
     end.
 
 drop() ->

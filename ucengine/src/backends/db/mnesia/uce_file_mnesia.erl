@@ -37,12 +37,8 @@ init() ->
     end.
 
 add(Domain, #uce_file{id=Id} = File) ->
-    case mnesia:dirty_write(File#uce_file{id={Id, Domain}}) of
-        ok ->
-            {ok, Id};
-        {aborted, _} ->
-            throw({error, bad_parameters})
-    end.
+    ok = mnesia:dirty_write(File#uce_file{id={Id, Domain}}),
+    {ok, Id}.
 
 list(Domain, Meeting, Order) ->
     FunOrder = case Order of
@@ -76,9 +72,7 @@ all(Domain) ->
                                                  mime='_',
                                                  metadata='_'}) of
             Files when is_list(Files) ->
-                {ok, remove_domain_from_id(Files)};
-            {aborted, _} ->
-                throw({error, bad_parameters})
+                {ok, remove_domain_from_id(Files)}
     end.
 
 get(Domain, Id) ->
@@ -86,9 +80,7 @@ get(Domain, Id) ->
         [File] ->
             {ok, remove_domain_from_id(File)};
         [] ->
-            throw({error, not_found});
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            throw({error, not_found})
     end.
 
 delete(Domain, Id) ->
@@ -96,9 +88,7 @@ delete(Domain, Id) ->
                                     mnesia:delete({uce_file, {Id, Domain}})
                             end) of
         {atomic, ok} ->
-            {ok, deleted};
-        {aborted, _} ->
-            throw({error, bad_paramaters})
+            {ok, deleted}
     end.
 
 drop() ->

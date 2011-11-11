@@ -40,8 +40,6 @@ init() ->
 
 add(Domain, #uce_meeting{id=Id} = Meeting) ->
     case mnesia:dirty_write(Meeting#uce_meeting{id={Id, Domain}}) of
-        {aborted, _} ->
-            throw({error, bad_parameters});
         ok ->
             {ok, created}
     end.
@@ -50,8 +48,6 @@ delete(Domain, Id) ->
     case mnesia:transaction(fun() ->
                                     mnesia:delete({uce_meeting, {Id, Domain}})
                             end) of
-        {aborted, _} ->
-            throw({error, bad_parameters});
         {atomic, ok} ->
             {ok, deleted}
     end.
@@ -61,17 +57,13 @@ get(Domain, Id) ->
         [Meeting] ->
             {ok, remove_domain_from_id(Meeting)};
         [] ->
-            throw({error, not_found});
-        {aborted, _} ->
-            throw({error, bad_parameters})
+            throw({error, not_found})
     end.
 
 update(Domain, #uce_meeting{id=Id} = Meeting) ->
     case mnesia:transaction(fun() ->
                                     mnesia:write(Meeting#uce_meeting{id={Id, Domain}})
                             end) of
-        {aborted, _} ->
-            throw({error, bad_parameters});
         {atomic, _} ->
             {ok, updated}
     end.
@@ -80,8 +72,6 @@ list(Domain) ->
     case mnesia:dirty_match_object(#uce_meeting{id={'_', Domain},
                                                 roster='_',
                                                 metadata='_'}) of
-        {aborted, _} ->
-            throw({error, bad_parameters});
         Meetings ->
             {ok, remove_domain_from_id(Meetings)}
     end.
