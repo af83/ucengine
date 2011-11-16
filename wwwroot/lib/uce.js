@@ -4,9 +4,11 @@
  * (c) 2011 af83
  */
 (function(g) {
-    var VERSION = "0.5";
+    var VERSION = "0.6";
 
     function UCEngine(baseUrl) {
+
+        baseUrl = baseUrl || '/api';
 
         function getCollection(url, params, callback) {
             get(url, params, function(err, result, xhr) {
@@ -18,10 +20,14 @@
             });
         }
 
-        function uce_api_call(method, url, data, callback) {
+        function format_api_url(url) {
+            return baseUrl +'/' + VERSION + url;
+        }
+
+        function uce_api_call(method, url, data, callback, overridedOptions) {
             var call_back = callback || $.noop;
-            url = baseUrl +'/api/' + VERSION + url;
-            return $.ajax({
+            url = format_api_url(url);
+            var options = {
                 type     : method,
                 dataType : "json",
                 url      : url,
@@ -34,25 +40,26 @@
                         call_back(null, response, xhr);
                     }
                 }
-            });
+            };
+            return $.ajax($.extend(options, overridedOptions || {}));
         }
 
-        function get(url, data, callback) {
-            return uce_api_call("get", url, data, callback);
+        function get(url, data, callback, options) {
+            return uce_api_call("get", url, data, callback, options);
         }
 
-        function post(url, data, callback) {
-            return uce_api_call("post", url, data, callback);
+        function post(url, data, callback, options) {
+            return uce_api_call("post", url, data, callback, options);
         }
 
-        function put(url, data, callback) {
+        function put(url, data, callback, options) {
             data = $.extend({"_method": "put"}, data);
-            return uce_api_call("post", url, data, callback);
+            return uce_api_call("post", url, data, callback, options);
         }
 
-        function del(url, data, callback) {
+        function del(url, data, callback, options) {
             data = $.extend({"_method": "delete"}, data);
-            return uce_api_call("post", url, data, callback);
+            return uce_api_call("post", url, data, callback, options);
         }
 
         function UCEMeeting(client, meetingname, presence) {
@@ -73,7 +80,7 @@
 
         UCEMeeting.prototype = {
             get: function(callback) {
-                get("/meeting/all/" + this.name, this.params.merge(),
+                get("/meeting/" + this.name, this.params.merge(),
                     function(err, result, xhr) {
                         if (!err) {
                             callback(err, result.result, xhr);
@@ -83,15 +90,9 @@
                     });
                 return this;
             },
-            update: function(start, end, metadata, callback) {
+            update: function(metadata, callback) {
                 var params = this.params.merge({'metadata': metadata});
-                if (start) {
-                    params.start = start;
-                }
-                if (end && end != "never") {
-                    params.end = end;
-                }
-                put("/meeting/all/" + this.name, params,
+                put("/meeting/" + this.name, params,
                     function(err, result, xhr) {
                         if (!callback) {
                             return;
@@ -99,19 +100,19 @@
                         callback(err, result, xhr);
                     });
             },
-            join: function(callback) {
-                post("/meeting/all/" + this.name + "/roster/",
-                     this.params.merge(), callback);
+            join: function(metadata, callback) {
+                post("/meeting/" + this.name + "/roster/",
+                     this.params.merge({metadata: metadata}), callback);
                 return this;
             },
             leave: function(callback) {
-                del("/meeting/all/" + this.name + "/roster/" + this.uid,
+                del("/meeting/" + this.name + "/roster/" + this.uid,
                     this.params.merge(),
                     callback);
                 return this;
             },
             getRoster: function(callback) {
-                get("/meeting/all/" + this.name + "/roster",
+                get("/meeting/" + this.name + "/roster",
                     this.params.merge(),
                     function (err, result, xhr) {
                         if (!callback) {
@@ -123,20 +124,36 @@
             },
 
             /**
-             * Push event
+             * Generic Push event
              */
             _push: function(params, callback) {
                 post("/event/" + this.name,
-                     this.params.merge(params),
-                     callback);
+                     JSON.stringify(this.params.merge(params)),
+                     callback, {contentType: "application/json"});
                 return this;
             },
-            push: function(type, metadata, callback) {
-                this._push({'type': type,
-                            'metadata': metadata},
+            /**
+             * Push event to all users in the current meeting room
+             * @param params can be a string with the type or an object
+             */
+            push: function(params, metadata, callback) {
+                // is params a string ?
+                if (params.charAt) {
+                    params = {
+                        type: params
+                    }
+                }
+                var type = params.type;
+                var parent = params.parent;
+                this._push({type: type,
+                            parent: parent,
+                            metadata: metadata},
                            callback);
                 return this;
             },
+            /**
+             * Push private event to the user in the current meeting room
+             */
             pushTo: function(to, type, metadata, callback) {
                 this._push({'type': type,
                             'to': to,
@@ -149,7 +166,7 @@
              * Get file upload url for this meeting
              */
             getFileUploadUrl: function() {
-                return baseUrl +"/api/"+ VERSION +"/file/"+this.name+"?uid="+this.uid+"&sid="+ this.sid;
+                return format_api_url("/file/"+this.name+"?uid="+this.uid+"&sid="+ this.sid);
             },
 
             /**
@@ -157,7 +174,7 @@
              * @param String filename
              */
             getFileDownloadUrl: function(filename) {
-                return baseUrl +"/api/"+ VERSION +"/file/"+this.name+"/"+ filename +"?uid="+this.uid+"&sid="+this.sid;
+                return format_api_url("/file/"+this.name+"/"+ filename +"?uid="+this.uid+"&sid="+this.sid);
             },
 
             /**
@@ -192,49 +209,86 @@
              *    from
              * @param Function callback
              * @param Boolean one_shot
+             * @param Array transports
              * @return Object with a stop() method
              */
-            waitEvents: function(params, callback, one_shot) {
+            waitEvents: function(params, callback, one_shot, transportsSelected) {
+                transportsSelected = transportsSelected || ['eventsource', 'longpolling'];
                 var that = this;
-                function startLongPolling(p, callback) {
-                    var getParams = that.params.merge({'_async': 'lp'}, p);
-                    return get("/event/" + that.name,
-                               getParams,
-                               callback);
-                }
-                var longPolling = {
-                    aborted : false,
-                    _start : function(p, callback) {
-                        var that = this;
-                        this.xhr = startLongPolling(p, function(err, result, xhr) {
-                            try {
-                                var events = result.result;
-                                $.each(events, function(index, event) {
-                                    try {
-                                        callback(err, event, xhr);
-                                    } catch (e) {
-                                        // naive but it's better than nothing
-                                        if (window.console) console.error(e);
-                                    }
-                                });
-                                if (events.length > 0) {
-                                    p.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                var transports = {
+                    // EventSource transport
+                    // http://dev.w3.org/html5/eventsource/
+                    eventsource : {
+                        available: window.EventSource,
+                        fun: function() {
+                            var getParams = that.params.merge({'mode': 'eventsource'}, params);
+                            var source = new EventSource(format_api_url("/live/" + that.name) +"?"+ $.param(getParams));
+                            source.onmessage = function(event) {
+                                try {
+                                    callback(null, $.parseJSON(event.data), null);
+                                } catch (e) {
+                                    // naive but it's better than nothing
+                                    if (window.console) console.error(e);
                                 }
-                            } catch (e) {
-                                // do nothing
-                            }
-                            if (that.aborted === false && one_shot !== true) {
-                                that._start(p, callback);
-                            }
-                        });
+                            };
+                            return {
+                                close: function() {
+                                    source.close();
+                                }
+                            };
+                        }
                     },
-                    stop: function() {
-                        this.aborted = true;
-                        this.xhr.abort();
+                    // long polling transport
+                    longpolling: {
+                        available: true,
+                        fun: function() {
+                            function startLongPolling(p, callback) {
+                                var getParams = that.params.merge({'mode': 'longpolling'}, p);
+                                return get("/live/" + that.name, getParams, callback);
+                            }
+                            var longPolling = {
+                                aborted : false,
+                                _start : function() {
+                                    var that = this;
+                                    this.xhr = startLongPolling(params, function(err, result, xhr) {
+                                        try {
+                                            var events = result.result;
+                                            $.each(events, function(index, event) {
+                                                try {
+                                                    callback(err, event, xhr);
+                                                } catch (e) {
+                                                    // naive but it's better than nothing
+                                                    if (window.console) console.error(e);
+                                                }
+                                            });
+                                            if (events.length > 0) {
+                                                params.start = parseInt(events[events.length - 1].datetime, 10) + 1;
+                                            }
+                                        } catch (e) {
+                                            // do nothing
+                                        }
+                                        if (that.aborted === false && one_shot !== true) {
+                                            that._start(params, callback);
+                                        }
+                                    });
+                                },
+                                stop: function() {
+                                    this.aborted = true;
+                                    this.xhr.abort();
+                                }
+                            };
+                            longPolling._start();
+                            return longPolling;
+                        }
                     }
                 };
-                longPolling._start(params, callback);
-                return longPolling;
+                for (var i = 0; i < transportsSelected.length; i++) {
+                    var transport = transports[transportsSelected[i]];
+                    if (transport.available) {
+                        return transport.fun();
+                    }
+                }
+                throw new Error("no transport available");
             },
 
             /**
@@ -290,12 +344,13 @@
             /**
              * Start main loop event
              * [@param Integer start]
+             * [@param Array transport longpolling or eventsource]
              */
-            startLoop: function(start) {
+            startLoop: function(start, transports) {
                 var that = this;
                 return this.waitEvents({start: start || 0}, function(err, result, xhr) {
                     that.trigger(result);
-                });
+                }, false, transports);
             },
 
             /**
@@ -372,6 +427,19 @@
                 return this;
             },
             /**
+             * Remove event listener
+             */
+            unbind: function(type, callback) {
+                 if (!callback) {
+                    callback  = type;
+                    type = null;
+                }
+                this.handlers = $(this.handlers).filter(function(index, handler) {
+                    return !(handler.callback == callback && handler.type == type);
+                });
+                return this;
+            },
+            /**
              * Search event in current meeting
              */
             search: function(terms, options, callback) {
@@ -400,16 +468,11 @@
             /**
              * Create user presence
              */
-            auth: function(uname, credential, metadata, callback) {
+            auth: function(uname, credential, callback) {
                 var params = {name: uname};
                 name = uname;
                 if (credential) {
                     params.credential = credential;
-                }
-                if (!callback) {
-                    callback = metadata;
-                } else {
-                    params.metadata = metadata;
                 }
                 var that = this;
                 post("/presence/", params, function(err, result, xhr) {
@@ -468,43 +531,6 @@
                 return this;
             },
             /**
-             * Domain infos
-             */
-            infos: {
-                /**
-                 * Get infos
-                 */
-                get: function(callback) {
-                    get("/infos/", {'uid': _presence.user,
-                                    'sid': _presence.id},
-                        function(err, result, xhr) {
-                            if (!err) {
-                                callback(err, result.result, xhr);
-                            } else {
-                                callback(err, result, xhr);
-                            }
-                        });
-                    return this;
-                },
-                /**
-                 * Update infos
-                 */
-                update: function(metadata, callback) {
-                    put("/infos/", {'uid': _presence.user,
-                                    'sid': _presence.id,
-                                    metadata: metadata},
-                        function(err, result, xhr) {
-                        if (!err) {
-                            callback(err, result, xhr);
-                        } else {
-                            callback(err, result, xhr);
-                        }
-                    });
-                    return this;
-                }
-            },
-
-            /**
              * Search events
              */
             search: function(terms, params, callback) {
@@ -536,24 +562,10 @@
                     this._meetingsCache[meetingname] = new UCEMeeting(this, meetingname, _presence);
                 return this._meetingsCache[meetingname];
             },
-            meetings : {
-                opened: function(callback) {
-                    return this._getCollection("opened", callback);
-                },
-                closed: function(callback) {
-                    return this._getCollection("closed", callback);
-                },
-                upcoming: function(callback) {
-                    return this._getCollection("upcoming", callback);
-                },
-                all: function(callback) {
-                    return this._getCollection("all", callback);
-                },
-                _getCollection: function(type, callback) {
-                    getCollection("/meeting/"+ type, {'uid': _presence.user,
-                                                      'sid': _presence.id}, callback);
-                    return this;
-                }
+            meetings : function(callback) {
+                getCollection("/meeting/", {'uid': _presence.user,
+                                            'sid': _presence.id}, callback);
+                return this;
             },
             user: {
                 register: function(name, auth, credential, metadata, callback) {

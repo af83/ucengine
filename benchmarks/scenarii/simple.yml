@@ -1,0 +1,35 @@
+load:
+        duration: 10
+        unit: minute
+        arrivals:
+          -
+            duration: 8
+            unit: minute
+            users:
+              interval: 15chm
+              unit: second
+sessions:
+  -
+   name: passive_1
+   type: connect_and_listen
+   probability: 47
+   variables:
+     meeting: demo
+  -
+   name: active_1
+   type: connect_and_push
+   probability: 3
+   variables:
+     meeting: demo
+  -
+   name: passive_2
+   type: connect_and_listen
+   probability: 47
+   variables:
+     meeting: demo2
+  -
+    name: active_2
+    type: connect_and_push
+    probability: 3
+    variables:
+      meeting: demo2

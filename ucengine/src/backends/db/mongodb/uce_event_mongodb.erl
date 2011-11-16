@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
 -module(uce_event_mongodb).
-
--author('victor.goya@af83.com').
 
 -behaviour(gen_uce_event).
 
@@ -127,11 +125,7 @@ from_collection(Collection) ->
             throw({error, bad_parameters})
     end.
 
-%%--------------------------------------------------------------------
-%% @spec (#uce_event{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
-%% @doc Convert #uce_event{} record to valid collection
-%% @end
-%%--------------------------------------------------------------------
+-spec to_collection(domain(), #uce_event{}) -> list({string(), any()}).
 to_collection(Domain, #uce_event{id=Id,
                                  location=Meeting,
                                  from=From,
@@ -145,17 +139,12 @@ to_collection(Domain, #uce_event{id=Id,
      {"meeting", Meeting},
      {"from", From},
      {"to", To},
-     {"metadata", Metadata},
+     {"metadata", mongodb_helpers:to_bson(Metadata)},
      {"datetime", Datetime},
      {"type", Type},
      {"parent", Parent}].
 
-
-%%--------------------------------------------------------------------
-%% @spec (Domain) -> ok::list
-%% @doc Create index for uce_event collection in database 
-%% @end
-%%--------------------------------------------------------------------
+-spec index(domain()) -> ok.
 index(Domain) ->
     Indexes = [{"domain", 1},
                {"meeting", 1},
@@ -165,4 +154,3 @@ index(Domain) ->
                {"type", 1}],
     [emongo:ensure_index(Domain, "uce_event", [Index]) || Index <- Indexes],
     ok.
-

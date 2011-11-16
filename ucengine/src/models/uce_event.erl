@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -17,12 +17,11 @@
 %%
 -module(uce_event).
 
--author('tbomandouki@af83.com').
-
--export([add/2, get/2, exists/2, list/12, search/12]).
+-export([add/2, get/2, exists/2, list/8, list/12, search/12]).
 
 -include("uce.hrl").
 
+-spec add(domain(), event()) -> {ok, event_id()} | erlang:throw({error, not_found}).
 add(Domain, #uce_event{id=none}=Event) ->
     add(Domain, Event#uce_event{id=utils:random()});
 add(Domain, #uce_event{datetime=undefined}=Event) ->
@@ -35,7 +34,7 @@ add(Domain, #uce_event{location=Location, to=To, parent=Parent} = Event) ->
     case {LocationExists, ToExists, ParentExists} of
         {true, true, true} ->
             {ok, Id} = (db:get(?MODULE, Domain)):add(Domain, Event),
-            ?PUBSUB_MODULE:publish(Domain, Event),
+            uce_meeting:publish(Domain, Event),
             ?SEARCH_MODULE:add(Domain, Event),
             ?COUNTER("event_add:" ++ Event#uce_event.type),
             {ok, Id};
@@ -43,9 +42,11 @@ add(Domain, #uce_event{location=Location, to=To, parent=Parent} = Event) ->
             throw({error, not_found})
     end.
 
+-spec get(domain(), event_id()) -> {ok, event()} | erlang:throw({error, bad_parameters}).
 get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
+-spec exists(domain(), event_id()) -> boolean().
 exists(_Domain, "") ->
     true;
 exists(Domain, Id) ->
@@ -58,6 +59,7 @@ exists(Domain, Id) ->
             true
     end.
 
+-spec filter_private(list(event()), uid()) -> list(event()).
 filter_private(Events, Name) ->
     lists:filter(fun(#uce_event{to=To, from=From}) ->
                          if
@@ -73,6 +75,18 @@ filter_private(Events, Name) ->
                  end,
                  Events).
 
+-spec search(Domain    :: domain(),
+             Location  :: meeting_id(),
+             Search    :: string(),
+             From      :: uid(),
+             Types     :: string(),
+             Uid       :: uid(),
+             DateStart :: timestamp(),
+             DateEnd   :: timestamp(),
+             Parent    :: event_id(),
+             Start     :: integer(),
+             Max       :: integer(),
+             Order     :: string()) -> {ok, integer(), list(event())}.
 search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
     {ok, NumTotal, Events} = ?SEARCH_MODULE:list(Domain,
                                                  Location,
@@ -88,6 +102,8 @@ search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, S
     ?COUNTER(event_search),
     {ok, NumTotal, filter_private(Events, Uid)}.
 
+list(Domain, Location, Uid, Search, From, Types, Start, Parent) ->
+    list(Domain, Location, Search, From, Types, Uid, Start, infinity, Parent, 0, infinity, asc).
 list(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
     N = now(),
     {ok, _Num, Events} = uce_event_erlang_search:list(Domain,

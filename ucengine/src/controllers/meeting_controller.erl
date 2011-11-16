@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -23,73 +23,68 @@
 
 init() ->
     [#uce_route{method='POST',
-                path=["meeting", "all"],
+                path=["meeting"],
                 callback={?MODULE, add,
                           [{"uid", required, string},
                            {"sid", required, string},
                            {"name", required, string},
-                           {"start", 0, integer},
-                           {"end", ?NEVER_ENDING_MEETING, integer},
                            {"metadata", [], dictionary}]}},
 
      #uce_route{method='GET',
-                path=["meeting", status],
+                path=["meeting"],
                 callback={?MODULE, list,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
 
      #uce_route{method='GET',
-                path=["meeting", "all", meeting],
+                path=["meeting", meeting],
                 callback={?MODULE, get,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='PUT',
-                path=["meeting", "all", meeting],
+                path=["meeting", meeting],
                 callback={?MODULE, update,
                           [{"uid", required, string},
                            {"sid", required, string},
-                           {"start", 0, integer},
-                           {"end", ?NEVER_ENDING_MEETING, integer},
                            {"metadata", [], dictionary}]}},
 
      #uce_route{method='POST',
-                path=["meeting", "all", meeting, "roster"],
+                path=["meeting", meeting, "roster"],
                 callback={?MODULE, join,
                           [{"uid", required, string},
-                           {"sid", required, string}]}},
+                           {"sid", required, string},
+                           {"metadata", [], dictionary}]}},
 
      #uce_route{method='DELETE',
-                path=["meeting", "all", meeting, "roster", uid],
+                path=["meeting", meeting, "roster", uid],
                 callback={?MODULE, leave,
                           [{"uid", required, string},
                            {"sid", required, string}]}},
 
      #uce_route{method='GET',
-                path=["meeting", "all", meeting, "roster"],
+                path=["meeting", meeting, "roster"],
                 callback={?MODULE, roster,
                           [{"uid", required, string},
                            {"sid", required, string}]}}].
 
-add(Domain, [], [Uid, Sid, Name, Start, End, Metadata], _) ->
+add(Domain, [], [Uid, Sid, Name, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "meeting", "add"),
     {ok, created} = uce_meeting:add(Domain,
                                     #uce_meeting{id=Name,
-                                                 start_date=Start,
-                                                 end_date=End,
-                                                 metadata=Metadata}),
+                                                 metadata=json_helpers:to_struct(Metadata)}),
     {ok, _} = uce_event:add(Domain, #uce_event{id=none,
                                                from=Uid,
-                                               location="",
+                                               location=Name,
                                                type="internal.meeting.add"}),
     json_helpers:created(Domain).
 
-list(Domain, [{status, Status}], [Uid, Sid], _) ->
+list(Domain, [], [Uid, Sid], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, "", "meeting", "list"),
-    {ok, Meetings} = uce_meeting:list(Domain, Status),
+    {ok, Meetings} = uce_meeting:list(Domain),
     json_helpers:json(Domain, Meetings).
 
 get(Domain, [{meeting, Name}], [Uid, Sid], _) ->
@@ -98,23 +93,21 @@ get(Domain, [{meeting, Name}], [Uid, Sid], _) ->
     {ok, Meeting} = uce_meeting:get(Domain, Name),
     json_helpers:json(Domain, Meeting).
 
-update(Domain, [{meeting, Name}], [Uid, Sid, Start, End, Metadata], _) ->
+update(Domain, [{meeting, Name}], [Uid, Sid, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "meeting", "update"),
     {ok, Meeting} = uce_meeting:get(Domain, Name),
     {ok, updated} = uce_meeting:update(Domain,
                                        #uce_meeting{id=Name,
-                                                    start_date=Start,
-                                                    end_date=End,
                                                     roster=Meeting#uce_meeting.roster,
-                                                    metadata=Metadata}),
+                                                    metadata=json_helpers:to_struct(Metadata)}),
     {ok, _} = uce_event:add(Domain, #uce_event{id=none,
                                                from=Uid,
                                                location=Name,
                                                type="internal.meeting.update"}),
     json_helpers:ok(Domain).
 
-join(Domain, [{meeting, Name}], [Uid, Sid], _) ->
+join(Domain, [{meeting, Name}], [Uid, Sid, Metadata], _) ->
     {ok, true} = uce_presence:assert(Domain, Uid, Sid),
     {ok, true} = uce_access:assert(Domain, Uid, Name, "roster", "add"),
     {ok, updated} = uce_meeting:join(Domain, Name, Uid),
@@ -123,7 +116,8 @@ join(Domain, [{meeting, Name}], [Uid, Sid], _) ->
                             #uce_event{id=none,
                                        type="internal.roster.add",
                                        location=Name,
-                                       from=Uid}),
+                                       from=Uid,
+                                       metadata=json_helpers:to_struct(Metadata)}),
     json_helpers:ok(Domain).
 
 %% TODO : Incomplete Sid must be ToSid

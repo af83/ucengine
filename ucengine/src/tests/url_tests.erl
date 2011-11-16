@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -28,7 +28,8 @@ url_test_() ->
 
 test_bad_url() ->
     BaseUrl = fixtures:get_base_url(),
-    ?assertMatch({struct, [{"error", "not_found"}]}, tests_utils:get(BaseUrl, "", [])).
+    ?assertMatch({struct, [{"error", "not_found"},
+                           {"infos", _Description}]}, tests_utils:get(BaseUrl, "", [])).
 
 test_options() ->
     BaseUrl = fixtures:get_base_url(),

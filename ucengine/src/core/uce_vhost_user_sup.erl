@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -15,14 +15,27 @@
 %%  You should have received a copy of the GNU Affero General Public License
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
--module(uce_infos).
+-module(uce_vhost_user_sup).
+
+-behaviour(supervisor).
 
 -include("uce.hrl").
 
--export([get/1, update/2]).
+% External API
+-export([start_link/1, start_child/2, terminate_child/2]).
+% Supervisor API
+-export([init/1]).
 
-get(Domain) ->
-    (db:get(?MODULE, Domain)):get(Domain).
+start_link(Domain) ->
+    supervisor:start_link({local, uce_vhost_sup:name(Domain, "user")}, ?MODULE, []).
 
-update(Domain, #uce_infos{} = Infos) ->
-    (db:get(?MODULE, Domain)):update(Domain, Infos).
+init([]) ->
+    {ok, {{simple_one_for_one, 0, 1},
+          [{uce_user, {uce_user, start_link, []},
+            temporary, brutal_kill, worker, [uce_user]}]}}.
+
+start_child(Domain, Args) ->
+    supervisor:start_child(uce_vhost_sup:name(Domain, "user"), Args).
+
+terminate_child(Domain, Pid) ->
+    supervisor:terminate_child(uce_vhost_sup:name(Domain, "user"), Pid).

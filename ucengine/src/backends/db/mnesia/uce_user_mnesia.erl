@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
 -module(uce_user_mnesia).
-
--author('victor.goya@af83.com').
 
 -export([init/0, drop/0]).
 

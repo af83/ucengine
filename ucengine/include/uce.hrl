@@ -14,35 +14,30 @@
           %% parent id
           parent = "",
           %% MetaData : list
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_presence, {
           %% presenceid
           id = none,
           %% user id
           user,
-          %% authification method
+          %% authentication method
           auth,
           %% session timeout
           timeout = 0,
           %% last ping
           last_activity = 0,
-          %% resource
-          resource,
           %% list meetings joined by user
           meetings = [],
-          %% MetaData : list
-          metadata = []}).
+          %% nb streams open
+          streams = 0}).
 
 -record(uce_meeting, {
           %% uce meeting id
           id = none,
-          %% start_date and end_date format : ms since epoch
-          start_date = none,
-          end_date = none,
           roster = [],
           %% [{"description",Desc}, {"language",Lang}, ... ]
-          metadata = []}).
+          metadata = {struct, []}}).
 
 -record(uce_file, {
           % fileid
@@ -58,7 +53,7 @@
           % mime type
           mime = "text/plain",
           % name as send by the browser
-          metadata = []
+          metadata = {struct, []}
          }).
 
 -record(uce_user, {
@@ -68,7 +63,7 @@
           name,
           auth,
           credential = "",
-          metadata = [],
+          metadata = {struct, []},
           roles=[]}).
 
 -record(uce_role, {
@@ -80,13 +75,10 @@
           object,
           conditions=[]}).
 
--record(uce_infos, {
-          domain = none,
-          metadata = []}).
-
 -record(uce_route, {
           method,
           path,
+          content_type = any,
           callback}).
 
 -record(file_upload, {
@@ -94,9 +86,24 @@
           filename,
           uri}).
 
--define(TIMEOUT, 5000).
+% Types
+-type domain()         :: string().
+-type meeting_id()     :: string().
+-type meeting()        :: #uce_meeting{}.
+-type event_id()       :: string().
+-type event()          :: #uce_event{}.
+-type user()           :: #uce_user{}.
+-type presence()       :: #uce_presence{}.
+-type sid()            :: string().
+-type uid()            :: string().
+-type role_id()        :: string().
+-type role()           :: #uce_role{}.
+-type access()         :: #uce_access{}.
+-type route()          :: #uce_route{}.
+-type timestamp()      :: integer().
 
--define(VERSION, "0.5").
+
+-define(VERSION, "0.6").
 
 -define(SESSION_TIMEOUT, (config:get(presence_timeout) * 1000)).
 
@@ -114,15 +121,6 @@
 
 -define(CRITICAL_MSG(Format, Args),
         uce_log:critical(Format, [?MODULE, ?LINE], Args)).
-
--define(UCE_SCHEMA_LOCATION, "uce_schema_v1.xsd").
--define(UCE_XMLNS, "http://ucengine.org").
-
--define(DEFAULT_TIME_INTERVAL, 600000).
-
--define(NEVER_ENDING_MEETING, 0).
-
--define(PRESENCE_EXPIRED_EVENT, "internal.presence.expired").
 
 -define(COUNTER(Name), (
     fun() ->

@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
 -module(uce_user_mongodb).
-
--author('victor.goya@af83.com').
 
 -behaviour(gen_uce_user).
 
@@ -106,16 +104,23 @@ get(Domain, UId) ->
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
                    ["id", "name", "domain", "auth", "credential", "metadata", "roles"]) of
-        [Id, Name, _Domain, Auth, Credential, Metadata, Roles] ->
+        [Id, Name, _Domain, Auth, Credential, Metadata, {array, Roles}] ->
+            Metadata2 = case Metadata of
+                            [] ->
+                                {struct, []};
+                            _ ->
+                                Metadata
+                        end,
             #uce_user{id=Id,
                       name=Name,
                       auth=Auth,
                       credential=Credential,
-                      metadata=Metadata,
-                      roles=[{Role, Location} || [Role, Location] <- Roles]};
+                      metadata=Metadata2,
+                      roles=[{Role, Location} || {array, [Role, Location]} <- Roles]};
         _ ->
             throw({error, bad_parameters})
     end.
+
 
 %%--------------------------------------------------------------------
 %% @spec (#uce_user{}) -> [{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list
@@ -133,12 +138,12 @@ to_collection(Domain, #uce_user{id=Id,
      {"domain", Domain},
      {"auth", Auth},
      {"credential", Credential},
-     {"metadata", Metadata},
-     {"roles", [[Role, Location] || {Role, Location} <- Roles]}].
+     {"metadata", mongodb_helpers:to_bson(Metadata)},
+     {"roles", {array, [{array, [Role, Location]} || {Role, Location} <- Roles]}}].
 
 %%--------------------------------------------------------------------
 %% @spec (Domain::list) -> ok::atom
-%% @doc Create index for uce_user collection in database 
+%% @doc Create index for uce_user collection in database
 %% @end
 %%--------------------------------------------------------------------
 index(Domain) ->

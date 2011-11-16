@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -17,21 +17,23 @@
 %%
 -module(uce_meeting).
 
--author('victor.goya@af83.com').
-
 -export([add/2,
          delete/2,
          update/2,
          get/2,
-         list/2,
+         list/1,
          join/3,
          leave/3,
          roster/2,
-         exists/2]).
+         exists/2,
+         publish/2,
+         subscribe/7,
+         unsubscribe/1]).
 
 -include("uce.hrl").
 
 
+-spec add(domain(), meeting()) -> {ok, created} | erlang:throw({error, conflict}).
 add(Domain, #uce_meeting{id=Id} = Meeting) ->
     case exists(Domain, Id) of
         true ->
@@ -40,6 +42,7 @@ add(Domain, #uce_meeting{id=Id} = Meeting) ->
             (db:get(?MODULE, Domain)):add(Domain, Meeting)
     end.
 
+-spec delete(domain(), meeting_id()) -> {ok, deleted} | erlang:throw({error, not_found}).
 delete(Domain, Id) ->
     case exists(Domain, Id) of
         false ->
@@ -48,9 +51,11 @@ delete(Domain, Id) ->
             (db:get(?MODULE, Domain)):delete(Domain, Id)
     end.
 
+-spec get(domain(), meeting_id()) -> {ok, meeting()} | erlang:throw({error, not_found}).
 get(Domain, Id) ->
     (db:get(?MODULE, Domain)):get(Domain, Id).
 
+-spec update(domain(), meeting()) -> {ok, updated} | erlang:throw({error, not_found}).
 update(Domain, #uce_meeting{id=Id} = Meeting) ->
     case exists(Domain, Id) of
         false ->
@@ -59,54 +64,11 @@ update(Domain, #uce_meeting{id=Id} = Meeting) ->
             (db:get(?MODULE, Domain)):update(Domain, Meeting)
     end.
 
-list(Domain, Status) ->
-    {ok, Meetings} = (db:get(?MODULE, Domain)):list(Domain),
-    if
-        Status == "all";
-        Status == "upcoming";
-        Status == "opened";
-        Status == "closed" ->
-            Now = utils:now(),
-            FilteredMeetings =
-                lists:filter(fun(#uce_meeting{start_date=Start, end_date=End}) ->
-                                     case Status of
-                                         "all" ->
-                                             true;
-                                         "upcoming" ->
-                                             Now < Start;
-                                         "opened" ->
-                                             case Now >= Start of
-                                                 true ->
-                                                     if
-                                                         End == ?NEVER_ENDING_MEETING ->
-                                                             true;
-                                                         Now =< End ->
-                                                             true;
-                                                         true ->
-                                                             false
-                                                     end;
-                                                 false ->
-                                                     false
-                                             end;
-                                         "closed" ->
-                                             if
-                                                 End == ?NEVER_ENDING_MEETING ->
-                                                     false;
-                                                 Now >= End ->
-                                                     true;
-                                                 true ->
-                                                     false
-                                             end;
-                                         _ ->
-                                             false
-                                     end
-                             end,
-                             Meetings),
-            {ok, FilteredMeetings};
-        true ->
-            throw({error, bad_parameters})
-    end.
+-spec list(domain()) -> {ok, list(meeting)} | erlang:throw({error, bad_parameters}).
+list(Domain) ->
+    (db:get(?MODULE, Domain)):list(Domain).
 
+-spec exists(domain(), meeting_id()) -> boolean().
 exists(_Domain, "") ->
     true; % root
 exists(Domain, Id) ->
@@ -119,6 +81,7 @@ exists(Domain, Id) ->
             true
     end.
 
+-spec join(domain(), meeting_id(), user()) -> {ok, updated} | erlang:throw({error, not_found}).
 join(Domain, Id, User) ->
     case uce_user:exists(Domain, User) of
         false ->
@@ -133,6 +96,7 @@ join(Domain, Id, User) ->
             end
     end.
 
+-spec leave(domain(), meeting_id(), user()) -> {ok, updated} | erlang:throw({error, not_found}).
 leave(Domain, Id, User) ->
     case uce_user:exists(Domain, User) of
         false ->
@@ -148,7 +112,17 @@ leave(Domain, Id, User) ->
             end
     end.
 
+-spec roster(domain(), meeting_id()) -> list(user()) | erlang:throw({error, not_found}).
 roster(Domain, Id) ->
     {ok, Meeting} = get(Domain, Id),
     {ok, Meeting#uce_meeting.roster}.
 
+
+publish(Domain, Event) ->
+    ?PUBSUB_MODULE:publish(Domain, Event).
+
+subscribe(Pid, Domain, Uid, Location, From, Types, Parent) ->
+    ?PUBSUB_MODULE:subscribe(Pid, Domain, Uid, Location, From, Types, Parent).
+
+unsubscribe(Pid) ->
+    ?PUBSUB_MODULE:unsubscribe(Pid).

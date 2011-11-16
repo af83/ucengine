@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -16,34 +16,29 @@
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
 -module(ucengine_app).
--author('victor.goya@af83.com').
 
 -behaviour(application).
 
 -export([start/0]).
 
-
 %% application callback
 -export([start/2, stop/1]).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws.hrl").
-
 
 start() ->
     application:start(ucengine).
 
 start(_, _) ->
-    error_logger:tty(false),
-    application:start(crypto),
+    start_apps([sasl, crypto, metrics, gproc, ibrowse]),
     mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
-    ibrowse:start(),
-    application:start(metrics),
+    error_logger:tty(false),
 
     Arguments = init:get_arguments(),
     [[ConfigurationPath]] = utils:get(Arguments, [c], [["etc/uce.cfg"]]),
-    case uce_sup:start_link(ConfigurationPath) of
+    ok = config:init(ConfigurationPath),
+    case uce_sup:start_link() of
         {ok, Pid} ->
             setup(),
             {ok, Pid};
@@ -51,11 +46,23 @@ start(_, _) ->
             {error, Error}
     end.
 
+start_apps([]) ->
+    ok;
+start_apps([App|Apps]) ->
+    case application:start(App) of
+        ok ->
+            ok;
+        {error, {already_started, App}} ->
+            ok;
+        Error ->
+            io:format("error ~p~n", [Error])
+    end,
+    start_apps(Apps).
+
 setup() ->
     save_pid(),
     setup_search(),
     setup_routes(),
-    setup_server(),
     ok.
 
 stop(State) ->
@@ -75,32 +82,6 @@ setup_search() ->
 
 setup_routes() ->
     routes:init().
-
-setup_server() ->
-    [{DefaultHost, _Config}|Hosts] = config:get(hosts),
-    yaws:start_embedded(config:get(DefaultHost, wwwroot),
-                        [{servername, DefaultHost},
-                         {listen, config:get(bind_ip)},
-                         {port, config:get(port)},
-                         {access_log, true},
-                         {partial_post_size, nolimit},
-                         {opaque, DefaultHost},
-                         {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}],
-                        [{flags, [{auth_log, false},
-                                  {copy_errlog, false},
-                                  {pick_first_virthost_on_nomatch, false},
-                                  {debug, false}
-                                 ]},
-                         {logdir, config:get(log_dir)},
-                         {cache_refresh_secs, config:get(cache_refresh)}]),
-    lists:foreach(fun({Vhost, _}) ->
-                          yaws:add_server(config:get(Vhost, wwwroot),
-                                          [{servername, Vhost},
-                                           {listen, config:get(bind_ip)},
-                                           {port, config:get(port)},
-                                           {opaque, Vhost},
-                                           {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}])
-                  end, Hosts).
 
 save_pid() ->
     Pid = os:getpid(),

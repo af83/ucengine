@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -74,17 +74,6 @@ ctl_roles_test_() ->
         end
     }.
 
-ctl_infos_test_() ->
-    { setup
-      , fun fixtures:setup/0
-      , fun fixtures:teardown/1
-      , fun([Domain, _BaseUrl, _Testers]) ->
-                [ ?_test(test_infos_get(Domain))
-                ,  ?_test(test_infos_update(Domain))
-                ]
-        end
-    }.
-
 %%
 %% Meeting
 %%
@@ -94,8 +83,7 @@ test_meeting_add(Domain) ->
     Params = [{"description", ""}],
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "add", "newmeeting"]}, Params),
     Expected = {ok, #uce_meeting{id="newmeeting",
-                                 start_date=0, end_date=0,
-                                 metadata=[{"description", ""}]}},
+                                 metadata=json_helpers:to_struct([{"description", ""}])}},
     ?assertEqual(Expected, uce_meeting:get(Domain, "newmeeting")).
 
 test_meeting_get(Domain) ->
@@ -106,18 +94,12 @@ test_meeting_get_not_found(Domain) ->
 
 test_meeting_update(Domain) ->
     {ok, #uce_meeting{ id="testmeeting"
-                     , start_date=Start
-                     , end_date=End
-                     , metadata=[{"description", _Description}]
+                     , metadata={struct, [{"description", _Description}]}
                      }} = uce_meeting:get(Domain, "testmeeting"),
-    StartDate = uce_ctl:timestamp_to_iso(Start),
-    EndDate = uce_ctl:timestamp_to_iso(End),
-    Params = [{"description", "A new description"}, {"start", StartDate}, {"end", EndDate}],
+    Params = [{"description", "A new description"}],
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "update", "testmeeting"]}, Params),
     Expected = {ok, #uce_meeting{ id="testmeeting"
-                                , start_date=uce_ctl:parse_date(StartDate)
-                                , end_date=uce_ctl:parse_date(EndDate)
-                                , metadata=[{"description", "A new description"}]
+                                , metadata=json_helpers:to_struct([{"description", "A new description"}])
                                 }},
     ?assertMatch(Expected, uce_meeting:get(Domain, "testmeeting")).
 
@@ -127,9 +109,7 @@ test_meeting_update_not_found(Domain) ->
 
 test_meeting_delete(Domain) ->
     {ok, #uce_meeting{ id="testmeeting"
-                     , start_date=_Start
-                     , end_date=_End
-                     , metadata=[{"description", _Description}]
+                     , metadata={struct, [{"description", _Description}]}
                      }} = uce_meeting:get(Domain, "testmeeting"),
     ok = uce_ctl:cmd({dummy, [Domain, "meeting", "delete", "testmeeting"]}, []),
     false = uce_meeting:exists(Domain, "testmeeting").
@@ -138,20 +118,20 @@ test_meeting_delete_not_found(Domain) ->
     {error, not_found} = (catch uce_ctl:cmd({dummy, [Domain, "meeting", "delete", "meeting that doesn't exists"]}, [])).
 
 test_meeting_list(Domain) ->
-    {ok, _} = uce_ctl:cmd({dummy, [Domain, "meeting", "list", "all"]}, []).
+    {ok, _} = uce_ctl:cmd({dummy, [Domain, "meeting", "list"]}, []).
 
 %%
 %% User
 %%
 
 test_user_add(Domain) ->
-    false = uce_user:exists(Domain, "test.user@af83.com"),
-    ok = uce_ctl:cmd({dummy, [Domain, "user", "add", "test.user@af83.com", "password", "pwd"]}, []),
-    {ok, #uce_user{id=_,
-                   name="test.user@af83.com",
-                   auth="password",
-                   credential="pwd",
-                   metadata=[]}} = uce_user:get_by_name(Domain, "test.user@af83.com").
+    ?assertMatch(false, uce_user:exists(Domain, "test.user@af83.com")),
+    ?assertMatch(ok, uce_ctl:cmd({dummy, [Domain, "user", "add", "test.user@af83.com", "password", "pwd"]}, [])),
+    ?assertMatch({ok, #uce_user{id=_,
+                                name="test.user@af83.com",
+                                auth="password",
+                                credential="pwd",
+                                metadata={struct, []}}}, uce_user:get_by_name(Domain, "test.user@af83.com")).
 
 test_user_get(Domain) ->
     {ok, _} = uce_ctl:cmd({dummy, [Domain, "user", "get", "participant.user@af83.com"]}, []).
@@ -264,16 +244,3 @@ test_role_delete_access(Domain) ->
     ok = uce_ctl:cmd({dummy, [Domain, "role", "access", "delete", "test_role_2", "testaction", "testobject"]}, Params),
     ?assertMatch({ok, #uce_role{id="test_role_2",
                    acl=[]}}, uce_role:get(Domain, "test_role_2")).
-
-%%
-%% Infos
-%%
-
-test_infos_get(Domain) ->
-    {ok, _} = uce_ctl:cmd({dummy, [Domain, "infos", "get"]}, []).
-
-test_infos_update(Domain) ->
-    {ok, {uce_infos, Domain, []}} = uce_infos:get(Domain),
-    Params = [{"description", "Informations"}],
-    ok = uce_ctl:cmd({dummy, [Domain, "infos", "update"]}, Params),
-    {ok, {uce_infos, Domain, [{"description", "Informations"}]}} = uce_infos:get(Domain).

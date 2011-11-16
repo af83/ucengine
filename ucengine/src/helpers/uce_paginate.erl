@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
 -module(uce_paginate).
-
--author('victor.goya@af83.com').
 
 -export([index/3, sort/2, paginate/3]).
 
@@ -37,6 +35,8 @@ sort(List, Order) ->
             lists:reverse(List)
     end.
 
+paginate(List, 0, infinity) ->
+    List;
 paginate(List, Start, Count) ->
     Max = case Count of
               infinity ->

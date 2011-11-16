@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
 -module(uce_meeting_mongodb).
-
--author('victor.goya@af83.com').
 
 -behaviour(gen_uce_meeting).
 
@@ -89,16 +87,12 @@ list(Domain) ->
 %% @end
 %%--------------------------------------------------------------------
 to_collection(Domain, #uce_meeting{id=Name,
-                                   start_date=Start,
-                                   end_date=End,
                                    roster=Roster,
                                    metadata=Metadata}) ->
     [{"name", Name},
      {"domain", Domain},
-     {"start_date", integer_to_list(Start)},
-     {"end_date", integer_to_list(End)},
-     {"roster", Roster},
-     {"metadata", Metadata}].
+     {"roster", {array, Roster}},
+     {"metadata", mongodb_helpers:to_bson(Metadata)}].
 
 %%--------------------------------------------------------------------
 %% @spec ([{Key::list, Value::list}, {Key::list, Value::list}, ...] = Collection::list) -> #uce_meeting{} | {error, bad_parameters}
@@ -107,13 +101,11 @@ to_collection(Domain, #uce_meeting{id=Name,
 %%--------------------------------------------------------------------
 from_collection(Collection) ->
     case utils:get(mongodb_helpers:collection_to_list(Collection),
-                   ["name", "domain", "start_date", "end_date", "roster", "metadata"]) of
-        [Name, _Domain, Start, End, Roster, Metadata] ->
+                   ["name", "domain", "roster", "metadata"]) of
+        [Name, _Domain, {array, Roster}, Metadata] ->
             #uce_meeting{id=Name,
-                     start_date=list_to_integer(Start),
-                     end_date=list_to_integer(End),
-                     roster=Roster,
-                     metadata=Metadata};
+                         roster=Roster,
+                         metadata=Metadata};
         _ ->
             throw({error, bad_parameters})
     end.

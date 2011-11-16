@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -17,42 +17,29 @@
 %%
 -module(uce_async).
 
--author('victor.goya@af83.com').
-
--export([listen/9]).
+-export([listen/7, filter/2]).
 
 -include("uce.hrl").
 
-listen(Domain, Location, Search, From, Types, Uid, Start, End, Parent) ->
-    ?PUBSUB_MODULE:subscribe(self(), Domain, Location, Search, From, Types, Uid, Start, End, Parent),
-    Res = receive
-              % TODO: filter messages in _Message according to the request criterias.
-              % For now _Message is ignored and the whole thing is used as a
-              % callback to retrieve new events from the database.
-              {message, _Message} ->
-                  {ok, Events} = uce_event:list(Domain,
-                                                Location,
-                                                Search,
-                                                From,
-                                                Types,
-                                                Uid,
-                                                Start,
-                                                End,
-                                                Parent,
-                                                0,
-                                                infinity,
-                                                asc),
-                  JSONEvents = mochijson:encode({struct,
-                                                 [{result,
-                                                   json_helpers:to_json(Domain, Events)}]}),
-                  {ok, JSONEvents};
-              Other ->
-                  ?WARNING_MSG("unattended message ~p", [Other]),
-                  {ok, []}
-          after
-              config:get(long_polling_timeout) * 1000 ->
-                  JSONEmpty = mochijson:encode({struct, [{result, {array, []}}]}),
-                  {ok, JSONEmpty}
-          end,
-    ?PUBSUB_MODULE:unsubscribe(self()),
-    Res.
+listen(Domain, Location, Search, From, Types, Parent, Timeout) ->
+    receive
+        {event, Event} ->
+            case filter(Search, Event) of
+                false ->
+                    listen(Domain, Location, Search, From, Types, Parent, Timeout);
+                true ->
+                    {ok, Event}
+            end;
+        Other ->
+            ?WARNING_MSG("unattended message ~p", [Other]),
+            {ok, []}
+    after
+        Timeout ->
+            {ok, []}
+    end.
+
+
+filter("", _Event) ->
+    true;
+filter(Search, #uce_event{metadata=Metadata}) ->
+    uce_event_erlang_search:search_metadata(Metadata, Search).

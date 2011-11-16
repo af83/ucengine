@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -17,8 +17,6 @@
 %%
 -module(uce_role).
 
--author('victor.goya@af83.com').
-
 -export([add/2,
          delete/2,
          update/2,
@@ -26,37 +24,47 @@
          exists/2,
          acl/2,
          add_access/3,
-         delete_access/3]).
+         delete_access/3,
+         drop/1]).
 
 -include("uce.hrl").
 
+%
+% Public api
+%
+
+-spec add(domain(), role()) -> {ok, created} | erlang:throw({error, conflict}).
 add(Domain, #uce_role{id=Id} = Role) ->
     case exists(Domain, Id) of
         true ->
             throw({error, conflict});
         false ->
-            (db:get(?MODULE, Domain)):add(Domain, Role)
+            internal_add(Domain, Role)
     end.
 
+-spec update(domain(), role()) -> {ok, updated} | erlang:throw({error, not_found}).
 update(Domain, #uce_role{id=Id} = Role) ->
     case exists(Domain, Id) of
         true ->
-            (db:get(?MODULE, Domain)):update(Domain, Role);
+            internal_update(Domain, Role);
         false ->
             throw({error, not_found})
     end.
 
+-spec delete(domain(), role_id()) -> {ok, deleted} | erlang:throw({error, not_found}).
 delete(Domain, Id) ->
     case exists(Domain, Id) of
         true ->
-            (db:get(?MODULE, Domain)):delete(Domain, Id);
+            internal_delete(Domain, Id);
         false ->
             throw({error, not_found})
     end.
 
+-spec get(domain(), role_id()) -> {ok, role()} | erlang:throw({error, not_found}).
 get(Domain, Id) ->
-    (db:get(?MODULE, Domain)):get(Domain, Id).
+    internal_get(Domain, Id).
 
+-spec exists(domain(), role_id()) -> true | false | erlang:throw({error, atom()}).
 exists(Domain, Id) ->
     case catch get(Domain, Id) of
         {error, not_found} ->
@@ -67,10 +75,12 @@ exists(Domain, Id) ->
             true
     end.
 
+-spec acl(domain(), role_id()) -> {ok, updated} | erlang:throw({error, not_found}).
 acl(Domain, Id) ->
     {ok, Role} = get(Domain, Id),
     {ok, Role#uce_role.acl}.
 
+-spec add_access(domain(), role_id(), access()) -> {ok, updated} | erlang:throw({error, not_found}).
 add_access(Domain, Id, #uce_access{} = Access) ->
     {ok, Role} = get(Domain, Id),
     case uce_access:exists(Access, Role#uce_role.acl) of
@@ -80,6 +90,7 @@ add_access(Domain, Id, #uce_access{} = Access) ->
             update(Domain, Role#uce_role{acl=(Role#uce_role.acl ++ [Access])})
     end.
 
+-spec delete_access(domain(), role_id(), access()) -> {ok, updated} | erlang:throw({error, not_found}).
 delete_access(Domain, Id, #uce_access{} = Access) ->
     {ok, Role} = get(Domain, Id),
     ACL = case uce_access:exists(Access, Role#uce_role.acl) of
@@ -89,3 +100,76 @@ delete_access(Domain, Id, #uce_access{} = Access) ->
                   Role#uce_role.acl
           end,
     update(Domain, Role#uce_role{acl=ACL}).
+
+-spec drop(domain()) -> true.
+drop(_Domain) ->
+    delete_table().
+
+%
+% Private functions
+%
+
+-define(TAB, uce_role_cache).
+
+init_table() ->
+    case ets:info(?TAB) of
+        undefined ->
+            ets:new(?TAB, [set, public, {keypos, 1}, named_table]);
+        _ ->
+            ok
+    end.
+
+delete_table() ->
+    case ets:info(?TAB) of
+        undefined ->
+            ok;
+        _ ->
+            ets:delete(?TAB)
+    end.
+
+cache_add(Domain, #uce_role{id=Id} = Role) ->
+    ets:insert(?TAB, {{Domain, Id}, Role}).
+
+cache_update(Domain, Role) ->
+    cache_add(Domain, Role).
+
+cache_delete(Domain, Id) ->
+    ets:delete(?TAB, {Domain, Id}).
+
+cache_get(Domain, Id) ->
+    case ets:lookup(?TAB, {Domain, Id}) of
+        [] ->
+            undefined;
+        [{{Domain, Id}, Role}] ->
+            Role
+    end.
+
+internal_add(Domain, Role) ->
+    init_table(),
+    cache_add(Domain, Role),
+    (db:get(?MODULE, Domain)):add(Domain, Role).
+
+internal_update(Domain, Role) ->
+    init_table(),
+    cache_update(Domain, Role),
+    (db:get(?MODULE, Domain)):update(Domain, Role).
+
+internal_delete(Domain, Id) ->
+    init_table(),
+    cache_delete(Domain, Id),
+    (db:get(?MODULE, Domain)):delete(Domain, Id).
+
+internal_get(Domain, Id) ->
+    init_table(),
+    case cache_get(Domain, Id) of
+        undefined ->
+            case (db:get(?MODULE, Domain)):get(Domain, Id) of
+                {ok, Role} ->
+                    cache_add(Domain, Role),
+                    {ok, Role};
+                Error ->
+                    Error
+            end;
+        Role ->
+            {ok, Role}
+    end.

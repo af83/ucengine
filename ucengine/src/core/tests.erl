@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,6 @@ run() ->
                file_tests,
                role_tests,
                ctl_tests,
-               infos_tests,
                url_tests] ++
         case config:get(search) of
             solr ->

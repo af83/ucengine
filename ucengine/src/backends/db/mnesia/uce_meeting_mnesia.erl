@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -16,8 +16,6 @@
 %%  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 %%
 -module(uce_meeting_mnesia).
-
--author('victor.goya@af83.com').
 
 -behaviour(gen_uce_meeting).
 
@@ -80,8 +78,6 @@ update(Domain, #uce_meeting{id=Id} = Meeting) ->
 
 list(Domain) ->
     case mnesia:dirty_match_object(#uce_meeting{id={'_', Domain},
-                                                start_date='_',
-                                                end_date='_',
                                                 roster='_',
                                                 metadata='_'}) of
         {aborted, _} ->

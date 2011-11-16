@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -34,9 +34,22 @@ get_base_url() ->
 setup() ->
     Domain = get_default_domain(),
     (list_to_atom(lists:concat([config:get(Domain, db), "_db"]))):drop(),
+    drop_model(Domain, [uce_role, uce_user, uce_meeting, uce_file, uce_event]),
     setup_meetings(Domain),
     UsersUid = setup_users(Domain),
     [Domain, get_base_url(), setup_testers(Domain, UsersUid)].
+
+drop_model(_Domain, []) ->
+    ok;
+drop_model(Domain, [Model|Models]) ->
+    {exports, Funs} = proplists:lookup(exports, Model:module_info()),
+    case proplists:lookup(drop, Funs) of
+        {drop, 1} ->
+            Model:drop(Domain);
+        _ ->
+            ok
+    end,
+    drop_model(Domain, Models).
 
 teardown([Domain, _, _Testers]) ->
     teardown_solr(Domain),
@@ -50,19 +63,12 @@ add_meeting(Domain, Meeting) ->
     end.
 
 setup_meetings(Domain) ->
-    Now = utils:now(),
     ok = add_meeting(Domain, #uce_meeting{id="testmeeting",
-                                          metadata=[{"description", "Meeting"}],
-                                          start_date=Now,
-                                          end_date=?NEVER_ENDING_MEETING}),
-    ok = add_meeting(Domain, #uce_meeting{id="closedmeeting",
-                                          metadata=[{"description", "Meeting"}],
-                                          start_date=Now,
-                                          end_date=Now}),
-    ok = add_meeting(Domain, #uce_meeting{id="upcomingmeeting",
-                                          metadata=[{"description", "Meeting"}],
-                                          start_date=2569256203952,
-                                          end_date=?NEVER_ENDING_MEETING}),
+                                          metadata={struct, [{"description", "Meeting 1"}]}}),
+    ok = add_meeting(Domain, #uce_meeting{id="meeting2",
+                                          metadata={struct, [{"description", "Meeting 2"}]}}),
+    ok = add_meeting(Domain, #uce_meeting{id="meeting3",
+                                          metadata={struct, [{"description", "Meeting 3"}]}}),
     ok.
 
 
@@ -103,7 +109,8 @@ setup_users(Domain) ->
                                          #uce_access{action="add", object="roster"},
                                          #uce_access{action="list", object="roster"},
                                          #uce_access{action="get", object="meeting"},
-                                         #uce_access{action="list", object="meeting"}]}),
+                                         #uce_access{action="list", object="meeting"},
+                                         #uce_access{action="find", object="user"}]}),
     ok = add_role(Domain, #uce_role{id="testrole_location",
                                     acl=[#uce_access{action="testaction", object="testobject", conditions=[{"a", "b"}]}]}),
 
@@ -134,7 +141,7 @@ setup_users(Domain) ->
 
     ok = add_user(Domain, #uce_user{id="token.user@af83.com",
                                     name="token.user@af83.com",
-                                    auth="token",
+                                    auth="password",
                                     credential="4444"}),
     ok = add_user(Domain, #uce_user{id="user_2",
                                     name="user_2",
@@ -166,20 +173,17 @@ setup_testers(Domain, {RootUid, ParticipantUid, UglyUid, AnonymousUid}) ->
     {ok, RootSid} = uce_presence:add(Domain,
                                      #uce_presence{id=none,
                                                    user=RootUid,
-                                                   auth="password",
-                                                   metadata=[]}),
+                                                   auth="password"}),
 
     {ok, ParticipantSid} = uce_presence:add(Domain,
                                             #uce_presence{id=none,
                                                           user=ParticipantUid,
-                                                          auth="password",
-                                                          metadata=[]}),
+                                                          auth="password"}),
 
     {ok, UglySid} = uce_presence:add(Domain,
                                      #uce_presence{id=none,
                                                    user=UglyUid,
-                                                   auth="password",
-                                                   metadata=[]}),
+                                                   auth="password"}),
 
     [{RootUid, RootSid}, {ParticipantUid, ParticipantSid}, {UglyUid, UglySid}, {AnonymousUid, ""}].
 

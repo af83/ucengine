@@ -4,3 +4,4 @@ deps/*
 .eunit
 rel/ucengine/
 benchmarks/results
+utils/latency/*.csv

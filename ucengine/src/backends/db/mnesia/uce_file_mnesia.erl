@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,6 @@
 
 -include_lib("stdlib/include/qlc.hrl").
 -include("uce.hrl").
-
--author('victor.goya@af83.com').
 
 -behaviour(gen_uce_file).
 

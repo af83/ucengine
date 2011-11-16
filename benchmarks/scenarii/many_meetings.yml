@@ -1,0 +1,25 @@
+load:
+        duration: 30
+        unit: minute
+        arrivals:
+          -
+            duration: 7
+            users: 500
+          -
+            duration: 22
+            users: 1000
+levels:
+        soft:   30
+        normal: 10
+        hard:   5
+sessions:
+  -
+   name: passive
+   type: connect_and_listen
+   probability: 67
+   variables: {}
+  -
+   name: active
+   type: connect_and_push
+   probability: 33
+   variables: {}

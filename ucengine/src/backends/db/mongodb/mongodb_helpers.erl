@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -19,13 +19,33 @@
 
 -include("uce.hrl").
 
--author('victor.goya@af83.com').
+-export([to_bson/1, ok/1, updated/1, collection_to_list/1]).
 
--export([ok/1, updated/1, collection_to_list/1]).
+-include_lib("eunit/include/eunit.hrl").
+
+to_bson([]) ->
+    [];
+to_bson({struct, Proplist}) ->
+    to_bson(Proplist, []);
+to_bson({array, Values}) ->
+    {array, to_bson(Values, [])};
+to_bson({Name, {struct, Values}}) ->
+    {Name, to_bson(Values, [])};
+to_bson({Name, {array, Values}}) ->
+    {Name, {array, to_bson(Values, [])}};
+to_bson({Name, Value}) ->
+    {Name, Value};
+to_bson(Value) ->
+    Value.
+
+to_bson([Value|Values], Acc) ->
+    to_bson(Values, [to_bson(Value)|Acc]);
+to_bson([], Acc) ->
+    lists:reverse(Acc).
 
 ok([Result]) ->
     case proplists:lookup(<<"err">>, Result) of
-        {<<"err">>, undefined} ->
+        {<<"err">>, null} ->
             ok;
         {<<"err">>, Err} ->
             ?ERROR_MSG("mongodb error ~p", [Err]),
@@ -36,10 +56,7 @@ updated(Result) ->
     ok(Result).
 
 collection_member_to_list({array, Value}) when is_list(Value) ->
-    lists:map(fun(Elem) ->
-                      collection_member_to_list(Elem)
-              end,
-              Value);
+    {array, [collection_member_to_list(Elem) || Elem <- Value]};
 
 collection_member_to_list(Value) when is_tuple(Value) ->
     tuple_to_list(Value);
@@ -48,10 +65,13 @@ collection_member_to_list(Value) when is_integer(Value) ->
     Value;
 
 collection_member_to_list(Value) when is_list(Value) ->
-    collection_to_list(Value);
+    {struct, collection_to_list(Value)};
 
 collection_member_to_list(Value) when is_binary(Value) ->
-    unicode:characters_to_list(Value).
+    unicode:characters_to_list(Value);
+
+collection_member_to_list(Value) when is_atom(Value)->
+    Value.
 
 %%--------------------------------------------------------------------
 %% @spec ([{Key::binary, Value::Binary}, {Key::binary, Value::Binary}, ...] = Collection::list) -> [{Key::list, Value::list}, {Key::binary, Value:Binary}, ...] = NewCollection::list
@@ -71,5 +91,40 @@ collection_to_list_test() ->
     ?assertEqual([{"id", "42"}], collection_to_list([{<<"id">>,<<"42">>}])),
     ?assertEqual([{"nickname", ""}], collection_to_list([{<<"nickname">>,<<>>}])),
     ?assertEqual([{"_id", [oid, <<"root">>]}], collection_to_list([{<<"_id">>,{oid,<<"root">>}}])).
+
+to_bson_test() ->
+    ?assertEqual([],
+                 to_bson([])),
+
+    ?assertEqual([{"name", "plop"}],
+                 to_bson({struct, [{"name", "plop"}]})),
+
+    ?assertEqual({array, [{"name", "plop"}]},
+                 to_bson({array, [{"name", "plop"}]})),
+
+    ?assertEqual({array, [10, [{"name", "plop"}]]},
+                 to_bson({array, [10, {struct, [{"name", "plop"}]}]})),
+
+    ?assertEqual([{"name", {array, ["plop", "plip"]}}],
+                 to_bson({struct, [{"name", {array, ["plop", "plip"]}}]})),
+
+    ?assertEqual([{"name", [{"plop", "plip"}]}],
+                 to_bson({struct, [{"name", {struct, [{"plop", "plip"}]}}]})),
+
+    ?assertEqual([{"name", [{"plop", {array, ["plip", "plaf"]}}]}],
+                 to_bson({struct, [{"name", {struct, [{"plop", {array, ["plip", "plaf"]}}]}}]})),
+
+    ?assertEqual({array, [10, [{"name", "plip"}]]},
+                 to_bson({array, [10, {struct, [{"name", "plip"}]}]})),
+
+    ?assertEqual([{"complex", {array, [10, [{"name", "plip"}]]}}],
+                 to_bson({struct, [{"complex", {array, [10, {struct, [{"name", "plip"}]}]}}]})),
+
+    ?assertEqual([{"score", null}],
+                 to_bson({struct, [{"score", null}]})),
+    ?assertEqual([{"score", true}],
+                 to_bson({struct, [{"score", true}]})),
+    ?assertEqual([{"score", false}],
+                 to_bson({struct, [{"score", false}]})).
 
 -endif.

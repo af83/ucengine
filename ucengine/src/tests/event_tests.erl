@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -20,8 +20,7 @@
 -include("uce.hrl").
 -include_lib("eunit/include/eunit.hrl").
 
--export([send_long_polling_event/2]).
-
+-export([send_long_polling_event/2, send_long_polling_event/3]).
 
 setup_events(Domain) ->
     {ok, Participant} = uce_user:get_by_name(Domain, "participant.user@af83.com"),
@@ -45,7 +44,7 @@ setup_events(Domain) ->
                               type="test_event_3",
                               location="testmeeting",
                               from=User3#uce_user.id,
-                              metadata=[{"description", "test"}]}),
+                              metadata=json_helpers:to_struct([{"description", "test"}])}),
     ok.
 
 event_test_() ->
@@ -65,6 +64,7 @@ event_test_() ->
                  ?_test(test_push_to_me(BaseUrl, Root)),
                  ?_test(test_push_to_unauthorized(BaseUrl, Root, Participant, Ugly)),
                  ?_test(test_push_to_other(BaseUrl, Root, Participant)),
+                 ?_test(test_push_json(BaseUrl, Root)),
 
                  ?_test(test_push_missing_type(BaseUrl, Root)),
                  ?_test(test_push_not_found_meeting(BaseUrl, Root)),
@@ -84,15 +84,52 @@ event_test_() ->
                  ?_test(test_get_with_type_and_timestart_and_timeend(BaseUrl, Root)),
                  ?_test(test_get_with_type_and_timeend(BaseUrl, Root)),
                  ?_test(test_last(BaseUrl, Root)),
-                 ?_test(test_long_polling(BaseUrl, Root))]
+                 ?_test(test_long_polling(BaseUrl, Root)),
+                 ?_test(test_long_polling_with_types(BaseUrl, Root)),
+                 ?_test(test_long_polling_with_to(BaseUrl, Root, Participant)),
+                 ?_test(test_long_polling_with_to_and_participant(BaseUrl, Root, Participant))
+                ]
         end}.
 
-test_push(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "test_push_1"},
+event_timeout_test_() ->
+    { setup
+      , fun() ->
+                [Domain, BaseUrl, Testers] = fixtures:setup(),
+                setup_events(Domain),
+                % Set the timeout to a low value to avoid waiting too long.
+                PreviousTimeout = config:get(connection_timeout),
+                config:set(connection_timeout, 10),
+                [Domain, BaseUrl, Testers, PreviousTimeout]
+        end
+      , fun ([Domain, BaseUrl, Testers, PreviousTimeout]) ->
+                %% Restore the previous long polling timeout
+                config:set(connection_timeout, PreviousTimeout),
+                fixtures:teardown([Domain, BaseUrl, Testers])
+        end
+      , fun([Domain, BaseUrl, [Root, Participant, Ugly|_], _]) ->
+                [
+                 {timeout, 40, ?_test(test_long_polling_with_from(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_other_from(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_parent(Domain, BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_other_parent(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_search(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_other_search(BaseUrl, Root))},
+                 {timeout, 40, ?_test(test_long_polling_with_to_and_other_participant(BaseUrl, Root, Participant, Ugly))}
+                ]
+        end}.
+
+auth_params({Uid, Sid}) ->
+    [{"uid", Uid},
+     {"sid", Sid}].
+
+post_event(BaseUrl, Meeting, AuthParams, Params) ->
+    {struct, [{"result", Id}]} = tests_utils:post(BaseUrl, "/event/"++ Meeting, Params ++ auth_params(AuthParams)),
+    Id.
+
+test_push(BaseUrl, {RootUid, _RootSid} = AuthParams) ->
+    Params = [{"type", "test_push_1"},
               {"metadata[description]", "pushed_event"}],
-    {struct, [{"result", Id}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+    Id = post_event(BaseUrl, "testmeeting", AuthParams, Params),
     ?assertMatch({struct, [{"result",
                             {struct, [{"type", "test_push_1"},
                                       {"domain", _},
@@ -101,15 +138,13 @@ test_push(BaseUrl, {RootUid, RootSid}) ->
                                       {"location", "testmeeting"},
                                       {"from", RootUid},
                                       {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]},
-                 tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params)).
+                 tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, auth_params(AuthParams))).
 
-test_push_big(BaseUrl, {RootUid, RootSid}) ->
+test_push_big(BaseUrl, {RootUid, _RootSid} = AuthParams) ->
     Text = string:copies("pushed_event", 5000),
-    BaseParams = [{"uid", RootUid},
-                  {"sid", RootSid}],
-    Params = BaseParams ++ [{"type", "test_push_1"},
-                            {"metadata[description]", Text}],
-    {struct, [{"result", Id}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+    Params = [{"type", "test_push_1"},
+              {"metadata[description]", Text}],
+    Id = post_event(BaseUrl, "testmeeting", AuthParams, Params),
     ?assertMatch({struct, [{"result",
                             {struct, [{"type", "test_push_1"},
                                       {"domain", _},
@@ -118,22 +153,17 @@ test_push_big(BaseUrl, {RootUid, RootSid}) ->
                                       {"location", "testmeeting"},
                                       {"from", RootUid},
                                       {"metadata", {struct, [{"description", Text}]}}]}}]},
-                 tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, BaseParams)).
+                 tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, auth_params(AuthParams))).
 
-test_push_internal_event(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "internal.roster.add"},
-              {"metadata[description]", "pushed_event"}],
+test_push_internal_event(BaseUrl, AuthParams) ->
+    Params = [{"type", "internal.roster.add"},
+              {"metadata[description]", "pushed_event"}] ++ auth_params(AuthParams),
     {struct, [{"error", "unauthorized"}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params).
 
-test_push_without_meeting(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "test_push_1"},
+test_push_without_meeting(BaseUrl, {RootUid, _RootSid} = AuthParams) ->
+    Params = [{"type", "test_push_1"},
               {"metadata[description]", "pushed_event"}],
-    {struct, [{"result", Id}]} =
-        tests_utils:post(BaseUrl, "/event/", Params),
+    Id = post_event(BaseUrl, "", AuthParams, Params),
     {struct, [{"result",
                {struct, [{"type", "test_push_1"},
                          {"domain", _},
@@ -141,23 +171,17 @@ test_push_without_meeting(BaseUrl, {RootUid, RootSid}) ->
                          {"id", Id},
                          {"from", RootUid},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
-                   tests_utils:get(BaseUrl, "/event/all/" ++ Id, Params).
+                   tests_utils:get(BaseUrl, "/event/all/" ++ Id, auth_params(AuthParams)).
 
-test_push_with_parent(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "test_push_1"},
+test_push_with_parent(BaseUrl, {RootUid, _RootSid} = AuthParams) ->
+    Params = [{"type", "test_push_1"},
               {"metadata[description]", "pushed_event"}],
-    {struct, [{"result", ParentId}]} =
-        tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+    ParentId = post_event(BaseUrl, "testmeeting", AuthParams, Params),
 
-    ParamsChild = [{"uid", RootUid},
-                   {"sid", RootSid},
-                   {"type", "test_push_1"},
+    ParamsChild = [{"type", "test_push_1"},
                    {"parent", ParentId},
                    {"metadata[description]", "pushed_event"}],
-    {struct, [{"result", ChildId}]} =
-        tests_utils:post(BaseUrl,"/event/testmeeting", ParamsChild),
+    ChildId = post_event(BaseUrl,"testmeeting", AuthParams, ParamsChild),
 
     {struct, [{"result",
                {struct, [{"type", "test_push_1"},
@@ -168,16 +192,13 @@ test_push_with_parent(BaseUrl, {RootUid, RootSid}) ->
                          {"from", RootUid},
                          {"parent", ParentId},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
-                   tests_utils:get(BaseUrl, "/event/testmeeting/" ++ ChildId, Params).
+                   tests_utils:get(BaseUrl, "/event/testmeeting/" ++ ChildId, auth_params(AuthParams)).
 
-test_push_to_me(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "test_push_1"},
+test_push_to_me(BaseUrl, {RootUid, _RootSid} = AuthParams) ->
+    Params = [{"type", "test_push_1"},
               {"to", RootUid},
               {"metadata[description]", "pushed_event"}],
-    {struct, [{"result", Id}]} =
-        tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+    Id = post_event(BaseUrl, "testmeeting", AuthParams, Params),
     {struct, [{"result",
                {struct, [{"type", "test_push_1"},
                          {"domain", _},
@@ -187,23 +208,19 @@ test_push_to_me(BaseUrl, {RootUid, RootSid}) ->
                          {"to", RootUid},
                          {"from", RootUid},
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}}]} =
-                   tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, Params).
+                   tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, auth_params(AuthParams)).
 
 test_push_to_unauthorized(BaseUrl,
-                          {RootUid, RootSid},
-                          {ParticipantUid, ParticipantSid},
+                          RootAuthParams,
+                          ParticipantParams,
                           {UglyUid, _UglySid}) ->
-    Params = [{"uid", ParticipantUid},
-              {"sid", ParticipantSid},
-              {"type", "test_push_1"},
-              {"to", UglyUid},
-              {"metadata[description]", "pushed_event"}],
+    Params = auth_params(ParticipantParams) ++ [{"type", "test_push_1"},
+                                                {"to", UglyUid},
+                                                {"metadata[description]", "pushed_event"}],
     {struct, [{"result", _Id}]} =
         tests_utils:post(BaseUrl, "/event/testmeeting", Params),
 
-    ParamsRoot = [{"uid", RootUid},
-                  {"sid", RootSid},
-                  {"type", "test_push_to_other"}],
+    ParamsRoot = auth_params(RootAuthParams) ++ [{"type", "test_push_to_other"}],
      {struct, [{"result", {array, []}}]} =
          tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsRoot).
 
@@ -248,43 +265,56 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
                          {"metadata", {struct, [{"description", "pushed_event"}]}}]}]}}]} =
         tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsRootGet).
 
-test_push_missing_type(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"metadata[description]", "pushed_event"}],
-    {struct, [{"error", "missing_parameters"}]} =
+test_push_json(BaseUrl, AuthParams) ->
+    RequestBody = {struct, [{"type", "test_json"},
+                            {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"},
+                                                                                      {"hop", null},
+                                                                                      {"hop2", true},
+                                                                                      {"hop3", false}]}]}}]}}]
+                                ++ auth_params(AuthParams)},
+    {ok, "201", _, Body} =
+        tests_utils:post_raw(BaseUrl, "/event/testmeeting", [], "application/json", mochijson:encode(RequestBody)),
+    {struct, [{"result", Id}]} = mochijson:decode(Body),
+    {struct, [{"result",
+               {struct, [{"type", "test_json"},
+                         {"domain", _},
+                         {"datetime", _},
+                         {"id", Id},
+                         {"location", "testmeeting"},
+                         {"from", _},
+                         {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"},
+                                                                                   {"hop", null},
+                                                                                   {"hop2", true},
+                                                                                   {"hop3", false}
+                                                                                  ]}]}}]}}]}}]} =
+                   tests_utils:get(BaseUrl, "/event/testmeeting/" ++ Id, auth_params(AuthParams)).
+
+test_push_missing_type(BaseUrl, AuthParams) ->
+    Params = auth_params(AuthParams) ++ [{"metadata[description]", "pushed_event"}],
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/event/testmeeting", Params).
 
-test_push_not_found_meeting(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "test_push_1"},
-              {"metadata[description]", "pushed_event"}],
+test_push_not_found_meeting(BaseUrl, AuthParams) ->
+    Params = auth_params(AuthParams) ++ [{"type", "test_push_1"},
+                                         {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
         tests_utils:post(BaseUrl, "/event/unexistentmeeting", Params).
 
-test_push_not_found_parent(BaseUrl, {RootUid, RootSid}) ->
-    ParamsChild = [{"uid", RootUid},
-                   {"sid", RootSid},
-                   {"type", "test_push_1"},
-                   {"parent", "unexistent_id"},
-                   {"metadata[description]", "pushed_event"}],
+test_push_not_found_parent(BaseUrl, AuthParams) ->
+    ParamsChild = auth_params(AuthParams) ++ [{"type", "test_push_1"},
+                                              {"parent", "unexistent_id"},
+                                              {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
         tests_utils:post(BaseUrl, "/event/testmeeting", ParamsChild).
 
-test_push_not_found_to(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "test_push_1"},
-              {"to", "unexistent_user"},
-              {"metadata[description]", "pushed_event"}],
+test_push_not_found_to(BaseUrl, AuthParams) ->
+    Params = auth_params(AuthParams) ++ [{"type", "test_push_1"},
+                                         {"to", "unexistent_user"},
+                                         {"metadata[description]", "pushed_event"}],
     {struct, [{"error", "not_found"}]} =
         tests_utils:post(BaseUrl, "/event/testmeeting", Params).
 
-test_get(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid}],
-
+test_get(BaseUrl, AuthParams) ->
     ?assertMatch({struct, [{"result", {array,
                           [ {struct, [{"type", "test_event_1"}
                                       , {"domain", _}
@@ -310,72 +340,45 @@ test_get(BaseUrl, {RootUid, RootSid}) ->
                                       , {"from", _}
                                       , {"metadata", {struct, [{"description", "test"}]}}
                                      ]}|_]
-                         }}]}, tests_utils:get(BaseUrl, "/event/testmeeting", Params)).
+                         }}]}, tests_utils:get(BaseUrl, "/event/testmeeting", auth_params(AuthParams))).
 
-test_get_without_meeting(BaseUrl, {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "non_global_event"},
+test_get_without_meeting(BaseUrl, AuthParams) ->
+    Params = [{"type", "non_global_event"},
               {"metadata[description]", "plop2"}],
-    {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
-
-    Params2 = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "global_event"},
-              {"metadata[description]", "plop"}],
-    {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event", Params2),
+    post_event(BaseUrl, "testmeeting", AuthParams, Params),
 
     timer:sleep(1000),
 
-    ParamsGet = [{"uid", RootUid},
-                 {"sid", RootSid},
-                 {"order", "desc"},
-                 {"count", "1"}],
-    ?assertMatch({struct, [{"result", {array,
-                          [{struct, [{"type", "global_event"}
-                                     , {"domain", _}
-                                     , {"datetime", _}
-                                     , {"id", _}
-                                     , {"from", RootUid}
-                                     , {"metadata", {struct, [{"description", "plop"}]}}
-                                    ]}]}}]},
-                 tests_utils:get(BaseUrl, "/event/", ParamsGet)),
-
-    ParamsGetMeeting = [{"uid", RootUid},
-                        {"sid", RootSid},
-                        {"order", "desc"},
-                        {"count", "1"}],
+    ParamsGet = auth_params(AuthParams) ++ [{"order", "desc"},
+                                            {"count", "1"}],
+    Result = tests_utils:get(BaseUrl, "/event/", ParamsGet),
     ?assertMatch({struct, [{"result", {array,
                           [{struct, [{"type", "non_global_event"}
                                      , {"domain", _}
                                      , {"datetime", _}
                                      , {"id", _}
                                      , {"location", "testmeeting"}
-                                     , {"from", RootUid}
+                                     , {"from", _}
                                      , {"metadata", {struct, [{"description", "plop2"}]}}
                                     ]}]}}]},
-                 tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGetMeeting)).
+                 Result).
 
-test_get_with_keywords(BaseUrl,  {RootUid, RootSid}) ->
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "search_event"},
+test_get_with_keywords(BaseUrl, AuthParams) ->
+    Params = [{"type", "search_event"},
               {"metadata[description]", "lonely event"}],
-    {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params),
+    post_event(BaseUrl, "testmeeting", AuthParams, Params),
 
     timer:sleep(1000),
 
-    ParamsGet = [{"uid", RootUid},
-                 {"sid", RootSid},
-                 {"search", "lonely"},
-                 {"count", "1"}],
+    ParamsGet = auth_params(AuthParams) ++ [{"search", "lonely"},
+                                            {"count", "1"}],
     ?assertMatch({struct, [{"result", {array,
                           [{struct, [{"type", "search_event"}
                                      , {"domain", _}
                                      , {"datetime", _}
                                      , {"id", _}
                                      , {"location", "testmeeting"}
-                                     , {"from", RootUid}
+                                     , {"from", _}
                                      , {"metadata", {struct, [{"description", "lonely event"}]}}
                                     ]}]}}]},
                  tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet)).
@@ -771,46 +774,113 @@ test_last(BaseUrl, {RootUid, RootSid}) ->
                                  ]}]}}]}, tests_utils:get(BaseUrl, "/event/testmeeting/", ParamsGetLast)).
 
 send_long_polling_event(BaseUrl, {RootUid, RootSid}) ->
+    send_long_polling_event(BaseUrl, {RootUid, RootSid}, []).
+send_long_polling_event(BaseUrl, {RootUid, RootSid}, ParamsEvent) ->
     timer:sleep(4000),
-    Params = [{"uid", RootUid},
-              {"sid", RootSid},
-              {"type", "long_polling_event"},
-              {"metadata[description]", "relax, don't do it"}],
+    Params = ParamsEvent ++[{"uid", RootUid},
+                            {"sid", RootSid},
+                            {"type", "long_polling_event"},
+                            {"metadata[description]", "relax, don't do it"}],
     {struct, [{"result", _}]} = tests_utils:post(BaseUrl, "/event/testmeeting", Params).
 
-test_long_polling(BaseUrl, {RootUid, RootSid}) ->
+do_long_polling(BaseUrl, {RootUid, RootSid}, Now, Params) ->
+    ParamsGet = Params ++ [{"uid", RootUid},
+                           {"sid", RootSid},
+                           {"start", integer_to_list(Now)},
+                           {"mode", "longpolling"}],
+    tests_utils:get(BaseUrl, "/live/testmeeting", ParamsGet).
+
+assert_long_polling(BaseUrl, AuthParams = {RootUid, _RootSid}, Params) ->
     Now = utils:now(),
-    ParamsGet = [{"uid", RootUid},
-                 {"sid", RootSid},
-                 {"start", integer_to_list(Now)},
-                 {"type", "long_polling_event"},
-                 {"_async", "lp"}],
-    spawn(?MODULE, send_long_polling_event, [BaseUrl, {RootUid, RootSid}]),
+    Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
     {struct, [{"result", {array,
                           [{struct, [{"type", "long_polling_event"}
                                      , {"domain", _}
-                                     , {"datetime", Datetime}
+                                     , {"datetime", _Datetime}
                                      , {"id", _}
                                      , {"location", "testmeeting"}
                                      , {"from", RootUid}
                                      , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
-                                    ]}]}}]} = tests_utils:get(BaseUrl, "/event/testmeeting", ParamsGet),
-    LongPollingDelay = utils:now() - Now,
-    EventDelay = Datetime - Now,
-    % both should be around 2000
-    if
-        LongPollingDelay < 3700 ->
-            throw({error, too_fast});
-        LongPollingDelay > 4700 ->
-            throw({error, too_much_delay});
-        true ->
-            nothing
-    end,
-    if
-        EventDelay < 3700 ->
-            throw({error, too_fast});
-        EventDelay > 4700 ->
-            throw({error, too_much_delay});
-        true ->
-            nothing
-    end.
+                                    ]}]}}]} = Result.
+
+assert_long_polling_to(BaseUrl, AuthParams, Params, From, To) ->
+    Now = utils:now(),
+    Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
+    {struct, [{"result", {array,
+                          [{struct, [{"type", "long_polling_event"}
+                                     , {"domain", _}
+                                     , {"datetime", _Datetime}
+                                     , {"id", _}
+                                     , {"location", "testmeeting"}
+                                     , {"to", To}
+                                     , {"from", From}
+                                     , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
+                                    ]}]}}]} = Result.
+
+assert_long_polling_parent(BaseUrl, AuthParams = {RootUid, _RootSid}, Params, Parent) ->
+    Now = utils:now(),
+    Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
+    {struct, [{"result", {array,
+                          [{struct, [{"type", "long_polling_event"}
+                                     , {"domain", _}
+                                     , {"datetime", _Datetime}
+                                     , {"id", _}
+                                     , {"location", "testmeeting"}
+                                     , {"from", RootUid}
+                                     , {"parent", Parent}
+                                     , {"metadata", {struct, [{"description", "relax, don't do it"}]}}
+                                    ]}]}}]} = Result.
+
+assert_no_result_long_polling(BaseUrl, AuthParams, Params) ->
+    Now = utils:now(),
+    Result = do_long_polling(BaseUrl, AuthParams, Now, Params),
+    {struct, [{"result", {array, []}}]} = Result.
+
+test_long_polling(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_long_polling(BaseUrl, AuthParams, [{"type", "long_polling_event"}]).
+
+test_long_polling_with_types(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_long_polling(BaseUrl, AuthParams, [{"type", "long_polling_event,long_polling_event2"}]).
+
+test_long_polling_with_from(BaseUrl, AuthParams = {RootUid, _}) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_long_polling(BaseUrl, AuthParams, [{"from", RootUid}]).
+
+test_long_polling_with_other_from(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_no_result_long_polling(BaseUrl, AuthParams, [{"from", "other_from"}]).
+
+test_long_polling_with_parent(Domain, BaseUrl, AuthParams = {RootUid, _}) ->
+    {ok, EventId} = uce_event:add(Domain,
+                                  #uce_event{ id=none,
+                                              type="test_long_polling_for_parent",
+                                              location="testmeeting",
+                                              from=RootUid}),
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams, [{"parent", EventId}]]),
+    assert_long_polling_parent(BaseUrl, AuthParams, [{"parent", EventId}], EventId).
+
+test_long_polling_with_other_parent(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_no_result_long_polling(BaseUrl, AuthParams, [{"parent", "other_parent"}]).
+
+test_long_polling_with_search(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_long_polling(BaseUrl, AuthParams, [{"search", "relax"}]).
+
+test_long_polling_with_other_search(BaseUrl, AuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, AuthParams]),
+    assert_no_result_long_polling(BaseUrl, AuthParams, [{"search", "plop"}]).
+
+test_long_polling_with_to(BaseUrl, {RootUid, _} = RootAuthParams, {ParticipantUid, _ParticipantSid} = _ParticipantAuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, RootAuthParams, [{"to", ParticipantUid}]]),
+    assert_long_polling_to(BaseUrl, RootAuthParams, [{"type", "long_polling_event"}], RootUid, ParticipantUid).
+
+test_long_polling_with_to_and_participant(BaseUrl, {RootUid, _} = RootAuthParams, {ParticipantUid, _} = ParticipantAuthParams) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, RootAuthParams, [{"to", ParticipantUid}]]),
+    assert_long_polling_to(BaseUrl, ParticipantAuthParams, [{"type", "long_polling_event"}], RootUid, ParticipantUid).
+
+test_long_polling_with_to_and_other_participant(BaseUrl, RootAuthParams, ParticipantAuthParams, {OtherUid, _}) ->
+    spawn(?MODULE, send_long_polling_event, [BaseUrl, RootAuthParams, [{"to", OtherUid}]]),
+    assert_no_result_long_polling(BaseUrl, ParticipantAuthParams, [{"type", "long_polling_event"}]).

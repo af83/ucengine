@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -38,8 +38,8 @@ presence_test_() ->
                 ?_test(test_presence_close(BaseUrl)),
                 ?_test(test_presence_close_unauthorized(BaseUrl, Ugly)),
                 ?_test(test_presence_close_not_foundsid(BaseUrl)),
-                ?_test(test_presence_timeout(BaseUrl)),
-                ?_test(test_multiple_presence_timeout(BaseUrl))]
+                {timeout, 120, ?_test(test_presence_timeout(BaseUrl))},
+                {timeout, 120, ?_test(test_multiple_presence_timeout(BaseUrl)) }]
       end
     }.
 
@@ -74,14 +74,13 @@ test_presence_create_unauthorized(BaseUrl) ->
 test_presence_get(BaseUrl) ->
     Uid = "participant.user@af83.com",
     {struct,[{"result", {struct, [{"uid", _}, {"sid", Sid}]}}]} =
-        create_presence(BaseUrl, Uid, "pwd", [{"metadata[nickname]", "PasswordParticipantGet"}]),
+        create_presence(BaseUrl, Uid, "pwd"),
 
     {struct,[{"result",
               {struct,[{"id",Sid},
                        {"domain",_},
                        {"user",_}, %%"participant.user@af83.com"},
-                       {"auth","password"},
-                       {"metadata", {struct, [{"nickname", "PasswordParticipantGet"}]}}]}}]} =
+                       {"auth","password"}]}}]} =
         tests_utils:get(BaseUrl, "/presence/" ++ Sid).
 
 test_presence_get_not_found(BaseUrl) ->
@@ -133,19 +132,20 @@ test_multiple_presence_timeout(BaseUrl) ->
         create_presence(BaseUrl, "participant.user@af83.com", "pwd", [{"timeout", integer_to_list(DefaultTimeout)}]),
     Params = [ {"uid", Uid}
              , {"sid", Sid}],
-    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params)),
-    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/closedmeeting/roster/", Params)),
+    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/testmeeting/roster/", Params)),
+    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/meeting2/roster/", Params)),
+    timer:sleep(1000),
     % Create second presence and join the same meeting
     {struct,[{"result", {struct, [{"uid", Uid}, {"sid", Sid2}]}}]} =
         create_presence(BaseUrl, "participant.user@af83.com", "pwd", [{"timeout", integer_to_list(DefaultTimeout * 15000)}]),
     Params2 = [ {"uid", Uid}
               , {"sid", Sid2}],
-    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/all/testmeeting/roster/", Params2)),
-    timer:sleep(DefaultTimeout * 4000),
+    ?assertMatch({struct, [{"result", "ok"}]}, tests_utils:post(BaseUrl, "/meeting/testmeeting/roster/", Params2)),
+    timer:sleep(DefaultTimeout * 1000),
     ?assertMatch({struct, [{"error", "not_found"}]}, tests_utils:get(BaseUrl, "/presence/" ++ Sid, Params)),
     ?assertMatch({struct, [{"result", _}]}, tests_utils:get(BaseUrl, "/presence/" ++ Sid2, Params2)),
     {struct, [{"result", {array, Array}}]} =
-        tests_utils:get(BaseUrl, "/meeting/all/testmeeting/roster/", Params2),
+        tests_utils:get(BaseUrl, "/meeting/testmeeting/roster/", Params2),
     %% We should be here
     [{struct,[{"uid", Uid},
               {"name",_},
@@ -153,4 +153,4 @@ test_multiple_presence_timeout(BaseUrl) ->
               {"auth","password"},
               {"metadata",{struct,[]}}]}] = Array,
     ?assertMatch({struct, [{"result", {array, []}}]},
-                 tests_utils:get(BaseUrl, "/meeting/all/closedmeeting/roster/", Params2)).
+                 tests_utils:get(BaseUrl, "/meeting/meeting2/roster/", Params2)).

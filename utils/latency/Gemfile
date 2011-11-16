@@ -1,0 +1,3 @@
+source 'http://rubygems.org'
+
+gem 'em-ucengine', :git => "git://github.com/AF83/ucengine.em.git"

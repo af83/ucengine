@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -72,7 +72,7 @@ request(BaseUrl, Path, Method, Params, ContentType, Body) ->
                 _ ->
                     "?" ++ url_encode(Params)
             end,
-   ibrowse:send_req(BaseUrl ++ Path ++ Query, [{"Content-type", ContentType}], Method, Body, [{content_type, ContentType}]).
+   ibrowse:send_req(BaseUrl ++ Path ++ Query, [{"Content-Type", ContentType}], Method, Body, [{content_type, ContentType}]).
 
 url_encode(Params) ->
     UrlEncodedParams = [yaws_api:url_encode(Elem) ++ "=" ++

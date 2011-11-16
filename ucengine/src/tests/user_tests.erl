@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -30,10 +30,14 @@ user_test_() ->
                ?_test(test_register_missing_credential(BaseUrl)),
                ?_test(test_register_missing_name(BaseUrl)),
                ?_test(test_register_conflict(BaseUrl)),
+               ?_test(test_register_with_restricted_access(BaseUrl)),
+               ?_test(test_register_with_restricted_access_and_root(BaseUrl, Root)),
 
                ?_test(test_get(BaseUrl, Root)),
                ?_test(test_get_not_found(BaseUrl, Root)),
                ?_test(test_get_unauthorized(BaseUrl, Ugly)),
+
+               ?_test(test_find_by_name(BaseUrl, Root)),
 
                ?_test(test_list(BaseUrl, Root)),
                ?_test(test_list_unauthorized(BaseUrl, Ugly)),
@@ -86,20 +90,20 @@ test_register_missing_auth(BaseUrl) ->
     Params = [{"credential", "test"},
               {"name", "test.user@af83.com"},
               {"metadata[nickname]", "test_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_missing_credential(BaseUrl) ->
     Params = [{"auth", "test"},
               {"name", "test.user@af83.com"},
               {"metadata[nickname]", "test_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_missing_name(BaseUrl) ->
     Params = [{"auth", "test"},
               {"metadata[nickname]", "test_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/user/", Params).
 
 test_register_conflict(BaseUrl) ->
@@ -108,6 +112,26 @@ test_register_conflict(BaseUrl) ->
               {"credential", "test"}],
     {struct, [{"error", "conflict"}]} =
         tests_utils:post(BaseUrl, "/user/", Params).
+
+test_register_with_restricted_access(BaseUrl) ->
+    config:set("localhost", register, restricted),
+    Params = [{"auth", "test"},
+              {"name", "test.user2@af83.com"},
+              {"credential", "test"}],
+    ?assertMatch({struct, [{"error", "unauthorized"}]},
+                 tests_utils:post(BaseUrl, "/user/", Params)),
+    config:set("localhost", register, open).
+
+test_register_with_restricted_access_and_root(BaseUrl, {RootUid, RootSid}) ->
+    config:set("localhost", register, restricted),
+    Params = [{"auth", "test"},
+              {"name", "test.user2@af83.com"},
+              {"credential", "test"},
+              {"uid", RootUid},
+              {"sid", RootSid}],
+    ?assertMatch({struct, [{"result", _}]},
+                 tests_utils:post(BaseUrl, "/user/", Params)),
+    config:set("localhost", register, open).
 
 test_get(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
@@ -132,6 +156,19 @@ test_get_unauthorized(BaseUrl, {UglyUid, UglySid}) ->
               {"sid", UglySid}],
     {struct, [{"error", "unauthorized"}]} =
         tests_utils:get(BaseUrl, "/user/unexistent.user@af83.com", Params).
+
+test_find_by_name(BaseUrl, {RootUid, RootSid}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid},
+              {"by_name", "test.user@af83.com"}],
+    {struct,[{"result",
+              {struct,[{"uid",_},
+                       {"name","test.user@af83.com"},
+                       {"domain",_},
+                       {"auth",_},
+                       {"metadata",_}
+                      ]}
+             }]} = tests_utils:get(BaseUrl, "/find/user", Params).
 
 test_list(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
@@ -168,7 +205,7 @@ test_update_missing_auth(BaseUrl, {RootUid, RootSid}) ->
               {"name", "test.user@af83.com"},
               {"credential", "test_modified"},
               {"metadata[nickname]", "test_modified_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:put(BaseUrl, "/user/"++RootUid, Params).
 
 test_update_missing_credential(BaseUrl, {RootUid, RootSid}) ->
@@ -177,7 +214,7 @@ test_update_missing_credential(BaseUrl, {RootUid, RootSid}) ->
               {"name", "test.user@af83.com"},
               {"auth", "test_modified"},
               {"metadata[nickname]", "test_modified_nickname"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:put(BaseUrl, "/user/"++RootUid, Params).
 
 test_update_not_found(BaseUrl, {RootUid, RootSid}) ->
@@ -219,7 +256,7 @@ test_set_role_missing_role(BaseUrl, {RootUid, RootSid}, {AnonymousUid, _}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"location", "testmeeting"}],
-    {struct, [{"error", "missing_parameters"}]} =
+    {struct, [{"error", "missing_parameters"}, {"infos", _}]} =
         tests_utils:post(BaseUrl, "/user/"++AnonymousUid++"/roles/", Params).
 
 test_set_role_not_found_user(BaseUrl, {RootUid, RootSid}) ->

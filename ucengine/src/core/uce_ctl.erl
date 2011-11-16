@@ -1,5 +1,5 @@
 %%
-%%  U.C.Engine - Unified Colloboration Engine
+%%  U.C.Engine - Unified Collaboration Engine
 %%  Copyright (C) 2011 af83
 %%
 %%  This program is free software: you can redistribute it and/or modify
@@ -17,15 +17,9 @@
 %%
 -module(uce_ctl).
 
--author('victor.goya@af83.com').
-
 -export([start/0, stop/0, cmd/2]).
 
--export([infos/3, meeting/4, user/3, user/4, user/5, user/6, role/4, role/7, time/2]).
-
--export([parse_date/1, timestamp_to_iso/0, timestamp_to_iso/1]).
-
--compile({no_auto_import,[error/1]}).
+-export([meeting/3, meeting/4, user/3, user/4, user/5, user/6, role/4, role/7, time/2]).
 
 -include("uce.hrl").
 
@@ -59,45 +53,6 @@ filter_node({"node", _Value}) ->
 filter_node({_Name, _Value}) ->
     true.
 
-%%
-%% Parse date
-%%
-parse_date([Date, Time]) when is_list(Date), is_list(Time) ->
-    parse_date(Date ++ " " ++ Time);
-
-parse_date("0") ->
-    0;
-parse_date(Datetime) when is_list(Datetime) ->
-    case string:tokens(Datetime, "- :") of
-        [Year, Month, Day, Hours, Minutes, Seconds] ->
-            DateTime = {{list_to_integer(Year),
-                         list_to_integer(Month),
-                         list_to_integer(Day)},
-                        {list_to_integer(Hours),
-                         list_to_integer(Minutes),
-                         list_to_integer(Seconds)}},
-            Epoch =
-                calendar:datetime_to_gregorian_seconds({{1970, 1, 1}, {0, 0, 0}}),
-            (calendar:datetime_to_gregorian_seconds(DateTime) - Epoch) * 1000;
-        _ ->
-            throw({error, bad_date})
-    end;
-parse_date(none) ->
-    0;
-parse_date(0) ->
-    0.
-
-timestamp_to_iso() ->
-    timestamp_to_iso(utils:now()).
-timestamp_to_iso(Militimestamp) when is_integer(Militimestamp) ->
-    Epoch = calendar:datetime_to_gregorian_seconds({{1970,1,1}, {0,0,0}}),
-    Timestamp = Epoch + (Militimestamp div 1000),
-    {{Year, Month, Day}, {Hours, Minutes, Seconds}} =
-        calendar:gregorian_seconds_to_datetime(Timestamp),
-    Date = io_lib:format("~p-~p-~p ~p:~p:~p"
-                         , [Year, Month, Day, Hours, Minutes, Seconds]),
-    lists:flatten(Date).
-
 get_user_uid(Domain, Name) ->
     {ok, #uce_user{id=Uid}} = call(user, get_by_name, [Domain, Name]),
     {ok, Uid}.
@@ -108,10 +63,6 @@ success(Result) when is_list(Result) ->
 success(Result) ->
     io:format("Success: ~p", [Result]),
     ok.
-
-error(Reason) ->
-    io:format("Error: ~p~n", [Reason]),
-    error.
 
 start() ->
     Command = init:get_arguments(),
@@ -154,11 +105,11 @@ usage() ->
     io:format("ucengine-admin <domain> <object> <action> [--<parameter> <value>]~n~n"),
 
     io:format("Meetings:~n"),
-    io:format("\tmeeting add <name> [--start <date>] [--end <date>] [--<metadata> <value>]~n"),
-    io:format("\tmeeting update <name> [--start <date>] [--end <date>] [--<metadata> <value>]~n"),
+    io:format("\tmeeting add <name> [--<metadata> <value>]~n"),
+    io:format("\tmeeting update <name> [--<metadata> <value>]~n"),
     io:format("\tmeeting get <name>~n"),
     io:format("\tmeeting delete <name>~n"),
-    io:format("\tmeeting list <status>~n~n"),
+    io:format("\tmeeting list~n~n"),
 
     io:format("Users:~n"),
     io:format("\tuser add <name> <auth> <credential> [--<metadata> <value>]~n"),
@@ -178,8 +129,6 @@ usage() ->
 
     io:format("ucengine-admin time get~n~n"),
 
-    io:format("Formatting:~n"),
-    io:format("\t<date>: ISO8601 formatted date (ex. '2010-12-25 00:00:01')~n~n"),
     io:format("U.C.Engine (c) AF83 - http://ucengine.org~n"),
     {ok, nothing}.
 
@@ -195,49 +144,21 @@ call(Object, Action, Args) ->
     end.
 
 %%
-%% Infos get
-%%
-infos(Domain, "get", _) ->
-    {ok, Infos} = call(infos, get, [Domain]),
-    {ok, pretty_print:print(Infos, flat)};
-
-%%
-%% Infos update
-%%
-infos(_Domain, "update", []) ->
-    error(missing_parameter);
-infos(Domain, "update", Metadata) ->
-    {ok, updated} = call(infos, update, [Domain, #uce_infos{domain=Domain, metadata=Metadata}]),
-    success(updated).
-
-%%
 %% Meeting add
 %%
-meeting(Domain, "add", Name, Args) ->
-    Start = proplists:get_value("start", Args, 0),
-    End = proplists:get_value("end", Args, 0),
-
-    {_, Metadata} =  proplists:split(Args, ["start", "end"]),
+meeting(Domain, "add", Name, Metadata) ->
     {ok, created} = call(meeting, add, [Domain,
                                         #uce_meeting{id=Name,
-                                                     start_date=parse_date(Start),
-                                                     end_date=parse_date(End),
-                                                     metadata=Metadata}]),
+                                                     metadata={struct, Metadata}}]),
     success(created);
 
 %%
 %% Meeting update
 %%
-meeting(Domain, "update", Name, Args) ->
-    Start = proplists:get_value("start", Args, 0),
-    End = proplists:get_value("end", Args, 0),
-
-    {_, Metadata} =  proplists:split(Args, ["start", "end"]),
+meeting(Domain, "update", Name, Metadata) ->
     {ok, updated} = call(meeting, update, [Domain,
                                            #uce_meeting{id=Name,
-                                                        start_date=parse_date(Start),
-                                                        end_date=parse_date(End),
-                                                        metadata=Metadata}]),
+                                                        metadata={struct, Metadata}}]),
     success(updated);
 
 %%
@@ -252,13 +173,13 @@ meeting(Domain, "delete", Name, []) ->
 %%
 meeting(Domain, "get", Name, []) ->
     {ok, Record} = call(meeting, get, [Domain, Name]),
-    {ok, pretty_print:print(Record, flat)};
+    {ok, pretty_print:print(Record, flat)}.
 
 %%
 %% Meeting list
 %%
-meeting(Domain, "list", Status, []) ->
-    {ok, Records} = call(meeting, list, [Domain, Status]),
+meeting(Domain, "list", []) ->
+    {ok, Records} = call(meeting, list, [Domain]),
     {ok, pretty_print:print(Records, flat)}.
 
 %%
@@ -270,7 +191,7 @@ user(Domain, "add", Name, Auth, Credential, Metadata) ->
                                            name=Name,
                                            auth=Auth,
                                            credential=Credential,
-                                           metadata=Metadata}]),
+                                           metadata={struct, Metadata}}]),
     success(Uid);
 
 %%
@@ -283,7 +204,7 @@ user(Domain, "update", Name, Auth, Credential, Metadata) ->
                                                   name=Name,
                                                   auth=Auth,
                                                   credential=Credential,
-                                                  metadata=Metadata}]),
+                                                  metadata={struct, Metadata}}]),
     success(updated);
 
 %%
@@ -316,7 +237,7 @@ user(Domain, "add", Name, Auth, Metadata) ->
                                  #uce_user{id=none,
                                            name=Name,
                                            auth=Auth,
-                                           metadata=Metadata}]),
+                                           metadata=json_helpers:to_struct(Metadata)}]),
     success(Uid).
 
 %%
@@ -407,15 +328,5 @@ parse_arguments_test() ->
     ?assertEqual([{"node", "plop plip"}], args_to_dictionary([{'-node', ["plop", "plip"]}])),
     ?assertEqual([{"node", "plop plip"}, {"name", "chuck"}], args_to_dictionary([{'-node', ["plop", "plip"]}, {'-name', ["chuck"]}])),
     ?assertEqual([{"node", "plop"}], args_to_dictionary([{'-node', ["plop"]}, {hello, "plop"}])).
-
-parse_date_test() ->
-    ?assertEqual(0, parse_date(0)),
-    ?assertEqual(0, parse_date("0")),
-    ?assertEqual(0, parse_date(none)),
-    ?assertEqual(1306139400000, parse_date("2011-05-23 08:30:00")),
-    ?assertEqual(1306139400000, parse_date(["2011-05-23", "08:30:00"])).
-
-timestamp_to_iso_test() ->
-    ?assertEqual("2011-5-23 8:30:0", timestamp_to_iso(1306139400000)).
 
 -endif.
