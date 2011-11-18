@@ -19,17 +19,17 @@
 
 -include("uce.hrl").
 
--export([assert/2, check/2]).
+-export([assert/5, check/5]).
 
-assert(User, Credential) ->
-    case check(User, Credential) of
+assert(Domain, OwnerUid, OwnerSid, User, Credential) ->
+    case check(Domain, OwnerUid, OwnerSid, User, Credential) of
         {ok, true} ->
             {ok, true};
         {ok, false} ->
             throw({error, bad_credentials})
     end.
 
-check(User, Credential) ->
+check(_Domain, _OwnerUid, _OwnerSid, User, Credential) ->
     case User#uce_user.credential of
         Credential ->
             {ok, true};

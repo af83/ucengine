@@ -25,7 +25,9 @@ init() ->
     [#uce_route{method='POST',
                 path=["presence"],
                 callback={?MODULE, add,
-                          [{"name", required, string},
+                          [{"uid", "", string},
+                           {"sid", "", string},
+                           {"name", required, string},
                            {"credential", "", string},
                            {"timeout", 0, integer}]}},
 
@@ -39,10 +41,10 @@ init() ->
                           [{"uid", required, string},
                            {"sid", required, string}]}}].
 
-add(Domain, [], [Name, Credential, Timeout], _) ->
+add(Domain, [], [OwnerUid, OwnerSid, Name, Credential, Timeout], _) ->
     {ok, #uce_user{id = Uid} = User} = uce_user:get_by_name(Domain, Name),
     {ok, true} = uce_access:assert(Domain, Uid, "", "presence", "add"),
-    {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(User, Credential),
+    {ok, true} = ?AUTH_MODULE(User#uce_user.auth):assert(Domain, OwnerUid, OwnerSid, User, Credential),
     {ok, Sid} = uce_presence:add(Domain,
                                  #uce_presence{id=none,
                                                user=Uid,

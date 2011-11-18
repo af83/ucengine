@@ -19,10 +19,25 @@
 
 -include("uce.hrl").
 
--export([assert/2, check/2]).
+-export([assert/5, check/5]).
 
-assert(_User, _Credential) ->
-    {ok, true}.
+assert(Domain, OwnerUid, OwnerSid, User, Credential) ->
+    case check(Domain, OwnerUid, OwnerSid, User, Credential) of
+        {ok, true} ->
+            {ok, true};
+        {ok, false} ->
+            throw({error, unauthorized})
+    end.
 
-check(_User, _Credential) ->
-    {ok, true}.
+check(Domain, OwnerUid, OwnerSid, _User, _Credential) ->
+    case catch uce_presence:assert(Domain, OwnerUid, OwnerSid) of
+        {ok, true} ->
+            case catch uce_access:assert(Domain, OwnerUid, "", "presence", "delegate") of
+                {ok, true} ->
+                    {ok, true};
+                {error, unauthorized} ->
+                    {ok, false}
+            end;
+        {error, unauthorized} ->
+            {ok, false}
+    end.

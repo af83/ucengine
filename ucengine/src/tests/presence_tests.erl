@@ -24,13 +24,16 @@ presence_test_() ->
     { setup
     , fun fixtures:setup/0
     , fun fixtures:teardown/1
-    , fun([_, BaseUrl, [_Root, _Participant, Ugly|_]]) ->
+    , fun([_, BaseUrl, [Root, Participant, Ugly, Anonymous]]) ->
               [ ?_test(test_presence_create_password(BaseUrl)),
-                ?_test(test_presence_create_with_no_password(BaseUrl)),
                 ?_test(test_presence_create_missing_credential(BaseUrl)),
                 ?_test(test_presence_create_bad_password(BaseUrl)),
                 ?_test(test_presence_create_not_found_user(BaseUrl)),
                 ?_test(test_presence_create_unauthorized(BaseUrl)),
+
+                ?_test(test_auth_none_unauthorized(BaseUrl, Root, Participant, Anonymous)),
+                ?_test(test_auth_none_unauthorized_participant(BaseUrl, Root, Participant, Anonymous)),
+                ?_test(test_auth_none_with_root(BaseUrl, Root, Participant, Anonymous)),
 
                 ?_test(test_presence_get(BaseUrl)),
                 ?_test(test_presence_get_not_found(BaseUrl)),
@@ -43,9 +46,11 @@ presence_test_() ->
       end
     }.
 
-create_presence(BaseUrl, Name) ->
-    Params = [{"name", Name}],
-    tests_utils:post(BaseUrl, "/presence/", Params).
+create_presence_anonymous(BaseUrl, Name) ->
+    create_presence_anonymous(BaseUrl, Name, []).
+create_presence_anonymous(BaseUrl, Name, Params) ->
+    tests_utils:post(BaseUrl, "/presence/", Params ++ [{"name", Name}]).
+
 create_presence(BaseUrl, Name, Credential) ->
     create_presence(BaseUrl, Name, Credential, []).
 create_presence(BaseUrl, Name, Credential, Metadata) ->
@@ -56,11 +61,8 @@ create_presence(BaseUrl, Name, Credential, Metadata) ->
 test_presence_create_password(BaseUrl) ->
     {struct,[{"result", _}]} = create_presence(BaseUrl, "participant.user@af83.com", "pwd").
 
-test_presence_create_with_no_password(BaseUrl) ->
-    {struct,[{"result", _}]} = create_presence(BaseUrl, "anonymous.user@af83.com").
-
 test_presence_create_missing_credential(BaseUrl) ->
-    {struct,[{"error", "bad_credentials"}]} = create_presence(BaseUrl, "participant.user@af83.com").
+    {struct,[{"error", "bad_credentials"}]} = create_presence(BaseUrl, "participant.user@af83.com", "").
 
 test_presence_create_bad_password(BaseUrl) ->
     {struct,[{"error", "bad_credentials"}]} = create_presence(BaseUrl, "participant.user@af83.com", "badpwd").
@@ -70,6 +72,19 @@ test_presence_create_not_found_user(BaseUrl) ->
 
 test_presence_create_unauthorized(BaseUrl) ->
     {struct,[{"error", "unauthorized"}]} = create_presence(BaseUrl, "ugly.user@af83.com", "pwd").
+
+test_auth_none_unauthorized(BaseUrl, _Root, _Participant, {Anonymous, ""}) ->
+    {struct,[{"error", "unauthorized"}]} = create_presence_anonymous(BaseUrl, Anonymous).
+
+test_auth_none_unauthorized_participant(BaseUrl, _Root, {ParticipantUid, ParticipantSid}, {Anonymous, ""}) ->
+    Params = [{"uid", ParticipantUid},
+              {"sid", ParticipantSid}],
+    {struct,[{"error", "unauthorized"}]} = create_presence_anonymous(BaseUrl, Anonymous, Params).
+
+test_auth_none_with_root(BaseUrl, {RootUid, RootSid}, _Participant, {Anonymous, ""}) ->
+    Params = [{"uid", RootUid},
+              {"sid", RootSid}],
+    {struct,[{"result", _}]} = create_presence_anonymous(BaseUrl, Anonymous, Params).
 
 test_presence_get(BaseUrl) ->
     Uid = "participant.user@af83.com",
