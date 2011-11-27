@@ -63,7 +63,7 @@ validate(Query, [{Name, Default, Type}|ParamsSpecList], Acc) ->
 %%
 %% Extract params from the query
 %%
--spec call(Request :: request(), Response :: response(), Params :: list({string(), atom()|string(), atom()})) -> {ok, request()} | {error, atom(), string}.
+-spec call(Request :: request(), Response :: response(), Params :: list({string(), atom()|string(), atom()})) -> {ok, request(), response()} | {stop, response()}.
 call(#uce_request{qparams=Query, params=Params} = Request, Response, ParamsSpecList) ->
     case validate(Query, ParamsSpecList, []) of
         {error, R1, R2} ->

@@ -62,7 +62,7 @@ get(Domain, Sid) ->
 %
 % Delete presence
 %
--spec delete(domain(), sid()) -> {ok, deleted} | {error, not_found}.
+-spec delete(domain(), sid()) -> {ok, deleted}.
 delete(Domain, Sid) ->
     cast_if_proc_found(Domain, Sid, {delete_presence, Sid}),
     {ok, deleted}.
@@ -87,7 +87,7 @@ join(Domain, Sid, Meeting) ->
             update(Domain, Presence#uce_presence{meetings=Meetings})
     end.
 
--spec leave(domain(), sid(), meeting_id()) -> {ok, updated}.
+-spec leave(domain(), sid(), meeting_id()) -> {ok, presence()}.
 leave(Domain, Sid, Meeting) ->
     {ok, Record} = get(Domain, Sid),
     Meetings = lists:delete(Meeting, Record#uce_presence.meetings),

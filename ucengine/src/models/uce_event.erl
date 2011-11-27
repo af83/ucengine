@@ -86,7 +86,7 @@ filter_private(Events, Name) ->
              Parent    :: event_id(),
              Start     :: integer(),
              Max       :: integer(),
-             Order     :: string()) -> {ok, integer(), list(event())}.
+             Order     :: atom()) -> {ok, integer(), list(event())}.
 search(Domain, Location, Search, From, Types, Uid, DateStart, DateEnd, Parent, Start, Max, Order) ->
     {ok, NumTotal, Events} = ?SEARCH_MODULE:list(Domain,
                                                  Location,

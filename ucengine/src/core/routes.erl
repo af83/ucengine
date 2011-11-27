@@ -52,7 +52,7 @@ get(Method, Path, ContentType) when is_list(ContentType) ->
 route(Method, Path, Routes) ->
     route(Method, Path, "", Routes).
 
--spec route(Method :: atom(), Path :: string(), ContentType :: string(), Routes :: [route()])
+-spec route(Method :: atom(), Path :: string(), ContentType :: string()|undefined, Routes :: [route()])
     -> {error, not_found} | {ok, route(), list(atom()|string())}.
 route(_, _, _, []) ->
     {error, not_found};

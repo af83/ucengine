@@ -81,7 +81,7 @@ exists(Domain, Id) ->
             true
     end.
 
--spec join(domain(), meeting_id(), user()) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec join(domain(), meeting_id(), user_id()) -> {ok, updated} | erlang:throw({error, not_found}).
 join(Domain, Id, User) ->
     case uce_user:exists(Domain, User) of
         false ->
@@ -96,7 +96,7 @@ join(Domain, Id, User) ->
             end
     end.
 
--spec leave(domain(), meeting_id(), user()) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec leave(domain(), meeting_id(), user_id()) -> {ok, updated} | erlang:throw({error, not_found}).
 leave(Domain, Id, User) ->
     case uce_user:exists(Domain, User) of
         false ->

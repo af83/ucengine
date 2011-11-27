@@ -111,6 +111,7 @@
 -type event_id()       :: string().
 -type event()          :: #uce_event{}.
 -type user()           :: #uce_user{}.
+-type user_id()        :: string().
 -type presence()       :: #uce_presence{}.
 -type sid()            :: string().
 -type uid()            :: string().

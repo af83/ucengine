@@ -133,7 +133,7 @@ exists(Domain, Uid) ->
             true
     end.
 
--spec add_role(domain(), uid(), {role(), meeting_id()}) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec add_role(domain(), uid(), {role_id(), meeting_id()}) -> {ok, updated} | erlang:throw({error, not_found}).
 add_role(Domain, Uid, {Role, Location}) ->
     % Just ensure the role and location exists
     case uce_meeting:exists(Domain, Location) of
@@ -154,7 +154,7 @@ add_role(Domain, Uid, {Role, Location}) ->
             throw({error, not_found})
     end.
 
--spec delete_role(domain(), uid(), {role(), meeting_id()}) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec delete_role(domain(), uid(), {role_id(), meeting_id()}) -> {ok, updated} | erlang:throw({error, not_found}).
 delete_role(Domain, Id, {Role, Location}) ->
     {ok, User} = get(Domain, Id),
     Roles = case lists:member({Role, Location}, User#uce_user.roles) of
