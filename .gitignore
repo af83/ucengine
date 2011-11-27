@@ -5,3 +5,4 @@ deps/*
 rel/ucengine/
 benchmarks/results
 utils/latency/*.csv
+.ucengine_dialyzer.plt

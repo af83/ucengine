@@ -61,9 +61,13 @@ mongodb_tests: dev
 	rel/ucengine/bin/ucengine-admin tests
 	./rebar skip_deps=true eunit
 
+
+build-plt:
+	dialyzer --build_plt --output_plt .ucengine_dialyzer.plt \
+	--apps kernel stdlib sasl crypto
+
 dialyze: compile
-	./rebar skip_deps=true check-plt
-	./rebar skip_deps=true dialyze
+	dialyzer -r ucengine --plt .ucengine_dialyzer.plt
 
 ###############################################################################
 # Benchmark
