@@ -18,10 +18,8 @@
 -module(utils).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws_api.hrl").
 
 -export([now/0,
-
          random/0,
          random/1,
          get_values/2,

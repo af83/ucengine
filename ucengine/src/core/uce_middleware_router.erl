@@ -20,7 +20,6 @@
 -export([call/2]).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws_api.hrl").
 
 %%
 %% Match the request to the good route
@@ -35,7 +34,7 @@ call(#uce_request{method='OPTIONS', path=Path}, Response) ->
             {stop, json_helpers:error(Response, not_found)}
     end;
 % Handle head method. If a 'GET' route match, normal process
-% Yaws will strip the content
+% Misultin will strip the content
 call(#uce_request{method='HEAD'} = Request, Response) ->
     call(Request#uce_request{method='GET'}, Response);
 call(#uce_request{method=Method, path=Path, arg=Req2} = Request, Response) ->

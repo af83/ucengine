@@ -20,7 +20,6 @@
 -export([init/0, search/5]).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws_api.hrl").
 
 init() ->
     [#uce_route{method='GET',
