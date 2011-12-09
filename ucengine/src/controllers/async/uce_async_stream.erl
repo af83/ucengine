@@ -17,7 +17,7 @@
 %%
 -module(uce_async_stream).
 
--export([wait/10]).
+-export([wait/11]).
 
 -include("uce.hrl").
 
@@ -34,23 +34,23 @@
 % Public API
 %
 
-wait(Response, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
-    YawsPid = self(),
-    {ok, _Pid} = gen_server:start_link(?MODULE, [YawsPid, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents], []),
-    Response#uce_response{status=200, content={streamcontent_with_timeout, "text/event-stream", <<>>, infinity}}.
+wait(#uce_request{arg=Req2} = Request, #uce_response{headers=Headers}, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents) ->
+    misultin_req:stream(head, 200, Headers ++ [{"Content-type", "text/event-stream"}], Req2),
+    {ok, _Pid} = gen_server:start_link(?MODULE, [Request, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents], []),
+    ok.
 
 %
 % gen_server callbacks
 %
 
-init([YawsPid, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents]) ->
+init([#uce_request{arg=Req2}, Domain, Uid, Location, Search, From, Types, Parent, Sid, PreviousEvents]) ->
     process_flag(trap_exit, true),
-    link(YawsPid),
-    send_events(YawsPid, Domain, PreviousEvents),
+    misultin_req:options([{comet, true}], Req2),
+    send_events(Req2, Domain, PreviousEvents),
     uce_meeting:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
     uce_presence:add_stream(Domain, Sid),
     ping(),
-    {ok, {YawsPid,
+    {ok, {Req2,
           Domain,
           Search,
           Sid}}.
@@ -64,16 +64,16 @@ handle_cast(_, State) ->
 code_change(_, State,_) ->
     {ok, State}.
 
-handle_info({event, Event}, {YawsPid, Domain, Search, _Sid} = State) ->
+handle_info({event, Event}, {Req, Domain, Search, _Sid} = State) ->
     case uce_async:filter(Search, Event) of
         false ->
             ok;
         true ->
-            send_events(YawsPid, Domain, [Event])
+            send_events(Req, Domain, [Event])
     end,
     {noreply, State};
-handle_info(ping, {YawsPid, _Domain, _Search, _Sid} = State) ->
-    yaws_api:stream_chunk_deliver(YawsPid, ":\n\n"),
+handle_info(ping, {Req, _Domain, _Search, _Sid} = State) ->
+    misultin_req:stream(":\n\n", Req),
     ping(),
     {noreply, State};
 handle_info(Event, State) ->
@@ -95,10 +95,10 @@ ping() ->
 
 send_events(_, _, []) ->
     ok;
-send_events(YawsPid, Domain, [#uce_event{datetime=Datetime} = Event|Events]) ->
-    yaws_api:stream_chunk_deliver(YawsPid, "data: "),
-    yaws_api:stream_chunk_deliver(YawsPid, mochijson:encode(json_helpers:to_json(Domain, Event))),
-    yaws_api:stream_chunk_deliver(YawsPid, "\nid: "),
-    yaws_api:stream_chunk_deliver(YawsPid, integer_to_list(Datetime)),
-    yaws_api:stream_chunk_deliver(YawsPid, "\n\n"),
-    send_events(YawsPid, Domain, Events).
+send_events(Req, Domain, [#uce_event{datetime=Datetime} = Event|Events]) ->
+    misultin:stream("data: ", Req),
+    misultin:stream(mochijson:encode(json_helpers:to_json(Domain, Event)), Req),
+    misultin:stream("\nid: ", Req),
+    misultin:stream(integer_to_list(Datetime), Req),
+    misultin:stream("\n\n", Req),
+    send_events(Req, Domain, Events).

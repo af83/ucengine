@@ -185,7 +185,8 @@ live(Domain, [Meeting],
                               Parent,
                               PreviousEvents);
         "eventsource" ->
-            uce_async_stream:wait(Response,
+            uce_async_stream:wait(Request,
+                                  Response,
                                   Domain,
                                   Uid,
                                   Meeting,
