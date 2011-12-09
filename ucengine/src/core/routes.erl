@@ -41,7 +41,7 @@ get(Path) ->
 get(Method, Path) ->
     route(Method, Path, ets:tab2list(uce_routes)).
 
-get(Method, Path, undefined) -> % default value of the #headers record (in yaw_api.hrl)
+get(Method, Path, false) -> % false is the ContentType is not set
     route(Method, Path, undefined, ets:tab2list(uce_routes));
 get(Method, Path, "") ->
     route(Method, Path, "", ets:tab2list(uce_routes));

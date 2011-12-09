@@ -20,7 +20,6 @@
 -export([init/0, get/5, list/5, add/5, add2/5, live/5]).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws_api.hrl").
 
 init() ->
     [#uce_route{method='POST',
@@ -89,8 +88,8 @@ add(Domain, [Meeting], [Uid, _Sid, Type, To, Parent, Metadata], _Request, Respon
 
 add2(Domain, [], [], Request, Response) ->
     add2(Domain, [""], [], Request, Response);
-add2(Domain, [Meeting], [], #uce_request{arg=Arg}, Response) ->
-    {struct, Json} = mochijson:decode(Arg#arg.clidata),
+add2(Domain, [Meeting], [], #uce_request{arg=Req}, Response) ->
+    {struct, Json} = mochijson:decode(misultin_req:get(body, Req)),
     Uid = proplists:get_value("uid", Json),
     Sid = proplists:get_value("sid", Json),
     ok = uce_presence:assert(Domain, Uid, Sid),
@@ -175,7 +174,8 @@ live(Domain, [Meeting],
                                           Parent),
     case Mode of
         "longpolling" ->
-            uce_async_lp:wait(Response,
+            uce_async_lp:wait(Request,
+                              Response,
                               Domain,
                               Uid,
                               Meeting,
@@ -199,9 +199,9 @@ live(Domain, [Meeting],
             {error, bad_parameters}
     end.
 
-get_last_event_id(#uce_request{arg=Arg}) ->
+get_last_event_id(#uce_request{arg=Req}) ->
     Header = "Last-Event-Id",
-    case lists:keyfind(Header, 3, Arg#arg.headers#headers.other) of
+    case lists:keyfind(Header, 3, misultin_req:get(headers, Req)) of
         false ->
             undefined;
         {http_header, _, Header, _, ""} ->

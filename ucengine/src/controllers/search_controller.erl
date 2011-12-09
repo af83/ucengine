@@ -47,7 +47,7 @@ extract_terms(SearchTerms, [Term|Terms], [Default|Defaults]) ->
 extract_terms(SearchTerms, [], []) ->
     [{"keywords", string:tokens(SearchTerms, " ")}].
 
-search(Domain, [], [Uid, _Sid, SearchTerms, StartIndex, StartPage, Count, Order], #uce_request{arg=Arg}, Response) ->
+search(Domain, [], [Uid, _Sid, SearchTerms, StartIndex, StartPage, Count, Order], #uce_request{path=Path}, Response) ->
     [{"type", Type},
      {"start", DateStart},
      {"end", DateEnd},
@@ -84,8 +84,7 @@ search(Domain, [], [Uid, _Sid, SearchTerms, StartIndex, StartPage, Count, Order]
                                               Count,
                                               list_to_atom(Order)),
 
-    {abs_path, Path} = Arg#arg.req#http_request.path,
-    Link = lists:concat(["http://", Arg#arg.headers#headers.host, Path]),
+    Link = lists:concat(["http://", Domain, Path]),
 
     Entries = json_helpers:to_json(Domain, Events),
     Feed = {struct, [{'link', Link},

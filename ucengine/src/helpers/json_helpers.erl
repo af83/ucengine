@@ -174,13 +174,13 @@ to_struct(Proplist) ->
 -include_lib("eunit/include/eunit.hrl").
 
 unexpected_error_test() ->
-    ?assertMatch(#uce_response{status=500, content={content, "application/json", "{\"error\":\"unexpected_error\"}"}}, unexpected_error(#uce_response{})).
+    ?assertMatch(#uce_response{headers=[{"Content-Type", "application/json"}], status=500, content="{\"error\":\"unexpected_error\"}"}, unexpected_error(#uce_response{})).
 
 error_test() ->
-    ?assertMatch(#uce_response{status=400, content={content, "application/json", "{\"error\":\"bad_parameters\"}"}}, error(#uce_response{}, bad_parameters)),
-    ?assertMatch(#uce_response{status=500, content={content, "application/json", "{\"error\":\"hello_world\"}"}}, error(#uce_response{}, "hello_world")).
+    ?assertMatch(#uce_response{headers=[{"Content-Type", "application/json"}], status=400, content="{\"error\":\"bad_parameters\"}"}, error(#uce_response{}, bad_parameters)),
+    ?assertMatch(#uce_response{headers=[{"Content-Type", "application/json"}], status=500, content="{\"error\":\"hello_world\"}"}, error(#uce_response{}, "hello_world")).
 
 format_response_test() ->
-    ?assertMatch(#uce_response{status=200, content={content, "application/json", "{}"}}, format_response(#uce_response{}, 200, [])).
+    ?assertMatch(#uce_response{headers=[{"Content-Type", "application/json"}], status=200, content="{}"}, format_response(#uce_response{}, 200, [])).
 
 -endif.

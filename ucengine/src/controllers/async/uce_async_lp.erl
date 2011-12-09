@@ -17,34 +17,32 @@
 %%
 -module(uce_async_lp).
 
--export([wait/9]).
+-export([wait/10]).
 
 -include("uce.hrl").
 
-wait(Response, Domain, Uid, Location, Search, From, Types, Parent, []) ->
-    Self = self(),
-    spawn(fun() ->
-                  uce_meeting:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
-                  {ok, Event} = uce_async:listen(Domain,
-                                                 Location,
-                                                 Search,
-                                                 From,
-                                                 Types,
-                                                 Parent,
-                                                 (config:get(connection_timeout) * 1000)),
-                  Event2 = case Event of
-                               [] ->
-                                   [];
-                               Event ->
-                                   [Event]
-                           end,
-                  JSONEvents = mochijson:encode({struct,
-                                                 [{result,
-                                                   json_helpers:to_json(Domain, Event2)}]}),
-                  yaws_api:stream_chunk_deliver(Self, list_to_binary(JSONEvents)),
-                  yaws_api:stream_chunk_end(Self),
-                  uce_meeting:unsubscribe(self())
-          end),
-    Response#uce_response{status=200, content={streamcontent_with_timeout, "application/json", <<>>, infinity}};
-wait(Response, Domain, _Uid, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
+wait(#uce_request{arg=Req2}, Response, Domain, Uid, Location, Search, From, Types, Parent, []) ->
+    misultin_req:options([{comet, true}], Req2),
+    uce_meeting:subscribe(self(), Domain, Uid, Location, From, Types, Parent),
+    {ok, Event} = uce_async:listen(Domain,
+                                   Location,
+                                   Search,
+                                   From,
+                                   Types,
+                                   Parent,
+                                   (config:get(connection_timeout) * 1000)),
+    Event2 = case Event of
+                 [] ->
+                     [];
+                 Event ->
+                     [Event]
+             end,
+    JSONEvents = mochijson:encode({struct,
+                                   [{result,
+                                     json_helpers:to_json(Domain, Event2)}]}),
+    misultin_req:respond(200, Response#uce_response.headers, JSONEvents, Req2),
+    uce_meeting:unsubscribe(self()),
+    ok;
+
+wait(_Request, Response, Domain, _Uid, _Location, _Search, _From, _Types, _Parent, PreviousEvents) ->
     json_helpers:json(Response, Domain, PreviousEvents).

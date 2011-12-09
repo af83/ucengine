@@ -38,13 +38,11 @@ call(#uce_request{qparams=Query} = Request, Response) ->
 -include_lib("eunit/include/eunit.hrl").
 
 method_override_test() ->
-    Arg = #arg{req=#http_request{method='POST'}},
-    {ok, Request, _Response} = call(#uce_request{qparams=[{"_method", "put"}], arg=Arg}, #uce_response{}),
+    {ok, Request, _Response} = call(#uce_request{method='POST', qparams=[{"_method", "put"}]}, #uce_response{}),
     ?assertEqual('PUT', Request#uce_request.method).
 
 method_test() ->
-    Arg = #arg{req=#http_request{method='POST'}},
-    {ok, Request, _Response} = call(#uce_request{arg=Arg}, #uce_response{}),
+    {ok, Request, _Response} = call(#uce_request{method='POST'}, #uce_response{}),
     ?assertEqual('POST', Request#uce_request.method).
 
 -endif.

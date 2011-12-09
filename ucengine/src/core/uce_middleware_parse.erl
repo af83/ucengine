@@ -30,7 +30,7 @@ extract(_Host, #uce_request{method=Method, arg=Req2}, _State) ->
         'OPTIONS' ->
             {ok, parse_query(misultin_req:parse_qs(Req2))};
         _ ->
-            Query = misultin_req:parse_post(Req2),
+            Query = misultin_req:parse_post(Req2) ++ misultin_req:parse_qs(Req2),
             {ok, parse_query(Query)}
     end.
 
