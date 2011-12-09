@@ -29,7 +29,7 @@ get_default_domain() ->
 get_base_url() ->
     Domain = get_default_domain(),
     Port = config:get(port),
-    "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION ++ "/".
+    "http://" ++ Domain ++ ":" ++ integer_to_list(Port) ++ "/api/" ++ ?VERSION.
 
 setup() ->
     Domain = get_default_domain(),

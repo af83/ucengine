@@ -38,8 +38,9 @@ call(#uce_request{method='OPTIONS', path=Path}, Response) ->
 % Yaws will strip the content
 call(#uce_request{method='HEAD'} = Request, Response) ->
     call(Request#uce_request{method='GET'}, Response);
-call(#uce_request{method=Method, path=Path, arg=Arg} = Request, Response) ->
-    ContentType = Arg#arg.headers#headers.content_type,
+call(#uce_request{method=Method, path=Path, arg=Req2} = Request, Response) ->
+    Headers = misultin_req:get(headers, Req2),
+    ContentType = misultin_utility:header_get_value('Content-Type', Headers),
     case routes:get(Method, Path, ContentType) of
         {ok, Route, Match} ->
             {ok, Request#uce_request{route=Route, match=Match}, Response};

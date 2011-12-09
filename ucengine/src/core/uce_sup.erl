@@ -27,13 +27,18 @@ start_link() ->
     supervisor:start_link({local, ?MODULE}, ?MODULE, []).
 
 init([]) ->
-    PubSubSup = [{?PUBSUB_MODULE,
+    PubSubSup = {?PUBSUB_MODULE,
                   {?PUBSUB_MODULE, start_link, []},
-                  permanent, brutal_kill, worker, [?PUBSUB_MODULE]}],
-    Vhost = [{uce_vhost_sup, {uce_vhost_sup, start_link, []},
-              permanent, infinity, supervisor, [uce_vhost_sup]}],
-    Yaws = uce_yaws:child_spec(),
-    {ok, {{one_for_all, 10, 10}, Yaws ++ PubSubSup ++ Vhost}}.
+                  permanent, brutal_kill, worker, [?PUBSUB_MODULE]},
+    Vhost = {uce_vhost_sup, {uce_vhost_sup, start_link, []},
+              permanent, infinity, supervisor, [uce_vhost_sup]},
+
+    Misultin = {misultin, {misultin, start_link, [[{port, config:get(port)},
+                                                  {ip, config:get(bind_ip)},
+                                                  {loop, fun(Req) -> uce_appmod:out(Req) end}
+                                                 ]]},
+                 permanent, infinity, supervisor, [misultin]},
+    {ok, {{one_for_all, 10, 10}, [Misultin, PubSubSup, Vhost]}}.
 
 start_child(ChildSpec) ->
     {ok, _Pid} = supervisor:start_child(?MODULE, ChildSpec).

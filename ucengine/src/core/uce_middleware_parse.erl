@@ -20,99 +20,22 @@
 -export([call/2]).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws_api.hrl").
 
-write_file(Data, File) ->
-    case file:write(File#file_upload.fd, Data) of
-        ok ->
-            ok;
-        Err ->
-            ?ERROR_MSG("Upload error: ~p.~n", [Err]),
-            error
-    end.
-
-process_part(_Host, _Arg, [], Params) ->
-    Params;
-process_part(_Host, _Arg, [{part_body, Data}|_Res], [{_Name, File}|_] = Params) when is_record(File, file_upload) ->
-    case write_file(Data, File) of
-        ok ->
-            Params;
-        error ->
-            {error, unexpected_error}
-    end;
-process_part(_Host, _Arg, [{part_body, Data}|_Res], [{Name, Value}|OtherParams]) ->
-    [{Name, Value ++ Data}] ++ OtherParams;
-process_part(Host, Arg, [{body, Data}|Res], [{_Name, File}|_] = Params) when is_record(File, file_upload) ->
-    case write_file(Data, File) of
-        ok ->
-            ok = file:close(File#file_upload.fd),
-            process_part(Host, Arg, Res, Params);
-        error ->
-            {error, unexpected_error}
-    end;
-process_part(Host, Arg, [{body, Data}|Rest], [{Name, Value}|OtherParams]) ->
-    process_part(Host, Arg, Rest, [{Name, Value ++ Data}] ++ OtherParams);
-process_part(Host, Arg, [{head, {Name, Opts}}|Res], Params) ->
-    case lists:keyfind(filename, 1, Opts) of
-        {_, Fname} ->
-            Dir = lists:concat([config:get(Host, data), "/", utils:random(3)]),
-            FilePath = lists:concat([Dir, "/", utils:random()]),
-            file:make_dir(Dir),
-            case file:open(FilePath,[write]) of
-                {ok, Fd} ->
-                    File = #file_upload{filename = Fname,
-                                        uri = "file://"++ FilePath,
-                                        fd = Fd},
-                    process_part(Host, Arg, Res, [{Name, File}] ++ Params);
-                Err ->
-                    ?ERROR_MSG("Upload error: ~p.", [Err]),
-                    {error, unexpected_error}
-            end;
-        false ->
-            process_part(Host, Arg, Res, [{Name, ""}] ++ Params)
-    end.
-
-parse_multipart(Host, Arg, State) ->
-    case yaws_api:parse_multipart_post(Arg) of
-        {cont, Cont, Res} ->
-            NewState = process_part(Host, Arg, Res, State),
-            case NewState of
-                {error, _Error} ->
-                    NewState;
-                NewState ->
-                    {get_more, Cont, NewState}
-            end;
-        {result, Res} ->
-            FormDataParams = process_part(Host, Arg, Res, State),
-            case FormDataParams of
-                {error, _Error} ->
-                    FormDataParams;
-                FormDataParams ->
-                    Params = yaws_api:parse_query(Arg) ++ FormDataParams,
-                    {ok, parse_query(Params)}
-            end
-    end.
-
-extract(Host, Arg, State) ->
-    Request = Arg#arg.req,
-    case Request#http_request.method of
+extract(_Host, #uce_request{method=Method, arg=Req2}, _State) ->
+    case Method of
         'GET' ->
-            {ok, parse_query(yaws_api:parse_query(Arg))};
+            {ok, parse_query(misultin_req:parse_qs(Req2))};
+        'HEAD' ->
+            {ok, parse_query(misultin_req:parse_qs(Req2))};
+        'OPTIONS' ->
+            {ok, parse_query(misultin_req:parse_qs(Req2))};
         _ ->
-            case Arg#arg.headers#headers.content_type of
-                "multipart/form-data;"++ _Boundary ->
-                    parse_multipart(Host, Arg, State);
-                _ContentType ->
-                    NewArg = Arg#arg{req = Arg#arg.req#http_request{method = 'POST'}},
-                    Query = yaws_api:parse_post(NewArg) ++ yaws_api:parse_query(NewArg),
-                    {ok, parse_query(Query)}
-            end
+            Query = misultin_req:parse_post(Req2),
+            {ok, parse_query(Query)}
     end.
 
-parse(Host, #arg{state=undefined} = Arg) ->
-    extract(Host, Arg, []);
-parse(Host, #arg{} = Arg) ->
-    extract(Host, Arg, Arg#arg.state).
+parse(Host, Request) ->
+    extract(Host, Request, []).
 
 extract_dictionary([], _) ->
     [];
@@ -185,8 +108,8 @@ parse_query(AsciiDirtyQuery) ->
 %% Parse http query and body
 %%
 -spec call(Request :: request(), Response :: response()) -> {ok, request(), response()} | {stop, response()}.
-call(#uce_request{domain=Domain, arg=Arg} = Request, Response) ->
-    case parse(Domain, Arg) of
+call(#uce_request{domain=Domain} = Request, Response) ->
+    case parse(Domain, Request) of
         {error, Reason} ->
             {stop, json_helpers:error(Response, Reason)};
         {get_more, _, _} = State ->

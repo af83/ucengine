@@ -50,7 +50,6 @@ init([Domain]) ->
     setup_root_role(Domain),
     setup_bricks(Domain),
     setup_admin(Domain),
-    setup_server(Domain),
     {ok, Domain}.
 
 handle_call({add_user, Uid}, _From, Domain) ->
@@ -159,22 +158,3 @@ setup_admin(Domain) ->
                                       auth=Auth,
                                       credential=Credential,
                                       metadata={struct, Metadata}}).
-
-setup_server(Vhost) ->
-    GC = yaws:create_gconf([{flags, [{auth_log, false},
-                                     {copy_errlog, false},
-                                     {pick_first_virthost_on_nomatch, false},
-                                     {debug, false}
-                                    ]},
-                            {logdir, config:get(log_dir)},
-                            {cache_refresh_secs, config:get(cache_refresh)}], "default"),
-    yaws_api:setconf(GC, []),
-
-    yaws:add_server(config:get(Vhost, wwwroot),
-                    [{servername, Vhost},
-                     {listen, config:get(bind_ip)},
-                     {port, config:get(port)},
-                     {opaque, Vhost},
-                     {access_log, true},
-                     {partial_post_size, nolimit},
-                     {appmods, [{"/api/" ++ ?VERSION, uce_appmod}]}]).

@@ -18,7 +18,6 @@
 -module(uce_appmod).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws_api.hrl").
 
 -export([out/1]).
 
@@ -58,22 +57,31 @@ call_middleware(Request, Response, Middleware) ->
     (middleware_name(Middleware)):call(Request, Response).
 
 %%
-%% Function called by yaws
-%% For each vhost we support, we store to the opaque field the current domain
+%% Function called by Misultin
+%% TODO: restore vhost support
 %%
-out(#arg{} = Arg) ->
+out(Req) ->
     ?COUNTER('http:request'),
-    Host = Arg#arg.opaque,
+    [{Host, _Config}|_Hosts] = config:get(hosts),
+    {abs_path, AbsPath} = misultin_req:get(uri, Req),
+    Path = case AbsPath of
+               "/api/"++ ?VERSION ++ P2 ->
+                   P2;
+               _ ->
+                   AbsPath
+           end,
+
     Request = #uce_request{domain=Host,
-                           path=Arg#arg.pathinfo,
-                           arg=Arg},
+                           method=misultin_req:get(method, Req),
+                           path=Path,
+                           arg=Req},
 
     Response = call_middlewares(Request, #uce_response{}),
 
     case Response of
         %% normal response
         #uce_response{status=Status, content=Content, headers=Headers} ->
-            Headers ++ [{status, Status}, Content];
+            misultin_req:respond(Status, Headers, Content, Req);
         %% in case of multipart
         Other ->
             Other

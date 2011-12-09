@@ -20,21 +20,19 @@
 -export([call/2]).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws_api.hrl").
 
 %%
 %% Determine the http method
 %%
 -spec call(Request :: request(), Response :: response()) -> {ok, request(), response()}.
-call(#uce_request{qparams=Query,
-                  arg=Arg} = Request, Response) ->
-    Method = case proplists:lookup("_method", Query) of
-                 none ->
-                     Arg#arg.req#http_request.method;
-                 {"_method", StringMethod} ->
-                     list_to_atom(string:to_upper(StringMethod))
-             end,
-    {ok, Request#uce_request{method=Method}, Response}.
+call(#uce_request{qparams=Query} = Request, Response) ->
+    Req2 = case proplists:lookup("_method", Query) of
+               none ->
+                   Request;
+               {"_method", StringMethod} ->
+                   Request#uce_request{method=list_to_atom(string:to_upper(StringMethod))}
+           end,
+    {ok, Req2, Response}.
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

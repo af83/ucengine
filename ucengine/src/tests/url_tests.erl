@@ -30,7 +30,7 @@ url_test_() ->
 test_bad_url() ->
     BaseUrl = fixtures:get_base_url(),
     ?assertMatch({struct, [{"error", "not_found"},
-                           {"infos", _Description}]}, tests_utils:get(BaseUrl, "", [])).
+                           {"infos", _Description}]}, tests_utils:get(BaseUrl, "/", [])).
 
 test_options() ->
     BaseUrl = fixtures:get_base_url(),
@@ -64,11 +64,11 @@ match_cors([{ok, _, Headers, _}| Requests]) ->
 test_cors() ->
     BaseUrl = fixtures:get_base_url(),
     Requests = [
-                 tests_utils:get_raw(BaseUrl, "")
+                 tests_utils:get_raw(BaseUrl, "/")
                , tests_utils:get_raw(BaseUrl, "/time")
-               , tests_utils:options_raw(BaseUrl, "")
+               , tests_utils:options_raw(BaseUrl, "/")
                , tests_utils:options_raw(BaseUrl, "/time")
-               , tests_utils:head_raw(BaseUrl, "")
+               , tests_utils:head_raw(BaseUrl, "/")
                , tests_utils:head_raw(BaseUrl, "/time")
                 ],
     match_cors(Requests).
