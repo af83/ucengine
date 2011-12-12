@@ -22,7 +22,7 @@
 -export([out/1]).
 
 call_middlewares(Request, Response) ->
-    case call_middlewares(Request, Response, [cors, parse, method, router]) of
+    case call_middlewares(Request, Response, [cors, static, parse, method, router]) of
         {stop, Resp} ->
             Resp;
         {ok, Req, Resp} ->
