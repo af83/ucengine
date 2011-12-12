@@ -96,9 +96,9 @@ ping() ->
 send_events(_, _, []) ->
     ok;
 send_events(Req, Domain, [#uce_event{datetime=Datetime} = Event|Events]) ->
-    misultin:stream("data: ", Req),
-    misultin:stream(mochijson:encode(json_helpers:to_json(Domain, Event)), Req),
-    misultin:stream("\nid: ", Req),
-    misultin:stream(integer_to_list(Datetime), Req),
-    misultin:stream("\n\n", Req),
+    misultin_req:stream("data: ", Req),
+    misultin_req:stream(mochijson:encode(json_helpers:to_json(Domain, Event)), Req),
+    misultin_req:stream("\nid: ", Req),
+    misultin_req:stream(integer_to_list(Datetime), Req),
+    misultin_req:stream("\n\n", Req),
     send_events(Req, Domain, Events).
