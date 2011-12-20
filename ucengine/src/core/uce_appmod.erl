@@ -20,7 +20,18 @@
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 
--export([out/1]).
+-behaviour(cowboy_http_handler).
+
+-export([init/3, handle/2, terminate/2]).
+
+init({tcp, http}, Req, _Opts) ->
+    {ok, Req, undefined_state}.
+
+handle(Req, State) ->
+    {ok, out(Req), State}.
+
+terminate(_Req, _State) ->
+    ok.
 
 call_middlewares(Request, Response) ->
     case call_middlewares(Request, Response, [cors, parse, method, router]) of
@@ -61,19 +72,29 @@ call_middleware(Request, Response, Middleware) ->
 %% Function called by yaws
 %% For each vhost we support, we store to the opaque field the current domain
 %%
-out(#arg{} = Arg) ->
+out(Req) ->
     ?COUNTER('http:request'),
-    Host = Arg#arg.opaque,
+    {Method, Req} = cowboy_http_req:method(Req),
+    {AbsPath, Req} = cowboy_http_req:raw_path(Req),
+    [{Host, _Config}|_Hosts] = config:get(hosts),
+    Path = case AbsPath of
+               "/api/"++ ?VERSION ++ P2 ->
+                   P2;
+               _ ->
+                   AbsPath
+           end,
+    %% TODO: restore vhost
     Request = #uce_request{domain=Host,
-                           path=Arg#arg.pathinfo,
-                           arg=Arg},
+                           path=Path,
+                           method=Method,
+                           arg=Req},
 
     Response = call_middlewares(Request, #uce_response{}),
 
     case Response of
         %% normal response
         #uce_response{status=Status, content=Content, headers=Headers} ->
-            Headers ++ [{status, Status}, Content];
+            cowboy_http_req:reply(Status, Headers, Content, Req);
         %% in case of multipart
         Other ->
             Other

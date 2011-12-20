@@ -30,7 +30,7 @@ start() ->
     application:start(ucengine).
 
 start(_, _) ->
-    start_apps([sasl, crypto, metrics, gproc, ibrowse]),
+    start_apps([sasl, crypto, metrics, gproc, ibrowse, cowboy]),
     mnesia:create_schema([node()|nodes()]),
     application:start(mnesia, permanent),
     error_logger:tty(false),
@@ -63,6 +63,14 @@ setup() ->
     save_pid(),
     setup_search(),
     setup_routes(),
+    Dispatch = [
+                %% {Host, list({Path, Handler, Opts})}
+                {'_', [{'_', uce_appmod, []}]}
+               ],
+    cowboy:start_listener(http, 100,
+                          cowboy_tcp_transport, [{port, config:get(port)}],
+                          cowboy_http_protocol, [{dispatch, Dispatch}]
+                         ),
     ok.
 
 stop(State) ->

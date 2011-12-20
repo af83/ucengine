@@ -20,7 +20,6 @@
 -export([call/2]).
 
 -include("uce.hrl").
--include_lib("yaws/include/yaws_api.hrl").
 
 %%
 %% Match the request to the good route
@@ -38,8 +37,8 @@ call(#uce_request{method='OPTIONS', path=Path}, Response) ->
 % Yaws will strip the content
 call(#uce_request{method='HEAD'} = Request, Response) ->
     call(Request#uce_request{method='GET'}, Response);
-call(#uce_request{method=Method, path=Path, arg=Arg} = Request, Response) ->
-    ContentType = Arg#arg.headers#headers.content_type,
+call(#uce_request{method=Method, path=Path, arg=Req2} = Request, Response) ->
+    ContentType = cowboy_http_req:parse_header('Content-Type', Req2, undefined),
     case routes:get(Method, Path, ContentType) of
         {ok, Route, Match} ->
             {ok, Request#uce_request{route=Route, match=Match}, Response};
