@@ -38,7 +38,8 @@ call(#uce_request{method='OPTIONS', path=Path}, Response) ->
 call(#uce_request{method='HEAD'} = Request, Response) ->
     call(Request#uce_request{method='GET'}, Response);
 call(#uce_request{method=Method, path=Path, arg=Req2} = Request, Response) ->
-    ContentType = cowboy_http_req:parse_header('Content-Type', Req2, undefined),
+    {ContentType, _Req} = cowboy_http_req:parse_header('Content-Type', Req2),
+
     case routes:get(Method, Path, ContentType) of
         {ok, Route, Match} ->
             {ok, Request#uce_request{route=Route, match=Match}, Response};

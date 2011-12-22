@@ -26,9 +26,9 @@
 %%
 -spec call(Request :: request(), Response :: response()) -> {ok, request(), response()}.
 call(Request, #uce_response{headers=Headers} = Response) ->
-    CorsHeaders = [{header, "Access-Control-Allow-Origin: *"},
-                   {header, "Access-Control-Allow-Methods: GET, POST, PUT, DELETE"},
-                   {header, "Access-Control-Allow-Headers: X-Requested-With"}],
+    CorsHeaders = [{<<"Access-Control-Allow-Origin">>, "*"},
+                   {<<"Access-Control-Allow-Methods">>, "GET, POST, PUT, DELETE"},
+                   {<<"Access-Control-Allow-Headers">>, "X-Requested-With"}],
     {ok, Request, Response#uce_response{headers=Headers ++ CorsHeaders}}.
 
 -ifdef(TEST).

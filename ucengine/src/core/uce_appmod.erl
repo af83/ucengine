@@ -77,12 +77,14 @@ out(Req) ->
     {Method, Req} = cowboy_http_req:method(Req),
     {AbsPath, Req} = cowboy_http_req:raw_path(Req),
     [{Host, _Config}|_Hosts] = config:get(hosts),
-    Path = case AbsPath of
+
+    Path = case binary_to_list(AbsPath) of
                "/api/"++ ?VERSION ++ P2 ->
                    P2;
                _ ->
-                   AbsPath
+                   list_to_binary(AbsPath)
            end,
+
     %% TODO: restore vhost
     Request = #uce_request{domain=Host,
                            path=Path,

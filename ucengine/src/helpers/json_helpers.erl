@@ -38,9 +38,9 @@
 format_response(Response, Status, Content) ->
     format_response(Response, Status, "application/json", to_struct(Content)).
 
-format_response(Response, Status, ContentType, Content) ->
+format_response(#uce_response{headers=Headers}=Response, Status, ContentType, Content) ->
     Body = lists:flatten(mochijson:encode(Content)),
-    Response#uce_response{status=Status, content={content, ContentType, Body}}.
+    Response#uce_response{headers=Headers ++ [{'Content-Type', ContentType}], status=Status, content=Body}.
 
 unexpected_error(Response) ->
     format_response(Response, 500, [{error, unexpected_error}]).
