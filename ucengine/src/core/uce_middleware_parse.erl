@@ -102,9 +102,12 @@ extract(Host, Arg, State) ->
             case Arg#arg.headers#headers.content_type of
                 "multipart/form-data;"++ _Boundary ->
                     parse_multipart(Host, Arg, State);
-                _ContentType ->
+                "application/x-www-form-urlencoded" ->
                     NewArg = Arg#arg{req = Arg#arg.req#http_request{method = 'POST'}},
                     Query = yaws_api:parse_post(NewArg) ++ yaws_api:parse_query(NewArg),
+                    {ok, parse_query(Query)};
+                _ ->
+                    Query = yaws_api:parse_query(Arg),
                     {ok, parse_query(Query)}
             end
     end.

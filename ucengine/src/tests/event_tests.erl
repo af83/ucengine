@@ -267,7 +267,7 @@ test_push_to_other(BaseUrl, {RootUid, RootSid}, {ParticipantUid, ParticipantSid}
 
 test_push_json(BaseUrl, AuthParams) ->
     RequestBody = {struct, [{"type", "test_json"},
-                            {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"},
+                            {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip%"},
                                                                                       {"hop", null},
                                                                                       {"hop2", true},
                                                                                       {"hop3", false}]}]}}]}}]
@@ -282,7 +282,7 @@ test_push_json(BaseUrl, AuthParams) ->
                          {"id", Id},
                          {"location", "testmeeting"},
                          {"from", _},
-                         {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip"},
+                         {"metadata", {struct, [{"complex", {array, [10, {struct, [{"name", "plip%"},
                                                                                    {"hop", null},
                                                                                    {"hop2", true},
                                                                                    {"hop3", false}
