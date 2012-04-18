@@ -264,15 +264,15 @@ test_set_role_not_found_user(BaseUrl, {RootUid, RootSid}) ->
               {"sid", RootSid},
               {"role", "anonymous"},
               {"location", "testmeeting"}],
-    {struct, [{"error", "not_found"}]} =
-        tests_utils:post(BaseUrl, "/user/unexistent_user/roles/", Params).
+    ?assertMatch({struct, [{"error", "not_found"}]},
+                 tests_utils:post(BaseUrl, "/user/unexistent_user/roles/", Params)).
 
 test_set_role_not_found_role(BaseUrl, {RootUid, RootSid}, {AnonymousUid, _}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid},
               {"role", "unexistent_role"},
               {"location", "testmeeting"}],
-    {struct, [{"error", "not_found"}]} =
+    {struct, [{"error", "not_found"}, {"infos", "role not found"}]} =
         tests_utils:post(BaseUrl, "/user/"++AnonymousUid++"/roles/", Params).
 
 test_set_role_not_found_location(BaseUrl, {RootUid, RootSid}, {AnonymousUid, _}) ->
@@ -280,7 +280,7 @@ test_set_role_not_found_location(BaseUrl, {RootUid, RootSid}, {AnonymousUid, _})
               {"sid", RootSid},
               {"role", "anonymous"},
               {"location", "unexistent_meeting"}],
-    {struct, [{"error", "not_found"}]} =
+    {struct, [{"error", "not_found"}, {"infos", "meeting not found"}]} =
         tests_utils:post(BaseUrl, "/user/"++AnonymousUid++"/roles/", Params).
 
 test_set_role_unauthorized(BaseUrl, {UglyUid, UglySid}, {AnonymousUid, _}) ->
@@ -294,30 +294,30 @@ test_set_role_unauthorized(BaseUrl, {UglyUid, UglySid}, {AnonymousUid, _}) ->
 test_delete_role(BaseUrl, {RootUid, RootSid}, {AnonymousUid, _}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct, [{"result", "ok"}]} =
-        tests_utils:delete(BaseUrl, "/user/"++AnonymousUid++"/roles/anonymous", Params),
-    {struct, [{"error", "not_found"}]} =
-        tests_utils:delete(BaseUrl, "/user/"++AnonymousUid++"/roles/anonymous", Params).
+    ?assertMatch({struct, [{"result", "ok"}]},
+                 tests_utils:delete(BaseUrl, "/user/"++AnonymousUid++"/roles/anonymous", Params)),
+    ?assertMatch({struct, [{"error", "not_found"}, {"infos", "role not found for this user"}]},
+                 tests_utils:delete(BaseUrl, "/user/"++AnonymousUid++"/roles/anonymous", Params)).
 
 test_delete_role_with_location(BaseUrl, {RootUid, RootSid}, {AnonymousUid, _}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct, [{"result", "ok"}]} =
-        tests_utils:delete(BaseUrl, "/user/"++AnonymousUid++"/roles/anonymous/testmeeting", Params),
-    {struct, [{"error", "not_found"}]} =
-        tests_utils:delete(BaseUrl, "/user/"++AnonymousUid++"/roles/anonymous", Params).
+    ?assertMatch({struct, [{"result", "ok"}]},
+                 tests_utils:delete(BaseUrl, "/user/"++AnonymousUid++"/roles/anonymous/testmeeting", Params)),
+    ?assertMatch({struct, [{"error", "not_found"}, {"infos", "role not found for this user"}]},
+                 tests_utils:delete(BaseUrl, "/user/"++AnonymousUid++"/roles/anonymous", Params)).
 
 test_delete_role_not_found_user(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct, [{"error", "not_found"}]} =
-        tests_utils:delete(BaseUrl, "/user/unexistent_user/roles/anonymous", Params).
+    ?assertMatch({struct, [{"error", "not_found"}]},
+                 tests_utils:delete(BaseUrl, "/user/unexistent_user/roles/anonymous", Params)).
 
 test_delete_role_not_found_role(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct, [{"error", "not_found"}]} =
-        tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/unexistent_role", Params).
+    ?assertMatch({struct, [{"error", "not_found"}]},
+                 tests_utils:delete(BaseUrl, "/user/test.user@af83.com/roles/unexistent_role", Params)).
 
 test_delete_role_not_found_location(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
@@ -388,13 +388,13 @@ test_delete(BaseUrl, {RootUid, RootSid}) ->
                {"metadata[nickname]", "test_nickname"}],
     {struct, [{"result", Id}]} =
         tests_utils:post(BaseUrl, "/user/", Params2),
-    {struct, [{"result", "ok"}]} =
-        tests_utils:delete(BaseUrl, "/user/"++Id, Params),
-    {struct, [{"error", "not_found"}]} =
-        tests_utils:get(BaseUrl, "/user/"++Id, Params).
+    ?assertMatch({struct, [{"result", "ok"}]},
+                 tests_utils:delete(BaseUrl, "/user/"++Id, Params)),
+    ?assertMatch({struct, [{"error", "not_found"}]},
+                 tests_utils:get(BaseUrl, "/user/"++Id, Params)).
 
 test_delete_not_found(BaseUrl, {RootUid, RootSid}) ->
     Params = [{"uid", RootUid},
               {"sid", RootSid}],
-    {struct, [{"error", "not_found"}]} =
-        tests_utils:delete(BaseUrl, "/user/unexistent.user@af83.com", Params).
+    ?assertMatch({struct, [{"error", "not_found"}, {"infos", "user not found"}]},
+                 tests_utils:delete(BaseUrl, "/user/unexistent.user@af83.com", Params)).

@@ -38,6 +38,9 @@ call(#uce_request{domain=Domain,
         {error, Reason} ->
             ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Reason, Params]),
             {ok, Request, json_helpers:error(Response, Reason)};
+        {error, Reason, Message} ->
+            ?ERROR_MSG("~p: error: ~p:~p: ~p ~p ~p~n", [Domain, Module, Function, Reason, Message, Params]),
+            {ok, Request, json_helpers:error(Response, Reason, Message)};
         E ->
             ?ERROR_MSG("~p: error: ~p:~p: ~p ~p~n", [Domain, Module, Function, Params, E]),
             {ok, Request, json_helpers:unexpected_error(Response)}

@@ -60,7 +60,7 @@ add(Domain, #uce_user{id=UId, name=Name} = User) ->
             {ok, UId}
     end.
 
--spec delete(domain(), uid()) -> {ok, deleted} | erlang:throw({error, not_found}) | erlang:throw({error, any()}).
+-spec delete(domain(), uid()) -> {ok, deleted} | erlang:throw({error, not_found, string()}) | erlang:throw({error, any()}).
 delete(Domain, Uid) ->
     case exists(Domain, Uid) of
         true ->
@@ -78,10 +78,10 @@ delete(Domain, Uid) ->
                     (db:get(?MODULE, Domain)):delete(Domain, Uid)
             end;
         false ->
-            throw({error, not_found})
+            throw({error, not_found, "user not found"})
     end.
 
--spec update(domain(), user()) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec update(domain(), user()) -> {ok, updated} | erlang:throw({error, not_found, string()}).
 update(Domain, #uce_user{id=Uid} = User) ->
     case exists(Domain, Uid) of
         true ->
@@ -93,7 +93,7 @@ update(Domain, #uce_user{id=Uid} = User) ->
             end,
             (db:get(?MODULE, Domain)):update(Domain, User);
         false ->
-            throw({error, not_found})
+            throw({error, not_found, "user not found"})
    end.
 
 -spec list(domain()) -> {ok, list(user())}.
@@ -109,7 +109,7 @@ get(Domain, Uid) ->
             gen_server:call(Pid, get_user)
     end.
 
--spec get_by_name(domain(), list()) -> {ok, user()} | erlang:throw({error, not_found}).
+-spec get_by_name(domain(), list()) -> {ok, user()} | erlang:throw({error, not_found, string()}).
 get_by_name(Domain, Name) ->
     (db:get(?MODULE, Domain)):get_by_name(Domain, Name).
 
@@ -133,7 +133,7 @@ exists(Domain, Uid) ->
             true
     end.
 
--spec add_role(domain(), uid(), {role_id(), meeting_id()}) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec add_role(domain(), uid(), {role_id(), meeting_id()}) -> {ok, updated} | erlang:throw({error, not_found, string()}).
 add_role(Domain, Uid, {Role, Location}) ->
     % Just ensure the role and location exists
     case uce_meeting:exists(Domain, Location) of
@@ -148,20 +148,20 @@ add_role(Domain, Uid, {Role, Location}) ->
                             update(Domain, User#uce_user{roles=(User#uce_user.roles ++ [{Role, Location}])})
                     end;
                 false ->
-                    throw({error, not_found})
+                    throw({error, not_found, "role not found"})
             end;
         false ->
-            throw({error, not_found})
+            throw({error, not_found, "meeting not found"})
     end.
 
--spec delete_role(domain(), uid(), {role_id(), meeting_id()}) -> {ok, updated} | erlang:throw({error, not_found}).
+-spec delete_role(domain(), uid(), {role_id(), meeting_id()}) -> {ok, updated} | erlang:throw({error, not_found, string()}).
 delete_role(Domain, Id, {Role, Location}) ->
     {ok, User} = get(Domain, Id),
     Roles = case lists:member({Role, Location}, User#uce_user.roles) of
                 true ->
                     lists:delete({Role, Location}, User#uce_user.roles);
                 false ->
-                    throw({error, not_found})
+                    throw({error, not_found, "role not found for this user"})
             end,
     update(Domain, User#uce_user{roles=Roles}).
 

@@ -139,6 +139,8 @@ call(Object, Action, Args) ->
             throw({error, Reason});
         {error, Reason} ->
             throw({error, Reason});
+        {error, Reason, Message} ->
+            throw({error, Reason, Message});
         Result ->
             Result
     end.
