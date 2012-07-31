@@ -35,7 +35,6 @@ run() ->
                meeting_tests,
                presence_tests,
                user_tests,
-               file_tests,
                role_tests,
                ctl_tests,
                url_tests] ++

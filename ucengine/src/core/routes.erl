@@ -137,7 +137,6 @@ setup_routes() ->
                   meeting_controller,
                   role_controller,
                   event_controller,
-                  file_controller,
                   time_controller,
                   search_controller]).
 
