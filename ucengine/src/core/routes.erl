@@ -137,8 +137,7 @@ setup_routes() ->
                   meeting_controller,
                   role_controller,
                   event_controller,
-                  time_controller,
-                  search_controller]).
+                  time_controller]).
 
 -ifdef(TEST).
 -include_lib("eunit/include/eunit.hrl").

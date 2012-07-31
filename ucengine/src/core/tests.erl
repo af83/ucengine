@@ -31,19 +31,12 @@ start() ->
 
 run() ->
     Modules = [event_tests,
-               search_tests,
                meeting_tests,
                presence_tests,
                user_tests,
                role_tests,
                ctl_tests,
-               url_tests] ++
-        case config:get(search) of
-            solr ->
-                [solr_tests];
-            _ ->
-                []
-        end,
+               url_tests],
     Failed = lists:filter(fun(Module) ->
                                   io:format("> ~p~n", [Module]),
                                   case Module:test() of

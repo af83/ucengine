@@ -51,8 +51,7 @@ drop_model(Domain, [Model|Models]) ->
     end,
     drop_model(Domain, Models).
 
-teardown([Domain, _, _Testers]) ->
-    teardown_solr(Domain),
+teardown(_) ->
     ok.
 
 add_meeting(Domain, Meeting) ->
@@ -186,7 +185,3 @@ setup_testers(Domain, {RootUid, ParticipantUid, UglyUid, AnonymousUid}) ->
                                                    auth="password"}),
 
     [{RootUid, RootSid}, {ParticipantUid, ParticipantSid}, {UglyUid, UglySid}, {AnonymousUid, ""}].
-
-teardown_solr(Domain) ->
-    uce_event_solr_search:delete(Domain, "*:*"),
-    ok.

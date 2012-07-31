@@ -61,24 +61,12 @@ start_apps([App|Apps]) ->
 
 setup() ->
     save_pid(),
-    setup_search(),
     setup_routes(),
     ok.
 
 stop(State) ->
     remove_pid(),
     State.
-
-setup_search() ->
-    case config:get(search) of
-        solr ->
-            ChildSpec = {uce_solr_commiter,
-                         {uce_solr_commiter, start_link, []},
-                         permanent, brutal_kill, worker, [uce_solr_commiter]},
-            {ok, _Pid} = uce_sup:start_child(ChildSpec);
-        _ ->
-            []
-    end.
 
 setup_routes() ->
     routes:init().
