@@ -163,45 +163,6 @@
             },
 
             /**
-             * Get file upload url for this meeting
-             */
-            getFileUploadUrl: function() {
-                return format_api_url("/file/"+this.name+"?uid="+this.uid+"&sid="+ this.sid);
-            },
-
-            /**
-             * Get file download url
-             * @param String filename
-             */
-            getFileDownloadUrl: function(filename) {
-                return format_api_url("/file/"+this.name+"/"+ filename +"?uid="+this.uid+"&sid="+this.sid);
-            },
-
-            /**
-             * List files
-             */
-            listFiles: function(callback) {
-                get('/file/'+ this.name, this.params.merge(), function(err, result, xhr) {
-                    callback(err, result.result, xhr);
-                });
-            },
-
-            /**
-             * @param String id
-             * @param Function callback
-             */
-            delFile: function(id, callback) {
-                del("/file/" + this.name + "/" + id,
-                    this.params.merge(),
-                    function (err, result, xhr) {
-                        if (!callback) {
-                            return;
-                        }
-                        callback (err, result, xhr);
-                    });
-            },
-
-            /**
              * @param Object params
              *    search
              *    start you can use uce.time() (mandatory)
@@ -354,56 +315,6 @@
             },
 
             /**
-             * Start replay loop event
-             * @param Integer start offset
-             * @param Array events
-             */
-            startReplay: function(start, events, index) {
-                this._replay_current_time = start;
-                if (!index) {
-                    this._replay_events = events;
-                    index = 0;
-                }
-                var next = null;
-                while (next = events[index]) {
-                    if (next && start > next.datetime) {
-                        this.trigger(next);
-                        index++;
-                    } else {
-                        break;
-                    }
-                }
-                if (next) {
-                    this._replay_next_index = index;
-                    var that = this;
-                    var offset = 100; // each 100 milisecond
-                    this._replay_temporized = setTimeout(function() {
-                        that.startReplay(start + offset, events, index);
-                    }, offset);
-                }
-            },
-
-            getCurrentReplay: function() {
-                return this._replay_current_time;
-            },
-
-            /**
-             * Jump to a specific datetime
-             */
-            jumpToReplay: function(datetime) {
-                this.stopReplay();
-                if (datetime > this._replay_current_time) {
-                    this.startReplay(datetime, this._replay_events, this._replay_next_index);
-                } else {
-                    this.startReplay(datetime, this._replay_events);
-                }
-            },
-
-            stopReplay: function() {
-                clearTimeout(this._replay_temporized);
-            },
-
-            /**
              * Alias of on
              */
             bind: function() {
@@ -438,13 +349,6 @@
                     return !(handler.callback == callback && handler.type == type);
                 });
                 return this;
-            },
-            /**
-             * Search event in current meeting
-             */
-            search: function(terms, options, callback) {
-                terms.location = this.name;
-                return this.client.search(terms, options, callback);
             },
             /**
              * Can the user make the action in the current meeting ?
@@ -529,32 +433,6 @@
                 this.uid = p.user;
                 this.name = p.name;
                 return this;
-            },
-            /**
-             * Search events
-             */
-            search: function(terms, params, callback) {
-                if (!callback) {
-                    callback = params;
-                    params = {};
-                }
-                var query = terms.query || '';
-                delete terms.query;
-                var searchTerms = [];
-                for (var i in terms) {
-                    searchTerms.push(i+":"+terms[i]);
-                }
-                searchTerms.push(query);
-                get("/search/event",
-                    $.extend({'uid': _presence.user,
-                              'sid': _presence.id,
-                              'searchTerms' : searchTerms.join(' ')}, params),
-                    function (err, result, xhr) {
-                        if (!callback) {
-                            return;
-                        }
-                        callback(err, result.result, xhr);
-                    });
             },
             _meetingsCache : {},
             meeting: function(meetingname) {
