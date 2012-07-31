@@ -22,86 +22,13 @@
 -include("uce.hrl").
 -include_lib("yaws/include/yaws_api.hrl").
 
-write_file(Data, File) ->
-    case file:write(File#file_upload.fd, Data) of
-        ok ->
-            ok;
-        Err ->
-            ?ERROR_MSG("Upload error: ~p.~n", [Err]),
-            error
-    end.
-
-process_part(_Host, _Arg, [], Params) ->
-    Params;
-process_part(_Host, _Arg, [{part_body, Data}|_Res], [{_Name, File}|_] = Params) when is_record(File, file_upload) ->
-    case write_file(Data, File) of
-        ok ->
-            Params;
-        error ->
-            {error, unexpected_error}
-    end;
-process_part(_Host, _Arg, [{part_body, Data}|_Res], [{Name, Value}|OtherParams]) ->
-    [{Name, Value ++ Data}] ++ OtherParams;
-process_part(Host, Arg, [{body, Data}|Res], [{_Name, File}|_] = Params) when is_record(File, file_upload) ->
-    case write_file(Data, File) of
-        ok ->
-            ok = file:close(File#file_upload.fd),
-            process_part(Host, Arg, Res, Params);
-        error ->
-            {error, unexpected_error}
-    end;
-process_part(Host, Arg, [{body, Data}|Rest], [{Name, Value}|OtherParams]) ->
-    process_part(Host, Arg, Rest, [{Name, Value ++ Data}] ++ OtherParams);
-process_part(Host, Arg, [{head, {Name, Opts}}|Res], Params) ->
-    case lists:keyfind(filename, 1, Opts) of
-        {_, Fname} ->
-            Dir = lists:concat([config:get(Host, data), "/", utils:random(3)]),
-            FilePath = lists:concat([Dir, "/", utils:random()]),
-            file:make_dir(Dir),
-            case file:open(FilePath,[write]) of
-                {ok, Fd} ->
-                    File = #file_upload{filename = Fname,
-                                        uri = "file://"++ FilePath,
-                                        fd = Fd},
-                    process_part(Host, Arg, Res, [{Name, File}] ++ Params);
-                Err ->
-                    ?ERROR_MSG("Upload error: ~p.", [Err]),
-                    {error, unexpected_error}
-            end;
-        false ->
-            process_part(Host, Arg, Res, [{Name, ""}] ++ Params)
-    end.
-
-parse_multipart(Host, Arg, State) ->
-    case yaws_api:parse_multipart_post(Arg) of
-        {cont, Cont, Res} ->
-            NewState = process_part(Host, Arg, Res, State),
-            case NewState of
-                {error, _Error} ->
-                    NewState;
-                NewState ->
-                    {get_more, Cont, NewState}
-            end;
-        {result, Res} ->
-            FormDataParams = process_part(Host, Arg, Res, State),
-            case FormDataParams of
-                {error, _Error} ->
-                    FormDataParams;
-                FormDataParams ->
-                    Params = yaws_api:parse_query(Arg) ++ FormDataParams,
-                    {ok, parse_query(Params)}
-            end
-    end.
-
-extract(Host, Arg, State) ->
+extract(_Host, Arg, _State) ->
     Request = Arg#arg.req,
     case Request#http_request.method of
         'GET' ->
             {ok, parse_query(yaws_api:parse_query(Arg))};
         _ ->
             case Arg#arg.headers#headers.content_type of
-                "multipart/form-data;"++ _Boundary ->
-                    parse_multipart(Host, Arg, State);
                 "application/x-www-form-urlencoded" ++ _Charset ->
                     NewArg = Arg#arg{req = Arg#arg.req#http_request{method = 'POST'}},
                     Query = yaws_api:parse_post(NewArg) ++ yaws_api:parse_query(NewArg),
