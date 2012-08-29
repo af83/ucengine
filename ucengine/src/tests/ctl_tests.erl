@@ -79,12 +79,12 @@ ctl_roles_test_() ->
 %%
 
 test_meeting_add(Domain) ->
-    false = uce_meeting:exists(Domain, "newmeeting"),
+    false = uce_meeting:exists(Domain, "newmeeting2"),
     Params = [{"description", ""}],
-    ok = uce_ctl:cmd({dummy, [Domain, "meeting", "add", "newmeeting"]}, Params),
-    Expected = {ok, #uce_meeting{id="newmeeting",
+    ok = uce_ctl:cmd({dummy, [Domain, "meeting", "add", "newmeeting2"]}, Params),
+    Expected = {ok, #uce_meeting{id="newmeeting2",
                                  metadata=json_helpers:to_struct([{"description", ""}])}},
-    ?assertEqual(Expected, uce_meeting:get(Domain, "newmeeting")).
+    ?assertEqual(Expected, uce_meeting:get(Domain, "newmeeting2")).
 
 test_meeting_get(Domain) ->
     ?assertMatch({ok, _}, uce_ctl:cmd({dummy, [Domain, "meeting", "get", "testmeeting"]}, [])).

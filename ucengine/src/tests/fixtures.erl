@@ -52,6 +52,10 @@ drop_model(Domain, [Model|Models]) ->
     drop_model(Domain, Models).
 
 teardown(_) ->
+    Domain = get_default_domain(),
+    catch uce_meeting:delete(Domain, "testmeeting"),
+    catch uce_meeting:delete(Domain, "meeting2"),
+    catch uce_meeting:delete(Domain, "meeting3"),
     ok.
 
 add_meeting(Domain, Meeting) ->
