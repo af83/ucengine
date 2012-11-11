@@ -163,7 +163,6 @@ setup_admin(Domain) ->
 setup_server(Vhost) ->
     GC = yaws:create_gconf([{flags, [{auth_log, false},
                                      {copy_errlog, false},
-                                     {pick_first_virthost_on_nomatch, false},
                                      {debug, false}
                                     ]},
                             {logdir, config:get(log_dir)},
