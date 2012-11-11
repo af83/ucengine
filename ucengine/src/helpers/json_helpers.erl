@@ -132,17 +132,6 @@ to_json(Domain, #uce_event{id=Id,
          [{from, From}] ++
          JSONParent ++
          [{metadata, Metadata2}]};
-to_json(Domain, #uce_file{id=Id,
-                          name=Name,
-                          location=Location,
-                          uri=Uri,
-                          metadata=Metadata}) ->
-    JSONLocation = [{location, Location}],
-    {struct, [{id, Id},
-              {domain, Domain},
-              {name, Name},
-              {uri, Uri}] ++ JSONLocation ++
-         [{metadata, Metadata}]};
 to_json(Domain, #uce_presence{id=Id,
                               user=User,
                               auth=Auth}) ->

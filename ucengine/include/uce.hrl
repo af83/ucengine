@@ -39,23 +39,6 @@
           %% [{"description",Desc}, {"language",Lang}, ... ]
           metadata = {struct, []}}).
 
--record(uce_file, {
-          % fileid
-          id = none,
-          % name
-          name,
-          % Meeting
-          location = "",
-          % path
-          uri = [],
-          %% date (ms from epoch)
-          datetime = undefined,
-          % mime type
-          mime = "text/plain",
-          % name as send by the browser
-          metadata = {struct, []}
-         }).
-
 -record(uce_user, {
           %% User uid
           id = none,
