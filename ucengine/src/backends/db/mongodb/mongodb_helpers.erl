@@ -70,7 +70,10 @@ collection_member_to_list(Value) when is_list(Value) ->
 collection_member_to_list(Value) when is_binary(Value) ->
     unicode:characters_to_list(Value);
 
-collection_member_to_list(Value) when is_atom(Value)->
+collection_member_to_list(Value) when is_float(Value) ->
+    Value;
+
+collection_member_to_list(Value) when is_atom(Value) ->
     Value.
 
 %%--------------------------------------------------------------------
