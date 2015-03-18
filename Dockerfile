@@ -14,7 +14,7 @@ ENV ERL_LIBS /usr/lib/yaws/
 
 RUN mkdir /code
 WORKDIR /code
-ADD . /code
+COPY . /code
 RUN chown -R ucengine:ucengine /code
 
 RUN mkdir /data && chown ucengine:ucengine /data
